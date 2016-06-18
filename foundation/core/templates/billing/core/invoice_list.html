@@ -1,0 +1,13 @@
+{% extends "billing/invoice_list.html" %}
+{% load i18n %}
+{% block page_title %}
+<title>Ikwen | {% trans "Invoices" %}</title>
+{% endblock %}
+{% block profile_custom_menu_items %}
+    {% if request.user.is_iao %}
+        <li class="services">
+            <a href="{% url 'ikwen:service_list' %}" title="{% trans "View and manage your services" %}">{% trans "Services" %}</a>
+        </li>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}

@@ -1,0 +1,78 @@
+{% load i18n %}  {# Base Template for mails issued by Ikwen NoDev application. It includes a signature with Ikwen and NoDev #}
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>{{ company_name }} - {{ subject }}</title>
+    </head>
+    <body style="background: #f6f6f6; font: normal 78% Helvetica, Arial, sans-serif; margin: 0; padding-top: 15px">
+        <div style="background: #fff; margin: 0 auto; padding: 0; width: 90%">
+
+            {% if banner %} {# TOP #}
+                <div style="height: 150px">
+                    <img src="{{ banner.url }}" style="margin: 0; width: 100%" alt="banner"/>
+                </div>
+            {% else %}
+                <div style="background: #557cff; height: 150px">
+                    {% if logo.name %}
+                        <a href="{{ website_url }}" style="float: left">
+                            <img src="{{ logo.url }}" style="margin: 9px 0 0 9px" alt="logo" height="135"/>
+                        </a>
+                    {% endif %}
+                    <div style="float: left; margin-left: 36px">
+                        <p style="color: #fff; font-size: 3.6em; margin: 15px 0 0 0">{{ company_name }}</p>
+                        <p style="color: #fff; font-size: 1.35em">{{ slogan }}</p>
+                    </div>
+                </div>
+            {% endif %} {# END TOP #}
+
+            {% block content %}{% endblock %}
+
+            {% if signature %} {# SIGNATURE #}
+                <p style="color: #999; font-size: 1.1em; line-height: 1.35em; margin-top: 10px; padding: 0 15px; text-align: justify; width: 240px">
+                    {{ signature|safe }}
+                </p>
+            {% endif %} {# END SIGNATURE #}
+
+            {% if legal_notice %} {# LEGAL NOTICE #}
+                <p style="color: #aaa; font-size: .9em; line-height: 1.3em; padding: 30px 15px 0; text-align: justify">
+                    {{ legal_notice|safe }}
+                </p>
+            {% endif %} {# END LEGAL NOTICE #}
+            <footer style="clear: both; height: 130px; padding: 30px 9px 0">
+                <div>
+                    <nav style="float: left">
+                        <ul style="margin: 0; padding: 0">
+                            {% if contact_url %}
+                                <li style="display: inline; margin-right: 15px">
+                                    <a style="color: #888; text-decoration: none" href="{{ contact_url }}">{% trans "Contact" %}</a>
+                                </li>
+                            {% endif %}
+                            {% if about_url %}
+                                <li style="display: inline">
+                                    <a style="color: #888; text-decoration: none" href="{{ about_url }}">{% trans "About us" %}</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    <div style="color: #888; float: right; font-size: .9em; margin-top: 1px; text-align: right">
+                        &copy; {{ year }} <a href="{{ website_url }}" style="color: #666; text-decoration: none"><strong>{{ company_name }}</strong></a>.
+                        {% trans "All rights reserved." %}
+                        {% if legal_mentions_url %}
+                        - <a href="{{ legal_mentions_url }}" style="color: #666; text-decoration: none">{% trans "Legal mentions" %}</a>
+                        {% endif %}
+                    </div>
+                    <div style="color: #888; border-top: solid 1px #DDD; clear: both; float: right; font-size: .9em; margin-top: 6px; padding-top: 3px; text-align: right; width: 100%">
+{#                        {% blocktrans %}#}
+{#                            This is an <a href="http://www.ikwen.com">Ikwen &reg; </a> powered <a href="http://www.nodevtrend.org">NoDev</a> website.#}
+{#                        {% endblocktrans %}#}
+                        {% blocktrans %}
+                            Powered by <a href="http://www.ikwen.com" style="color: #666; text-decoration: none"><strong>Ikwen</strong></a> &reg;.
+                        {% endblocktrans %}
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>

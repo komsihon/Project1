@@ -1,0 +1,132 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block page_title %}<title>Ikwen | {% trans "Sign in" %} </title>{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <style  type="text/css">
+        #content {background: #fff; margin-top: 12px; padding: 0 0 30px}
+        #content form {float: left; margin: 45px 10px 0; width: 310px}
+        #content form header {font-family: "Roboto Slab", sans-serif; font-size: 1.8em}
+        #content form button {width: 96px}
+        #content form > div {padding-top: 3px}
+        #content form .hint {color: #8D96C5; font-size: 14px}
+        #content form ul.errorlist li {color: #FF0808; list-style-type: none}
+        form#register .country-code {color: #888; font-style: italic; font-size: 1.1em; font-weight: bold; margin: 20px 0 0 3px; position: absolute}
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="content">
+        <div class="wrapper" style="background:#fff; padding: 10px; width: 945px">
+            <div class="hidden" id="steps" style="">
+                <span>1</span>
+                <span class="current" style="float: right">2</span>
+            </div>
+            <div class="wrapper" style="border: 2px solid #544FFF; border-radius: 5px; width: 306px">
+                <span style="background: #544FFF; color: #fff; float: left; font: normal 2em Helvetica, Arial; padding: 7px 10px 9px"> Login with </span>
+                <img src="{% static 'ikwen/img/logo-ikwen_100.png' %}" alt="Ikwen Logo" height="45" style="float: left" />
+                <div class="clear"></div>
+            </div>
+            <form id="login" action="{% url 'ikwen:sign_in' %}?{{ request.META.QUERY_STRING }}" method="post" style="margin: 0px 10px 0;">{% csrf_token %}
+                <div style="height: 43px; padding: 0; width: 306px">
+                {% if login_form.errors %}
+                    <p class="failure" style="font-size: 1em; padding: 9px">{{ error_message }}</p>
+                {% endif %}
+                </div>
+                <header>{% trans "Sign in" %}</header>
+                <p class="hint">({% trans "I already have an account" %})</p>
+                <div>
+                    <label>{% trans "Email or Phone" %}</label>
+                    <input class="email" type="email" name="username"
+                           value="{{ request.GET.email }}{{ request.GET.phone }}" /> {#Only email or phone will be output depending on what is available#}
+                </div>
+                <div>
+                    <label>{% trans "Password" %}</label>
+                    <input class="password" type="password" name="password" />
+                </div>
+                <div class='button-group' style="clear: both; margin-top: 10px; width: 100%">
+                    <button type="submit" id="submit" class="confirm"> {% trans "Submit" %} </button>
+                    <a style="float: right; margin-top: 7px" href="{% url 'ikwen:forgotten_password' %}">{% trans "Forgotten password ?" %}</a>
+                </div>
+            </form>
+            <div style="border-right: 1px solid #DBE6FF; float: left; height: 90px; margin: 145px 0 0 162px"></div>
+            <form id="register" action="{% url 'ikwen:register' %}?{{ request.META.QUERY_STRING }}" method="post" style="float: right">{% csrf_token %}
+                <header>{% trans "Register" %}</header>
+                <p class="hint">({% trans "I want to create my account now" %})</p>
+                <div>
+                    <label>{% trans "Email" %}</label>
+                    <input class="email" type="email" name="email" />
+                    {{ register_form.email.errors }}
+                </div>
+                <div>
+                    <label>{% trans "Password on Ikwen" %}</label>
+                    <input class="password" type="password" name="password" />
+                </div>
+                <div>
+                    <label>{% trans "Confirm password" %}</label>
+                    <input class="confirm-password"  type="password" name="password2" />
+                </div>
+                <div>
+                    <label>{% trans "Phone number" %}</label>
+{#                    <div class="fancy-combo-box country-code" style="margin-right: 6px">#}
+{#                        <input type="text" value="N/A" class="inner-shade" readonly style="width: 170px"/>#}
+{#                        <input type="hidden" class="country-code" name="country_code"/>#}
+{#                        <span class="arrow" comment="arrow-bg" style="height: 28px"> <span comment="arrow-img"></span> </span>#}
+{#                        <div class="entries-overlay hidden" style="padding-top: 31px; width: 305px;">#}
+{#                            <ul class="entries has-shade">#}
+{#                                <li class="entry" data-val="237">237</li>#}
+{#                                {% for extension in extensions %}#}
+{#                                <li class="entry" data-val="{{ extension.months }}" data-text="{{ extension.expiry }} : {{ extension.months }} {% trans 'Month(s)' %}">#}
+{#                                    <label style="float: left; width: 96px">{{ extension.expiry }} :</label>#}
+{#                                    <strong>{{ extension.months }} {% trans 'Month(s)' %}</strong>#}
+{#                                </li>#}
+{#                                {% endfor %}#}
+{#                            </ul>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    <span class="country-code">+237</span>#}
+                    <input class="phone" type="text" name="phone" />
+                    {{ register_form.phone.errors }}
+                </div>
+                <div>
+                    <label>{% trans "Name (First and last)" %}</label>
+                    <input class="name" type="text" name="name" />
+                    {{ register_form.name.errors }}
+                </div>
+                <div class='button-group' style="clear: both; float: right; margin-top: 10px">
+                    <button type="reset" class="default" style="margin-right: 10px">{% trans "Reset" %}</button>
+                    <button type="submit" class="confirm">{% trans "Submit" %}</button>
+                </div>
+            </form>
+            <div class="clear"></div>
+        </div>
+    </div>
+{% endblock %}
+{% block custom_js %}
+    <script type="text/javascript">
+        {% get_current_language as LANGUAGE_CODE %}
+        (function() {
+             {% if request.GET.existingEmail %}
+                $('div#top-notice-ctnr span').html('{{ request.GET.msg }}').addClass('failure');
+                $('#top-notice-ctnr').fadeIn().delay(10000).fadeOut();
+             {% elif request.GET.existingPhone %}
+                $('div#top-notice-ctnr span').html('{{ request.GET.msg }}').addClass('failure');
+                $('#top-notice-ctnr').fadeIn().delay(10000).fadeOut();
+            {% endif %}
+            var p = $('form#register .country-code').width() + 3,
+                w = $('form#register .phone').width() - p + 5;
+            $('form#register .phone').css({paddingLeft: p, width: w});
+            $('form#register').submit(function() {
+                var phone = $(this).find('.phone').val();
+                if (!/\d{9,}/.test(phone)) {
+                    $('div#top-notice-ctnr span').html({% trans "Invalid phone number. Use digits only." %}).addClass('failure');
+                    $('#top-notice-ctnr').fadeIn().delay(10000).fadeOut();
+                    return false;
+                }
+                if (phone.charAt(0) == 6 && phone.length == 9) $(this).find('.phone').val('237' + phone)
+            })
+        })()
+    </script>
+    {% include 'core/snippets/google_analytics.html' %}
+{% endblock %}

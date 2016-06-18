@@ -1,0 +1,32 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% block page_title %}<title>Ikwen | {% trans "Contact" %} </title>{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <style type="text/css">
+        #top {height: 0}
+        #content {margin-top: 36px}
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="content">
+        <div class="wrapper" style="background:#fff; padding: 10px">
+            <h1>Contact</h1>
+            <div style="margin-top: 90px">
+                <img src="{% static 'ikwen/img/logo-ikwen_100.png' %}" style="float: left"/>
+                <div style="float: right">
+                    <h2>{% trans "Need further assistance ? Send an e-mail or call" %}</h2>
+                    <h2 style="margin-top: 12px">Email:</h2>
+                    <p>contact@ikwen.com</p>
+                    <h2 style="margin-top: 6px">Phone:</h2>
+                    <p>(+237) 655-04-57-81</p>
+                </div>
+            </div>
+            <div class="clear"></div>
+        </div>
+    </div>
+{% endblock %}
+{% block custom_js %}
+    {% include 'core/snippets/google_analytics.html' %}
+{% endblock %}

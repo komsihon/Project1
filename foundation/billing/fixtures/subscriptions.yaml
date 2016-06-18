@@ -1,0 +1,23 @@
+- model: billing.subscription
+  pk: 56eb6d04b37b3379c531e012
+  fields:
+    member: 56eb6d04b37b3379b531e012
+    monthly_cost: 5000
+    status: Active
+    since: 2016-01-01T10:31:11.345Z
+
+- model: billing.subscription
+  pk: 56eb6d04b37b3379c531e013
+  fields:
+    member: 56eb6d04b37b3379b531e013
+    monthly_cost: 5000
+    status: Active
+    since: 2016-01-01T10:31:11.345Z
+
+- model: billing.subscription
+  pk: 56eb6d04b37b3379c531e014
+  fields:
+    member: 56eb6d04b37b3379b531e014
+    monthly_cost: 5000
+    status: Active
+    since: 2016-01-01T10:31:11.345Z

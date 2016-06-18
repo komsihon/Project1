@@ -1,0 +1,25 @@
+- model: core.service
+  pk: 54ad2bd9b37b335a18fe5801
+  fields:
+    member: 56eb6d04b37b3379b531e011
+    project_name: ikwen
+    database: test_ikwen_umbrella
+    domain_type: ''
+    url: ''
+    admin_url: ''
+    billing_cycle: ''
+    monthly_cost: 15000
+    version: Full
+    status: Active
+
+- model: core.config
+  fields:
+    service: 54ad2bd9b37b335a18fe5801
+    company_name: Ikwen
+    contact_email: contact@core.com
+    logo: logos/some_logo.png
+
+- model: billing.invoicingconfig
+  fields:
+    name: Default
+    currency: XAF

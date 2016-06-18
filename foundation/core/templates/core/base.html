@@ -1,0 +1,84 @@
+{% load i18n %}
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        {% block meta %}{% endblock %}
+		{% block page_title %}{% endblock %}
+        {% block head_style %}
+            {% if request.META.HTTP_HOST == 'localhost' %}
+                <style>
+                    @font-face {
+                        font-family: Roboto Slab;
+                        src: local(Roboto Slab), url('{% static 'ikwen/css/fonts/Roboto_Slab.woff' %}') format('opentype');
+                    }
+                    @font-face {
+                        font-family: Open Sans;
+                        src: local(Open Sans), url('{% static 'ikwen/css/fonts/Open_Sans.woff' %}') format('opentype');
+                    }
+                </style>
+            {% else %}
+                <link rel='stylesheet' href='//fonts.googleapis.com/css?family=Open+Sans:400,800,700italic,700,600italic,600,400italic,300italic,300' type='text/css' />
+            {% endif %}
+            <link rel="stylesheet" type="text/css" href="{% static 'ikwen/css/forms.css' %}">
+            <link rel="stylesheet" type="text/css" href="{% static 'ikwen/css/base.css' %}">
+        {% endblock %}
+		{% block head_js %}
+            <script src="{% static 'ikwen/js/jquery-1.8.2.min.js' %}"></script>
+            <script src="{% static 'ikwen/js/ikwen-util.js' %}"></script>
+		{% endblock %}
+    </head>
+    <body>
+        <div id="top-notice-ctnr" class="hidden">
+            <span class="floating-notice has-shade" style="float: none; position: static"> Error goes here </span>
+        </div>
+        {% block content %}
+        {% endblock %}
+        {% block footer %}
+            <footer>
+                <div class="wrapper" style="height: 130px; padding-top: 30px">
+                    <nav style="float: left">
+                        <ul>
+                            <li><a href="#">{% trans "Help" %}</a></li>
+                            <li><a href="{% url 'ikwen:contact' %}">{% trans "Contact" %}</a></li>
+                            <li><a href="#">{% trans "About us" %}</a></li>
+                        </ul>
+                    </nav>
+                    <form id="lang" method="post" action="{% url 'set_language' %}">{% csrf_token %}
+                        <input type="hidden" name="language" />
+                        <ul>
+                            <li><a href="#" data-val="fr">{% trans "French" %}</a></li>
+                            <li><a href="#" data-val="en">{% trans "English" %}</a></li>
+                        </ul>
+                    </form>
+                    <div style="border-top: solid 1px #DDD; clear: both; float: right; font-size: 11px; margin-top: 6px; padding-top: 3px; text-align: right; width: 100%">
+                        &copy; {{ year }} <a href="http://www.ikwen.com">Ikwen</a>. All rights reserved. - <a href="#">{% trans "Legal mentions" %}</a>
+                    </div>
+                </div>
+            </footer>
+            <div id="lightbox" class="hidden">
+                <div class="wrapper">
+                    {% block lightbox_dialogs %}{% endblock %}
+                </div>
+            </div>
+            <script>
+                (function() {
+                    $('div#lightbox .dialog .close').click(function() {
+                        $('#lightbox').hide('normal', function() {
+                            $('div#lightbox .dialog').hide()
+                        })
+                    });
+                    $('form#lang a').click(function() {
+                        var lang = $(this).data('val');
+                        $('form#lang input[name=language]').val(lang);
+                        $('form#lang').submit();
+                        return false
+                    })
+                })()
+            </script>
+        {% endblock %}
+        {% block custom_js %}
+        {% endblock %}
+    </body>
+</html>

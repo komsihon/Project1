@@ -1,0 +1,41 @@
+- model: core.application
+  pk: 56eb6d04b37b3379b531a001
+  fields:
+    name: Ikwen App
+    slug: ikwen-app
+    logo: app_logos/ikwen-app-logo.png
+    url: ''
+    base_monthly_cost: 5000
+
+- model: core.application
+  pk: 56eb6d04b37b3379b531a002
+  fields:
+    name: Ikwen App2
+    slug: ikwen-app2
+    logo: app_logos/ikwen-app2-logo.png
+    url: ''
+    base_monthly_cost: 5000
+
+- model: core.service
+  pk: 56eb6d04b37b3379b531b101
+  fields:
+    member: 56eb6d04b37b3379b531e012
+    app: 56eb6d04b37b3379b531a001
+    project_name: Ikwen Service
+    database: test_ikwen_service
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z
+
+- model: core.service
+  pk: 56eb6d04b37b3379b531b102
+  fields:
+    member: 56eb6d04b37b3379b531e012
+    app: 56eb6d04b37b3379b531a002
+    project_name: Ikwen Service 2
+    database: test_ikwen_service_2
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z

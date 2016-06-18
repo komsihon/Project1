@@ -1,0 +1,30 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% block head_style %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'ikwen/css/grids2.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'ikwen/css/profile.css' %}">
+{% endblock %}
+{% block top %}
+    <div id="top" class="toolbar has-shade">
+        <menu>
+            <ul>
+                {% block profile_custom_menu_items %}{% endblock %}
+                <li class="account">
+                    <a href="{% url 'ikwen:account_setup' %}">{% trans "Account info" %}</a>
+                    {% if account_alerts_count > 0 %}
+                    <div class="badge-text">{{ account_alerts_count }}</div>
+                    {% endif %}
+                </li>
+            </ul>
+        </menu>
+        <div class="user-info">
+            <div>
+                <span class="icon user"></span>
+                <strong>{{ request.user }}</strong>
+            </div>
+            <a href="{% url 'ikwen:logout' %}" style="color: #00f; float: right; font-size: 11px">{% trans 'Logout' %}</a>
+        </div>
+    </div>
+{% endblock %}

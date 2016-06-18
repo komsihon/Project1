@@ -1,0 +1,194 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+
+from datetime import datetime, timedelta
+from django.conf import settings
+from django.core import mail
+from django.core.mail import EmailMessage
+from django.core.urlresolvers import reverse
+from django.utils import timezone
+from django.utils.module_loading import import_by_path
+
+from ikwen.foundation.core.models import Config, QueuedSMS
+from ikwen.foundation.core.utils import get_service_instance, send_sms
+from ikwen.foundation.core.utils import get_mail_content
+from ikwen.foundation.billing.models import Subscription, Invoice, InvoicingConfig
+from ikwen.foundation.billing.utils import get_invoice_generated_message, get_invoice_reminder_message, get_invoice_overdue_message, \
+    get_service_suspension_message, get_next_invoice_number
+
+import logging
+import logging.handlers
+error_log = logging.getLogger('crons.error')
+error_log.setLevel(logging.ERROR)
+error_file_handler = logging.handlers.RotatingFileHandler('billing_crons.log', 'w', 100000, 4)
+error_file_handler.setLevel(logging.INFO)
+f = logging.Formatter('%(levelname)-10s %(asctime)-27s %(message)s')
+error_file_handler.setFormatter(f)
+error_log.addHandler(error_file_handler)
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
+
+
+def send_invoices():
+    """
+    This cron task simply sends the Invoice invoicing_gap days before expiry
+    """
+    now = datetime.now()
+    invoicing_config = InvoicingConfig.objects.all()[0]
+    connection = mail.get_connection()
+    connection.open()
+    for subscription in Subscription.objects.filter(status=Subscription.ACTIVE, expiry__gte=now):
+        diff = subscription.expiry - now
+        if diff.days == invoicing_config.gap:
+            member = subscription.member
+            number = get_next_invoice_number()
+            invoice = Invoice.objects.create(subscription=subscription, amount=5000,
+                                             number=number, due_date=subscription.expiry)
+            config = get_service_instance().config
+            subject, message, sms_text = get_invoice_generated_message(invoice)
+            if member.email.find(member.phone) < 0:
+                invoice_url = getattr(settings, 'PROJECT_URL') + reverse('billing:invoice_detail', args=(invoice.id, ))
+                html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+                                                extra_context={'invoice_url': invoice_url})
+                sender = '%s <%s>' % (config.company_name, config.contact_email)
+                msg = EmailMessage(subject, html_content, sender, [member.email])
+                msg.content_subtype = "html"
+                invoice.last_reminder = timezone.now()
+                if msg.send():
+                    invoice.reminders_sent = 1
+                else:
+                    error_log.error(u"Invoice #%s generated but mail not sent to %s" % (number, member.email), exc_info=True)
+                invoice.save()
+            if sms_text:
+                if member.phone:
+                    if config.sms_sending_method == Config.HTTP_API:
+                        send_sms(member.phone, sms_text)
+                    else:
+                        QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
+    connection.close()
+
+
+def send_invoices_reminders():
+    """
+    This cron task sends Invoice reminder notice to the client if unpaid
+    """
+    now = datetime.now()
+    invoicing_config = InvoicingConfig.objects.all()[0]
+    connection = mail.get_connection()
+    connection.open()
+    for invoice in Invoice.objects.filter(status=Invoice.PENDING, due_date__gte=now, last_reminder__isnull=False):
+        diff = now - invoice.last_reminder
+        if diff.days == invoicing_config.reminder_delay:
+            member = invoice.subscription.member
+            config = get_service_instance().config
+            subject, message, sms_text = get_invoice_reminder_message(invoice)
+            if member.email.find(member.phone) < 0:
+                invoice_url = getattr(settings, 'PROJECT_URL') + reverse('billing:invoice_detail', args=(invoice.id, ))
+                html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+                                                extra_context={'invoice_url': invoice_url})
+                sender = '%s <%s>' % (config.company_name, config.contact_email)
+                msg = EmailMessage(subject, html_content, sender, [member.email])
+                msg.content_subtype = "html"
+                invoice.last_reminder = timezone.now()
+                if msg.send():
+                    invoice.reminders_sent += 1
+                else:
+                    error_log.error(u"Reminder mail for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
+                invoice.save()
+            if sms_text:
+                if member.phone:
+                    if config.sms_sending_method == Config.HTTP_API:
+                        send_sms(member.phone, sms_text)
+                    else:
+                        QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
+    connection.close()
+
+
+def send_invoice_overdue_notices():
+    """
+    This cron task sends notice of Invoice overdue
+    """
+    now = timezone.now()
+    invoicing_config = InvoicingConfig.objects.all()[0]
+    connection = mail.get_connection()
+    connection.open()
+    for invoice in Invoice.objects.filter(status=Invoice.PENDING, due_date__lt=now, overdue_notices_sent__lt=3):
+        if invoice.last_overdue_notice:
+            diff = now - invoice.last_overdue_notice
+        else:
+            invoice.status = Invoice.OVERDUE
+            invoice.save()
+        if not invoice.last_overdue_notice or diff.days == invoicing_config.overdue_delay:
+            member = invoice.subscription.member
+            config = get_service_instance().config
+            subject, message, sms_text = get_invoice_overdue_message(invoice)
+            if member.email.find(member.phone) < 0:
+                invoice_url = getattr(settings, 'PROJECT_URL') + reverse('billing:invoice_detail', args=(invoice.id, ))
+                html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+                                                extra_context={'invoice_url': invoice_url})
+                sender = '%s <%s>' % (config.company_name, config.contact_email)
+                msg = EmailMessage(subject, html_content, sender, [member.email])
+                msg.content_subtype = "html"
+                invoice.last_overdue_notice = timezone.now()
+                if msg.send():
+                    invoice.overdue_notices_sent += 1
+                else:
+                    error_log.error(u"Overdue notice for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
+                invoice.save()
+            if sms_text:
+                if member.phone:
+                    if config.sms_sending_method == Config.HTTP_API:
+                        send_sms(member.phone, sms_text)
+                    else:
+                        QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
+    connection.close()
+
+
+def shutdown_customers_services():
+    """
+    This cron task shuts down service and sends notice of Service suspension
+    for Invoices which tolerance is exceeded.
+    """
+    now = timezone.now()
+    invoicing_config = InvoicingConfig.objects.all()[0]
+    connection = mail.get_connection()
+    connection.open()
+    deadline = now - timedelta(days=invoicing_config.tolerance)
+    for invoice in Invoice.objects.filter(due_date__lte=deadline, status=Invoice.PENDING):
+        invoice.status = Invoice.EXCEEDED
+        invoice.save()
+        action = getattr(settings, 'SERVICE_SUSPENSION_ACTION')
+        if action:
+            action = import_by_path(action)
+            action(invoice.subscription)
+            member = invoice.subscription.member
+            config = get_service_instance().config
+            subject, message, sms_text = get_service_suspension_message(invoice)
+            if member.email.find(member.phone) < 0:
+                invoice_url = getattr(settings, 'PROJECT_URL') + reverse('billing:invoice_detail', args=(invoice.id, ))
+                html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+                                                extra_context={'invoice_url': invoice_url})
+                sender = '%s <%s>' % (config.company_name, config.contact_email)
+                msg = EmailMessage(subject, html_content, sender, [member.email])
+                msg.content_subtype = "html"
+                if not msg.send():
+                    error_log.error(u"Notice of suspension for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
+            if sms_text:
+                if member.phone:
+                    if config.sms_sending_method == Config.HTTP_API:
+                        send_sms(member.phone, sms_text)
+                    else:
+                        QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
+    connection.close()
+
+
+if __name__ == "__main__":
+    try:
+        send_invoices()
+        send_invoices_reminders()
+        send_invoice_overdue_notices()
+        shutdown_customers_services()
+    except:
+        error_log.error(u"Fatal error occured", exc_info=True)

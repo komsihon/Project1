@@ -1,0 +1,161 @@
+{% extends "core/base_private.html" %}
+{% load i18n %}
+{% load humanize %}
+{% load staticfiles %}
+{% block page_title %}
+<title>Ikwen | {% trans "Invoice" %} #{{ invoice.number }}</title>
+{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <style>
+        body {background: #f6f6f6}
+        #top {display: none}
+        header#main {background: #f9f9f9; border-bottom: 1px solid #ddd; padding: 6px 15px 15px}
+        header#main img {float: left}
+        header#main .badge {background: #039B03; border-radius: 4px; color: #fff; float: right; font: bold 11px Arial; padding: 3px 6px}
+        header#main form {float: right; width: 300px}
+        header#main form div {clear: both}
+        header#main form div span {float: left; margin: 6px 0 0 10px}
+        #summary {margin-bottom: 15px}
+        #summary section {float: left; width: 315px}
+        #summary section header {font-size: 1.27em}
+        #summary section div {line-height: 21px}
+        table tr td:last-child {text-align: right}
+        table tr td {border-top: 1px solid #eee; padding: 10px}
+        table tr.em td {background: #f6f6f6}
+        table tr.em1 td {background: #EFF8FF; font-size: 1.45em; padding: 12px 10px}
+        #actions {float: right; margin-top: 15px}
+    </style>
+{% endblock %}
+{% block content  %}
+    <div class="wrapper" style="margin-top: 15px">
+        <div class="subtle-shade" style="border-radius: 6px; overflow: hidden">
+            <header id="main" data-amount="{{ invoice.amount }}" data-monthlycost="{{ invoice.service.monthly_cost }}">
+                <img src="{% static 'hotspot/img/logo-ikwen_100.png' %}" height="60"/>
+                {% if invoice.payment %}
+                    <div class="badge">{% trans "Paid" %}</div>
+                {% else %}
+                    <form>
+                        <div style="font-size: 1.35em; font-style: italic">{% trans "Pay with" %}</div>
+                        <div>
+                            <a href="#" class="button default">Mobile Money</a>
+                            <span>
+                                {% blocktrans %}(<a href="http://www.google.com/search?q=cameroon" target="_blank">Cameroon</a> customers only){% endblocktrans %}
+                            </span>
+                        </div>
+                        <div>
+                            <a href="#" class="button default">{% trans "Credit/Debit Card" %}</a>
+                            <span>
+                                {% blocktrans %}(International customers){% endblocktrans %}
+                            </span>
+                        </div>
+                    </form>
+                {% endif %}
+                <div class="clear"></div>
+            </header>
+            <div style="background: #fff; padding: 15px">
+                <div id="summary">
+                    <section>
+                        <header>{% trans "Invoice" %} #<strong>{{ invoice.number }}</strong></header>
+                        <div>
+                            <p>{% trans "Date issued" %}: {{ invoice.date_issued }}</p>
+                            <p>{% trans "Due date" %}: {{ invoice.due_date }}</p>
+                        </div>
+                    </section>
+                    <section>
+                        <header>{% trans "Invoiced To" %}</header>
+                        <div>
+                            <p>{{ invoice.service.company.name }}</p>
+                            <p>{{ invoice.service.company.address }}</p>
+                            <p>{{ invoice.service.company.city }}, {{ invoice.service.company.po_box }}</p>
+                            <p>{{ invoice.service.company.country.name }}</p>
+                        </div>
+                    </section>
+                    <section>
+                        <header>{% trans "Pay To" %}</header>
+                        <div>
+                            <p>Ikwen Sarl</p>
+                            <p>91, Servitude des Résidences</p>
+                            <p>Yaoundé, 4221</p>
+                            <p>Cameroon</p>
+                        </div>
+                    </section>
+                    <div class="clear"></div>
+                </div>
+                <table id="grid" style="border-collapse: collapse; width: 100%">
+                    <tr class="em" style="font-size: 1.35em">
+                        <td colspan="3">{% trans "Description" %}</td>
+                        <td style="width: 270px"></td>
+                        <td style="width: 150px">{% trans "Amount" %}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"></td>
+                        <td>
+                            {% if not invoice.payment %}
+                                <p>{% trans "Extend payment until" %}</p>
+                                <div class="fancy-combo-box extension" data-monthlycost="{{ invoice.service.monthly_cost }}" style="margin-right: 6px">
+                                    <input type="text" value="N/A" class="inner-shade" readonly style="width: 170px"/>
+                                    <input type="hidden" class="extension" name="extension"/>
+                                    <span class="arrow" comment="arrow-bg" style="height: 28px"> <span comment="arrow-img"></span> </span>
+                                    <div class="entries-overlay hidden" style="padding-top: 31px; width: 305px;">
+                                        <ul class="entries has-shade">
+                                            <li class="entry" data-val="0">{% trans "N/A" %}</li>
+                                            {% for extension in extensions %}
+                                            <li class="entry" data-val="{{ extension.months }}" data-text="{{ extension.expiry }} : {{ extension.months }} {% trans 'Month(s)' %}">
+                                                <label style="float: left; width: 96px">{{ extension.expiry }} :</label>
+                                                <strong>{{ extension.months }} {% trans 'Month(s)' %}</strong>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td id="subtotal">{{ invoice.amount|intcomma }} XAF</td>
+                    </tr>
+                    <tr class="em1">
+                        <td colspan="4">{% trans "Total" %}</td>
+                        <td id="total">{{ invoice.amount|intcomma }} XAF</td>
+                    </tr>
+                    {% if invoice.payment %}
+                        <tr>
+                            <td colspan="4" style="border-top: none; font-size: 1.35em; padding-top: 27px; text-align: left">{% trans "Transactions" %}</td>
+                        </tr>
+                        <tr class="em">
+                            <td colspan="2" style="width: 180px">{% trans "Transaction date" %}</td>
+                            <td style="width: 270px">{% trans "Method" %}</td>
+                            <td>{% trans "Transaction ID" %}</td>
+                            <td>{% trans "Amount" %}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">{{ invoice.payment.when }}</td>
+                            <td>{{ invoice.payment.method }}</td>
+                            <td>{{ invoice.payment.transaction_id }}</td>
+                            <td>{{ invoice.payment.amount|intcomma }}</td>
+                        </tr>
+                    {% endif %}
+                </table>
+            </div>
+            <div class="clear"></div>
+        </div>
+        <div id="actions">
+            <a href="{% url 'ikwen:invoice_list' %}" class="button default">{% trans "Back to Client Area" %}</a>
+            <a href="#" class="button default">{% trans "Download" %}</a>
+        </div>
+    </div>
+{% endblock %}
+{% block custom_js %}
+    <script type="text/javascript">
+        (function() {
+            $('.fancy-combo-box.extension input:text').change(function() {
+                var $fcb = $(this).parent(),
+                    additionalMonth = $fcb.data('val'),
+                    invoiceAmount = $('#main').data('amount'),
+                    monthlyCost = $('#main').data('monthlycost'),
+                    total = additionalMonth * monthlyCost + invoiceAmount;
+                $('#subtotal').text(total.formatMoney() + ' FCFA');
+                $('#total').text(total.formatMoney() + ' FCFA');
+            });
+        })()
+    </script>
+{% endblock %}
