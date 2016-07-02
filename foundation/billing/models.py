@@ -4,7 +4,8 @@ from django.db import models
 from django.utils import timezone
 
 from foundation.core.models import Service
-from ikwen.foundation.core.models import Member, Model
+from ikwen.foundation.core.models import Model
+from ikwen.foundation.accesscontrol.models import Member
 from django.utils.translation import gettext_lazy as _
 
 from ikwen.foundation.core.utils import add_database_to_settings

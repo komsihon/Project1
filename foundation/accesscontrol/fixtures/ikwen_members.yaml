@@ -1,4 +1,4 @@
-- model: core.member
+- model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e011
   fields:
     username: arch
@@ -7,7 +7,7 @@
     phone: 677000001
     is_iao: Yes
 
-- model: core.member
+- model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e012
   fields:
     username: member2
@@ -17,7 +17,7 @@
     first_name: Tamo
     gender: Male
 
-- model: core.member
+- model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e013
   fields:
     username: member3
@@ -26,7 +26,7 @@
     phone: 677000003
     first_name: Foka
 
-- model: core.member
+- model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e014
   fields:
     username: member4

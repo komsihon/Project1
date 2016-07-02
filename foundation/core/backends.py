@@ -4,7 +4,7 @@ import json
 import requests
 from django.conf import settings
 
-from ikwen.foundation.core.models import Member
+from ikwen.foundation.accesscontrol.models import Member
 from permission_backend_nonrel.backends import NonrelPermissionBackend
 
 __author__ = 'Kom Sihon'

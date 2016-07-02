@@ -2,11 +2,9 @@
 from django.conf import settings
 from django.db.models.loading import get_model
 from django.utils import timezone
-from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.db import models
 from django.utils.translation import gettext as _
 from django_mongodb_engine.contrib import MongoDBManager
-from djangotoolbox.fields import ListField, EmbeddedModelField
 
 from ikwen.foundation.core.utils import add_database_to_settings, to_dict
 
@@ -17,86 +15,6 @@ class Model(models.Model):
 
     class Meta:
         abstract = True
-
-
-class MemberManager(BaseUserManager):
-
-    def create_user(self, username, password=None, **extra_fields):
-        if not username:
-            raise ValueError('Username must be set')
-        member = self.model(username=username, **extra_fields)
-        service_id = getattr(settings, 'IKWEN_SERVICE_ID', None)
-        debug = getattr(settings, 'DEBUG', False)
-        if not debug:
-            if service_id:
-                member.entry_service = Service.objects.get(pk=service_id)
-        member.set_password(password)
-        member.save()
-        return member
-
-    def create_superuser(self, email, password, **extra_fields):
-        member = self.create_user(email, password, **extra_fields)
-        member.is_staff = True
-        member.is_superuser = True
-        member.save()
-        return member
-
-
-class Member(AbstractUser):
-    MALE = 'Male'
-    FEMALE = 'Female'
-    phone = models.CharField(max_length=18, unique=True, blank=True)
-    gender = models.CharField(max_length=15, blank=True)
-    dob = models.DateField(blank=True, null=True)
-    entry_service = models.ForeignKey('Service', blank=True, null=True, related_name='members',
-                                      help_text=_("Service where user registered for the first time on ikwen"))
-    is_iao = models.BooleanField('IAO', default=False,
-                                 help_text=_('Designates whether this user is an '
-                                             '<strong>IAO</strong> (Ikwen Application Operator).'))
-    collaborates_on = ListField(EmbeddedModelField('Service'),
-                                help_text="Services on which member collaborates without being the IAO.")
-    phone_verified = models.BooleanField(_('Phone verification status'), default=False,
-                                         help_text=_('Designates whether this phone number has been '
-                                                     'verified by sending a confirmation code by SMS.'))
-
-    objects = MemberManager()
-
-    class Meta:
-        db_table = 'ikwen_member'
-
-    def _get_display_joined(self):
-        return '%02d/%02d/%d %02d:%02d' % (self.date_joined.day, self.date_joined.month, self.date_joined.year,
-                                           self.date_joined.hour, self.date_joined.minute)
-    display_date_joined = property(_get_display_joined)
-
-    def save(self, *args, **kwargs):
-        from ikwen.foundation.core.backends import UMBRELLA
-        using = 'default'
-        if kwargs.get('using'):
-            using = kwargs['using']
-            del(kwargs['using'])
-        databases = getattr(settings, 'DATABASES')
-        if databases.get(UMBRELLA):
-            member = Member.objects.using(UMBRELLA).get(pk=self.id) if self.id else None
-            new_is_staff_value = self.is_staff
-            umbrella_is_staff_value = member.is_staff if member else False
-            self.is_staff = umbrella_is_staff_value  # staff status should not take effect in UMBRELLA database
-            super(Member, self).save(using=UMBRELLA, *args, **kwargs)
-            self.is_staff = new_is_staff_value
-        super(Member, self).save(using=using, *args, **kwargs)  # Now copy to the application default database
-
-    def get_apps_operated(self):
-        return list(Service.objects.filter(member=self))
-
-    def to_dict(self):
-        var = to_dict(self)
-        var['date_joined'] = self.display_date_joined
-        del(var['last_login'])
-        del(var['password'])
-        del(var['is_superuser'])
-        del(var['is_staff'])
-        del(var['is_active'])
-        return var
 
 
 class Application(Model):
@@ -172,9 +90,11 @@ class Service(models.Model):
     )
     # Member has null=True because a Service object can be created
     # and bound to a Member later in the code
-    member = models.ForeignKey(Member, blank=True, null=True)
+    member = models.ForeignKey('accesscontrol.Member', blank=True, null=True)
     app = models.ForeignKey(Application, blank=True, null=True)
-    project_name = models.CharField(max_length=60)
+    project_name = models.CharField(max_length=60,
+                                    help_text="Text that can be used as a subdomain for the project: "
+                                              "Eg: project_name.ikwen.com")
     database = models.CharField(max_length=150, blank=True)
     domain_type = models.CharField(max_length=15, blank=True, choices=DOMAIN_TYPE_CHOICES)
     url = models.URLField(blank=True)
@@ -272,6 +192,7 @@ class AbstractConfig(Model):
     service = models.OneToOneField(Service, editable=False, related_name='+')
     company_name = models.CharField(max_length=30, verbose_name=_("Website / Company name"),
                                     help_text=_("Website/Company name as you want it to appear in mails and pages."))
+    company_name_slug = models.SlugField()
     address = models.CharField(max_length=30, blank=True, verbose_name=_("Company address"),
                                help_text=_("Website/Company name as you want it to appear in mails and pages."))
     country = models.ForeignKey('core.Country', blank=True, null=True, related_name='+',
@@ -364,6 +285,7 @@ class ConsoleEventType(Model):
     is called as such: function_name(service, event_type, member, object_id, model)
     """
     app = models.ForeignKey(Application)
+    code_name = models.CharField(max_length=150)
     title = models.CharField(max_length=150)
     title_mobile = models.CharField(max_length=100, blank=True)
     renderer = models.CharField(max_length=255)
@@ -389,7 +311,7 @@ class ConsoleEvent(Model):
     """
     service = models.ForeignKey(Service)
     event_type = models.ForeignKey(ConsoleEventType)
-    member = models.ForeignKey(Member)
+    member = models.ForeignKey('accesscontrol.Member')
     model = models.CharField(max_length=100)
     object_id = models.CharField(max_length=24)
 

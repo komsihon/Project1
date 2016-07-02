@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     # 'paypal.pro',
 
     'ikwen.foundation.core',
+    'ikwen.foundation.accesscontrol',
     'ikwen.foundation.billing',
 )
 
@@ -81,10 +82,14 @@ DATABASES = {
     'default': {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'ikwen_umbrella',
-    }
+    },
+    # 'kakocase_rel': {  # kakocase app relational database used to store transactional objects among which CashOutRequest
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    # }
 }
 
-AUTH_USER_MODEL = 'core.Member'
+AUTH_USER_MODEL = 'accesscontrol.Member'
 
 AUTHENTICATION_BACKENDS = (
     'permission_backend_nonrel.backends.NonrelPermissionBackend',
@@ -112,7 +117,7 @@ LOGOUT_REDIRECT_URL = 'home'
 
 LANGUAGE_CODE = 'en'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Douala'
 
 USE_I18N = True
 

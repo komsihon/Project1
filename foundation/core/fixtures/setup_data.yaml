@@ -39,3 +39,17 @@
     version: Full
     status: Active
     expiry: 2035-01-01T00:00:00.120Z
+
+- model: core.config
+  fields:
+    service: 56eb6d04b37b3379b531b101
+    company_name: Ikwen
+    contact_email: contact@ikwen.com
+    logo: logos/some_logo.png
+
+- model: core.config
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    company_name: Ikwen
+    contact_email: contact@ikwen.com
+    logo: logos/some_logo.png

@@ -17,7 +17,6 @@ from ikwen.foundation.billing.utils import get_invoicing_config_instance
 class BillingBaseView(BaseView):
     def get_context_data(self, **kwargs):
         context = super(BillingBaseView, self).get_context_data(**kwargs)
-        context['config'] = get_service_instance().config
         context['year'] = datetime.now().year
         context['invoicing_config'] = get_invoicing_config_instance()
         return context

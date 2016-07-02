@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # LOADING FIXTURES DOES NOT WORK BECAUSE Database connection 'foundation' is never found
-# tests.py is an equivalent of these tests run by loading data into databases manually
+# tests_views.py is an equivalent of these tests run by loading data into databases manually
 
 
 import json
@@ -9,7 +9,6 @@ import json
 from django.conf import settings
 from django.core.management import call_command
 
-import ikwen.foundation.core.models
 from urllib import unquote
 from urlparse import urlparse
 from django.core.urlresolvers import reverse
@@ -17,8 +16,10 @@ from django.template.defaultfilters import urlencode
 from django.test.client import Client
 from django.test.utils import override_settings
 from django.utils import unittest
+
 from ikwen.foundation.core.backends import UMBRELLA
-from ikwen.foundation.core.models import Member, Service, Config
+from ikwen.foundation.core.models import Service, Config
+from ikwen.foundation.accesscontrol.models import Member
 from django.utils.translation import gettext as _
 
 
@@ -28,8 +29,12 @@ def wipe_test_data():
     each test. So the flush is performed manually with this custom tearDown()
     """
     import ikwen.foundation.core.models
-    for name in ('Application', 'Service', 'Config', 'Member'):
+    import ikwen.foundation.accesscontrol.models
+    for name in ('Application', 'Service', 'Config'):
         model = getattr(ikwen.foundation.core.models, name)
+        model.objects.all().delete()
+    for name in ('Member', ):
+        model = getattr(ikwen.foundation.accesscontrol.models, name)
         model.objects.all().delete()
 
 
@@ -164,7 +169,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         """
         origin = reverse('ikwen:register') + '?next=http://localhost/hotspot/config&p1=v1&p2=v2'
         response = self.client.post(origin, {'username': 'good', 'password': 'secret', 'password2': 'sec',
-                                             'phone': '655045781', 'name': 'Sah Fogaing'}, follow=True)
+                                             'phone': '655045781', 'first_name': 'Sah', 'last_name': 'Fogaing'}, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertGreaterEqual(response.request['PATH_INFO'].find('/signIn/'), 0)
         params = unquote(response.request['QUERY_STRING']).split('&')
@@ -180,13 +185,14 @@ class IkwenAuthTestCase(unittest.TestCase):
         """
         origin = reverse('ikwen:register') + '?next=http://localhost/hotspot/config&p1=v1&p2=v2'
         response = self.client.post(origin, {'username': 'wrong', 'email': 'wrong@email', 'password': '',
-                                             'phone': '(+237)655045781', 'name': ''}, follow=True)
+                                             'phone': '(+237)655045781', 'first_name': ''}, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.context['register_form'].errors['email'])
         self.assertIsNotNone(response.context['register_form'].errors['password'])
         self.assertIsNotNone(response.context['register_form'].errors['password2'])
         self.assertIsNotNone(response.context['register_form'].errors['phone'])
-        self.assertIsNotNone(response.context['register_form'].errors['name'])
+        self.assertIsNotNone(response.context['register_form'].errors['first_name'])
+        self.assertIsNotNone(response.context['register_form'].errors['last_name'])
         self.assertEqual(response.request['QUERY_STRING'], 'next=http://localhost/hotspot/config&p1=v1&p2=v2')
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', LOGIN_REDIRECT_URL=None,
@@ -201,11 +207,12 @@ class IkwenAuthTestCase(unittest.TestCase):
         contact_url = reverse('ikwen:contact')
         origin = reverse('ikwen:register') + '?next=' + urlencode(contact_url) + '&p1=v1&p2=v2'
         response = self.client.post(origin, {'username': 'testuser1', 'password': 'secret', 'password2': 'secret',
-                                             'phone': '655000001', 'name': 'Sah Fogaing'}, follow=True)
+                                             'phone': '655000001', 'first_name': 'Sah', 'last_name': 'Fogaing'}, follow=True)
         m1 = Member.objects.using(UMBRELLA).get(username='testuser1')
         m2 = Member.objects.get(username='testuser1')
         self.assertEqual(self.client.session['_auth_user_id'], m1.id)  # Test whether user is actually logged in
         self.assertEqual(m1.id, m2.id)
+        self.assertEqual(m1.full_name, 'Sah Fogaing')
         final = urlparse(response.redirect_chain[-1][0])
         location = final.path.strip('/').split('/')[-1]
         self.assertEqual(location, 'contact')

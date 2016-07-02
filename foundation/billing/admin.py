@@ -10,7 +10,8 @@ from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
 
-from ikwen.foundation.core.models import Member, QueuedSMS, Config
+from ikwen.foundation.core.models import QueuedSMS, Config
+from ikwen.foundation.accesscontrol.models import Member
 from ikwen.foundation.core.utils import get_service_instance, get_mail_content, send_sms
 from import_export.admin import ImportExportMixin, ExportMixin
 from django.utils.translation import gettext_lazy as _

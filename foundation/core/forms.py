@@ -12,7 +12,8 @@ class MemberForm(forms.Form):
     password2 = forms.CharField(max_length=30)
     phone = forms.IntegerField()
     email = forms.EmailField(required=False)
-    name = forms.CharField(max_length=150)
+    first_name = forms.CharField(max_length=60)
+    last_name = forms.CharField(max_length=60)
 
 
 class PasswordResetForm(forms.Form):

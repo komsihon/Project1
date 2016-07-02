@@ -2,11 +2,14 @@
 import re
 
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from ajaxuploader.backends.local import LocalUploadBackend
 from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
-from django.template.defaultfilters import urlencode
+from django.template.defaultfilters import urlencode, slugify
+from django.utils import timezone
 
 
 def to_dict(var):
@@ -15,7 +18,10 @@ def to_dict(var):
         if key[0] == '_':
             del(dict_var[key])
         elif dict_var[key] is object:
-            dict_var = to_dict(dict_var[key])
+            try:
+                dict_var = dict_var[key].to_dict()
+            except AttributeError:
+                dict_var = to_dict(dict_var[key])
     return dict_var
 
 
@@ -72,7 +78,7 @@ def get_mail_content(subject, message, template_name, extra_context=None):
         'message': message,
         'slogan': config.slogan,
         'logo': config.logo,
-        'banner': config.mail_banner,
+        'banner': config.cover_image,
         'signature': config.signature,
         'year': datetime.now().year
     }
@@ -143,3 +149,131 @@ def remove_special_words(s):
         .replace(" 8", "")\
         .replace(" 9", "")
     return s
+
+
+class DefaultUploadBackend(LocalUploadBackend):
+    def update_filename(self, request, filename, *args, **kwargs):
+        tokens = filename.split('.')
+        ext = tokens[-1]
+        name = ''.join(tokens[:-1])
+        filename = slugify(name) + '.' + ext
+        return super(DefaultUploadBackend, self).update_filename(request, filename, *args, **kwargs)
+
+
+def increment_history_field(watch_object, history_field, increment_value):
+    """
+    Increments the value of the last element of Watch Object. Those are objects with *history* fields
+    :param watch_object:
+    :param history_field:
+    :param increment_value:
+    :return:
+    """
+    sequence = watch_object.__dict__[history_field]
+    if type(sequence).__name__ != 'str':  # This means that the sequence is an instance of a ListField
+        sequence[-1] += increment_value
+        return
+    value_list = [val.strip() for val in sequence.split(',')]
+    value_list[-1] = float(value_list[-1]) + increment_value
+    value_list[-1] = str(value_list[-1])
+    watch_object.__dict__[history_field] = ','.join(value_list)
+
+
+def calculate_watch_info(history_value_list, duration=0):
+    """
+    Given a list representing an history of subsequent values of a certain info,
+    this function calculates the sum on the given duration and the variation
+    compared to the same previous duration.
+
+    :param history_value_list:
+    :param duration: Number of previous days on which to pull the report, today not included
+        # 0 means pulling report of today
+        # 1 means pulling report of yesterday
+        # 7 means pulling report of past seven days
+        # etc.
+    :return:
+    """
+    if duration == 0:
+        return {
+            'total': history_value_list[-1],
+            'change': None
+        }
+
+    history_value_list = history_value_list[:-1]  # Strip the last value as it represents today
+    if len(history_value_list) == 0:
+        return None
+
+    total, total_0, change = 0, None, None
+    if duration == 1:  # When duration is a day, we compare to the same day of the previous week.
+        total = history_value_list[-1]
+        if len(history_value_list) >= 8:
+            total_0 = history_value_list[-8]
+    else:
+        total = sum(history_value_list[-duration:])
+        if len(history_value_list) >= duration * 2:
+            start, finish = -duration * 2, -duration
+            total_0 = sum(history_value_list[start:finish])
+
+    if total_0 is not None:
+        if total_0 == 0:
+            change = 100  # When moving from 0 to another value, we consider change to be 100%
+        else:
+            change = (total - total_0) / float(total_0) * 100
+
+    return {
+        'total': total,
+        'change': change
+    }
+
+
+def get_value_list(csv_or_sequence):
+    """
+    Given a *report* field as string of comma separated values or a ListField,
+    splits and returns matching list. Does nothing if `csv_or_list` is already a list
+    :param csv_or_sequence:
+    :return:
+    """
+    if type(csv_or_sequence).__name__ == 'list':
+        return csv_or_sequence
+    return [float(val.strip()) for val in csv_or_sequence.split(',')]
+
+
+def rank_watch_objects(watch_object_list, history_field, duration=0):
+    def _cmp(x, y):
+        if x.total > y.total:
+            return 1
+        elif x.total > y.total:
+            return -1
+        return 0
+
+    if duration == 0:
+        for item in watch_object_list:
+            value_list = get_value_list(item.__dict__[history_field])
+            item.total = value_list[-1]
+    elif duration == 1:
+        for item in watch_object_list:
+            value_list = get_value_list(item.__dict__[history_field])
+            if len(value_list) >= 2:
+                item.total = value_list[-2]
+    else:
+        duration += 1
+        for item in watch_object_list:
+            value_list = get_value_list(item.__dict__[history_field])
+            item.total = sum(value_list[-duration:-1])
+    return sorted(watch_object_list, _cmp, reverse=True)
+
+
+def group_history_value_list(days_value_list, group_unit='month'):
+    grouped_value_list = []
+    ref = timezone.now()
+    group_total = 0
+    for val in days_value_list[::-1]:
+        group_total += val
+        ytd = ref - timedelta(days=1)
+        if group_unit == 'month' and ytd.month != ref.month:
+            grouped_value_list.insert(0, group_total)
+            group_total = 0
+        elif group_unit == 'week' and ytd.weekday() > ref.weekday():
+            grouped_value_list.insert(0, group_total)
+            group_total = 0
+        ref = ytd
+    return grouped_value_list

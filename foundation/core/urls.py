@@ -3,9 +3,10 @@ from django.conf.urls import patterns, url
 
 from django.contrib.auth.decorators import login_required
 
-from foundation.core.views import Console
-from ikwen.foundation.core.views import SignIn, ForgottenPassword, update_info, update_password, register, \
-    ServiceList, ServiceDetail, WelcomeMail, BaseExtMail, Contact, account_setup, ServiceExpired, get_queued_sms
+from ikwen.foundation.accesscontrol.views import SignIn, ForgottenPassword, account_setup, register, update_info, \
+    update_password
+from ikwen.foundation.core.views import Console, ServiceList, ServiceDetail, WelcomeMail, BaseExtMail, Contact, \
+    ServiceExpired, get_queued_sms
 
 urlpatterns = patterns(
     '',
