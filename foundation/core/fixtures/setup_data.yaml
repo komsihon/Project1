@@ -27,6 +27,7 @@
     version: Full
     status: Active
     expiry: 2035-01-01T00:00:00.120Z
+    collaborators_fk_list: [56eb6d04b37b3379b531e012]
 
 - model: core.service
   pk: 56eb6d04b37b3379b531b102
@@ -39,6 +40,7 @@
     version: Full
     status: Active
     expiry: 2035-01-01T00:00:00.120Z
+    collaborators_fk_list: [56eb6d04b37b3379b531e012]
 
 - model: core.config
   fields:

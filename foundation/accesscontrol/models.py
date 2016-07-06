@@ -50,6 +50,10 @@ class Member(AbstractUser):
     phone_verified = models.BooleanField(_('Phone verification status'), default=False,
                                          help_text=_('Designates whether this phone number has been '
                                                      'verified by sending a confirmation code by SMS.'))
+    business_notices = models.IntegerField(default=0,
+                                           help_text="Number of pending business notifications.")
+    personal_notices = models.IntegerField(default=0,
+                                           help_text="Number of pending personal notifications.")
 
     objects = MemberManager()
 

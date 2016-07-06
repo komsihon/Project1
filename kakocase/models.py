@@ -16,6 +16,8 @@ CASH_OUT_MIN = getattr(settings, 'KAKOCASE_CASH_OUT_MIN', 5000)
 
 # ikwen.core.ConsoleEventType Code names
 CASH_OUT_REQUEST_EVENT = 'CashOutRequestEvent'
+PROVIDER_REMOVED_PRODUCT_EVENT = 'ProviderRemovedProductEvent'
+PROVIDER_ADDED_PRODUCTS_EVENT = 'ProviderAddedProductsEvent'
 
 # End Code names
 
@@ -31,9 +33,10 @@ class BusinessCategory(Model):
     """
     Type of products that a provider sells.
     """
-    name = models.CharField(max_length=100,
+    name = models.CharField(max_length=100, unique=True,
                             help_text=_("Name of the category."))
-    slug = models.SlugField(help_text=_("Slug of the category."))
+    slug = models.SlugField(unique=True,
+                            help_text=_("Slug of the category."))
     description = models.TextField(blank=True,
                                    help_text=_("Description of the category. (May contain HTML)"))
 
@@ -83,15 +86,19 @@ class OperatorConfig(AbstractConfig):
     RETAILER = 'Retailer'
     DELIVERY_MAN = 'DeliveryMan'
 
+    MANUAL_UPDATE = 'Auto'
+    AUTO_UPDATE = 'Manual'
+
     STRAIGHT = 'Straight'
     UPON_CONFIRMATION = 'Confirmation'
     PAYMENT_DELAY_CHOICES = (
         (STRAIGHT, _('Straight')),
         (UPON_CONFIRMATION, _('Upon buyer confirmation')),
     )
+    api_signature = models.CharField(max_length=30, unique=True, db_index=True)
     business_type = models.CharField(max_length=30)  # PROVIDER, RETAILER or DELIVERY_MAN
     ikwen_share = models.IntegerField(default=2,
-                                      help_text=_("Percentage ikwen collects on the revenue made by this person."))
+                                      help_text=_("Percentage ikwen collects on the turnover made by this person."))
     payment_delay = models.CharField(max_length=30, choices=PAYMENT_DELAY_CHOICES, default=UPON_CONFIRMATION,
                                      help_text=_("When cash is deposited on trader's account. Right when the "
                                                  "buyer pays or when he acknowledges reception of the order."))
@@ -104,8 +111,10 @@ class OperatorConfig(AbstractConfig):
     category = models.ForeignKey(BusinessCategory, blank=True, null=True)
     stock_updated_on = models.DateTimeField(blank=True, null=True,
                                             help_text=_("Last time provider updated the stock"))
-    # update method can be either Provider.MANUAL or Provider.AUTO
-    last_stock_update_method = models.CharField(max_length=10, blank=True, null=True)
+    last_stock_update_method = models.CharField(max_length=10, blank=True, null=True)  # MANUAL_UPDATE or AUTO_UPDATE
+    avg_collection_delay = models.IntegerField(default=120, blank=True,
+                                               help_text="When provider runs his own retail website, this is the "
+                                                         "average delay in minutes before the user can come and collect his order.")
 
     def __unicode__(self):
         return self.company_name

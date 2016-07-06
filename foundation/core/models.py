@@ -5,13 +5,21 @@ from django.utils import timezone
 from django.db import models
 from django.utils.translation import gettext as _
 from django_mongodb_engine.contrib import MongoDBManager
+from djangotoolbox.fields import ListField, EmbeddedModelField
 
-from ikwen.foundation.core.utils import add_database_to_settings, to_dict
+from ikwen.foundation.core.utils import add_database_to_settings, to_dict, get_service_instance
 
 
 class Model(models.Model):
     created_on = models.DateTimeField(default=timezone.now)
     updated_on = models.DateTimeField(default=timezone.now, auto_now_add=True)
+
+    class Meta:
+        abstract = True
+
+
+class AbstractWatchModel(Model):
+    counters_reset_on = models.DateTimeField(default=timezone.now)
 
     class Meta:
         abstract = True
@@ -103,6 +111,7 @@ class Service(models.Model):
     monthly_cost = models.PositiveIntegerField()
     version = models.CharField(max_length=15, blank=True, choices=VERSION_CHOICES)  # Free, Trial, Full
     status = models.CharField(max_length=15, default=PENDING, choices=STATUS_CHOICES)
+    collaborators_fk_list = ListField()
     # Date of expiry of the service. The billing system automatically sets it to
     # IkwenInvoice.due_date + IkwenInvoice.tolerance
     # IkwenInvoice in this case is the invoice addressed to client for this Service
@@ -278,6 +287,7 @@ class ConsoleEventType(Model):
     Type of events targeted to the Member console.
 
     :attr:`app` :class:`Application` this type of event applies to.
+    :attr:`codename`
     :attr:`title`
     :attr:`title_mobile` Title to use on mobile devices.
     :attr:`renderer` dotted name of the function to call to render an event of this type the :attr:`member` Console.
@@ -285,7 +295,7 @@ class ConsoleEventType(Model):
     is called as such: function_name(service, event_type, member, object_id, model)
     """
     app = models.ForeignKey(Application)
-    code_name = models.CharField(max_length=150)
+    codename = models.CharField(max_length=150)
     title = models.CharField(max_length=150)
     title_mobile = models.CharField(max_length=100, blank=True)
     renderer = models.CharField(max_length=255)
@@ -299,19 +309,20 @@ class ConsoleEvent(Model):
     An event targeted to the Member console.
 
     :attr:`service` :class:`Service` from which event was fired. It helps retrieve Application and IA0.
-
+    :attr:`target` Whether it is a Business or Personal event.
+    :attr:`member` :class:`Member` to which the event is aimed at.
     :attr:`event_type` :class:`ConsoleEventType` for this event.
     Events of the same type will be grouped under a same :attr:`ConsoleEventType.title`
 
-    :attr:`member` :class:`Member` to which the event is aimed at.
-
-    :attr:`model` dotted name of the model under the form 'app_label.model_class_name'
-
+    :attr:`model` dotted path of the model under the form 'app_label.models.model_class_name'
     :attr:`object_id` id of the object involved in the :attr:`service` database
     """
-    service = models.ForeignKey(Service)
-    event_type = models.ForeignKey(ConsoleEventType)
+    BUSINESS = 'Business'
+    PERSONAL = 'Personal'
+    service = models.ForeignKey(Service, default=get_service_instance)
     member = models.ForeignKey('accesscontrol.Member')
+    target = models.CharField(max_length=15)  # BUSINESS or PERSONAL
+    event_type = models.ForeignKey(ConsoleEventType)
     model = models.CharField(max_length=100)
     object_id = models.CharField(max_length=24)
 

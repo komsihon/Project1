@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from ajaxuploader.backends.local import LocalUploadBackend
 from django.conf import settings
+from django.db.models import F, Model
 from django.template import Context
 from django.template.loader import get_template
 from django.template.defaultfilters import urlencode, slugify
@@ -13,15 +14,21 @@ from django.utils import timezone
 
 
 def to_dict(var):
-    dict_var = var.__dict__
+    try:
+        dict_var = var.__dict__
+    except AttributeError:
+        return var
     for key in dict_var.keys():
         if key[0] == '_':
             del(dict_var[key])
-        elif dict_var[key] is object:
+        elif type(dict_var[key]) is list:
+            # item_list = [to_dict(item) for item in dict_var[key]]
+            dict_var[key] = [to_dict(item) for item in dict_var[key]]
+        elif isinstance(dict_var[key], Model):
             try:
-                dict_var = dict_var[key].to_dict()
+                dict_var[key] = dict_var[key].to_dict()
             except AttributeError:
-                dict_var = to_dict(dict_var[key])
+                dict_var[key] = to_dict(dict_var[key])
     return dict_var
 
 
@@ -169,7 +176,7 @@ def increment_history_field(watch_object, history_field, increment_value):
     :return:
     """
     sequence = watch_object.__dict__[history_field]
-    if type(sequence).__name__ != 'str':  # This means that the sequence is an instance of a ListField
+    if type(sequence) is list:  # This means that the sequence is an instance of a ListField
         sequence[-1] += increment_value
         return
     value_list = [val.strip() for val in sequence.split(',')]
@@ -232,7 +239,7 @@ def get_value_list(csv_or_sequence):
     :param csv_or_sequence:
     :return:
     """
-    if type(csv_or_sequence).__name__ == 'list':
+    if type(csv_or_sequence) is list:
         return csv_or_sequence
     return [float(val.strip()) for val in csv_or_sequence.split(',')]
 
@@ -277,3 +284,43 @@ def group_history_value_list(days_value_list, group_unit='month'):
             group_total = 0
         ref = ytd
     return grouped_value_list
+
+
+def set_counters(watch_object, *args):
+    now = timezone.now()
+    last_reset = watch_object.counters_reset_on
+    if last_reset:
+        diff = now - last_reset
+        if diff.days == 0:
+            if now.day == last_reset.day:
+                return
+        for arg in args:
+            if type(watch_object.__dict__[arg]) is list:
+                extension = [0 for i in range(diff.days + 1)]
+                watch_object.__dict__[arg].extend(extension)
+            else:
+                extension = ['0' for i in range(diff.days + 1)]
+                watch_object.__dict__[arg] = watch_object.__dict__[arg] + ',' + ','.join(extension)
+    else:
+        for arg in args:
+            if type(watch_object.__dict__[arg]) is list:
+                watch_object.__dict__[arg].append(0)
+            else:
+                watch_object.__dict__[arg] += ',0'
+    watch_object.counters_reset_on = timezone.now()
+    watch_object.save()
+
+
+def add_event(member, target, codename, model, object_id):
+    from ikwen.foundation.core.backends import UMBRELLA
+    from ikwen.foundation.core.models import ConsoleEventType, ConsoleEvent
+    from ikwen.foundation.accesscontrol.models import Member
+
+    service = get_service_instance()
+    event_type = ConsoleEventType.objects.using(UMBRELLA).get(app=service.app, codename=codename)
+    ConsoleEvent.objects.using(UMBRELLA).create(service=service, member=member, target=target,
+                                                event_type=event_type, model=model, object_id=object_id)
+    if target == ConsoleEvent.BUSINESS:
+        Member.objects.using(UMBRELLA).filter(pk=member.id).update(business_notices=F('business_notices')+1)
+    else:
+        Member.objects.using(UMBRELLA).filter(pk=member.id).update(personal_notices=F('personal_notices')+1)
