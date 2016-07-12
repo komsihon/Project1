@@ -1,13 +1,7 @@
 # -*- coding: utf-8 -*-
-
-from ikwen.foundation.core.utils import get_service_instance
 from django.utils.translation import gettext_lazy as _
 
 from ikwen.foundation.billing.models import InvoicingConfig, Invoice
-
-
-def get_invoicing_config_instance():
-    return InvoicingConfig.objects.all()[0]
 
 
 def get_next_invoice_number(auto=True):

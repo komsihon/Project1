@@ -22,8 +22,10 @@ def to_dict(var):
         if key[0] == '_':
             del(dict_var[key])
         elif type(dict_var[key]) is list:
-            # item_list = [to_dict(item) for item in dict_var[key]]
-            dict_var[key] = [to_dict(item) for item in dict_var[key]]
+            try:
+                dict_var[key] = [item.to_dict() for item in dict_var[key]]
+            except AttributeError:
+                dict_var[key] = [to_dict(item) for item in dict_var[key]]
         elif isinstance(dict_var[key], Model):
             try:
                 dict_var[key] = dict_var[key].to_dict()
@@ -32,17 +34,16 @@ def to_dict(var):
     return dict_var
 
 
-def get_service_instance(from_umbrella=False):
+def get_service_instance(using='default'):
     """
     Gets the Service currently running on this website in the Service
     local database or from foundation database.
-    @param from_umbrella: if True search in umbrella database else search in local database
+    @param using: database alias to search in
     @return:
     """
-    from ikwen.foundation.core.backends import UMBRELLA
     from ikwen.foundation.core.models import Service
     service_id = getattr(settings, 'IKWEN_SERVICE_ID')
-    return Service.objects.using(UMBRELLA).get(pk=service_id) if from_umbrella else Service.objects.get(pk=service_id)
+    return Service.objects.using(using).get(pk=service_id)
 
 
 def add_database_to_settings(database):
@@ -167,7 +168,7 @@ class DefaultUploadBackend(LocalUploadBackend):
         return super(DefaultUploadBackend, self).update_filename(request, filename, *args, **kwargs)
 
 
-def increment_history_field(watch_object, history_field, increment_value):
+def increment_history_field(watch_object, history_field, increment_value=1):
     """
     Increments the value of the last element of Watch Object. Those are objects with *history* fields
     :param watch_object:
@@ -183,6 +184,7 @@ def increment_history_field(watch_object, history_field, increment_value):
     value_list[-1] = float(value_list[-1]) + increment_value
     value_list[-1] = str(value_list[-1])
     watch_object.__dict__[history_field] = ','.join(value_list)
+    watch_object.save()
 
 
 def calculate_watch_info(history_value_list, duration=0):
@@ -286,7 +288,7 @@ def group_history_value_list(days_value_list, group_unit='month'):
     return grouped_value_list
 
 
-def set_counters(watch_object, *args):
+def set_counters(watch_object, *args, **kwargs):
     now = timezone.now()
     last_reset = watch_object.counters_reset_on
     if last_reset:
@@ -297,9 +299,11 @@ def set_counters(watch_object, *args):
         for arg in args:
             if type(watch_object.__dict__[arg]) is list:
                 extension = [0 for i in range(diff.days + 1)]
+                extension = extension[-366:]
                 watch_object.__dict__[arg].extend(extension)
             else:
                 extension = ['0' for i in range(diff.days + 1)]
+                extension = extension[-366:]
                 watch_object.__dict__[arg] = watch_object.__dict__[arg] + ',' + ','.join(extension)
     else:
         for arg in args:
@@ -316,7 +320,8 @@ def add_event(member, target, codename, model, object_id):
     from ikwen.foundation.core.models import ConsoleEventType, ConsoleEvent
     from ikwen.foundation.accesscontrol.models import Member
 
-    service = get_service_instance()
+    service = get_service_instance(using=UMBRELLA)
+    member = Member.objects.using(UMBRELLA).get(pk=member.id)
     event_type = ConsoleEventType.objects.using(UMBRELLA).get(app=service.app, codename=codename)
     ConsoleEvent.objects.using(UMBRELLA).create(service=service, member=member, target=target,
                                                 event_type=event_type, model=model, object_id=object_id)

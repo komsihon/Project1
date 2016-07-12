@@ -17,12 +17,27 @@ class Model(models.Model):
     class Meta:
         abstract = True
 
+    def to_dict(self):
+        var = to_dict(self)
+        del(var['created_on'])
+        del(var['updated_on'])
+        return var
+
 
 class AbstractWatchModel(Model):
+    """
+    A Watch model is a model with history fields used to keep progression
+    of some data on a daily basis, so to ease the report visualizations.
+    """
     counters_reset_on = models.DateTimeField(default=timezone.now)
 
     class Meta:
         abstract = True
+
+    def to_dict(self):
+        var = super(AbstractWatchModel, self).to_dict()
+        del(var['counters_reset_on'])
+        return var
 
 
 class Application(Model):
@@ -111,7 +126,7 @@ class Service(models.Model):
     monthly_cost = models.PositiveIntegerField()
     version = models.CharField(max_length=15, blank=True, choices=VERSION_CHOICES)  # Free, Trial, Full
     status = models.CharField(max_length=15, default=PENDING, choices=STATUS_CHOICES)
-    collaborators_fk_list = ListField()
+    collaborators_fk_list = ListField(blank=True, null=True)
     # Date of expiry of the service. The billing system automatically sets it to
     # IkwenInvoice.due_date + IkwenInvoice.tolerance
     # IkwenInvoice in this case is the invoice addressed to client for this Service
@@ -201,7 +216,7 @@ class AbstractConfig(Model):
     service = models.OneToOneField(Service, editable=False, related_name='+')
     company_name = models.CharField(max_length=30, verbose_name=_("Website / Company name"),
                                     help_text=_("Website/Company name as you want it to appear in mails and pages."))
-    company_name_slug = models.SlugField()
+    company_name_slug = models.SlugField(db_index=True)
     address = models.CharField(max_length=30, blank=True, verbose_name=_("Company address"),
                                help_text=_("Website/Company name as you want it to appear in mails and pages."))
     country = models.ForeignKey('core.Country', blank=True, null=True, related_name='+',
@@ -302,6 +317,10 @@ class ConsoleEventType(Model):
 
     class Meta:
         db_table = 'ikwen_consoleeventtype'
+        unique_together = (
+            ('app', 'codename'),
+            ('app', 'title'),
+        )
 
 
 class ConsoleEvent(Model):

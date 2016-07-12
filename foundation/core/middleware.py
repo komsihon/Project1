@@ -4,6 +4,7 @@ This module groups utility middlewares that Ikwen uses.
 """
 from datetime import datetime
 from django.shortcuts import render
+from ikwen.foundation.core.backends import UMBRELLA
 
 from ikwen.foundation.core.models import Service
 from ikwen.foundation.core.utils import get_service_instance
@@ -20,7 +21,7 @@ class ServiceStatusCheckMiddleware(object):
     """
 
     def process_request(self, request):
-        service = get_service_instance(from_umbrella=True)
+        service = get_service_instance(using=UMBRELLA)
         now = datetime.now()
         if service.expiry:
             if now >= service.expiry or service.status != Service.ACTIVE:
