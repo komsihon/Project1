@@ -1,44 +1,280 @@
-
-
+{% extends "core/app_base_admin.html" %}
 {% load i18n %}
+{% load humanize %}
 {% load staticfiles %}
-<!DOCTYPE html>
-<html lang="{{ lang }}">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        {% block meta %}{% endblock %}
-		{% block page_title %}{% endblock %}
-		{% block head_style %}
-            <link href="{% static 'css/../../../../../Kakocase/static/css/bootstrap.min.css' %}" rel="stylesheet">
-		{% endblock %}
-        {% block head_js %}
-            <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-            <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-            <!--[if lt IE 9]>
-              <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-              <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-            <![endif]-->
-        {% endblock %}
-    </head>
-    <body>
-        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-        <script src="{% static 'js/../../../../../Kakocase/static/js/jquery-1.12.4.min.js' %}"></script>
-        <!-- Include all compiled plugins (below), or include individual files as needed -->
-        <script src="{% static 'js/../../../../../Kakocase/static/js/bootstrap.min.js' %}"></script>
-        <script src="{% static 'js/../../../../../Kakocase/static/js/ikwen-util.js' %}"></script>
-        {% block js %}
-            <script>
-                (function() {
-                    $('form#lang a').click(function() {
-                        var lang = $(this).data('val');
-                        $('form#lang input[name=language]').val(lang);
-                        $('form#lang').submit();
-                        return false
-                    })
-                })()
-            </script>
-        {% endblock %}
-    </body>
-</html>
+
+{% block page_title %}
+<title> Collaborators -  ikwen </title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <style>
+        body > footer {display: none}
+        #admin-content {height: 100%; overflow: auto; position: fixed; width: 100%}
+        ul#groups {clear: both; margin-top: 45px}
+        ul#groups li.results a {color: #333}
+        ul#groups li.results span {color: #888}
+        .tab-content .spinner {background: rgba(255, 255, 255, .6); height: 100%; margin-left: -255px; position: fixed; width: 100%}
+        ul.people {padding-left: 0}
+        #access-control {background: #fff; height: 100%; margin-top: -115px; padding: 0 15px; position: fixed; right: 0; width: 330px}
+        #access-control .stage {border-left: 1px solid #eee; float: left; height: 100%; padding: 0 15px; width: 100%}
+        #access-control form {margin: 25px 0}
+        #access-control form button {margin-top: 25px}
+        .member.Blocked  {opacity: .72; filter:Alpha(opacity=72)}
+        #group-update, #blocking {border-top: 1px solid #eee}
+        #group-update h5 em {color: #888}
+    </style>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>{% trans "Collaborators" %}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="container-fluid">
+        <form id="context-search" onsubmit="return false">
+            <input type="text" class="form-input input-sm" placeholder="{% trans "Search collaborator" %}"/>
+        </form>
+        <ul id="groups" class="nav nav-tabs" role="tablist">
+            {% for group in groups %}
+                <li role="presentation" class="group {{ group.name }} active" data-id="{{ group.id }}" data-name="{{ group.name }}">
+                    <a href="#{{ group.id }}" aria-controls="{{ group.id }}" role="tab" data-toggle="tab">{{ group.name }}</a>
+                </li>
+            {% endfor %}
+            <li role="presentation" class="group {{ sudo_group.name }}" data-id="{{ sudo_group.id }}" data-name="{{ sudo_group.name }}">
+                <a href="#{{ sudo_group.id }}" aria-controls="{{ sudo_group.id }}" role="tab" data-toggle="tab">{{ sudo_group.name }}</a>
+            </li>
+            <li role="presentation" class="group results" data-id="results" style="display: none">
+                <a href="#results" aria-controls="results" role="tab" data-toggle="tab">{% trans "Search: " %} <span></span></a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="{{ groups.0.id }}">
+                {% include 'core/snippets/spinner.html' %}
+                <ul class="people">
+                {% for obj in nonrel_perm_list %}
+                    <li class="member {{ obj.user.get_status }}" data-id="{{ obj.user.id }}" data-status="{{ obj.user.get_status }}"
+                        data-permissions="{% for perm in obj.permission_fk_list %},{{ perm }}{% endfor %}">
+                    {% if obj.user.photo and obj.user.photo.name %}
+                        <a href="{% url 'ikwen:profile' obj.user.id %}" class="photo" style="background-image: url({{ obj.user.photo.small_url }})"></a>
+                    {% else %}
+                        <a href="{% url 'ikwen:profile' obj.user.id %}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
+                    {% endif %}
+                        <div style="float: left; margin-left: 30px">
+                            <a href="{% url 'ikwen:profile' obj.user.id %}" class="full_name">{{ obj.user.full_name }}</a>
+                            <p class="about">{{ obj.user.phone }}, {{ obj.user.email }}</p>
+                        </div>
+                    </li>
+                {% endfor %}
+                    <li class="member tpl" style="display: none">
+                        <a class="photo"></a>
+                        <div style="float: left; margin-left: 30px">
+                            <a class="full_name"></a>
+                            <p class="about"></p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            {% for group in groups %}
+                {% if forloop.counter > 1 %}
+                    <div role="tabpanel" class="tab-pane" id="{{ group.id }}">
+                        <ul class="people">
+                            <li class="member tpl" style="display: none">
+                                <a class="photo"></a>
+                                <div style="float: left; margin-left: 30px">
+                                    <a class="full_name"></a>
+                                    <p class="about"></p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                {% endif %}
+                <div role="tabpanel" class="tab-pane" id="{{ sudo_group.id }}">
+                    {% include 'core/snippets/spinner.html' %}
+                    <ul class="people">
+                        <li class="member tpl" style="display: none">
+                            <a class="photo"></a>
+                            <div style="float: left; margin-left: 30px">
+                                <a class="full_name"></a>
+                                <p class="about"></p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="results">
+                    {% include 'core/snippets/spinner.html' %}
+                    <div class="empty" style="color: #888; font-size: 18px; padding: 30px 0">{% trans "No result" %}</div>
+                    <ul class="people">
+                        <li class="member tpl" style="display: none">
+                            <a class="photo bg-img"></a>
+                            <div style="float: left; margin-left: 30px">
+                                <a class="full_name"></a>
+                                <p class="about">
+                                    <span class="phone"></span>, <span class="email"></span>
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            {% endfor %}
+        </div>
+        <div id="access-control">
+            <div class="stage">
+                <div class="empty" style="color: #888; padding-top: 30px">
+                    {% trans "Click on a collaborator in the list to view and update permissions." %}
+                </div>
+                <div class="actions" style="display: none">
+                    <div id="permissions">
+                        <h4>{% trans "Permissions" %}</h4>
+                        <form name="permissions" onsubmit="return false">
+                            {% for perm in permissions %}
+                                <div class="form-group">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" id="{{ perm.id }}" value="{{ perm.id }}" /> {{ perm.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            <button class="btn btn-primary btn-sm btn-block">{% trans "Confirm" %}</button>
+                        </form>
+                    </div>
+    {#                {% if groups|length > 1 %}#}
+                    <div id="group-update">
+                        <h5>{% trans "Group" %}: <em>{{ groups.0.name }}</em></h5>
+                        <div class="btn-group">
+                            <button class="btn btn-warning btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                {% trans "Move to group" %}&nbsp;&nbsp;&nbsp;...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                {% for group in groups %}
+                                    <li role="presentation" class="group {{ group.name }}" data-id="{{ group.id }}"><a href="#">{{ group.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+    {#                {% endif %}#}
+                    <div id="blocking" style="margin-top: 45px">
+                        <h5>{% trans "Block/Activate" %}</h5>
+                        <button class="btn btn-danger btn-sm btn-block">{% trans "Block" %}</button>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .collaborators').addClass('active');
+            $('ul#groups').on('click', 'li', function (e) {
+                var groupId = $(this).data('id'),
+                    groupName = $(this).data('name'),
+                    count = $('div#' + groupId + ' li.member:not(.tpl)').length;
+                $('div#group-update h5 em').text(groupName);
+                $('div.tab-pane').removeClass('active').hide();
+                $('div#' + groupId).addClass('active').show();
+                if (count > 0) {
+                    $('div#' + groupId + ' li.member.active').click();
+                    return;
+                }
+                $('div#access-control .empty').show();
+                $('div#access-control .actions').hide();
+                if (groupId == 'results') return;
+                $('body').css('cursor', 'wait');
+                $.getJSON('{% url 'ikwen:collaborators' %}',
+                        {group_name: groupName, start: 0, length: 100, format: 'json'}, function(data) {
+                    $('body').css('cursor', 'default');
+                    $('div#' + groupId + ' li.member:not(.tpl)').remove();
+                    for(var i=0; i<data.length; i++) {
+                        var member = data[i],
+                            $tpl = $('li.member.tpl').clone().removeClass('tpl');
+                        $tpl = applyMemberTemplate($tpl, member);
+                        $tpl.insertBefore('li.member.tpl').show();
+                    }
+                });
+            });
+            function applyMemberTemplate($tpl, member) {
+                $tpl.addClass(member.status).data({"id": member.id, "status": member.status, "permissions": member.permissions});
+                $tpl.find('.full_name').text(member.full_name);
+                $tpl.find('.about').text(member.phone + ', ' + member.email);
+                $tpl.find('a').attr('href', member.profile_url);
+                $tpl.find('.photo').css('background-image', 'url(' + member.photo + ')');
+                return $tpl;
+            }
+            $('body').on('click', 'li.member', function() {
+                var memberId = $(this).data('id'),
+                    status = $(this).data('status'),
+                    permissions = $(this).data('permissions');
+                if (permissions) permissions = permissions.split(',');
+                else permissions = [];
+                $('div#access-control form input').prop('checked', false);
+                for (var i=0; i<permissions.length; i++) {
+                    $('#' + permissions[i]).prop('checked', true)
+                }
+                $('div#access-control button').data({"member-id": memberId, "status": status});
+                $('ul li.member').removeClass('active');
+                $(this).addClass('active');
+                $('div#access-control .empty').hide();
+                if (status == 'Blocked') {
+                    $('div#blocking button').text("{% trans 'Activate' %}");
+                    $('#permissions, #group-update').hide()
+                } else {
+                    $('div#blocking button').text("{% trans 'Block' %}");
+                    $('#permissions, #group-update').show()
+                }
+                $('div#access-control .actions').show();
+            });
+            $('div#access-control form button').click(function() {
+                var memberId = $(this).data('member-id'),
+                    permissionIds = [];
+                $('div#access-control form input:checked').each(function() {
+                    permissionIds.push($(this).val())
+                });
+                $.getJSON('{% url 'ikwen:set_collaborator_permissions' %}',
+                        {permission_ids: permissionIds.join(','), member_id: memberId}, function(data) {
+                    if (data.success) {
+                        ikwen.showFloatingNotice("{% trans 'Permissions successfully updated' %}", '', 6)
+                    }
+                });
+            });
+            $('div#blocking button').click(function() {
+                var memberId = $(this).data('member-id'),
+                    status = $(this).data('status');
+                $.getJSON('{% url 'ikwen:toggle_member' %}', {member_id: memberId}, function(data) {
+                    if (data.success) {
+                        if (status == 'Blocked')  {
+                            $('.member.active').removeClass('Blocked');
+                            $('#permissions, #group-update').show();
+                            $('div#blocking button').text("{% trans 'Block' %}").data('status', 'Active');
+                        } else  {
+                            $('.member.active').addClass('Blocked');
+                            $('div#blocking button').text("{% trans 'Activate' %}").data('status', 'Blocked');
+                            $('#permissions, #group-update').hide();
+                        }
+                        ikwen.showFloatingNotice("{% trans 'Permissions successfully updated' %}", '', 6)
+                    }
+                });
+            });
+            var searchDescriptor = [{
+                endpoint: '{% url 'ikwen:list_collaborators' %}',
+                resultTplSelector: '#results li.member'
+            }];
+            function beforeSearch() {
+                var q = $('form#context-search input').val();
+                $('ul#groups li').removeClass('active');
+                $('ul#groups li.results').show().addClass('active').find('span').text(q);
+                $('div.tab-pane').hide();
+                $('#results').show();
+                $('div#access-control .empty').show();
+                $('div#access-control .actions').hide();
+            }
+            ikwen.setupSearch('#context-search input', '#results', searchDescriptor, beforeSearch);
+        })()
+    </script>
+{% endblock %}

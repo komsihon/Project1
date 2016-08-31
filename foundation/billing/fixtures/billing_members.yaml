@@ -1,4 +1,4 @@
-- model: core.member
+- model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e011
   fields:
     username: arch
@@ -6,7 +6,7 @@
     password: pbkdf2_sha256$12000$nNK3SeCKYSvl$CuoviZNeie9YzaWhukVCi9iQtNmpu3QBbK2yHGHEUxc=  # admin
     phone: 677000001
 
-- model: core.member
+- model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e012
   fields:
     username: member2
@@ -15,7 +15,7 @@
     phone: 677000002
     first_name: Tamo
 
-- model: core.member
+- model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e013
   fields:
     username: member3
@@ -24,7 +24,7 @@
     phone: 677000003
     first_name: Foka
 
-- model: core.member
+- model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e014
   fields:
     username: member4

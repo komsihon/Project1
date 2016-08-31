@@ -69,8 +69,8 @@ class SubscriptionAdmin(admin.ModelAdmin, ImportExportMixin):
 class PaymentInline(admin.TabularInline):
     model = Payment
     extra = 1
-    list_display = ('amount', 'method', 'when', 'cashier', )
-    readonly_fields = ('when', 'cashier')
+    list_display = ('amount', 'method', 'created_on', 'cashier', )
+    readonly_fields = ('created_on', 'cashier')
 
 
 class InvoiceAdmin(admin.ModelAdmin, ImportExportMixin):
@@ -223,10 +223,10 @@ class CashierListFilter(admin.SimpleListFilter):
 
 
 class PaymentAdmin(admin.ModelAdmin, ExportMixin):
-    list_display = ('get_member', 'amount', 'method', 'when', 'cashier', )
-    list_filter = ('when', 'method', CashierListFilter, )
+    list_display = ('get_member', 'amount', 'method', 'created_on', 'cashier', )
+    list_filter = ('created_on', 'method', CashierListFilter, )
     search_fields = ('member_email', 'member_phone', )
-    readonly_fields = ('when', 'cashier')
+    readonly_fields = ('created_on', 'cashier')
     raw_id_fields = ('invoice', )
 
     def save_model(self, request, obj, form, change):

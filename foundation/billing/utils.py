@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+from django.conf import settings
+from django.db.models import get_model
+
+from ikwen.foundation.core.models import Service
 
 from ikwen.foundation.core.utils import get_service_instance
 from django.utils.translation import gettext_lazy as _
@@ -6,8 +10,35 @@ from django.utils.translation import gettext_lazy as _
 from ikwen.foundation.billing.models import InvoicingConfig, Invoice
 
 
-def get_invoicing_config_instance():
-    return InvoicingConfig.objects.all()[0]
+def get_invoicing_config_instance(using='default'):
+    return InvoicingConfig.objects.using(using).all()[0]
+
+
+def get_billing_cycle_days_count(billing_cycle):
+    if billing_cycle == Service.MONTHLY:
+        return 30
+    if billing_cycle == Service.QUARTERLY:
+        return 91
+    if billing_cycle == Service.BI_ANNUALLY:
+        return 182
+    return 365
+
+
+def get_billing_cycle_months_count(billing_cycle):
+    if billing_cycle == Service.MONTHLY:
+        return 1
+    if billing_cycle == Service.QUARTERLY:
+        return 3
+    if billing_cycle == Service.BI_ANNUALLY:
+        return 6
+    return 12
+
+
+def get_subscription_model():
+    config_model_name = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
+    app_label = config_model_name.split('.')[0]
+    model = config_model_name.split('.')[1]
+    return get_model(app_label, model)
 
 
 def get_next_invoice_number(auto=True):

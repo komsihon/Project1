@@ -1,0 +1,27 @@
+{% extends "core/base_bs.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% block page_title %}<title>{{ service.project_name }} - {{ config.short_description  }} </title>{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <style type="text/css">
+        #top {height: 0}
+        footer {display: none}
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="content" class="container">
+        <div style="margin-top: 9%; text-align: center">
+            {% if config.logo.name %}
+            <img src="{{ config.logo.url }}" height="250"/>
+            {% endif %}
+            <div style="padding-top: 30px; text-align: center">
+                <h2>{{ service.project_name }}</h2>
+                <p style="color: #888; font-weight: 300"> {{ config.short_description  }} </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block custom_js %}
+    {% include 'core/snippets/google_analytics.html' %}
+{% endblock %}

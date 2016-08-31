@@ -1,0 +1,126 @@
+{% load i18n %}
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        {% block meta %}{% endblock %}
+		{% block page_title %}{% endblock %}
+		{% block head_style %}
+            <link rel="stylesheet" href="{% static 'ikwen/css/bootstrap.min.css' %}" />
+            <link rel='stylesheet' href="{% static 'ikwen/font-awesome/css/font-awesome.min.css' %}" />
+            <link rel='stylesheet' href="{% static 'ikwen/css/flatly.bootstrap.min.css' %}" />
+            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}" />
+		{% endblock %}
+        {% block head_js %}
+            <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+            <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+            <!--[if lt IE 9]>
+              <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+              <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+            <![endif]-->
+        {% endblock %}
+    </head>
+    <body>
+        <div id="top-notice-ctnr" style="display: none">
+            <span class="floating-notice has-shade" style="float: none; position: static"> Error goes here </span>
+        </div>
+        {% block header %}
+            <nav id="navbar" class="navbar navbar-default navbar-static-top">
+                <div class="container-fluid">
+                    {% block header_brand %}
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="{{ base_urls.IKWEN }}"><strong>ikwen</strong></a>
+                    </div>
+                    {% endblock %}
+                    <form class="search" action="">
+                        <input type="text" class="form-control input-sm inner-shade" placeholder="{% trans "Search" %}"/>
+                        <div class="results has-shade" style="display: none">
+                            {% include 'core/snippets/spinner.html' %}
+                            <ul>
+                                <li class="member tpl" style="display: none">
+                                    <a class="target_url" style="display: block">
+                                        <span class="photo logo bg-img" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></span>
+                                        <div style="float: left; margin-left: 30px">
+                                            <span class="full_name project_name"></span>
+                                            <p class="about short_description"></p>
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </form>
+                    <ul class="nav navbar-nav navbar-right">
+                        {% if request.user.is_authenticated %}
+                            <li>
+                                <a href="{% url 'ikwen:console' %}">
+                                    {% trans "Home" %}
+                                    {% if request.user.get_notice_count > 0 %}<span class="label label-danger">{{ request.user.get_notice_count }}</span>{% endif %}
+                                </a>
+                            </li>
+                            {% if request.user.collaborates_on|length == 1 %}
+                                <li>
+                                    <a href="{{ request.user.collaborates_on.0.admin_url }}">{{ request.user.collaborates_on.0.project_name }}</a>
+                                </li>
+                            {% elif request.user.collaborates_on|length > 1 %}
+                                <li id="apps" class="dropdown">
+                                    <a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Apps</a>
+                                    <ul class="dropdown-menu" aria-labelledby="apps">
+                                        {% for app in request.user.collaborates_on %}
+                                            <li><a href="{{ app.admin_url }}">{{ app.project_name }}</a> </li>
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            {% endif %}
+                            <li id="user-menu" class="dropdown">
+                                <a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img src="{% static 'ikwen/img/user-icon.png' %}" />
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="user-menu">
+                                    <li style="padding: 3px 20px"> {{ request.user.first_name }} </li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="{% url "ikwen:account_setup" %}">{% trans "Account setup" %}</a> </li>
+                                    <li><a href="{% url "ikwen:logout" %}">{% trans "Logout" %}</a> </li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li>
+                                <a href="{% url 'ikwen:sign_in' %}">Login</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </nav>
+        {% endblock %}
+        {% block content %}{% endblock %}
+        {% block footer %}
+            <footer style="color: #999; font-size: 12px; margin-top: 45px; text-align: center">
+                &copy; {{ year }} <a href="{{ base_urls.IKWEN }}">ikwen</a>. All rights reserved -
+                <a href="{% url 'ikwen:legal_mentions' %}" style="text-decoration: underline">{% trans "Legal mentions" %}</a>
+            </footer>
+        {% endblock %}
+        <script src="{% static 'ikwen/js/jquery-1.12.4.min.js' %}"></script>
+        <script src="{% static 'ikwen/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'ikwen/js/ikwen-util.js' %}"></script>
+        {% block js %}
+            <script>
+                (function() {
+                    $('form#lang a').click(function() {
+                        var lang = $(this).data('val');
+                        $('form#lang input[name=language]').val(lang);
+                        $('form#lang').submit();
+                        return false
+                    });
+                    var searchDescriptor = [{
+                        endpoint: '{% url 'ikwen:list_projects' %}',
+                        resultTplSelector: '#navbar .search .results li.member'
+                    }];
+                    $('nav#navbar .search input').focusout(function() {$('nav#navbar .search .results').fadeOut()});
+                    ikwen.setupSearch('#navbar .search input', '#navbar .search .results', searchDescriptor);
+                })()
+            </script>
+        {% endblock %}
+    </body>
+</html>

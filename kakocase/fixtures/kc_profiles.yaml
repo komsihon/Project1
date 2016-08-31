@@ -1,0 +1,21 @@
+- model: shopping.customer
+  pk: 56eb6db3379b531e01104b34
+  fields:
+    member: 56eb6d04b37b3379b531e014
+    delivery_cities:
+      - id: 56ec6d04b37b3379b7446c01
+        name: Yaounde
+    delivery_addresses: [Odza]
+    orders_count_history: [6, 2, 12, 3, 7]
+    items_purchased_history: [18, 13, 25, 11, 10]
+    turnover_history: [26400, 15090, 35135, 9060, 84500]
+    earnings_history: [1540, 964, 6820, 695, 14768]
+
+- model: shopping.anonymousbuyer
+  pk: 57b336eb6d04b379b531a001
+  fields:
+    name: kamsu towa
+    phone: 650123894
+    delivery_cities:
+      - id: 56ec6d04b37b3379b7446c01
+        name: Yaounde

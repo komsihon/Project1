@@ -1,0 +1,182 @@
+{% extends "core/base_bs.html" %}
+{% load i18n %}
+{% load humanize %}
+{% load staticfiles %}
+
+{% block page_title %}
+<title> {{ profile_name }} - ikwen </title>
+{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <style>
+        body {background: #f6f6f6}
+        {% if profile_cover_url %}
+            #cover {background-image: url({{ profile_cover_url }})}
+        {% else %}
+            #cover {background-image: url({% static 'ikwen/img/default-cover.jpg' %})}
+        {% endif %}
+        {% if profile_photo_url %}
+            #banner .frame .photo {background-image: url({{ profile_photo_url }})}
+        {% else %}
+            #banner .frame .photo {background-image: url({% static 'ikwen/img/login-avatar.jpg' %})}
+        {% endif %}
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="content" class="container">
+        {% block stage %}
+            <div id="stage">
+                <header id="cover" class="subtle-shade">
+                    <div id="banner">
+                        <div class="frame">
+                            <div class="photo" style="">
+                                {% if is_console %}<div class="upload-image"></div>{% endif %}
+                            </div>
+                        </div>
+                        {% if is_console %}<div class="upload-image"></div>{% endif %}
+                        <h2 class="text-has-shade">{{ profile_name }}</h2>
+                    </div>
+                </header>
+                <div class="container-fluid" id="cards">
+                    {% for elt in access_requests %}
+                    <section class="access-request subtle-shade">
+                        <div class="logo">
+                            <img src="{{ elt.rq.service.config.logo.url }}" />
+                            <h4>{{ elt.rq.service.project_name }}</h4>
+                        </div>
+                        <div class="details row">
+                            <div class="about">
+                                <div class="col-sm-8 col-md-8">
+                                    <h3>{{ elt.rq.get_title }}</h3>
+                                    <p>{{ elt.rq.get_description }}</p>
+                                </div>
+                                <div class="col-sm-4 col-md-4">
+                                    <button id="allow-access" class="btn btn-success btn-sm btn-block" data-request-id="{{ elt.rq.id }}" data-access-type="{{ elt.rq.type }}">{% trans "Grant access" %}</button>
+                                </div>
+                            </div>
+                            <div class="groups" style="display: none">
+                                <div class="group-choice">
+                                    <h3>{% trans "Grant access as:" %}</h3>
+                                    {% for group in elt.groups %}
+                                        <div class="form-group">
+                                            <div class="radio"> <label> <input type="radio" name="group" value="{{ group.id }}" /> {{ group.name }} </label> </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <p class="text-success" style="display: none">{% trans "Access successfully granted to collaborator." %}</p>
+                                <button id="confirm-group" data-request-id="{{ elt.rq.id }}" class="btn btn-success btn-sm btn-block">{% trans "Confirm" %}</button>
+                            </div>
+                        </div>
+                    </section>
+                    {% endfor %}
+                    <section id="about" class="subtle-shade">
+                        {% if is_company and config.short_description %}
+                            <p style="color: #666; font-size: 18px; margin-bottom: 20px">{{ config.short_description }}</p>
+                        {% else %}
+                            <h3>{% trans "About" %}</h3>
+                        {% endif %}
+                        <ul>
+                            {% if profile_gender %}
+                                <li>
+                                    <label>{% trans "Gender" %}</label>
+                                    <span>{{ profile_gender }}</span>
+                                </li>
+                            {% endif %}
+                            {% if profile_email %}
+                                <li>
+                                    <label>E-mail</label>
+                                    <span>{{ profile_email }}</span>
+                                </li>
+                            {% endif %}
+                            {% if profile_phone %}
+                                <li>
+                                    <label>{% trans "Phone" %}</label>
+                                    <span>{{ profile_phone }}</span>
+                                </li>
+                            {% endif %}
+                            {% if is_company %}
+                                <li>
+                                    <label>{% trans "Site web" %}</label>
+                                    <span>{{ service.url }} - <a href="{{ service.url }}">{% trans "Visit" %}</a></span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                        {% if is_company %}
+                            <div class="actions">
+                                {% if request.user.is_authenticated %}
+                                    {% if not is_customer %}
+                                        <button id="require-service" class="btn btn-primary btn-sm" data-service-id="{{ service.id }}">{% trans "Require service" %}</button>
+                                    {% endif %}
+                                    {% if not is_collabo %}
+                                        <button id="require-collabo" class="btn btn-success btn-sm" data-service-id="{{ service.id }}">{% trans "Require collaboration" %}</button>
+                                    {% endif %}
+                                {% else %}
+                                    <a class="btn btn-primary btn-sm">{% trans "Require service" %}</a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </section>
+                </div>
+            </div>
+        {% endblock %}
+        <div id="ad-space-right">
+            <div>
+                <h4>{% trans "Sponsored Ads" %}</h4>
+                <div id="ad"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            var COLLABORATION_REQUEST = 'CollaborationRequest';
+            $('#require-collabo').click(function() {
+                var serviceId = $(this).data('service-id');
+                $.getJSON('{% url 'ikwen:request_access' %}',
+                        {access_type: COLLABORATION_REQUEST, service_id: serviceId, format: 'json'}, function(data) {
+                    if (data.success) {
+                        $('section#about .actions').addClass('text-success').html('{% trans "Request successfully submitted." %}');
+                    }
+                })
+            });
+            $('#allow-access').click(function() {
+                var requestId = $(this).data('request-id'),
+                    accessType = $(this).data('access-type'),
+                    _$details = $(this).parents('.details');
+                if (accessType == COLLABORATION_REQUEST) {
+                    if (_$details.find('.groups').length == 1) {
+                        var groupId = _$details.find('.groups input').val();
+                        _$details.find('.group-choice').hide();
+                        confirmCollaborationRequest(requestId, groupId, _$details);
+                    } else {
+                        _$details.find('.about').hide();
+                        _$details.find('.groups').show();
+                    }
+                } else {
+
+                }
+            });
+            $('#confirm-group').click(function() {
+                var requestId = $(this).data('request-id'),
+                    groupId = $('div#access-request .groups input[name=group]').val(),
+                    _$details = $(this).parents('.details');
+                confirmCollaborationRequest(requestId, groupId, _$details);
+            });
+            function confirmServiceRequest() {
+                $.getJSON('{% url 'ikwen:grant_access_to_collaborator' %}')
+            }
+            function confirmCollaborationRequest(requestId, groupId, _$details) {
+                $.getJSON('{% url 'ikwen:grant_access_to_collaborator' %}', {request_id: requestId, group_id: groupId}, function(data) {
+                    if (data.success) {
+                        _$details.find('.about, .groups button').hide();
+                        _$details.find('.groups, .groups p.text-success').show();
+                    }
+                })
+            }
+        })()
+    </script>
+{% endblock %}

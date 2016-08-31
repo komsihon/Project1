@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from django import forms
-from djangotoolbox.admin import admin
-from ikwen.foundation.core.backends import UMBRELLA, ARCH_EMAIL
-from permission_backend_nonrel.admin import NonrelPermissionCustomUserAdmin
-from django.contrib.auth.forms import ReadOnlyPasswordHashField
-from ikwen.foundation.accesscontrol.models import Member
 from django.conf import settings
+from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from djangotoolbox.admin import admin
+from permission_backend_nonrel.admin import NonrelPermissionCustomUserAdmin
+
+from ikwen.foundation.accesscontrol.backends import UMBRELLA, ARCH_EMAIL
+from ikwen.foundation.accesscontrol.models import Member
 
 __author__ = 'Kom Sihon'
 

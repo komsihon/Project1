@@ -5,22 +5,21 @@
 
 
 import json
+from urllib import unquote
+from urlparse import urlparse
 
 from django.conf import settings
 from django.core.management import call_command
-
-from urllib import unquote
-from urlparse import urlparse
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import urlencode
 from django.test.client import Client
 from django.test.utils import override_settings
 from django.utils import unittest
-
-from ikwen.foundation.core.backends import UMBRELLA
-from ikwen.foundation.core.models import Service, Config
-from ikwen.foundation.accesscontrol.models import Member
 from django.utils.translation import gettext as _
+
+from foundation.accesscontrol.backends import UMBRELLA
+from ikwen.foundation.accesscontrol.models import Member
+from ikwen.foundation.core.models import Service, Config
 
 
 def wipe_test_data():
@@ -30,10 +29,10 @@ def wipe_test_data():
     """
     import ikwen.foundation.core.models
     import ikwen.foundation.accesscontrol.models
-    for name in ('Application', 'Service', 'Config'):
+    for name in ('Application', 'Service', 'Config', 'ConsoleEventType', 'ConsoleEvent', 'Country', ):
         model = getattr(ikwen.foundation.core.models, name)
         model.objects.all().delete()
-    for name in ('Member', ):
+    for name in ('Member', 'AccessRequest', ):
         model = getattr(ikwen.foundation.accesscontrol.models, name)
         model.objects.all().delete()
 
@@ -76,7 +75,7 @@ class IkwenAuthTestCase(unittest.TestCase):
     def tearDown(self):
         wipe_test_data()
 
-    @override_settings(DATABASES=DATABASES)
+    @override_settings(DATABASES=DATABASES, IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
     def test_login_with_wrong_credentials_and_no_prior_get_parameters(self):
         """
         Wrong parameters set the login_form in context
@@ -89,29 +88,20 @@ class IkwenAuthTestCase(unittest.TestCase):
     @override_settings(DATABASES=DATABASES, IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', LOGIN_REDIRECT_URL=None)
     def test_login_with_correct_credentials_and_no_prior_get_parameters(self):
         """
-        Login in with no prior GET parameters should redirect to accountSetup page
+        Login in with no prior GET parameters should redirect to console page
         """
         response = self.client.get(reverse('ikwen:sign_in'))
         self.assertEqual(response.status_code, 200)
-        response = self.client.post(reverse('ikwen:sign_in'), {'username': 'member2', 'password': 'admin'}, follow=True)
+        response = self.client.post(reverse('ikwen:sign_in'), {'username': 'member3', 'password': 'admin'}, follow=True)
         final = response.redirect_chain[-1]
         location = final[0].strip('/').split('/')[-1]
-        self.assertEqual(location, 'accountSetup')
-
-    @override_settings(DATABASES=DATABASES, IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', LOGIN_REDIRECT_URL=None)
-    def test_login_with_correct_credentials_and_member_is_iao_and_no_next_url(self):
-        """
-        Login in with no prior GET parameters and member that is IAO takes to service_list page
-        """
-        response = self.client.post(reverse('ikwen:sign_in'), {'username': 'arch', 'password': 'admin'}, follow=True)
-        final = response.redirect_chain[-1]
-        location = final[0].strip('/').split('/')[-1]
-        self.assertEqual(location, 'services')
+        self.assertEqual(location, 'console')
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', LOGIN_REDIRECT_URL='ikwen:contact')
     def test_sign_in_with_user_already_logged_in_and_no_next_url(self):
         """
-        If user is already logged in, he is taken back to site homepage
+        If user is already logged in and LOGIN_REDIRECT_URL is set,
+        he is redirected to that url rather than to his console
         """
         self.client.login(username='arch', password='admin')
         response = self.client.get(reverse('ikwen:sign_in'), follow=True)
@@ -222,7 +212,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         response = self.client.post(reverse('ikwen:sign_in'), {'username': 'testuser1', 'password': 'secret'}, follow=True)
         final = response.redirect_chain[-1]
         location = final[0].strip('/').split('/')[-1]
-        self.assertEqual(location, 'accountSetup')
+        self.assertEqual(location, 'console')
         from pymongo import Connection
         cnx = Connection()
         cnx.drop_database('test_registered_member')
@@ -328,30 +318,10 @@ class IkwenAuthTestCase(unittest.TestCase):
         response = self.client.get(reverse('ikwen:account_setup'))
         self.assertEqual(response.status_code, 200)
 
-    @override_settings(DATABASES=DATABASES, IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
-    def test_contact(self):
-        """
-        Contact should render ikwen/contact.html template
-        """
-        response = self.client.get(reverse('ikwen:contact'))
-        self.assertEqual(response.status_code, 200)
-
-    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
-    def test_service_list_page(self):
-        """
-        Make sure the url is reachable
-        """
-        self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('ikwen:service_list'))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['services'].count(), 2)
-
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', DEBUG=True)
-    def test_service_detail_page(self):
+    def test_forgottenPassword(self):
         """
         Make sure the url is reachable
         """
-        self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('ikwen:service_detail', args=('56eb6d04b37b3379b531b101', )))
+        response = self.client.get(reverse('ikwen:forgotten_password'))
         self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(response.context['service'])

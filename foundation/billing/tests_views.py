@@ -23,7 +23,11 @@ def wipe_test_data():
     """
     import ikwen.foundation.core.models
     import ikwen.foundation.billing.models
-    for name in ('Member', 'Config', 'Service'):
+    import ikwen.foundation.accesscontrol.models
+    for name in ('Member',):
+        model = getattr(ikwen.foundation.accesscontrol.models, name)
+        model.objects.all().delete()
+    for name in ('Config', 'Service'):
         model = getattr(ikwen.foundation.core.models, name)
         model.objects.all().delete()
     for name in ('Payment', 'Invoice', 'Subscription', 'InvoicingConfig'):

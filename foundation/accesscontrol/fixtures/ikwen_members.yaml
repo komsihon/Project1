@@ -6,6 +6,14 @@
     password: pbkdf2_sha256$12000$nNK3SeCKYSvl$CuoviZNeie9YzaWhukVCi9iQtNmpu3QBbK2yHGHEUxc=  # admin
     phone: 677000001
     is_iao: Yes
+    gender: Male
+    collaborates_on:
+      - id: 56eb6d04b37b3379b531b101
+        member_id: 56eb6d04b37b3379b531e011
+        app_id: 56eb6d04b37b3379b531a001
+        project_name: Ikwen Service
+        project_name_slug: ikwen-service
+        database: test_ikwen_service
 
 - model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e012
@@ -15,7 +23,16 @@
     password: pbkdf2_sha256$12000$nNK3SeCKYSvl$CuoviZNeie9YzaWhukVCi9iQtNmpu3QBbK2yHGHEUxc=  # admin
     phone: 677000002
     first_name: Tamo
+    is_iao: Yes
+    is_superuser: Yes
     gender: Male
+    collaborates_on:
+      - id: 56eb6d04b37b3379b531b102
+        member_id: 56eb6d04b37b3379b531e012
+        app_id: 56eb6d04b37b3379b531a002
+        project_name: Ikwen Service 2
+        project_name_slug: ikwen-service-2
+        database: test_ikwen_service_2
 
 - model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e013
@@ -25,6 +42,16 @@
     password: pbkdf2_sha256$12000$nNK3SeCKYSvl$CuoviZNeie9YzaWhukVCi9iQtNmpu3QBbK2yHGHEUxc=  # admin
     phone: 677000003
     first_name: Foka
+    last_name: Tchuendom
+    full_name: Foka Tchuendom
+    gender: Male
+    collaborates_on:
+      - id: 56eb6d04b37b3379b531b101
+        member_id: 56eb6d04b37b3379b531e012
+        app_id: 56eb6d04b37b3379b531a001
+        project_name: Ikwen Service
+        project_name_slug: ikwen-service-1
+        database: test_ikwen_service_1
 
 - model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e014
@@ -34,3 +61,23 @@
     password: pbkdf2_sha256$12000$nNK3SeCKYSvl$CuoviZNeie9YzaWhukVCi9iQtNmpu3QBbK2yHGHEUxc=  # admin
     phone: 677000004
     first_name: Simo
+    last_name: Tchuente
+    full_name: Simo Tchuente
+    gender: Female
+    collaborates_on:
+      - id: 56eb6d04b37b3379b531b102
+        member_id: 56eb6d04b37b3379b531e012
+        app_id: 56eb6d04b37b3379b531a002
+        project_name: Ikwen Service 2
+        project_name_slug: ikwen-service-2
+        database: test_ikwen_service_2
+
+- model: auth.group
+  pk: 5804b37b3379b531e01eb6d1
+  fields:
+    name: Sudo
+
+- model: auth.group
+  pk: 5804b37b3379b531e01eb6d2
+  fields:
+    name: Collaborator

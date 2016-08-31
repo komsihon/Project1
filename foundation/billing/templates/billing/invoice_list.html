@@ -1,4 +1,4 @@
-{% extends "core/base_private.html" %}
+{% extends "core/base_bs.html" %}
 {% load i18n %}
 {% load humanize %}
 {% load staticfiles %}
@@ -7,36 +7,35 @@
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
+    <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <link href="{% static 'ikwen/css/grids.css' %}" media="screen" rel="stylesheet" type="text/css" />
     <style>
         table.grid tbody tr td.payment-method a.button {height: 19px; padding-top: 3px; width: 72px}
         form#filter input {height: 21px}
-        table.grid tbody td {padding: 0 0 0 6px}
     </style>
 {% endblock %}
 
-{% block profile_custom_menu_items %}
-    <li class="invoice">
-        <a href="{% url 'billing:invoice_list' %}" title="{% trans "View your invoices" %}">{% trans "Invoices" %}</a>
-        {% if pending_invoice_count > 0 %}
-        <div class="badge-text">{{ pending_invoice_count }}</div>
-        {% endif %}
-    </li>
+{% block header_brand %}
+<div class="navbar-header">
+    <a class="navbar-brand" href="{% url 'home' %}">
+        <strong>{{ service.project_name }}</strong>
+    </a>
+</div>
 {% endblock %}
 
 {% block content  %}
-    <div id="content">
-        <div class="wrapper" style="margin-top: 72px">
-            <header>{% trans "My Invoices" %}</header>
+    <div id="content" class="container">
+            <h3>{% trans "My Invoices" %}</h3>
             {% if invoices %}
-                <form id="filter" style="float: right">
-                    <div style="width: 260px">
-                        <input type="text" placeholder="{% trans "From" %}" id="id_due_date_start"  class="date start due_date" style="width: 120px">
-                        <input type="hidden" name="due_date_start" />
-                        <input type="text" placeholder="{% trans "To" %}" id="id_due_date_finish"  class="date end due_date" style="width: 120px">
-                        <input type="hidden" name="due_date_finish" />
-                    </div>
-                    <button class="confirm" style="height: 25px; margin: 1px 0 0 7px; padding: 2px 0 3px; text-align: center; width: 100px">{% trans "Filter" %}</button>
-                </form>
+{#                <form id="filter" style="float: right">#}
+{#                    <div style="width: 260px">#}
+{#                        <input type="text" placeholder="{% trans "From" %}" id="id_due_date_start"  class="date start due_date" style="width: 120px">#}
+{#                        <input type="hidden" name="due_date_start" />#}
+{#                        <input type="text" placeholder="{% trans "To" %}" id="id_due_date_finish"  class="date end due_date" style="width: 120px">#}
+{#                        <input type="hidden" name="due_date_finish" />#}
+{#                    </div>#}
+{#                    <button class="confirm" style="height: 25px; margin: 1px 0 0 7px; padding: 2px 0 3px; text-align: center; width: 100px">{% trans "Filter" %}</button>#}
+{#                </form>#}
                 {% if pending_invoices_count > 1 %}
                     <div id="pending-summary"></div>
                 {% endif %}
@@ -54,53 +53,16 @@
                         </thead>
                         <tbody>
                             {% for invoice in invoices %}
-                                {% if invoice.status == "Pending" %}
-                                    {% if forloop.counter == 1 %}
-                                        <tr class="invoice pending" id="{{ invoice.id }}">
-                                            <td class="item">{{ invoice.service.details | truncatechars:60 }}</td>
-                                            <td class="amount">{{ invoice.amount }} {{ invoicing_config.currency }}</td>
-                                            <td class="due_date">{{ invoice.due_date }}</td>
-                                            <td class="paid_on"></td>
-                                            <td class="payment-method"></td>
-                                            <td class="action" style="padding: 6px 10px 7px; text-align: center">
-                                                <a href="{% url 'billing:invoice_detail' invoice.id %}" class="button default">{% trans "Details" %}</a>
-                                            </td>
-                                        </tr>
-                                    {% else %}
-                                        <tr class="invoice pending" id="{{ invoice.id }}">
-                                            <td class="item">{{ invoice.service.details | truncatechars:60 }}</td>
-                                            <td class="amount">{{ invoice.amount }} {{ invoicing_config.currency }}</td>
-                                            <td class="due_date">{{ invoice.due_date }}</td>
-                                            <td class="paid_on"></td>
-                                            <td class="payment-method"></td>
-                                            <td class="action" style="padding: 6px 10px 7px; text-align: center">
-                                                <a href="{% url 'billing:invoice_detail' invoice.id %}" class="button default">{% trans "Details" %}</a>
-                                            </td>
-                                        </tr>
-                                    {% endif %}
-                                {% elif invoice.status == "Overdue" or invoice.status == "Exceeded" %}
-                                    <tr class="invoice overdue" id="{{ invoice.id }}">
-                                        <td class="item">{{ invoice.service.details | truncatechars:60 }}</td>
-                                        <td class="amount">{{ invoice.amount }} {{ invoicing_config.currency }}</td>
-                                        <td class="due_date">{{ invoice.due_date }}</td>
-                                        <td class="paid_on"></td>
-                                        <td class="payment-method"></td>
-                                        <td class="action" style="padding: 6px 10px 7px; text-align: center">
-                                            <a href="{% url 'billing:invoice_detail' invoice.id %}" class="button default">{% trans "Details" %}</a>
-                                        </td>
-                                    </tr>
-                                {% else %}
-                                    <tr class="invoice" id="{{ invoice.id }}">
-                                        <td class="item">{{ invoice.service.details | truncatechars:60 }}</td>
-                                        <td class="amount">{{ invoice.amount }} {{ invoicing_config.currency }}</td>
-                                        <td class="due_date">{{ invoice.due_date }}</td>
-                                        <td class="paid_on">{{ invoice.paid_on }}</td>
-                                        <td class="payment-method">{{ invoice.method }}</td>
-                                        <td class="action" style="padding: 6px 10px 7px; text-align: center">
-                                            <a href="{% url 'billing:invoice_detail' invoice.id %}" class="button default">{% trans "Details" %}</a>
-                                        </td>
-                                    </tr>
-                                {% endif %}
+                                <tr class="invoice {{ invoice.status|lower }}" id="{{ invoice.id }}">
+                                    <td class="item">App:{{ invoice.service.app.name }} / <em>{{ invoice.service.project_name }}</em></td>
+                                    <td class="amount">{{ invoice.amount|intcomma }} {{ invoicing_config.currency }}</td>
+                                    <td class="due_date">{{ invoice.due_date }}</td>
+                                    <td class="paid_on">{{ invoice.paid_on }}</td>
+                                    <td class="payment-method">{{ invoice.method }}</td>
+                                    <td class="action" style="padding: 6px 10px 7px; text-align: center">
+                                        <a href="{% url 'billing:invoice_detail' invoice.id %}" class="button default">{% trans "Details" %}</a>
+                                    </td>
+                                </tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -110,13 +72,12 @@
                     {% trans "No pending invoice" %}
                 </div>
             {% endif %}
-        </div>
         <div class="clear"></div>
     </div>
 {% endblock %}
 {% block footer %}
     <footer>
-        <div class="wrapper" style="height: 130px; padding-top: 30px">
+        <div class="container" style="height: 130px; padding-top: 30px">
             <nav style="float: left">
                 <ul>
                     {% if contact_url %}
@@ -136,7 +97,7 @@
             </div>
             <div style="color: #888; border-top: solid 1px #DDD; clear: both; float: right; font-size: .9em; margin-top: 6px; padding-top: 3px; text-align: right; width: 100%">
                 {% blocktrans %}
-                    Powered by <a href="http://www.ikwen.com" style="color: #666; text-decoration: none"><strong>Ikwen</strong></a> &reg;.
+                    Powered by <a href="{{ base_urls.ikwen }}" style="color: #666; text-decoration: none"><strong>ikwen</strong></a> &reg;.
                 {% endblocktrans %}
             </div>
         </div>

@@ -1,0 +1,136 @@
+{% extends "accesscontrol/profile.html" %}
+{% load i18n %}
+{% load humanize %}
+{% load staticfiles %}
+
+{% block page_title %}
+<title> {% trans "Configurations" %} - ikwen </title>
+{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <link href="{% static 'ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+        #cover {background-size: 100%}
+        #cover nav {background: #fff; height: 42px; width: 100%}
+        #cover nav ul {margin: 0; padding: 0}
+        #cover nav li {border-right: 1px solid #ddd; display: inline-block; height: 42px;
+            overflow: hidden; padding-top: 9px; text-align: center; width: 160px}
+        #cover nav li a {color: #587389}
+        #cover nav li a:hover {text-decoration: none}
+        #cover nav li.current a {color: #18bc9c; font-weight: 700}
+        @media (max-width: 475px) {
+            #cover nav li {width: 49.5%}
+            #cover nav li:last-child {border-right: none}
+        }
+        #banner .upload-image {background-color: rgba(0,0,0, .6); color: #eee; display: none; font-size: 13px;
+            height: 30px; padding: 5px; position: absolute; text-align: center}
+        #banner .photo .upload-image {margin: 108px 0 0 -4px; width: 142px}
+        #banner > .upload-image {margin: 15px 0 0 535px; width: 180px}
+        #banner:hover > .upload-image, #banner .photo:hover .upload-image {display: block}
+    </style>
+{% endblock %}
+
+{% block stage %}
+    <div id="stage">
+        {% if member.cover_image and member.cover_image.name %}
+        <header id="cover" class="subtle-shade" style="background-image: url({{ member.cover_image.url }});">
+        {% else %}
+        <header id="cover" class="subtle-shade" style="background-image: url({% static 'ikwen/img/default-cover.jpg' %});">
+        {% endif %}
+            <div id="banner">
+                <div class="frame">
+                    {% if member.photo and member.photo.name %}
+                        <div class="photo" style="background-image: url({{ member.photo.small_url }})">
+                            <div class="upload-image"></div>
+                        </div>
+                    {% else %}
+                        <div class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})">
+                            <div class="upload-image"></div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="upload-image"></div>
+                <h2 class="text-has-shade">{{ member.full_name }}</h2>
+            </div>
+            <nav>
+                <ul>
+                    <li {% if not request.GET.target or request.GET.target == 'Business' %}class="current"{% endif %}>
+                        <a href="{% url 'ikwen:console' %}?target=Business">
+                            {% trans "Business" %}
+                            {% if member.business_notices > 0 %}<span class="label label-danger">{{ member.business_notices }}</span>{% endif %}
+                        </a>
+                    </li>
+                    <li {% if request.GET.target == 'Personal' %}class="current"{% endif %}>
+                        <a href="{% url 'ikwen:console' %}?target=Personal">
+                            {% trans "Personal" %}
+                            {% if member.personal_notices > 0 %}<span class="label label-danger">{{ member.personal_notices }}</span>{% endif %}
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </header>
+        <div class="container-fluid" id="cards">
+            {% for service, event_types in events.items %}
+                <section class="{{ service.project_name_slug }} subtle-shade">
+                    <h3 style="color: #E43622"> <img src="{% static 'ikwen/img/RKK-Energia_logo.png' %}" width="30"/> {{ service.project_name }} </h3>
+                    {% for type, event_groups in event_types.items %}
+                    <div class="{{ type.codename }}">
+                        {% for status, event_list in event_groups.items %}
+                            <h4>{{ event_list.0.event_type.title }} {% if event_list|length > 4 %}<a class="more" href="{% url event_list.0.event_type.target_url_name %}">{% trans "See all" %}</a>{% endif %}</h4>
+                            {% if status == 'pending' %}
+                                <div class="row" style="margin-top: 20px">
+                                    {% for event in event_list %}  {{ event.render|safe }} {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="row" style="margin-top: 20px">
+                                    {% for event in event_list %}  {{ event.render|safe }} {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </section>
+            {% empty %}
+                <section class="subtle-shade">
+                    <div>
+                        <h4>{% trans "No event" %}</h4>
+                    </div>
+                </section>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script src="{% static 'ajaxuploader/js/fileuploader.js' %}"></script>
+    <script>
+        (function() {
+            {# Set notice counters to 0 #}
+            var target = "{% if not request.GET.target or request.GET.target == 'business' %}Business{% else %}Personal{% endif %}";
+            $.getJSON('{% url 'ikwen:reset_notices_counter' %}', {target: target});
+            ikwen.initUploader = function(selector, title, usage, target) {
+                var uploader = new qq.FileUploader({
+                    action: "{% url 'ikwen:upload_member_image' %}?member_id={{ request.user.id }}&usage=" + usage,
+                    element: $(selector)[0],
+                    buttonText: title,
+                    multiple: false,
+                    onComplete: function(id, fileName, responseJSON) {
+                        if(responseJSON.success) {
+                            $(target).css('background-image', "url('" + responseJSON.url +"')");
+                        } else {
+                            alert("upload failed!");
+                        }
+                    },
+                    params: {
+                        'csrf_token': '{{ csrf_token }}',
+                        'csrf_name': 'csrfmiddlewaretoken',
+                        'csrf_xname': 'X-CSRFToken'
+                    }
+                });
+            };
+            ikwen.initUploader('div#banner .photo .upload-image', "{% trans "Change photo" %}", 'profile', 'div#banner .photo');
+            ikwen.initUploader('div#banner > .upload-image', "{% trans "Change cover" %}", 'cover', 'div#cover');
+        })()
+    </script>
+{% endblock %}

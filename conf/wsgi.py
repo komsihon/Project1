@@ -8,6 +8,11 @@ https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
 """
 
 import os
+
+from ikwen.conf import monitor
+
+monitor.start(interval=1.0)
+monitor.track(os.path.join(os.path.dirname(__file__)))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
 
 from django.core.wsgi import get_wsgi_application

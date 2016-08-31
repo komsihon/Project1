@@ -1,0 +1,28 @@
+{% load i18n %}
+{% load humanize %}
+<script>
+    (function() {
+        ikwen.initUploader = function(selector, title, usage, target) {
+            var uploader = new qq.FileUploader({
+                action: "{% url 'ikwen:upload_customization_image' %}?img_upload_context={{ img_upload_context }}&member_id={{ request.user.id }}&usage=" + usage,
+                element: $(selector)[0],
+                buttonText: title,
+                multiple: false,
+                onComplete: function(id, fileName, responseJSON) {
+                    if(responseJSON.success) {
+                        $(target).css('background-image', "url('" + responseJSON.url +"')");
+                    } else {
+                        alert("upload failed!");
+                    }
+                },
+                params: {
+                    'csrf_token': '{{ csrf_token }}',
+                    'csrf_name': 'csrfmiddlewaretoken',
+                    'csrf_xname': 'X-CSRFToken'
+                }
+            });
+        };
+        ikwen.initUploader('#banner .photo .upload-image', "{% trans "Change photo" %}", 'profile', '#banner .photo');
+        ikwen.initUploader('#banner > .upload-image', "{% trans "Change cover" %}", 'cover', '#cover');
+    })()
+</script>

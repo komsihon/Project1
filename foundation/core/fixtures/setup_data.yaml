@@ -22,12 +22,12 @@
     member: 56eb6d04b37b3379b531e012
     app: 56eb6d04b37b3379b531a001
     project_name: Ikwen Service
+    project_name_slug: ikwen-service
     database: test_ikwen_service
     monthly_cost: 6000
     version: Full
     status: Active
     expiry: 2035-01-01T00:00:00.120Z
-    collaborators_fk_list: [56eb6d04b37b3379b531e012]
 
 - model: core.service
   pk: 56eb6d04b37b3379b531b102
@@ -35,12 +35,12 @@
     member: 56eb6d04b37b3379b531e012
     app: 56eb6d04b37b3379b531a002
     project_name: Ikwen Service 2
+    project_name_slug: ikwen-service-2
     database: test_ikwen_service_2
     monthly_cost: 6000
     version: Full
     status: Active
     expiry: 2035-01-01T00:00:00.120Z
-    collaborators_fk_list: [56eb6d04b37b3379b531e012]
 
 - model: core.config
   fields:
@@ -49,9 +49,31 @@
     contact_email: contact@ikwen.com
     logo: logos/some_logo.png
 
+- model: billing.invoicingconfig
+  fields:
+    currency: XAF
+
 - model: core.config
   fields:
     service: 56eb6d04b37b3379b531b102
     company_name: Ikwen
     contact_email: contact@ikwen.com
     logo: logos/some_logo.png
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b371
+  fields:
+    app: 56eb6d04b37b3379b531a002
+    codename: CollaborationRequestEvent
+    title: Those people would like to collaborate with you
+    target_url_name: ikwen:collaborators
+    renderer: ikwen.foundation.accesscontrol.views.render_collaboration_request_event
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b372
+  fields:
+    app: 56eb6d04b37b3379b531a002
+    codename: AccessGrantedEvent
+    title: Collaboration request accepted
+    target_url_name: ikwen:collaborators
+    renderer: ikwen.foundation.accesscontrol.views.render_access_granted_event

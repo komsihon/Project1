@@ -1,0 +1,14 @@
+Deployment of a service and access control:
+
+    When deploying a Service on the Ikwen platform, the person deploying must be set as superuser in his database
+    as well as IAO. His collaborates_on field must be properly set.
+
+
+Deployment of ikwen itself.
+    InvoicingConfig must be create in the database.
+
+
+Permissions
+    Custom created permissions in an ikwen app must start with the prefix "ik_". This prefix differentiates from
+    default created permissions. Only permissions with codename starting with "ik_" will show up in collaborators
+    management panel.

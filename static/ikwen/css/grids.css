@@ -1,0 +1,23 @@
+/* 
+    Document   : grids
+    Created on : Jul 17, 2012, 11:29:01 AM
+    Author     : Roddy MBOGNING
+    Description:
+        General display rules for data grid tables.
+*/
+.grid thead td {color: #2c3e50; font-size: 18px; font-weight: 700; padding: 7px 5px}
+.grid.fish-eye tr:nth-child(2n) {background: #FBFFFE}
+.grid tbody td {border-top: 1px solid #eee; height: 42px; padding: 0 0 0 6px}
+.grid tbody tr.warning td {background: #FFFBCA; color: #B10095}
+.grid tbody tr.warning td a {color: #B10095}
+.grid tbody tr.danger td, .grid tbody tr.pending td {color: #ff5050}
+.grid tbody tr td:first-child {font-weight: 700}
+.grid tbody td.status span:not(.icon) {padding: 5px 0}
+.grid tbody td.numeric {text-align: right}
+.grid td.blank, .grid tbody tr.expired td.blank, .grid tbody tr.pending td.blank {background: #FFE3BE; border-bottom: none; border-left: 1px solid #DDA67B}
+.grid tr.filter {font-size: 12px; font-weight: normal}
+.grid tr.filter form {border-bottom:solid 1px #DDA67B; float: left; width: 100%}
+tr.filter form > div {border: none; border-right: 1px solid #DDA67B; clear: none; float: left; height: 27px; padding: 0}
+.grid tr.filter td {background: transparent; border: none; padding: 0}
+table.grid tr.filter input[type=text] {border: none; box-shadow: none; -webkit-box-shadow: none;-moz-box-shadow: none; height: 25px; width: 100px}
+table.grid .fancy-combo-box span.arrow{height: 22px}

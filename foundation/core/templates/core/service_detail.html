@@ -1,196 +1,165 @@
-{% extends "core/base_private.html" %}
+{% extends "core/app_base_admin.html" %}
 {% load i18n %}
 {% load humanize %}
 {% load staticfiles %}
 
 {% block page_title %}
-<title> Ikwen | {% trans "Account setup" %} </title>
+<title>{% trans "Service info" %} - ikwen </title>
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
-    <link href="{% static 'ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" />
     <style type="text/css">
         body {background: #f6f6f6}
-        #stage {background: #fff0fc}
-        nav#sub .account {border-bottom: 2px solid #BB4824; color: #300c00; font-weight: bold}
-        section {box-shadow: 1px 1px 4px rgba(0, 0, 0, .1); -moz-box-shadow: 1px 1px 4px -moz-rgba(0, 0, 0, .1); -webkit-box-shadow: 1px 1px 4px rgba(0, 0, 0, .1);
-            background: #fff; float: left; line-height: 1.4; margin: 15px 0 5px; padding: 15px; width: 450px}
-        section header {border-bottom: solid 1px #DBE6FF; float: left; font-size: 24px; font-weight: normal; width: 100%}
-        section header .icon {float: right}
-        section .detail {float: left; font-size: 1em; margin-top: 15px}
-        section .detail .unset {color: #555C77; font-style: italic; font-weight: normal}
-        section .detail a {text-decoration: underline}
-        section label {float: left; font-weight: normal; width: 240px}
-        section.plan label {width: 240px}
-        section .action-edit {color: #00f; cursor: pointer}
-        section .multi-lines {float: left; font-size: 15px}
-        section.general .photo, section.company .logo {border: 1px solid #DBE6FF;float: left; height: 180px; margin-top: 10px; padding: 3px; width: 180px}
-        section.general .photo .img, section.company .logo .img {background: no-repeat center; background-size: 180px auto; height: 100%; width: 100%}
-        section.general .upload, section.company .upload {float: left; margin: 72px 0 0 36px}
-        .edit {float: left; margin-top: 10px}
-        .edit .input-ctnr {float: left; width: 283px}
-        .edit.password .input-ctnr {margin-top: 10px}
-        .edit .buttons {float: right}
-        .edit input {width: 240px}
-        .edit button {padding: 3px 12px 4px; width: 78px}
-        .edit button.default {margin-left: 5px}
-        section form label {font-size: 14px; font-weight: normal; margin-right: 15px; text-align: right; width: 180px}
-        section form button {width: 78px}
+        @media (min-width: 1200px) {
+            #admin-content {padding-left: 40px}
+        }
+        section div.row {height: 30px}
+        section label+span {color: #888}
+        section em {font-size: 12px}
+        section button {width: 120px}
     </style>
 {% endblock %}
 
-{% block content %}
-    <div id="content">
-        <div class="wrapper" style="margin-top: 72px">
-            <div>
-                <section class="general">
-                    <div class="update-result">
-                        <p class="message hidden"></p>
+{% block breadcrumb_location %}
+    <li>{% trans "Info & Billing" %}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="container-fluid">
+        <div id="stage">
+            <section class="general subtle-shade">
+                <div class="update-result">
+                    <p class="message hidden"></p>
+                </div>
+                <header>
+                    <h3> {% trans "General" %} </h3>
+                    <span class="icon" style="background-position: -177px 0"></span>
+                </header>
+                <div class="detail row">
+                    <label class="col-sm-3">{% trans "Application" %}</label>
+                    <span>
+                        <span class="icon"></span>
+                        <span> {{ service.app.name }} </span>
+                    </span>
+                </div>
+                <div class="detail row">
+                    <label class="col-sm-3">{% trans "Project name" %}</label>
+                    <span>{{ service.project_name }}</span>
+                </div>
+                <div class="detail row">
+                    <label class="col-sm-3">{% trans "Online since" %}</label>
+                    <span> {{ service.since }} </span>
+                </div>
+{#                <div class="detail">#}
+{#                    <label class="name">{% trans "Admin" %}</label>#}
+{#                    <span> <a href="{{ service.admin_url }}">Access</a> </span>#}
+{#                </div>#}
+            </section>
+            <section id="billing" class="subtle-shade">
+                <header>
+                    <h3> {% trans "Billing" %} </h3>
+                    <span class="icon" style="background-position: -177px 0"></span>
+                </header>
+                <div class="detail row">
+                    <label class="col-sm-3">{% trans "Version" %}</label>
+                    <span>
+                        {{ service.version }}
+{#                        {% if service.version == 'Trial' %}#}
+{#                            - <a href="{% url 'ikwen:invoice_list' %}"> {% trans 'Activate full version' %} </a>#}
+{#                        {% endif %}#}
+                    </span>
+                </div>
+                {% if service.version != 'Free' %}
+                <div class="detail row">
+                    <label class="col-sm-3">{% trans "Monthly cost" %}</label>
+                    <span>{{ service.monthly_cost|intcomma }} {{ currency }}</span>
+                </div>
+                <div class="detail billing-cycle row">
+                    <label class="col-sm-3">{% trans "Billing cycle" %}</label>
+                    <span>
+                        {% trans service.billing_cycle %}
+                        - <a class="action-edit" href="#"> {% trans "Change" %} </a>
+                    </span>
+                </div>
+                <div class="edit billing-cycle hidden row" style="height: 45px">
+                    <div class="col-sm-3" style="margin-right: 6px">
+                        <label for="billing-cycle" class="sr-only">New billing cycle</label>
+                        <select id="billing-cycle" class="form-control input-sm">
+                        {% for bc in billing_cycles %}
+                            <option value="{{ bc.0 }}">{{ bc.1 }}</option>
+                        {% endfor %}
+                        </select>
                     </div>
-                    <header>
-                        <span> {% trans "General" %} </span>
-                        <span class="icon" style="background-position: -177px 0"></span>
-                    </header>
-                    <div class="detail">
-                        <label>{% trans "Application" %}</label>
-                        <span>
-                            <span class="icon"></span>
-                            <span> {{ service.app.name }} </span>
-                        </span>
+                    <div class="buttons col-sm-7">
+                        <button field="city_id" class="btn btn-sm btn-primary"> OK </button>
+                        <button class="btn btn-sm btn-default">{% trans "Cancel" %}</button>
                     </div>
-                    <div class="detail">
-                        <label class="name">{% trans "Project" %}</label>
-                        {% if service.url %}
-                            <span> <a href="{{ service.url }}">{{ service.project_name }}</a> </span>
-                        {% else %}
-                            <span>{{ service.project_name }}</span>
-                        {% endif %}
-                    </div>
-                    <div class="detail">
-                        <label class="name">{% trans "Online since" %}</label>
-                        <span> {{ service.since }} </span>
-                    </div>
-                    <div class="detail">
-                        <label class="name">{% trans "Admin" %}</label>
-                        <span> <a href="{{ service.admin_url }}">Access</a> </span>
-                    </div>
-                </section>
-                <section id="billing" style="float: right">
-                    <header>
-                        <span> {% trans "Billing" %} </span>
-                        <span class="icon" style="background-position: -177px 0"></span>
-                    </header>
-                    <div class="detail">
-                        <label>{% trans "Version" %}</label>
-                        <span>
-                            {{ service.version }}
-                            {% if service.version == 'Trial' %}
-                                - <a href="{% url 'ikwen:invoice_list' %}"> {% trans 'Activate full version' %} </a>
-                            {% endif %}
-                        </span>
-                    </div>
-                    {% if service.version != 'Free' %}
-                    <div class="detail">
-                        <label>{% trans "Monthly cost" %}</label>
-                        <span>{{ service.monthly_cost|intcomma }}</span>
-                    </div>
-                    <div class="detail">
-                        <label>{% trans "Billing cycle" %}</label>
-                        <span>
-                            {% trans service.billing_cycle %}
-                            - <a class="action-edit" href="#"> {% trans "Change" %} </a>
-                        </span>
-                    </div>
-                    <div class="edit billing-cycle hidden">
-                        <div class="fancy-combo-box billing-cycle" style="margin-right: 6px">
-                            <input type="text" name="billing_cycle" value="{% trans service.billing_cycle %}" class="inner-shade" readonly style="width: 210px"/>
-                            <input type="hidden" class="billing-cycle" name="billing_cycle"/>
-                            <span class="arrow" comment="arrow-bg" style="height: 28px"> <span comment="arrow-img"></span> </span>
-                            <div class="entries-overlay hidden" style="padding-top: 31px; width: 305px;">
-                                <ul class="entries has-shade">
-                                    {% for bc in billing_cycles %}
-                                    <li class="entry" data-val="{{ bc.0 }}">{{ bc.1 }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="buttons">
-                            <button field="city_id" class="confirm"> OK </button>
-                            <button class="default">{% trans "Cancel" %}</button>
-                        </div>
-                    </div>
-                    <div class="detail">
-                        <label>{% trans "Last payment on" %}</label>
-                        <span>{{ service.monthly_cost }}</span>
-                    </div>
-                    <div class="detail">
-                        <label>{% trans "Expiry" %}</label>
-                        <span>{{ service.monthly_cost }}</span>
-                    </div>
-                    <div class="detail">
-                        <label>{% trans "Next invoice scheduled for" %}</label>
-                        <span>{{ service.monthly_cost }}</span>
-                    </div>
-                    <div class="detail">
-                        <label>{% trans "Invoices" %}</label>
-                        {% if service.pending_invoice_count > 0 %}
-                            <span>
-                                <strong>{{ service.pending_invoice_count }} {% trans "Pending" %}</strong>
-                                - <a href="{% url 'ikwen:invoice_list' %}"> {% trans 'See' %} </a>
-                            </span>
-                        {% else %}
-                            <span>N/A</span>
-                        {% endif %}
-                    </div>
-                    <div class="edit email hidden">
-                        <div class="input-ctnr"> <input type="text" class="email" value=""> </div>
-                        <div class="buttons">
-                            <button field="email" class="confirm"> OK </button>
-                            <button class="default">{% trans "Cancel" %}</button>
-                        </div>
-                    </div>
+                </div>
+                <div class="detail row" style="clear: both">
+                    <label class="col-sm-3">{% trans "Last payment" %}</label>
+                    {% if service.last_payment %}<span>{{ service.last_payment }}</span>{% else %}<span>N/A</span>{% endif %}
+                </div>
+                <div class="detail row">
+                    <label class="col-sm-3">{% trans "Expiry" %}</label>
+                    {% if service.expiry %}
+                        <span>{{ service.expiry }} <em style="font-size: 11px">({{ service.expiry|naturaltime }})</em></span>
+                    {% else %}
+                        <span>N/A</span>
                     {% endif %}
-                </section>
-            </div>
+                </div>
+                <div class="detail row">
+                    <label class="col-sm-3">{% trans "Next invoice" %}</label>
+                    {% if service.next_invoice_on %}
+                        <span>{{ service.next_invoice_on }} <em style="font-size: 11px">({{ service.next_invoice_amount|intcomma }} {{ currency }})</em></span>
+                    {% else %}
+                        <span>N/A</span>
+                    {% endif %}
+                </div>
+                <div class="detail row">
+                    <label class="col-sm-3">{% trans "Invoices" %}</label>
+                    {% if service.pending_invoice_count > 0 %}
+                        <span>
+                            <strong>{{ service.pending_invoice_count }} {% trans "Pending" %}</strong>
+                            - <a href="{% url 'billing:invoice_list' service.id %}" target="_blank"> {% trans 'See' %} </a>
+                        </span>
+                    {% else %}
+                        <span>N/A</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </section>
         </div>
         <div class="clear"></div>
     </div>
 {% endblock %}
-{% block custom_js %}
-    <script src="{% static 'ajaxuploader/js/fileuploader.js' %}"></script>
+{% block js %}
+    {{ block.super }}
     <script type="text/javascript">
         (function() {
-            $('nav.menu li.account a').addClass('current');
+            $('div#admin-nav .service-info').addClass('active');
             $('.action-edit').click(function() {
                 $(this).parents('.detail').toggleClass('hidden');
-                $(this).parents('.detail').next().toggleClass('hidden')
+                $(this).parents('.detail').next().toggleClass('hidden');
+                return false
             });
-            $('.edit button.default').click(function() {
+            $('.edit.billing-cycle button.btn-default').click(function() {
                 $(this).parents('.edit').toggleClass('hidden');
                 $(this).parents('.edit').prev().toggleClass('hidden')
             });
-            $('.general .edit button.confirm').click(function() {
-                var _$button = $(this);
-                var field = $(this).attr('field');
-                var value = $('.general input.' + field).val();
+            $('.edit.billing-cycle button.btn-primary').click(function() {
+                var value = $('#billing-cycle').val();
                 $('body, button, .button').css('cursor', 'wait');
-                $.getJSON('{% url 'ikwen:update_info' %}?' + field + '=' + value, null, function(response) {
+                $.getJSON('{% url 'billing:change_billing_cycle' %}', {new_cycle: value, subscription_id: '{{ service.id }}'}, function(response) {
                     $('body, button, .button').css('cursor', 'default');
-                    if (response.error)
-                        _$button.parents('.general').find('.update-result .message').removeClass('success').addClass('failure').text(response.error)
-                                .fadeIn().delay(3000).fadeOut();
-                    else {
-                        _$button.parents('.general').find('.update-result .message').removeClass('failure').addClass('success').text(response.message)
-                                .fadeIn().delay(3000).fadeOut();
-                        _$button.parents('.edit').toggleClass('hidden');
-                        var _$detail = _$button.parents('.edit').prev();
-                        _$detail.toggleClass('hidden');
-                        _$detail.find('.' + field).removeClass('unset').attr('style', '').text(value);
-                        _$detail.find('.action-edit').text('Changer')
+                    if (response.error) {
+                        ikwen.showFloatingNotice('{% trans "Error while updating billing cycle. Try again later." %}', '', 6);
+                        return
                     }
+                    $('.detail.billing-cycle span').text(value);
+                    $('.detail.billing-cycle, .edit.billing-cycle').toggleClass('hidden');
+                    ikwen.showFloatingNotice('{% trans "Billing cycle successfully updated." %}', '', 6);
                 })
             });
         })()
     </script>
-    {% include 'core/snippets/google_analytics.html' %}
 {% endblock %}

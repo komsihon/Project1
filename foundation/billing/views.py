@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
+import json
 from datetime import date
 from datetime import datetime
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
-from django.views.generic.base import TemplateView
+from ikwen.foundation.accesscontrol.backends import UMBRELLA
+
 from ikwen.foundation.core.views import BaseView
-
-from ikwen.foundation.core.utils import get_service_instance
-
-from ikwen.foundation.billing.models import Invoice, Subscription
-from ikwen.foundation.billing.utils import get_invoicing_config_instance
+from ikwen.foundation.billing.models import Invoice
+from ikwen.foundation.billing.utils import get_invoicing_config_instance, get_subscription_model
 
 
 class BillingBaseView(BaseView):
     def get_context_data(self, **kwargs):
         context = super(BillingBaseView, self).get_context_data(**kwargs)
-        context['year'] = datetime.now().year
         context['invoicing_config'] = get_invoicing_config_instance()
         return context
 
@@ -26,8 +26,9 @@ class InvoiceList(BillingBaseView):
 
     def get_context_data(self, **kwargs):
         context = super(InvoiceList, self).get_context_data(**kwargs)
-        member = self.request.user
-        subscriptions = list(Subscription.objects.filter(member=member))
+        subscription_id = kwargs['subscription_id']
+        subscription_model = get_subscription_model()
+        subscriptions = list(subscription_model.objects.filter(pk=subscription_id))
         context['unpaid_invoices_count'] = Invoice.objects.filter(
             Q(status=Invoice.PENDING) | Q(status=Invoice.OVERDUE),
             subscription__in=subscriptions
@@ -36,7 +37,7 @@ class InvoiceList(BillingBaseView):
         for invoice in invoices:
             if invoice.status == Invoice.PAID:
                 payments = list(invoice.payment_set.all().order_by('-id'))
-                invoice.paid_on = payments[-1].when.strftime('%B %d, %Y %H:%M')
+                invoice.paid_on = payments[-1].created_on.strftime('%B %d, %Y %H:%M')
                 invoice.method = payments[-1].method
         context['invoices'] = invoices
         return context
@@ -58,6 +59,8 @@ class InvoiceDetail(BillingBaseView):
         invoice_id = self.kwargs['invoice_id']
         invoice = get_object_or_404(Invoice, pk=invoice_id)
         context['invoice'] = invoice
+        if getattr(settings, 'IS_IKWEN', False):
+            context['customer_config'] = invoice.service.config
 
         # User may want to extend the payment above the default duration
         # Below are a list of possible extension dates on a year
@@ -82,18 +85,21 @@ class InvoiceDetail(BillingBaseView):
                 except:
                     day -= 1
         context['extensions'] = extensions
-
-        # member = self.request.user
-        # member.is_iao = True
-        # country = Country(name='Cameroon', slug='cameroon')
-        # company = Company(name='Les galleries Akok Bella', address='305 Immeuble T. Bella',
-        #                   city=u'Yaoundé', country=country, po_box='63248')
-        # service = Service(company=company, monthly_cost=15000)
-        # payment = Payment(when=timezone.now(), method=Payment.WENCASH, amount=15000)
-        # invoice = Invoice(number='number 1', description="Description 1", service=service,
-        #                   due_date=timezone.now(), amount=15000, status='Pending')
-        # context['invoice'] = invoice
         return context
+
+
+@login_required
+def change_billing_cycle(request, *args, **kwargs):
+    subscription_id = request.GET['subscription_id']
+    new_cycle = request.GET['new_cycle']
+    subscription_model = get_subscription_model()
+    if getattr(settings, 'IS_IKWEN', False):
+        service = subscription_model.objects.using(UMBRELLA).get(pk=subscription_id)
+    else:
+        service = subscription_model.objects.get(pk=subscription_id)
+    service.billing_cycle = new_cycle
+    service.save()
+    return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
 
 class NoticeMail(BillingBaseView):

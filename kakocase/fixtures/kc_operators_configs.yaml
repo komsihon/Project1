@@ -1,0 +1,102 @@
+- model: kakocase.businesscategory
+  pk: 5692287b3301e0706b51a9b1
+  fields:
+    name: High Tech
+    slug: high-tech
+
+- model: kakocase.businesscategory
+  pk: 5692287b3301e0706b51a9b2
+  fields:
+    name: Beverage
+    slug: beverage
+
+- model: kakocase.operatorprofile
+  pk: 56922874b37b33706b51f001
+  fields:
+    service: 56eb6d04b37b3379b531b101
+    rel_id: 1
+    payment_delay: Straight
+    api_signature: api-signature1
+    business_type: Provider
+    company_name: Tecno Mobile Telecom
+    company_name_slug: tecno-mobile-telecom
+    business_category: 5692287b3301e0706b51a9b1
+    stock_updated_on: 2016-06-19T11:34:08.120Z
+    last_stock_update_method: Manual
+    city: Yaounde
+    items_traded_history: '18, 9, 57, 23, 46'
+    turnover_history: '33800, 22700, 204150, 40890, 70235'
+    earnings_history: '33800, 22700, 204150, 40890, 70235'
+    orders_count_history: '11, 4, 41, 15, 27'
+    broken_products_history: '1, 0, 0, 0, 2'
+    late_deliveries_history: '0, 0, 2, 0, 1'
+    cities_covered:
+      - id: 56ec6d04b37b3379b7446c01
+        name: Yaounde
+
+- model: kakocase.operatorprofile
+  pk: 56922874b37b33706b51f002
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    rel_id: 2
+    payment_delay: Straight
+    api_signature: api-signature2
+    company_name: Les Brasseries du Cameroun
+    company_name_slug: les-brasseries-du-cameroun
+    business_category: 5692287b3301e0706b51a9b2
+    business_type: Provider
+    stock_updated_on: 2016-06-19T11:34:08.120Z
+    last_stock_update_method: Auto
+    city: Yaounde
+    items_traded_history: '18, 9, 57, 23, 46'
+    turnover_history: '33800, 22700, 204150, 40890, 70235'
+    earnings_history: '33800, 22700, 204150, 40890, 70235'
+    orders_count_history: '11, 4, 41, 15, 27'
+    broken_products_history: '1, 0, 0, 0, 2'
+    late_deliveries_history: '0, 0, 2, 0, 1'
+    cities_covered:
+      - id: 56ec6d04b37b3379b7446c01
+        name: Yaounde
+
+- model: kakocase.operatorprofile
+  pk: 56922874b37b33706b51f003
+  fields:
+    service: 56eb6d04b37b3379b531b103
+    rel_id: 3
+    api_signature: api-signature3
+    company_name: Point Fokal
+    business_type: Retailer
+    city: Douala
+    items_traded_history: '18, 9, 57, 23, 46'
+    turnover_history: '33800, 22700, 204150, 40890, 70235'
+    earnings_history: '4150, 1900, 36608, 3040, 9175'
+    orders_count_history: '11, 4, 41, 15, 27'
+    broken_products_history: '1, 0, 0, 0, 2'
+    late_deliveries_history: '0, 0, 2, 0, 1'
+    is_certified: Yes
+    cities_covered:
+      - id: 56ec6d04b37b3379b7446c01
+        name: Yaounde
+
+- model: kakocase.operatorprofile
+  pk: 56922874b37b33706b51f005
+  fields:
+    service: 56eb6d04b37b3379b531b105
+    rel_id: 5
+    payment_delay: Straight
+    api_signature: api-signature5
+    company_name: Campost
+    company_name_slug: campost
+    business_type: DeliveryMan
+    city: Yaounde
+    items_traded_history: '18, 9, 57, 23, 46'
+    turnover_history: '33800, 22700, 204150, 40890, 70235'
+    earnings_history: '33800, 22700, 204150, 40890, 70235'
+    orders_count_history: '11, 4, 41, 15, 27'
+    broken_products_history: '1, 0, 0, 0, 2'
+    late_deliveries_history: '0, 0, 2, 0, 1'
+    cities_covered:
+      - id: 56ec6d04b37b3379b7446c01
+        name: Yaounde
+      - id: 56ec6d04b37b3379b7446c02
+        name: Douala

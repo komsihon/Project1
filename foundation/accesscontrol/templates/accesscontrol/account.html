@@ -1,34 +1,29 @@
-{% extends "core/base.html" %}
+{% extends "core/base_bs.html" %}
 {% load i18n %}
 {% load humanize %}
 {% load staticfiles %}
 
 {% block page_title %}
-<title> Ikwen | {% trans "Account setup" %} </title>
+<title> ikwen - {% trans "Account setup" %} </title>
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
-    <link href="{% static 'ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" />
     <style type="text/css">
         body {background: #f6f6f6}
-        #stage {background: #fff0fc}
+        #content {padding-top: 80px; min-height: 450px}
         nav#sub .account {border-bottom: 2px solid #BB4824; color: #300c00; font-weight: bold}
-        section {box-shadow: 1px 1px 4px rgba(0, 0, 0, .1); -moz-box-shadow: 1px 1px 4px -moz-rgba(0, 0, 0, .1); -webkit-box-shadow: 1px 1px 4px rgba(0, 0, 0, .1);
-            background: #fff; float: left; line-height: 1.4; margin: 15px 0 5px; padding: 15px; width: 450px}
-        section header {border-bottom: solid 1px #DBE6FF; float: left; font-size: 24px; font-weight: normal; width: 100%}
+        #content section {box-shadow: 1px 1px 4px rgba(0, 0, 0, .1); background: #fff; line-height: 1.4; margin: 15px 0 5px; padding: 15px}
+        section header {border-bottom: solid 1px #DBE6FF; font-size: 24px; font-weight: normal; width: 100%}
         section header .icon {float: right}
-        section .detail {float: left; margin-top: 15px}
+        section .detail {margin-top: 15px}
         section .detail .unset {color: #555C77; font-style: italic; font-weight: normal}
         section .detail a {font-size: 13px}
-        section label {float: left; font-size: 16px; font-weight: normal; width: 317px}
+        section label {font-size: 16px; font-weight: normal}
         section.plan label {width: 240px}
         section .action-edit {color: #00f; cursor: pointer; font-size: 15px}
         section .multi-lines {float: left; font-size: 15px}
-        section.identity .photo, section.company .logo {border: 1px solid #DBE6FF;float: left; height: 180px; margin-top: 10px; padding: 3px; width: 180px}
-        section.identity .photo .img, section.company .logo .img {background: no-repeat center; background-size: 180px auto; height: 100%; width: 100%}
-        section.identity .upload, section.company .upload {float: left; margin: 72px 0 0 36px}
-        .edit {float: left; margin-top: 10px}
-        .edit .input-ctnr {float: left; width: 283px}
+        .edit {margin-top: 10px}
+        .edit.password > div {padding: 0 15px}
         .edit.password .input-ctnr {margin-top: 10px}
         .edit .buttons {float: right}
         .edit input {width: 240px}
@@ -37,72 +32,98 @@
         .update-result {position: absolute; width: 500px}
         .update-result .message {margin: -15px auto 0; width: 360px}
         section form label {font-size: 14px; font-weight: normal; margin-right: 15px; text-align: right; width: 180px}
-        section form button {width: 78px}
     </style>
-    {% block sub_custom_head %}{% endblock %}
 {% endblock %}
 
-{% block profile_custom_menu_items %}
-    {% include 'core/snippets/profile_custom_menu_items.html' %}
+{% block header %}
+    {{ block.super }}
+    <div class="container-fluid">
+        {% trans "Account setup" %}
+    </div>
 {% endblock %}
 
 {% block content %}
-    <div id="content">
-        <div class="wrapper" style="margin-top: 72px">
-            <div style="float: left; width: 480px">
+    <div id="content" class="container">
+        <div class="row">
+            <div class="col-md-6">
                 <section class="identity">
                     <div class="update-result">
-                        <p class="message hidden"></p>
+                        <p class="message" style="display: none"></p>
                     </div>
                     <header>
-                        <span> {% trans "Identity" %} </span>
+                        <span> {% trans "About you" context 'Account setup identity' %} </span>
                         <span class="icon" style="background-position: -177px 0"></span>
                     </header>
-                    <div class="detail">
-                        <label class="username">{{ request.user }} </label>
+                    <div class="row detail">
+                        <label class="col-xs-12 username">{{ request.user }} </label>
                     </div>
-                    <div class="detail">
+                    <div class="row detail">
                         {% if request.user.first_name %}
-                            <label class="name">{{ request.user.get_full_name }}</label>
-                            <span class="action-edit"> {% trans 'Change' %} </span>
+                            <label class="col-sm-9 col-md-10 name">{{ request.user.full_name }}</label>
+                            <span class="col-sm-3 col-md-2 action-edit"> {% trans 'Change' %} </span>
                         {% else %}
-                            <label class="name unset"> &lt; {% trans "Name not set" %} &gt; </label>
-                            <span class="action-edit"> {% trans "Set now" %}</span>
+                            <label class="col-sm-9 col-md-10 name unset"> &lt; {% trans "Name not set" %} &gt; </label>
+                            <span class="col-sm-3 col-md-2 action-edit"> {% trans "Set now" %}</span>
                         {% endif %}
                     </div>
-                    <div class="edit name hidden">
-                        <div class="input-ctnr"> <input type="text" class="name" value=""> </div>
-                        <div class="buttons">
-                            <button data-field="name" class="confirm"> OK </button>
-                            <button class="default">{% trans "Cancel" %}</button>
+                    <div class="row edit name hidden">
+                        <div class="col-sm-7 col-md-7">
+                            <input type="text" class="form-control input-sm name" placeholder="{% trans "Full name" %}">
+                        </div>
+                        <div class="col-sm-5 col-md-5 row">
+                            <div class="col-sm-5 col-md-5 col-sm-offset-2 col-md-offset-2">
+                                <button data-field="name" class="btn btn-primary btn-sm btn-block"> OK </button>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <button class="btn btn-default btn-sm btn-block">{% trans "Cancel" %}</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="detail">
+                    <div class="row detail">
                         {% if request.user.phone %}
-                            <label class="phone">{{ request.user.phone }} </label>
-                            <span class="action-edit"> {% trans 'Change' %} </span>
+                            <label class="col-sm-9 col-md-10 phone">{{ request.user.phone }}</label>
+                            <span class="col-sm-3 col-md-2 action-edit"> {% trans 'Change' %} </span>
                         {% else %}
-                            <label class="phone unset"> &lt; {% trans "Phone not set" %} &gt; </label>
-                            <span class="action-edit"> {% trans "Set now" %}</span>
+                            <label class="col-sm-9 col-md-10 phone unset"> &lt; {% trans "Phone not set" %} &gt; </label>
+                            <span class="col-sm-3 col-md-2 action-edit"> {% trans "Set now" %}</span>
                         {% endif %}
                     </div>
-                    <div class="edit phone hidden">
-                        <div class="input-ctnr"> <input type="text" class="phone" value=""> </div>
-                        <div class="buttons">
-                            <button data-field="phone" class="confirm"> OK </button>
-                            <button class="default">{% trans "Cancel" %}</button>
+                    <div class="row edit phone hidden">
+                        <div class="col-sm-7 col-md-7">
+                            <div class="input-ctnr"> <input type="text" class="form-control input-sm phone" value="" placeholder="{% trans "Phone" %}"> </div>
+                        </div>
+                        <div class="col-sm-5 col-md-5 row">
+                            <div class="col-sm-5 col-md-5 col-sm-offset-2 col-md-offset-2">
+                                <button data-field="phone" class="btn btn-primary btn-sm btn-block"> OK </button>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <button class="btn btn-default btn-sm btn-block">{% trans "Cancel" %}</button>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="detail">
+                    <div class="row detail">
+                        {% if request.user.email %}
+                            <label class="col-sm-9 col-md-10 email">{{ request.user.email }}</label>
+                            <span class="col-sm-3 col-md-2 action-edit"> {% trans 'Change' %} </span>
+                        {% else %}
+                            <label class="col-sm-9 col-md-10 email unset"> &lt; {% trans "Email not set" %} &gt; </label>
+                            <span class="col-sm-3 col-md-2 action-edit"> {% trans "Set now" %}</span>
+                        {% endif %}
                     </div>
-                    <div class="edit email hidden">
-                        <div class="input-ctnr"> <input type="text" class="email" value=""> </div>
-                        <div class="buttons">
-                            <button data-field="email" class="confirm"> OK </button>
-                            <button class="default">{% trans "Cancel" %}</button>
+                    <div class="row edit email hidden">
+                        <div class="col-sm-7 col-md-7">
+                            <div class="input-ctnr"> <input type="text" class="form-control input-sm email" placeholder="Email"> </div>
+                        </div>
+                        <div class="col-sm-5 col-md-5 row">
+                            <div class="col-sm-5 col-md-5 col-sm-offset-2 col-md-offset-2">
+                                <button data-field="email" class="btn btn-primary btn-sm btn-block"> OK </button>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <button class="btn btn-default btn-sm btn-block">{% trans "Cancel" %}</button>
+                            </div>
                         </div>
                     </div>
+                {# TODO: Manage phone verification #}
     {#                {% if not request.user.phone_verified %}#}
     {#                    <div style="float: left; margin-top: 15px; text-align: justify; width: 100%">Votre numero de téléphone n'a pas encore verifié et validé; cliquez sur <strong>Verifier</strong> et entrez votre numero de téléphone pour le verifier </div>#}
     {#                <div style="border: 1px solid #CC0000; float: left; margin: 15px 0px 0px -8px;padding: 10px 10px 20px;width: 458px;">#}
@@ -120,7 +141,10 @@
     {#                    </div>#}
     {#                </div>#}
     {#                {% endif %}#}
+                    <div class="clear"></div>
                 </section>
+            </div>
+            <div class="col-md-6">
                 <section class="security">
                     <div class="update-result">
                         <p class="message hidden"></p>
@@ -129,162 +153,34 @@
                         <span> {% trans "Sécurité" %} </span>
                         <span class="icon" style="background-position: -210px -31px"></span>
                     </header>
-                    <div class="detail">
-                        <label>{% trans "Password" %}</label>
-                        <span class="action-edit"> {% trans "Change" %}</span>
+                    <div class="row detail">
+                        <label class="col-sm-9 col-md-10 phone">{% trans "Password" %}</label>
+                        <span class="col-sm-3 col-md-2 action-edit"> {% trans 'Change' %} </span>
                     </div>
-                    <div class="edit password hidden">
-                        <div class="input-ctnr"> <input type="password" name="password" placeholder="{% trans 'Current password' %}"> </div>
-                        <div class="input-ctnr"> <input type="password" name="password1" placeholder="{% trans 'New password' %}"> </div>
-                        <div class="input-ctnr"> <input type="password" name="password2" placeholder="{% trans 'Confirm' %}"> </div>
-                        <div class="buttons" style="margin-top: 10px">
-                            <button class="confirm"> OK </button>
-                            <button class="default">{% trans "Cancel" %}</button>
+                    <div class="row edit password hidden">
+                        <div class="form-group">
+                            <input type="password" name="password" class="form-control input-sm" placeholder="{% trans 'Current password' %}">
+                        </div>
+                        <div class="form-group"> <input type="password" name="password1" class="form-control input-sm" placeholder="{% trans 'New password' %}"> </div>
+                        <div class="form-group"> <input type="password" name="password2" class="form-control input-sm" placeholder="{% trans 'Confirm new password' %}"> </div>
+                        <div class="col-sm-5 col-md-5 row">
+                            <div class="col-sm-5 col-md-5">
+                                <button data-field="email" class="btn btn-primary btn-sm btn-block"> OK </button>
+                            </div>
+                            <div class="col-sm-5 col-md-5">
+                                <button class="btn btn-default btn-sm btn-block">{% trans "Cancel" %}</button>
+                            </div>
                         </div>
                     </div>
+                    <div class="clear"></div>
                 </section>
             </div>
-            {% block custom_info %}{% endblock %}
-            {% if request.user.is_iao %}
-                <div style="float: right; width: 480px">
-                    <section class="company">
-                        <div class="update-result">
-                            <p class="message hidden"></p>
-                        </div>
-                        <header>
-                            <span> {% trans "Company info" %} </span>
-                            <span class="icon" style="background-position: -177px 0"></span>
-                        </header>
-                        {% if company.logo %}
-                            <div class="logo">
-                                <div class="img" style="background-image: url('{{ company.logo.small_url }}')"></div>
-                            </div>
-                        {% else %}
-                            <div class="logo"> <div class="img"> {% trans "Your logo" %} </div> </div>
-                        {% endif %}
-                        <span class="upload">Upload</span>
-                        <div class="detail">
-                            {% if company.name %}
-                                <label class="name">{{ company.name }} </label>
-                                <span class="action-edit"> {% trans 'Change' %} </span>
-                            {% else %}
-                                <label class="name unset"> &lt; {% trans "Name not set" %} &gt; </label>
-                                <span class="action-edit"> {% trans "Set now" %}</span>
-                            {% endif %}
-                        </div>
-                        <div class="edit name hidden">
-                            <div class="input-ctnr"> <input type="text" class="name" value="{{ company.name }}" placeholder="{% trans "Nom de l'entreprise" %}"> </div>
-                            <div class="buttons">
-                                <button data-field="name" class="confirm"> OK </button>
-                                <button class="default">{% trans "Cancel" %}</button>
-                            </div>
-                        </div>
-                        <div class="detail">
-                            {% if company.phone %}
-                                <label class="phone">{{ company.phone }} </label>
-                                <span class="action-edit"> {% trans 'Change' %} </span>
-                            {% else %}
-                                <label class="phone unset"> &lt; {% trans "Phone not set" %} &gt; </label>
-                                <span class="action-edit"> {% trans "Set now" %}</span>
-                            {% endif %}
-                        </div>
-                        <div class="edit phone hidden">
-                            <div class="input-ctnr"> <input type="text" class="phone" value="{{ company.phone }}" placeholder="Phone"> </div>
-                            <div class="buttons">
-                                <button data-field="phone" class="confirm"> OK </button>
-                                <button class="default">{% trans "Cancel" %}</button>
-                            </div>
-                        </div>
-                        <div class="detail">
-                            {% if company.email %}
-                                <label class="email">{{ company.email }} </label>
-                                <span class="action-edit"> {% trans 'Change' %} </span>
-                            {% else %}
-                                <label class="email unset"> &lt; {% trans "E-mail not set" %} &gt; </label>
-                                <span class="action-edit"> {% trans "Set now" %}</span>
-                            {% endif %}
-                        </div>
-                        <div class="edit email hidden">
-                            <div class="input-ctnr"><input type="text" class="email" value="{{ company.email }}" placeholder="E-mail"></div>
-                            <div class="buttons">
-                                <button data-field="email" class="confirm"> OK </button>
-                                <button class="default">{% trans "Cancel" %}</button>
-                            </div>
-                        </div>
-                        <div class="detail">
-                            {% if company.url %}
-                                <label class="url">{{ company.url }} </label>
-                                <span class="action-edit"> {% trans 'Change' %} </span>
-                            {% else %}
-                                <label class="url unset"> &lt; {% trans "URL not set" %} &gt; </label>
-                                <span class="action-edit"> {% trans "Set now" %}</span>
-                            {% endif %}
-                        </div>
-                        <div class="edit url hidden">
-                            <div class="input-ctnr"> <input type="text" class="url" value="{{ company.url }}" placeholder="Web site, Facebook page, etc."> </div>
-                            <div class="buttons">
-                                <button data-field="url" class="confirm"> OK </button>
-                                <button class="default">{% trans "Cancel" %}</button>
-                            </div>
-                        </div>
-                        <div class="detail">
-                            {% if company.city %}
-                                <label class="city">{{ company.city }} </label>
-                                <span class="action-edit"> {% trans 'Change' %} </span>
-                            {% else %}
-                                <label class="city unset"> &lt; {% trans "City not set" %} &gt; </label>
-                                <span class="action-edit"> {% trans "Set now" %}</span>
-                            {% endif %}
-                        </div>
-                        <div class="edit city hidden">
-                            <div class="fancy-combo-box city" style="margin-right: 6px">
-                                <input type="text" name="city_name" value="{% trans 'City' %}" class="inner-shade" readonly style="width: 210px"/>
-                                <input type="hidden" class="city_id" name="city_id"/>
-                                <span class="arrow" comment="arrow-bg" style="height: 28px"> <span comment="arrow-img"></span> </span>
-                                <div class="entries-overlay hidden" style="padding-top: 31px; width: 305px;">
-                                    <ul class="entries has-shade">
-                                        <li class="entry" data-val="">{% trans "Choose" %}</li>
-                                        {% for city in cities %}
-                                        <li class="entry" data-val="{{ city.id }}">{{ city.name }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="buttons">
-                                <button data-field="city_id" class="confirm"> OK </button>
-                                <button class="default">{% trans "Cancel" %}</button>
-                            </div>
-                        </div>
-                        <div class="detail">
-                            {% if company.address %}
-                                <label class="address">{{ company.address }} </label>
-                                <span class="action-edit"> {% trans 'Change' %} </span>
-                            {% else %}
-                                <label class="address unset"> &lt; {% trans "Address not set" %} &gt; </label>
-                                <span class="action-edit"> {% trans "Set now" %}</span>
-                            {% endif %}
-                        </div>
-                        <div class="edit address hidden">
-                            <div class="input-ctnr"> <input type="text" class="address" value="{{ company.address }}" placeholder="{% trans "Company's address" %}"> </div>
-                            <div class="buttons">
-                                <button data-field="address" class="confirm"> OK </button>
-                                <button class="default">{% trans "Cancel" %}</button>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-            {% endif %}
         </div>
         <div class="clear"></div>
     </div>
-    <div class="wrapper" style="background: #fff; border: 2px solid #544FFF; border-radius: 5px; width: 360px">
-        <span style="background: #544FFF; color: #fff; float: left; font: normal 1.5em Helvetica, Arial; padding: 11px 10px 12px"> Account powered by </span>
-        <img src="{% static 'ikwen/img/logo-ikwen_100.png' %}" alt="Ikwen Logo" height="45" style="float: left" />
-        <div class="clear"></div>
-    </div>
 {% endblock %}
-{% block custom_js %}
-    <script src="{% static 'ajaxuploader/js/fileuploader.js' %}"></script>
+{% block js %}
+    {{ block.super }}
     <script type="text/javascript">
         (function() {
             $('div#top menu li.account a').addClass('current');
@@ -292,11 +188,11 @@
                 $(this).parent().toggleClass('hidden');
                 $(this).parent().next().toggleClass('hidden')
             });
-            $('.edit button.default').click(function() {
+            $('.edit button.btn-default').click(function() {
                 $(this).parents('.edit').toggleClass('hidden');
                 $(this).parents('.edit').prev().toggleClass('hidden')
             });
-            $('.identity .edit button.confirm').click(function() {
+            $('.identity .edit button.btn-primary').click(function() {
                 var _$button = $(this);
                 var field = $(this).data('field');
                 var value = $('.identity input.' + field).val();

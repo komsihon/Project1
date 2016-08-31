@@ -1,0 +1,99 @@
+/**
+    Document   : forms
+    Created on : August 04, 2016, 13:40
+    Author     : Kom Sihon
+    Description:
+        Additional basic display rules for Ikwen apps
+*/
+
+.working {cursor: wait}
+.success {background: #B6F1B6; border: 1px solid; color: #039B03}
+.failure {background: #FFB6C1; border: 1px solid; color:  #F00}
+.clear {clear: both}
+.arrow {color: #bbb; margin: auto; width: 40px}
+.arrow div {float: left; height: 20px; width: 20px}
+.arrow.north div:first-child {border-right: 1px solid; transform: skewX(-30deg); transform-origin: 10px 0 0}
+.arrow.north div:last-child {border-left: 1px solid; margin-left: -1px; transform: skewX(30deg); transform-origin: 10px 0 0}
+.tpl {display: none}
+.spinner-container {-webkit-animation: rotate 2s linear infinite; animation: rotate 2s linear infinite; z-index: 2}
+.spinner-container .path {
+  stroke-dasharray: 1,150;
+  stroke-dashoffset: 0;
+  stroke: rgba(69, 151, 255, 0.85);
+  stroke-linecap: round;
+  -webkit-animation: dash 1.5s ease-in-out infinite;
+  animation: dash 1.5s ease-in-out infinite;
+}
+@keyframes rotate {
+    100% { transform: rotate(360deg); }
+}
+@-webkit-keyframes rotate {
+    100% { -webkit-transform: rotate(360deg); }
+}
+@keyframes dash {
+    0% {stroke-dasharray: 1,150; stroke-dashoffset: 0}
+    50% {stroke-dasharray: 90,150; stroke-dashoffset: -35}
+    100% {stroke-dasharray: 90,150; stroke-dashoffset: -124}
+}
+@-webkit-keyframes dash {
+    0% {stroke-dasharray: 1, 150; stroke-dashoffset: 0}
+    50% {stroke-dasharray: 90, 150; stroke-dashoffset: -35}
+    100% {stroke-dasharray: 90, 150; stroke-dashoffset: -124}
+}
+
+.member {border-bottom: 1px solid #eee;display: block;float: left;padding: 15px;width: 100%;}
+.member:hover, .member.active {background: #f6f6f6}
+.member .photo {background: center; background-size: 100% auto; border-radius: 30px; float: left; height: 60px; width: 60px}
+.member .full_name {cursor: default; color: #333; font-size: 18px; margin: 10px 0 0}
+.member .about {color: #888; font-size: 14px}
+time {color: #888;float: right;clear: both;font-size: 11px;margin-top: -15px;padding: 0;}
+
+.has-shade {box-shadow: 1px 1px 9px 4px rgba(0, 0, 0, .1)}
+.text-has-shade {text-shadow: 1px 2px 2px rgba(0, 0, 0, .7)}
+.inner-shade {box-shadow: inset 0 1px 3px rgba(0, 0, 0, .15);}
+.subtle-shade {box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .15)}
+#navbar {height: 66px;min-height: 66px;position: fixed;width: 100%;top: 0;}
+#navbar .navbar-header {float: left}
+#navbar form.search {display: none; float: left; margin: 15px 0 0 200px}
+#navbar form.search input {border: 1px solid}
+#navbar form.search .results ul {padding-left: 0}
+@media (min-width: 768px) {
+    #navbar form.search {display: block;float: left;margin: 6px 0 0 55px;}
+    #navbar form.search input {border: 1px solid;width: 330px;}
+    #navbar form.search .results {background: #fff;max-height: 300px;position: absolute;overflow: auto;width: 330px;}
+}
+@media (min-width: 992px) {
+    #navbar form.search {margin: 15px 0 0 160px;}
+    #navbar form.search input {width: 420px;}
+    #navbar form.search .results {width: 420px;}
+}
+@media (min-width: 1200px) {
+    #navbar form.search {margin: 15px 0 0 200px;}
+    #navbar form.search input {width: 500px;}
+    #navbar form.search .results {width: 500px;}
+}
+#navbar ul.navbar-right {float: right; margin: 0}
+#navbar ul.navbar-right > li {display: inline-block}
+#navbar ul.navbar-right > li > a {padding: 18px 10px}
+@media (max-width: 992px) {
+    #navbar {height: 47px; min-height: 47px}
+    #navbar .navbar-brand {padding: 12px 15px}
+    #navbar ul.navbar-right > li > a {padding: 10px}
+}
+#navbar li a img {margin-top: -4px}
+#app-nav {background: #3498db;font-weight: 700;height: 45px;margin-top: 66px;padding-top: 10px;position: fixed;width: 100%;}
+#app-nav .app-name {float: left; width: 240px}
+#app-nav .breadcrumb {background: none;float: left;padding-top: 2px;}
+#app-nav .breadcrumb a {color: #fff}
+#app-nav + div#container {padding-top: 111px}
+#admin-content {margin-left: 270px;padding-top: 16px;min-height: 450px;}
+#context-search {float: left;margin-left: 300px;}
+#context-search input {border: 1px solid #ddd}
+
+#top-notice-ctnr {left: 0;position: fixed;text-align: center;top: 66px;width: 100%;z-index: 10000;}
+.floating-notice {background: #F6FF8C; border: 1px solid #CDD570; border-radius: 2px; color: #484B2B; padding: 9px 24px; position: absolute}
+.floating-notice.failure {border: 1px solid; color:  #F00}
+.floating-notice .action {cursor: pointer; text-decoration: underline}
+
+footer a {color: #999}
+footer {padding-bottom: 30px}

@@ -1,14 +1,13 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
-from django.conf import settings
 from djangotoolbox.fields import ListField, EmbeddedModelField
 
+from ikwen.foundation.accesscontrol.backends import UMBRELLA
 from ikwen.foundation.accesscontrol.models import Member
-from ikwen.foundation.core.utils import to_dict
-
-from ikwen.foundation.core.models import Model, AbstractConfig, AbstractWatchModel
+from ikwen.foundation.core.models import Model, AbstractConfig, AbstractWatchModel, Service
+from ikwen.foundation.core.utils import to_dict, add_database_to_settings, set_counters, increment_history_field
 
 # Number of seconds since the Order was issued, that the Retailer
 # has left to commit to deliver the customer himself. After that
@@ -21,6 +20,8 @@ CASH_OUT_REQUEST_EVENT = 'CashOutRequestEvent'
 PROVIDER_ADDED_PRODUCTS_EVENT = 'ProviderAddedProductsEvent'
 PROVIDER_REMOVED_PRODUCT_EVENT = 'ProviderRemovedProductEvent'
 PROVIDER_PUSHED_PRODUCT_EVENT = 'ProviderPushedProductEvent'
+CUSTOMER_ORDERED_EVENT = 'CustomerOrderedEvent'
+CUSTOMER_RECEIVED_PACKAGE_EVENT = 'CustomerReceivedPackageEvent'
 # End Code names
 
 
@@ -29,6 +30,58 @@ class City(Model):
 
     def __unicode__(self):
         return self.name
+
+
+class ProductCategory(AbstractWatchModel):
+    """
+    Category of :class:`kako.models.Product`. User must select the category from
+    a list so, upon installation of the project some categories must be set.
+    """
+    name = models.CharField(max_length=100, unique=True,
+                            help_text=_("Name of the category."))
+    slug = models.SlugField(unique=True,
+                            help_text=_("Slug of the category."))
+    description = models.TextField(blank=True,
+                                   help_text=_("Description of the category. (May contain HTML)"))
+    items_count = models.IntegerField(default=0,
+                                      help_text="Number of products in this category.")
+    # A list of 366 integer values, each of which representing the number of items of this category
+    # that were traded (sold or delivered) on a day out of the 366 previous (current day being the last)
+    items_traded_history = ListField(blank=True, null=True)
+    turnover_history = ListField(blank=True, null=True)
+    earnings_history = ListField(blank=True, null=True)
+    orders_count_history = ListField(blank=True, null=True)
+
+    # SUMMARY INFORMATION
+    total_items_traded = models.IntegerField(default=0)
+    total_turnover = models.IntegerField(default=0)
+    total_earnings = models.IntegerField(default=0)
+    total_orders_count = models.IntegerField(default=0)
+
+    def __unicode__(self):
+        return self.name
+
+    def report_counters_to_umbrella(self):
+        umbrella_obj = ProductCategory.objects.using(UMBRELLA).get(pk=self.id)
+        set_counters(umbrella_obj)
+        increment_history_field(umbrella_obj, 'items_traded_history')
+        increment_history_field(umbrella_obj, 'turnover_history')
+        increment_history_field(umbrella_obj, 'orders_count_history')
+        umbrella_obj.save()
+
+    def save(self, **kwargs):
+        if getattr(settings, 'IS_IKWEN', False):
+            for operator in OperatorProfile.objects.all():
+                db = operator.service.database
+                add_database_to_settings(db)
+                try:
+                    obj_mirror = ProductCategory.objects.using(db).get(pk=self.id)
+                    obj_mirror.name = self.name
+                    obj_mirror.slug = self.slug
+                    super(ProductCategory, obj_mirror).save()
+                except ProductCategory.DoesNotExist:
+                    pass
+        super(ProductCategory, self).save(**kwargs)
 
 
 class BusinessCategory(Model):
@@ -41,6 +94,7 @@ class BusinessCategory(Model):
                             help_text=_("Slug of the category."))
     description = models.TextField(blank=True,
                                    help_text=_("Description of the category. (May contain HTML)"))
+    product_categories = ListField(EmbeddedModelField('ProductCategory'))
 
     def __unicode__(self):
         return self.name
@@ -50,12 +104,14 @@ class DeliveryOption(Model):
     """
     Delivery options applicable to all Kakocase retail websites.
 
+    :attr:`company`: Company offering that option
     :attr:`name`: Name of the option
     :attr:`slug`: Slug of the option
     :attr:`description`: Description
     :attr:`cost`: How much the customer pays
     :attr:`max_delay`: Max duration (in hours) it should take to deliver the package.
     """
+    company = models.ForeignKey(Service)
     name = models.CharField(max_length=100,
                             help_text=_("Name of the option."))
     slug = models.SlugField(help_text=_("Slug of the option."))
@@ -91,6 +147,9 @@ class OperatorProfile(AbstractConfig):
         (STRAIGHT, _('Straight')),
         (UPON_CONFIRMATION, _('Upon buyer confirmation')),
     )
+    rel_id = models.IntegerField(default=0, unique=True,
+                                 help_text="Id of this object in the relational database, since these objects are kept"
+                                           "in the relational database with traditional autoincrement Ids.")
     api_signature = models.CharField(max_length=30, unique=True, db_index=True)
     business_type = models.CharField(max_length=30)  # PROVIDER, RETAILER or DELIVERY_MAN
 
@@ -103,7 +162,7 @@ class OperatorProfile(AbstractConfig):
                                        help_text="Minimum balance that allows cash out.")
     is_certified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    balance = models.IntegerField(default=0)
+    balance = models.FloatField(default=0)
 
     # LOCATION INFO
     cities_covered = ListField(EmbeddedModelField(City), blank=True, null=True)  # Only DeliveryMan can have more than 1
@@ -141,28 +200,54 @@ class OperatorProfile(AbstractConfig):
                                                help_text="When provider runs his own retail website, this is the "
                                                          "average delay in minutes before the user can come and collect his order.")
 
-    class Meta:
-        permissions = (
-            ("role_request_cash_out", _("Request cash-out")),
-            ("role_manage_products'", _("Manage products")),
-            ("role_manage_marketing_tools'", _("Manage marketing tools")),
-        )
-
     def __unicode__(self):
         return self.company_name
 
     def get_operation_city(self):
         return self.cities_covered[-1]
 
+    def get_rel(self):
+        if getattr(settings, 'TESTING', False):
+            return self
+        REL_DS = getattr(settings, 'REL_DS')
+        return OperatorProfile.objects.using(REL_DS).get(pk=self.rel_id)
+
+    def get_from(self, db):
+        add_database_to_settings(db)
+        return OperatorProfile.objects.using(db).get(pk=self.id)
+
+    def report_counters_to_umbrella(self):
+        umbrella_obj = OperatorProfile.objects.using(UMBRELLA).get(pk=self.id)
+        umbrella_obj.items_traded_history = self.items_traded_history
+        umbrella_obj.turnover_history = self.turnover_history
+        umbrella_obj.earnings_history = self.earnings_history
+        umbrella_obj.orders_count_history = self.orders_count_history
+        umbrella_obj.broken_products_history = self.broken_products_history
+        umbrella_obj.late_deliveries_history = self.late_deliveries_history
+        umbrella_obj.total_items_traded = self.total_items_traded
+        umbrella_obj.total_turnover = self.total_turnover
+        umbrella_obj.total_earnings = self.total_earnings
+        umbrella_obj.total_orders_count = self.total_orders_count
+        umbrella_obj.total_broken_products = self.total_broken_products
+        umbrella_obj.total_late_deliveries = self.total_late_deliveries
+        umbrella_obj.save()
+
+    def save(self, **kwargs):
+        if getattr(settings, 'IS_IKWEN', False):
+            db = self.service.database
+            add_database_to_settings(db)
+            obj_mirror = OperatorProfile.objects.using(db).get(pk=self.id)
+            obj_mirror.ikwen_share = self.ikwen_share
+            obj_mirror.payment_delay = self.payment_delay
+            obj_mirror.cash_out_min = self.cash_out_min
+            obj_mirror.is_certified = self.is_certified
+            super(OperatorProfile, obj_mirror).save(using=db)
+        super(OperatorProfile, self).save(**kwargs)
+
     def to_dict(self):
         var = to_dict(self)
         del(var['ikwen_share'])
         del(var['payment_delay'])
-        del(var['created_on'])
-        del(var['updated_on'])
-        del(var['stock_updated_on'])
-        del(var['counters_reset_on'])
-        print var
         return var
 
 
@@ -178,3 +263,20 @@ class CashOutRequest(Model):
     profile_type = models.CharField(max_length=15)
     amount = models.IntegerField(default=0)
     status = models.CharField(max_length=15, default=PENDING)
+
+    class Meta:
+        permissions = (
+            ("manage_cash_out_requests", _("Request cash-out")),
+        )
+
+
+class PaymentInfo(Model):
+    """
+    Information on who should receive and how money earned as
+    :class:`OperatorProfile` should be sent.
+    """
+    member = models.OneToOneField(Member)
+    method = models.CharField(max_length=30)
+    full_name = models.CharField(max_length=150)
+    phone = models.CharField(max_length=30)
+    email = models.EmailField()

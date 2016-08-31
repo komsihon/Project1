@@ -1,0 +1,32 @@
+{% load i18n %}
+{% load staticfiles %}
+{% load humanize %}
+{% if rq.status == 'Pending' %}
+    <div class="col-xs-4 col-sm-3 acs-rqst-cnsl" style="text-align: center">
+        <a href="{% url 'ikwen:profile' rq.member.id %}">
+            {% if rq.member.photo and rq.member.photo.name %}
+                <div class="img" style="background-image: url({{ rq.member.photo.small_url }})"></div>
+            {% else %}
+                <div class="img" style="{% static 'ikwen/img/login-avatar.jpg' %}"></div>
+            {% endif %}
+            <p style="margin-top: 5px">{{ rq.member.full_name|truncatewords:2 }}</p>
+        </a>
+    </div>
+{% else %}
+    <div class="member" style="float: none; margin: auto; width: 96%">
+        {% if rq.member.photo and rq.member.photo.name %}
+            <a href="{% url 'ikwen:profile' rq.member.id %}" class="photo" style="background-image: url({{ rq.member.photo.small_url }})"></a>
+        {% else %}
+            <a href="{% url 'ikwen:profile' rq.member.id %}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
+        {% endif %}
+        <div style="float: left; margin-left: 30px">
+            <p class="name">{{ rq.member.full_name }}</p>
+            {% url 'ikwen:collaborators' as collabo_url %}
+            <p class="about">{% blocktrans with group_name=rq.group_name %}
+                 Was granted access and added to <a href="{{ collabo_url }}?group_name={{ group_name }}">{{ group_name }}</a> group.
+            {% endblocktrans %}</p>
+        </div>
+        <time>{{ rq.updated_on|naturaltime }}</time>
+        <div class="clear"></div>
+    </div>
+{% endif %}

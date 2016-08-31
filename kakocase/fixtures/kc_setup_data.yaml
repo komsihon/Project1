@@ -1,0 +1,170 @@
+- model: kakocase.city
+  pk: 56ec6d04b37b3379b7446c01
+  fields:
+    name: Yaounde
+
+- model: kakocase.city
+  pk: 56ec6d04b37b3379b7446c02
+  fields:
+    name: Douala
+
+- model: core.application
+  pk: 56eb6d04b37b3379b531a001
+  fields:
+    name: Kakocase
+    slug: kakocase
+    logo: app_logos/kakocase_logo.png
+    url: ''
+    base_monthly_cost: 5000
+
+- model: core.service
+  pk: 56eb6d04b37b3379b531b101
+  fields:
+    member: 56eb6d04b37b3379b531e011
+    app: 56eb6d04b37b3379b531a001
+    project_name: tecnomobile
+    url: http://tecnomobile.ikwen.com
+    database: test_kc_tecnomobile
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z
+
+- model: core.service
+  pk: 56eb6d04b37b3379b531b102
+  fields:
+    member: 56eb6d04b37b3379b531e012
+    app: 56eb6d04b37b3379b531a001
+    project_name: sabc
+    url: http://sabc.ikwen.com
+    database: test_kc_sabc
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z
+
+- model: core.service
+  pk: 56eb6d04b37b3379b531b103
+  fields:
+    member: 56eb6d04b37b3379b531e013
+    app: 56eb6d04b37b3379b531a001
+    project_name: foka
+    url: http://foka.ikwen.com
+    database: test_kc_foka
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z
+
+- model: core.service
+  pk: 56eb6d04b37b3379b531b105
+  fields:
+    member: 56eb6d04b37b3379b531e015
+    app: 56eb6d04b37b3379b531a001
+    project_name: ems
+    url: http://ems.ikwen.com
+    database: test_kc_ems
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z
+
+- model: core.consoleeventtype
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: CashOutRequestEvent
+    title: Cash-out requested
+    renderer: path.to.renderer
+
+- model: core.consoleeventtype
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: ProviderAddedProductsEvent
+    title: Provider added products
+    renderer: path.to.renderer
+
+- model: core.consoleeventtype
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: ProviderRemovedProductEvent
+    title: Provider removed product
+    renderer: path.to.renderer
+
+- model: core.consoleeventtype
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: ProviderPushedProductEvent
+    title: Provider pushed product
+    renderer: path.to.renderer
+
+- model: kakocase.deliveryoption
+  pk: 55d1feb9b37b301e070604d1
+  fields:
+    company: 56eb6d04b37b3379b531b105
+    name: Classic
+    slug: classic
+    cost: 1000
+    max_delay: 2
+
+- model: kakocase.deliveryoption
+  pk: 55d1feb9b37b301e070604d2
+  fields:
+    company: 56eb6d04b37b3379b531b105
+    name: Express
+    slug: express
+    cost: 2000
+    max_delay: 2
+
+- model: kakocase.deliveryoption
+  pk: 55d1feb9b37b301e070604d3
+  fields:
+    company: 56eb6d04b37b3379b531b105
+    name: Eyeblink
+    slug: eyeblink
+    cost: 3000
+    max_delay: 2
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b371
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: ProviderAddedProductsEvent
+    title: Those people would like to collaborate with you
+    target_url_name: ikwen:provider_product_list
+    renderer: ikwen.foundation.accesscontrol.views.render_collaboration_request_event
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b372
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: ProviderRemovedProductEvent
+    title: Provider removed product
+    target_url_name: ikwen:pa
+    renderer: ikwen.foundation.accesscontrol.views.render_access_granted_event
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b373
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: ProviderPushedProductEvent
+    title: Provider pushed product
+    target_url_name: ikwen:pa
+    renderer: ikwen.foundation.accesscontrol.views.render_access_granted_event
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b374
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: CustomerOrderedEvent
+    title: Customer ordered
+    target_url_name: ikwen:pa
+    renderer: ikwen.foundation.accesscontrol.views.render_access_granted_event
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b375
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: CustomerReceivedPackageEvent
+    title: Package received
+    target_url_name: ikwen:pa
+    renderer: ikwen.foundation.accesscontrol.views.render_access_granted_event

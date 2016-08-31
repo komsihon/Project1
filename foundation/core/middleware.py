@@ -3,9 +3,10 @@
 This module groups utility middlewares that Ikwen uses.
 """
 from datetime import datetime
-from django.shortcuts import render
-from ikwen.foundation.core.backends import UMBRELLA
 
+from django.shortcuts import render
+
+from ikwen.foundation.accesscontrol.backends import UMBRELLA
 from ikwen.foundation.core.models import Service
 from ikwen.foundation.core.utils import get_service_instance
 

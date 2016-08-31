@@ -1,0 +1,41 @@
+{% extends "core/base_bs.html" %}
+{% load i18n %}
+{% load humanize %}
+{% load staticfiles %}
+{% block head_style %}
+    {{ block.super }}
+    <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block header %}
+    {{ block.super }}
+    <div id="app-nav" class="container-fluid">
+        <span class="app-name">{{ service.app.name }}</span>
+        <ol class="breadcrumb">
+            <li><a href="{% url 'admin_home' %}">{{ service.project_name }}</a></li>
+            {% block breadcrumb_location %}{% endblock %}
+        </ol>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div id="container">
+        <div id="admin-nav">
+            <button class="btn btn-default btn-sm btn-block">{% trans "New" %}</button>
+            <div class="divider"></div>
+            {% block app_admin_nav %}{% endblock %}
+            <div class="divider"></div>
+            <ul class="nav nav-pills nav-stacked">
+{#                <li role="presentation"><a href="{% url 'ikwen:collaborators' %}">{% trans "Pages" %}</a></li>#}
+                <li role="presentation" class="collaborators"><a href="{% url 'ikwen:collaborators' %}">{% trans "Collaborators" %}</a></li>
+            </ul>
+            <div class="divider"></div>
+            <ul class="nav nav-pills nav-stacked">
+                <li role="presentation" class="configuration"><a href="{% url 'ikwen:configuration' %}">{% trans "Configuration" %}</a></li>
+                <li role="presentation" class="invoices"><a href="{% url 'billing:invoice_list' service.id %}" target="_blank"> {% trans 'Invoices' %} </a></li>
+                <li role="presentation" class="service-info"><a href="{% url 'ikwen:service_detail' service.id %}">{% trans "Info & Billing" %}</a></li>
+            </ul>
+        </div>
+        {% block admin_content %}{% endblock %}
+    </div>
+{% endblock %}

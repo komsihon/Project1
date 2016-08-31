@@ -55,36 +55,6 @@
     String.prototype.isValidEmail = function() {
         return /^[^\W][a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*\@[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*\.[a-zA-Z]{2,4}$/.test(this)
     };
-    /**
-     * Init Fancy Combo-Boxes
-     */
-    c.initFancyComboBox = function() {
-		$('.fancy-combo-box').each(function() {
-            var h = $(this).find('input[type=text]').height(),
-                w = $(this).find('input[type=text]').width();
-		        $(this).find('.entries-overlay').css({'padding-top': h + 5, 'width': w + 30})
-        }).live('click', function() {
-			$(this).find('.entries-overlay').toggleClass('hidden')
-		}).live('mouseleave', function() {
-			$(this).find('.entries-overlay').addClass('hidden')
-		}).find('.entry').live('click', function(e) {
-			var val = $(this).data('val'),
-                _$fancyComboBox = $(this).parents('.fancy-combo-box'),
-                _$textInput = _$fancyComboBox.find('input:text');
-			_$fancyComboBox.data("val", val);
-			_$fancyComboBox.find('input:hidden').val(val);
-			_$textInput.val($(this).data('text'));
-			_$textInput.change();
-			$(this).parents('.entries-overlay').addClass('hidden');
-			e.stopPropagation();
-		});
-    };
-	$(function() {
-        c.initFancyComboBox();
-        $('div#lightbox .close, div#lightbox .cancel').click(function() {
-            $('div#lightbox').fadeOut()
-        })
-    });
     c.CookieUtil = {
         get: function (name) {
             var cookieName = encodeURIComponent(name) + '=',
@@ -121,16 +91,68 @@
         }
     };
 
-    c.initPayPal = function(trigger, endpoint, data, f1, f2) {
-        $.getJSON(endpoint, data, function(response) {
-            if (response.error) {
-                f1()
-            } else {
-                c.paypalRedirectURL = response.redirectURL;
-                $('#' + trigger).attr('href', response.redirectURL).attr('target', '_blank');
-                if (f2) f2()
+    c.showFloatingNotice = function(message, type, duration) {
+        $('div#top-notice-ctnr span').removeClass('success failure').html(message).addClass(type);
+        if (duration) $('#top-notice-ctnr').fadeIn().delay(duration * 1000).fadeOut();
+        else $('#top-notice-ctnr').fadeIn();
+    };
+
+    var call = [];
+    c.setupSearch = function(inputSelector, resultPanelSelector, descriptors, beforeSearch, afterResults) {
+        $('body').on('keyup', inputSelector, function() {
+            var q = $(inputSelector).val();
+            if (q.length < 2) {
+                $(resultPanelSelector).hide();
+                call = [];
+                return;
             }
-        })
+            if (beforeSearch) beforeSearch();
+            $(resultPanelSelector).find('.empty').hide();
+            if (call.length == 0) $(resultPanelSelector).find('.spinner').show();
+            $(resultPanelSelector).show();
+            for (var i=0; i<descriptors.length; i++) {
+                var descriptor = descriptors[i],
+                    url = descriptor.endpoint,
+                    params = {q: q, start: 0, length: 10},
+                    selector = descriptor.resultTplSelector;
+                grabResults(url, params, resultPanelSelector, selector, call.length, afterResults);
+                call.push(q);
+                // TODO: Manage multiple descriptors and sectioned results
+            }
+        });
+    };
+
+    function grabResults(url, params, resultPanelSelector, resultSelector, callSeqNumber, afterResults) {
+        $.getJSON(url, params, function(data) {
+            if (data.error) return;
+            if (data.length == 0) $(resultPanelSelector).find('.empty').show();
+            if (call.length != callSeqNumber + 1) return;
+            call = [];
+            $(resultPanelSelector).find('.spinner').hide();
+            $(resultSelector + ':not(.tpl)').remove();
+            for (var i=0; i<data.length; i++) {
+                var $tpl = $(resultSelector + '.tpl').clone().removeClass('tpl');
+                $tpl = c.genericTemplateFunc($tpl, data[i]);
+                $tpl.insertBefore(resultSelector + '.tpl').show();
+            }
+            if (afterResults) afterResults();
+        });
+
+    }
+
+    c.genericTemplateFunc = function($tpl, object, searchTerm) {
+        for (var field in object) {
+            var value = object[field],
+                content = value,
+                $fieldElt = $tpl.find('.' + field);
+            if (searchTerm) content = value.replace(searchTerm, '<strong>' + searchTerm + '</strong>');
+            if ($fieldElt.hasClass('bg-img')) $fieldElt.css('background-image', 'url(' + value + ')');
+            else if ($fieldElt.prop('tagName') == 'IMG') $fieldElt.attr('src', value);
+            else $fieldElt.html(content);
+            if (field == 'url') $tpl.find('.target_url').attr('href', value);
+            if (typeof value == 'string' || typeof value == 'number') $tpl.data(field, value);
+        }
+        return $tpl
     };
 
     w.ikwen = c; /*Creating the namespace ikwen for all this*/

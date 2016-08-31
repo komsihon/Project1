@@ -2,12 +2,10 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
-
-from foundation.core.models import Service
-from ikwen.foundation.core.models import Model
-from ikwen.foundation.accesscontrol.models import Member
 from django.utils.translation import gettext_lazy as _
 
+from ikwen.foundation.accesscontrol.models import Member
+from ikwen.foundation.core.models import Model, Service
 from ikwen.foundation.core.utils import add_database_to_settings
 
 
@@ -119,7 +117,7 @@ class Subscription(AbstractSubscription):
         return u'%s' % str(self.member)
 
 
-class AbstractInvoice(models.Model):
+class AbstractInvoice(Model):
     """
     Base class for Invoice in Ikwen apps.
     """
@@ -155,11 +153,17 @@ class AbstractInvoice(models.Model):
 
 
 class Invoice(AbstractInvoice):
-    subscription = models.ForeignKey(getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', Subscription))
+    subscription = models.ForeignKey(getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', Subscription), related_name='+')
 
     def _get_service(self):
         return self.subscription
     service = property(_get_service)  # Alias for subscription
+
+    @staticmethod
+    def get_last(obj):
+        queryset = Invoice.objects.filter(subscription=obj).order_by('-id')
+        if queryset.count() > 0:
+            return queryset[0]
 
     def save(self, *args, **kwargs):
         """
@@ -174,13 +178,12 @@ class Invoice(AbstractInvoice):
         Let's recall that we determine if we are on Ikwen website by testing that there is no DATABASE connection
         named 'foundation', since 'foundation' is the 'default' database there.
         """
-        from ikwen.foundation.core.backends import UMBRELLA
+        from ikwen.foundation.accesscontrol.backends import UMBRELLA
         using = 'default'
         if kwargs.get('using'):
             using = kwargs['using']
             del(kwargs['using'])
-        databases = getattr(settings, 'DATABASES')
-        if not databases.get(UMBRELLA):
+        if getattr(settings, 'IS_IKWEN', False):
             # If we are on Ikwen itself, replicate the update on the current Service database
             if self.subscription.__dict__.get('database'):
                 add_database_to_settings(self.subscription.database)
@@ -188,7 +191,7 @@ class Invoice(AbstractInvoice):
         super(Invoice, self).save(using=using, *args, **kwargs)
 
 
-class AbstractPayment(models.Model):
+class AbstractPayment(Model):
     CASH = "Cash"
     WENCASH = "WenCash"
     PAYPAL = "Paypal"
@@ -205,7 +208,6 @@ class AbstractPayment(models.Model):
         (BANK_TRANSFER, _("Bank transfer")),
         (MONEY_TRANSFER, _("Money transfer")),
     )
-    when = models.DateTimeField(default=timezone.now)
     method = models.CharField(max_length=60, choices=METHODS_CHOICES)
     amount = models.PositiveIntegerField()
     cashier = models.ForeignKey(Member, blank=True, null=True, related_name='+',
@@ -235,7 +237,7 @@ class Payment(AbstractPayment):
         Let's recall that we determine if we are on Ikwen website by testing that there is no DATABASE connection
         named 'foundation', since 'foundation' is the 'default' database there.
         """
-        from ikwen.foundation.core.backends import UMBRELLA
+        from ikwen.foundation.accesscontrol.backends import UMBRELLA
         using = 'default'
         if kwargs.get('using'):
             using = kwargs['using']

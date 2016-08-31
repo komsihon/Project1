@@ -1,50 +1,58 @@
-{% extends "core/base_private.html" %}
+{% extends "core/base_bs.html" %}
 {% load i18n %}
 {% load humanize %}
 {% load staticfiles %}
 {% block page_title %}
 <title>{{ config.company_name }} | {% trans "Invoice" %} #{{ invoice.number }}</title>
 {% endblock %}
-{% block custom_head %}
+{% block head_style %}
+    {{ block.super }}
+    <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <link href="{% static 'ikwen/css/grids.css' %}" rel='stylesheet' />
     <style>
         body {background: #f6f6f6}
-        #top {display: none}
+        #navbar {display: none}
         header#main {background: #f9f9f9; border-bottom: 1px solid #ddd; padding: 6px 15px 15px}
         header#main img {float: left}
-        header#main .badge {background: #039B03; border-radius: 4px; color: #fff; float: right; font: bold 11px Arial; padding: 3px 6px}
-        header#main form {float: right; width: 300px}
-        header#main form div {clear: both}
-        header#main form div span {float: left; margin: 6px 0 0 10px}
+        header#main .badge {background: #039B03; border-radius: 4px; color: #fff; float: right;
+            font: bold 11px Arial; margin-right: 15px; padding: 3px 6px}
+        header#main form div {line-height: 24px}
         #summary {margin-bottom: 15px}
-        #summary section {float: left; width: 315px}
         #summary section header {font-size: 1.27em}
-        #summary section div {line-height: 21px}
+        #summary section div {color: #666; line-height: 21px}
         table tr td:last-child {text-align: right}
         table tr td {border-top: 1px solid #eee; padding: 10px}
         table tr.em td {background: #f6f6f6}
         table tr.em1 td {background: #EFF8FF; font-size: 1.45em; padding: 12px 10px}
+        table td em {color: #888}
         #actions {float: right; margin-top: 15px}
     </style>
 {% endblock %}
 
 {% block content  %}
-    <div class="wrapper" style="margin-top: 15px">
+    <div id="content" class="container" style="margin-top: 15px">
         <div class="subtle-shade" style="border-radius: 6px; overflow: hidden">
-            <header id="main" data-amount="{{ invoice.amount }}" data-monthlycost="{{ invoice.service.monthly_cost }}">
-                <img src="{% static 'hotspot/img/logo-ikwen_100.png' %}" height="60"/>
+            <header id="main" class="row" data-amount="{{ invoice.amount }}" data-monthly-cost="{{ invoice.service.monthly_cost }}">
+                <div class="col-sm-4">
+                    {% if config.logo.name %}
+                        <img src="{{ config.logo.name }}" height="60"/>
+                    {% else %}
+                        <h2>{{ config.company_name }}</h2>
+                    {% endif %}
+                </div>
                 {% if invoice.status == 'Paid' %}
                     <div class="badge">{% trans "Paid" %}</div>
                 {% else %}
-                    <form>
+                    <form class="col-sm-4 col-sm-offset-4">
                         <div style="font-size: 1.35em; font-style: italic">{% trans "Pay with" %}</div>
                         <div>
-                            <a href="#" class="button default">Mobile Money</a>
+                            <a href="#">Mobile Money</a>
                             <span>
                                 {% blocktrans %}(<a href="http://www.google.com/search?q=cameroon" target="_blank">Cameroon</a> customers only){% endblocktrans %}
                             </span>
                         </div>
                         <div>
-                            <a href="#" class="button default">{% trans "Credit/Debit Card" %}</a>
+                            <a href="#">{% trans "Credit/Debit Card" %}</a>
                             <span>
                                 {% blocktrans %}(International customers){% endblocktrans %}
                             </span>
@@ -54,28 +62,28 @@
                 <div class="clear"></div>
             </header>
             <div style="background: #fff; padding: 15px">
-                <div id="summary">
-                    <section>
+                <div id="summary" class="row">
+                    <section class="col-sm-4">
                         <header>{% trans "Invoice" %} #<strong>{{ invoice.number }}</strong></header>
                         <div>
                             <p>{% trans "Date issued" %}: {{ invoice.date_issued }}</p>
                             <p>{% trans "Due date" %}: {{ invoice.due_date }}</p>
                         </div>
                     </section>
-                    <section>
+                    <section class="col-sm-4">
                         <header>{% trans "Invoiced To" %}</header>
                         <div>
-                            {% if invoice.service.config %}
-                                <p>{{ invoice.service.config.company_name }}</p>
-                                <p>{{ invoice.service.config.address }}</p>
-                                <p>{{ invoice.service.config.city }}, {{ invoice.service.config.country.name }}</p>
+                            {% if customer_config %}
+                                <p>{{ customer_config.company_name }}</p>
+                                <p>{{ customer_config.address }}</p>
+                                <p>{{ customer_config.city }}, {{ invoice.service.config.country.name }}</p>
                             {% else %}
                                 <p>{{ invoice.service.member.get_full_name }}</p>
                                 <p>{{ invoice.service.member.phone }}</p>
                             {% endif %}
                         </div>
                     </section>
-                    <section>
+                    <section class="col-sm-4">
                         <header>{% trans "Pay To" %}</header>
                         <div>
                             {% if config.company_name %}<p>{{ config.company_name }}</p>{% endif %}
@@ -93,26 +101,20 @@
                         <td style="width: 150px">{% trans "Amount" %}</td>
                     </tr>
                     <tr>
-                        <td colspan="3"></td>
+                        <td colspan="3">
+                            {{ invoice.service.details|safe }}
+                        </td>
                         <td>
                             {% if invoice.status != 'Paid' %}
-                                <p>{% trans "Extend payment until" %}</p>
-                                <div class="fancy-combo-box extension" data-monthlycost="{{ invoice.service.monthly_cost }}" style="margin-right: 6px">
-                                    <input type="text" value="N/A" class="inner-shade" readonly style="width: 200px"/>
-                                    <input type="hidden" class="extension" name="extension"/>
-                                    <span class="arrow" comment="arrow-bg" style="height: 28px"> <span comment="arrow-img"></span> </span>
-                                    <div class="entries-overlay hidden" style="padding-top: 31px; width: 305px;">
-                                        <ul class="entries has-shade">
-                                            <li class="entry" data-val="0">{% trans "N/A" %}</li>
-                                            {% for extension in extensions %}
-                                            <li class="entry" data-val="{{ extension.months }}" data-text="{{ extension.expiry }} : {{ extension.months }} {% trans 'Month(s)' %}">
-                                                <label style="float: left; width: 96px">{{ extension.expiry }} :</label>
-                                                <strong>{{ extension.months }} {% trans 'Month(s)' %}</strong>
-                                            </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                </div>
+                                <label for="extensions">{% trans "Extend payment until" %}</label>
+                                <select id="extensions" class="form-control input-sm">
+                                    <option value="0">N/A</option>
+                                    {% for extension in extensions %}
+                                    <option value="{{ extension.months }}">
+                                        {{ extension.expiry }}: {{ extension.months }} {% trans 'Month(s)' %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
                             {% endif %}
                         </td>
                         <td id="subtotal">{{ invoice.amount|intcomma }} {{ invoicing_config.currency }}</td>
@@ -150,20 +152,20 @@
             <div class="clear"></div>
         </div>
         <div id="actions">
-            <a href="{% url 'billing:invoice_list' %}" class="button default">{% trans "Back to Client Area" %}</a>
+            <a href="{% url 'billing:invoice_list' invoice.service.id %}" class="button default">{% trans "Back to Client Area" %}</a>
 {#            <a href="#" class="button default">{% trans "Download" %}</a>#}
             {# TODO: Downloadable version of the Invoice #}
         </div>
     </div>
 {% endblock %}
-{% block custom_js %}
+{% block js %}
+    {{ block.super }}
     <script type="text/javascript">
         (function() {
-            $('.fancy-combo-box.extension input:text').change(function() {
-                var $fcb = $(this).parent(),
-                    additionalMonth = $fcb.data('val'),
+            $('#extensions').change(function() {
+                var additionalMonth = $(this).val(),
                     invoiceAmount = $('#main').data('amount'),
-                    monthlyCost = $('#main').data('monthlycost'),
+                    monthlyCost = $('#main').data('monthly-cost'),
                     total = additionalMonth * monthlyCost + invoiceAmount;
                 $('#subtotal').text(total.formatMoney() + ' {{ currency }}');
                 $('#total').text(total.formatMoney() + ' {{ currency }}');

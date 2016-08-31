@@ -67,7 +67,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.static",
     "django.contrib.messages.context_processors.messages",
     'django.core.context_processors.request',
-    'ikwen.foundation.core.context_processors.project_url',
+    'ikwen.foundation.core.context_processors.base_urls',
 )
 
 ROOT_URLCONF = 'ikwen.conf.urls'
@@ -83,17 +83,34 @@ DATABASES = {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'ikwen_umbrella',
     },
+    'umbrella': {
+        'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'ikwen_umbrella',
+    },
     # 'kakocase_rel': {  # kakocase app relational database used to store transactional objects among which CashOutRequest
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     # }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': 60 * 9,
+        'KEY_PREFIX': 'umbrella',  # cnmxprod for Production
+        'VERSION': '1'
+    }
+}
+
+IS_IKWEN = True
+SITE_ID = '54eb6d3379b531e09cb3704b'
+
 AUTH_USER_MODEL = 'accesscontrol.Member'
 
 AUTHENTICATION_BACKENDS = (
     'permission_backend_nonrel.backends.NonrelPermissionBackend',
-    'ikwen.foundation.core.backends.LocalDataStoreBackend',
+    'ikwen.foundation.accesscontrol.backends.LocalDataStoreBackend',
 )
 
 # Model to use to generate Invoice for.
@@ -103,12 +120,12 @@ BILLING_SUBSCRIPTION_MODEL_ADMIN = 'ikwen.foundation.core.admin.ServiceAdmin'
 
 HOTSPOT_APP_ID = '55eb6d04b37b3379b531e09c'
 
-# IKWEN_SERVICE_ID = '55eb6d04b37b3379b531e09d'
+IKWEN_SERVICE_ID = '57b702ca4fc0c2139660d9f8'
 
 LOGIN_URL = 'ikwen:sign_in'
 LOGIN_REDIRECT_URL = 'home'
 
-PROJECT_URL = 'http://localhost/ikwen'
+PROJECT_URL = 'http://localhost' if DEBUG else 'http://www.ikwen.com'
 
 LOGOUT_REDIRECT_URL = 'home'
 
@@ -123,7 +140,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"

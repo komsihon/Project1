@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
+from django.core.cache import cache
+from django.db import models, router
 from django.db.models.loading import get_model
 from django.utils import timezone
-from django.db import models
+from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
 from django_mongodb_engine.contrib import MongoDBManager
-from djangotoolbox.fields import ListField, EmbeddedModelField
+from djangotoolbox.fields import ListField
 
-from ikwen.foundation.core.utils import add_database_to_settings, to_dict, get_service_instance
+from ikwen.foundation.core.utils import add_database_to_settings, to_dict, get_service_instance, get_config_model
 
 
 class Model(models.Model):
@@ -19,8 +21,6 @@ class Model(models.Model):
 
     def to_dict(self):
         var = to_dict(self)
-        del(var['created_on'])
-        del(var['updated_on'])
         return var
 
 
@@ -116,8 +116,8 @@ class Service(models.Model):
     member = models.ForeignKey('accesscontrol.Member', blank=True, null=True)
     app = models.ForeignKey(Application, blank=True, null=True)
     project_name = models.CharField(max_length=60,
-                                    help_text="Text that can be used as a subdomain for the project: "
-                                              "Eg: project_name.ikwen.com")
+                                    help_text="Name of the project")
+    project_name_slug = models.SlugField()
     database = models.CharField(max_length=150, blank=True)
     domain_type = models.CharField(max_length=15, blank=True, choices=DOMAIN_TYPE_CHOICES)
     url = models.URLField(blank=True)
@@ -126,7 +126,6 @@ class Service(models.Model):
     monthly_cost = models.PositiveIntegerField()
     version = models.CharField(max_length=15, blank=True, choices=VERSION_CHOICES)  # Free, Trial, Full
     status = models.CharField(max_length=15, default=PENDING, choices=STATUS_CHOICES)
-    collaborators_fk_list = ListField(blank=True, null=True)
     # Date of expiry of the service. The billing system automatically sets it to
     # IkwenInvoice.due_date + IkwenInvoice.tolerance
     # IkwenInvoice in this case is the invoice addressed to client for this Service
@@ -145,16 +144,26 @@ class Service(models.Model):
     def __unicode__(self):
         return u'%s: %s' % (self.project_name, self.member.email)
 
+    def to_dict(self):
+        var = to_dict(self)
+        config = self.config
+        var['logo'] = config.logo.url
+        var['short_description'] = config.short_description
+        return var
+
     def _get_created_on(self):
         return self.since
     created_on = property(_get_created_on)
 
     def _get_config(self):
-        config_model_name = getattr(settings, 'IKWEN_CONFIG_MODEL', 'core.Config')
-        app_label = config_model_name.split('.')[0]
-        model = config_model_name.split('.')[1]
-        config_model = get_model(app_label, model)
-        return config_model.objects.all()[0]
+        config_model = get_config_model()
+        db = router.db_for_read(self.__class__, instance=self)
+        config = cache.get(self.id + ':' + db)
+        if config:
+            return config
+        config = config_model.objects.using(db).get(service=self)
+        cache.set(self.id + ':' + db, config)
+        return config
     config = property(_get_config)
 
     def _get_details(self):
@@ -172,17 +181,12 @@ class Service(models.Model):
 
         The replication is made by adding the actual Service database to DATABASES in settings and calling
         save(using=database).
-
-        Let's recall that we determine if we are on Ikwen website by testing that there is no DATABASE connection
-        named 'foundation', since 'foundation' is the 'default' database there.
         """
-        from ikwen.foundation.core.backends import UMBRELLA
         using = 'default'
         if kwargs.get('using'):
             using = kwargs['using']
             del(kwargs['using'])
-        databases = getattr(settings, 'DATABASES')
-        if not databases.get(UMBRELLA):
+        if getattr(settings, 'IS_IKWEN', False):
             # If we are on Ikwen itself, replicate save or update on the current Service database
             add_database_to_settings(self.database)
             if not self.id:
@@ -191,14 +195,17 @@ class Service(models.Model):
                 self.member.is_iao = True
                 self.member.save()
                 self.member.is_staff = True
+                self.member.is_superuser = True
                 self.member.save(using=self.database)
                 self.app.operators_count += 1
                 self.app.save()
                 link = self.url.replace('http://', '').replace('https://', '')
                 mail_signature = "%s<br>" \
                                  "<a href='%s'>%s</a>" % (self.project_name, self.url, link)
-                Config.objects.using(self.database).create(service=self, company_name=self.project_name,
-                                                           contact_email=self.member.email,  signature=mail_signature)
+                config_model = get_config_model()
+                config_model.objects.using(self.database)\
+                    .create(service=self, company_name=self.project_name,
+                            contact_email=self.member.email,  signature=mail_signature)
             super(Service, self).save(using=self.database, *args, **kwargs)
         super(Service, self).save(using=using, *args, **kwargs)
 
@@ -213,6 +220,8 @@ class AbstractConfig(Model):
         (HTTP_API, _('HTTP API')),
         (GSM_MODEM, _('GSM Modem')),
     )
+    LOGO_UPLOAD_TO = 'ikwen/configs/logos'
+    COVER_UPLOAD_TO = 'ikwen/configs/cover_images'
     service = models.OneToOneField(Service, editable=False, related_name='+')
     company_name = models.CharField(max_length=30, verbose_name=_("Website / Company name"),
                                     help_text=_("Website/Company name as you want it to appear in mails and pages."))
@@ -223,12 +232,12 @@ class AbstractConfig(Model):
                                 help_text=_("Country where HQ of the company are located."))
     city = models.CharField(max_length=60, blank=True,
                             help_text=_("City where HQ of the company are located."))
-    slogan = models.CharField(max_length=100, blank=True, verbose_name=_("Company slogan"),
-                              help_text=_("Slogan of your company."))
-    logo = models.ImageField(upload_to='logo', verbose_name=_("Your logo"), blank=True, null=True,
+    short_description = models.CharField(max_length=150, blank=True,
+                                         help_text=_("Short description of your business <em>(150 chars max.)</em>."))
+    logo = models.ImageField(upload_to=LOGO_UPLOAD_TO, verbose_name=_("Your logo"), blank=True, null=True,
                              help_text=_("Image in <strong>PNG with transparent background</strong> is advised. "
                                          "(Maximum 400 x 400px)"))
-    cover_image = models.ImageField(upload_to='cover_image', blank=True, null=True,
+    cover_image = models.ImageField(upload_to=COVER_UPLOAD_TO, blank=True, null=True,
                                     help_text=_("Cover image used as decoration of company's profile page "
                                                 "and also to use on top of the mails. (Max. 800px width)"))
     signature = models.TextField(blank=True, verbose_name=_("Mail signature"),
@@ -305,6 +314,8 @@ class ConsoleEventType(Model):
     :attr:`codename`
     :attr:`title`
     :attr:`title_mobile` Title to use on mobile devices.
+    :attr:`target_url_name` Name of the url to hit to view the list of objects that triggered
+                            this event. It is typically used to create the *View all* link
     :attr:`renderer` dotted name of the function to call to render an event of this type the :attr:`member` Console.
     Write it under the dotted form 'package.module.function_name'. :attr:`renderer`
     is called as such: function_name(service, event_type, member, object_id, model)
@@ -313,7 +324,10 @@ class ConsoleEventType(Model):
     codename = models.CharField(max_length=150)
     title = models.CharField(max_length=150)
     title_mobile = models.CharField(max_length=100, blank=True)
+    target_url_name = models.CharField(max_length=100)
     renderer = models.CharField(max_length=255)
+
+    objects = MongoDBManager()
 
     class Meta:
         db_table = 'ikwen_consoleeventtype'
@@ -338,26 +352,36 @@ class ConsoleEvent(Model):
     """
     BUSINESS = 'Business'
     PERSONAL = 'Personal'
-    service = models.ForeignKey(Service, default=get_service_instance)
-    member = models.ForeignKey('accesscontrol.Member')
+    PENDING = 'Pending'
+    PROCESSED = 'Processed'
+    service = models.ForeignKey(Service, related_name='+', default=get_service_instance, db_index=True)
+    member = models.ForeignKey('accesscontrol.Member', db_index=True)
     target = models.CharField(max_length=15)  # BUSINESS or PERSONAL
     event_type = models.ForeignKey(ConsoleEventType)
     model = models.CharField(max_length=100)
-    object_id = models.CharField(max_length=24)
+    object_id = models.CharField(max_length=24, db_index=True)
+    status = models.CharField(max_length=15, default=PENDING)
 
     class Meta:
         db_table = 'ikwen_consoleevent'
+
+    def render(self):
+        renderer = import_by_path(self.event_type.renderer)
+        tk = self.model.split('.')
+        model = get_model(app_label=tk[0], model_name=tk[1])
+        if tk[1] == 'AccessRequest':
+            from ikwen.foundation.accesscontrol.backends import UMBRELLA
+            database = UMBRELLA
+        else:
+            database = self.service.database
+            add_database_to_settings(database)
+        the_object = model.objects.using(database).get(pk=self.object_id)
+        return renderer(the_object)
 
 
 class QueuedSMS(Model):
     recipient = models.CharField(max_length=18)
     text = models.TextField()
-
-    def to_dict(self):
-        var = to_dict(self)
-        del(var['created_on'])
-        del(var['updated_on'])
-        return var
 
     class Meta:
         db_table = 'ikwen_queuedsms'

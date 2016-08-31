@@ -1,9 +1,10 @@
-from django.test.utils import override_settings
-from django.utils import unittest
+from datetime import timedelta
+from django.utils import unittest, timezone
 from django.db import models
 from djangotoolbox.fields import ListField
+from ikwen.foundation.core.utils import set_counters
 
-from foundation.core.utils import increment_history_field, calculate_watch_info, rank_watch_objects, \
+from ikwen.foundation.core.utils import increment_history_field, calculate_watch_info, rank_watch_objects, \
     group_history_value_list
 
 
@@ -93,6 +94,19 @@ class CoreUtilsTestCase(unittest.TestCase):
         self.assertListEqual([wo3, wo1, wo2], ranked_watch_objects1)
         self.assertListEqual([wo3, wo1, wo2], ranked_watch_objects7)
         self.assertListEqual([wo3, wo1, wo2], ranked_watch_objects28)
+
+    def test_set_counters(self):
+        watch_object = init_watch_object()
+        now = timezone.now()
+        yesterday = now - timedelta(days=1)
+        watch_object.counters_reset_on = now
+        set_counters(watch_object, 'history1', 'history2')
+        self.assertEqual(watch_object.history1, '18,9,57,23,46')
+        self.assertListEqual(watch_object.history2, [18, 9, 57, 23, 46])
+        watch_object.counters_reset_on = yesterday
+        set_counters(watch_object, 'history1', 'history2')
+        self.assertEqual(watch_object.history1, '18,9,57,23,46,0')
+        self.assertListEqual(watch_object.history2, [18, 9, 57, 23, 46, 0])
 
     # def test_group_history_value_list(self):
     #     watch_object = init_watch_object()

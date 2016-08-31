@@ -1,0 +1,10 @@
+{% load i18n %}
+{% load staticfiles %}
+{% load humanize %}
+<div style="margin-top: -15px; padding: 0 15px">
+    <p>
+        {% blocktrans with group_name=rq.group_name %}You were added as <em>{{ group_name }}</em>.{% endblocktrans %}
+        <a href="{{ rq.service.admin_url }}">{% trans "Join in" %}</a>
+    </p>
+    <time>{{ rq.updated_on|naturaltime }}</time>
+</div>
