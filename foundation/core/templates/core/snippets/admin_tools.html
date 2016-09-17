@@ -1,0 +1,14 @@
+{% load i18n %}
+<div id="admin-tools">
+    <form id="context-search" onsubmit="return false">
+        <input type="text" class="form-input input-sm" placeholder="{% trans "Search" %}"/>
+    </form>
+    <div id="page-navigation" class="text-muted" data-page-index="1" data-page-size="{{ page_size }}">
+        {% if total_objects > page_size %}
+            <div style="padding-top: 5px;"><strong class="start">1</strong> - <strong class="finish">{{ page_size }}</strong> {% trans "of" %} <strong class="total">{{ total_objects }}</strong></div>
+            <div style="margin-left: 10px"><i class="finished back"> < </i><i class="next"> > </i></div>
+        {% else %}
+            <div>{{ total_objects }}/{{ total_objects }}</div>
+        {% endif %}
+    </div>
+</div>

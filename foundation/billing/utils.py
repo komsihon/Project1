@@ -1,17 +1,24 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import get_model
 
 from ikwen.foundation.core.models import Service
 
 from ikwen.foundation.core.utils import get_service_instance
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 
-from ikwen.foundation.billing.models import InvoicingConfig, Invoice
+from ikwen.foundation.billing.models import InvoicingConfig, Invoice, AbstractSubscription
 
 
 def get_invoicing_config_instance(using='default'):
-    return InvoicingConfig.objects.using(using).all()[0]
+    service = get_service_instance(using)
+    invoicing_config = cache.get(service.id + ':invoicing_config:' + using)
+    if invoicing_config:
+        return invoicing_config
+    invoicing_config = InvoicingConfig.objects.using(using).all()[0]
+    cache.set(service.id + ':invoicing_config:' + using, invoicing_config)
+    return invoicing_config
 
 
 def get_billing_cycle_days_count(billing_cycle):
@@ -32,6 +39,13 @@ def get_billing_cycle_months_count(billing_cycle):
     if billing_cycle == Service.BI_ANNUALLY:
         return 6
     return 12
+
+
+def get_product_model():
+    config_model_name = getattr(settings, 'BILLING_PRODUCT_MODEL', 'billing.Product')
+    app_label = config_model_name.split('.')[0]
+    model = config_model_name.split('.')[1]
+    return get_model(app_label, model)
 
 
 def get_subscription_model():
@@ -59,6 +73,52 @@ def get_next_invoice_number(auto=True):
     return "A%d" % number if auto else "M%d" % number
 
 
+def get_subscription_registered_message(subscription):
+    """
+    Returns a tuple (mail subject, mail body, sms text) to send to
+    member upon registration of a Subscription in the database
+    @param subscription: Subscription object
+    """
+    config = get_service_instance().config
+    invoicing_config = InvoicingConfig.objects.all()[0]
+    member = subscription.member
+    new_invoice_subject = invoicing_config.new_invoice_subject
+    new_invoice_message = invoicing_config.new_invoice_message
+    subject = new_invoice_subject if new_invoice_subject else _("Subscription activated")
+    if new_invoice_message:
+        message = new_invoice_message.replace('$member_name', member.first_name)\
+            .replace('$company_name', config.company_name)\
+            .replace('$amount', invoicing_config.currency + ' ' + subscription.monthly_cost)\
+            .replace('$details', subscription.product.get_details())\
+            .replace('$short_description', subscription.product.short_description)
+    else:
+        message = _("Dear %(member_name)s,<br><br>"
+                    "Your subscription to <strong>%(product_name)s</strong> (%(short_description)s) is confirmed. "
+                    "See details below:<br><br>"
+                    "<span style='color: #444'>%(details)s</span><br>"
+                    "Monthly cost: <strong>%(currency)s</strong> %(amount).2f<br>"
+                    "Billing cycle: %(billing_cyle)s<br><br>"
+                    "Thank you for your business with "
+                    "%(company_name)s." % {'member_name': member.first_name,
+                                           'product_name': subscription.product.name,
+                                           'short_description': subscription.product.short_description,
+                                           'amount': subscription.monthly_cost,
+                                           'billing_cyle': subscription.billing_cycle,
+                                           'currency': invoicing_config.currency,
+                                           'details': subscription.product.get_details(),
+                                           'company_name': config.company_name})
+    sms = None
+    # if invoicing_config.new_invoice_sms:
+    #     sms = invoicing_config.new_invoice_sms.replace('$member_name', member.first_name)\
+    #         .replace('$company_name', config.company_name)\
+    #         .replace('$invoice_number', subscription.number)\
+    #         .replace('$amount', subscription.amount + ' ' + invoicing_config.currency)\
+    #         .replace('$date_issued', subscription.date_issued)\
+    #         .replace('$due_date', subscription.due_date)\
+    #         .replace('$invoice_description', subscription.subscription.details)
+    return subject, message, sms
+
+
 def get_invoice_generated_message(invoice):
     """
     Returns a tuple (mail subject, mail body, sms text) to send to
@@ -78,15 +138,15 @@ def get_invoice_generated_message(invoice):
             .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
-            .replace('$invoice_description', invoice.subscription.details)
+            .replace('$invoice_description', invoice.subscription.product.details)
     else:
         message = _("Dear %(member_name)s,<br><br>"
                     "This is a notice that an invoice has been generated on %(date_issued)s.<br><br>"
                     "<strong style='font-size: 1.2em'>Invoice #%(invoice_number)s</strong><br>"
-                    "Amount: %(amount).2f %(currency)s<br>"
+                    "Amount: %(currency)s %(amount).2f<br>"
                     "Due Date:  %(due_date)s<br><br>"
                     "<strong>Invoice items:</strong><br>"
-                    "<span style='color: #111'>%(invoice_description)s</span><br><br>"
+                    "<span style='color: #444'>%(invoice_description)s</span><br><br>"
                     "Thank you for your business with "
                     "%(company_name)s." % {'member_name': member.first_name,
                                            'company_name': config.company_name,
@@ -95,7 +155,7 @@ def get_invoice_generated_message(invoice):
                                            'currency': invoicing_config.currency,
                                            'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
                                            'due_date': invoice.due_date.strftime('%B %d, %Y'),
-                                           'invoice_description': invoice.subscription.details})
+                                           'invoice_description': invoice.subscription.product.get_details()})
     sms = None
     if invoicing_config.new_invoice_sms:
         sms = invoicing_config.new_invoice_sms.replace('$member_name', member.first_name)\
@@ -104,7 +164,7 @@ def get_invoice_generated_message(invoice):
             .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
-            .replace('$invoice_description', invoice.subscription.details)
+            .replace('$invoice_description', invoice.subscription.product.get_details())
     return subject, message, sms
 
 
@@ -127,16 +187,16 @@ def get_invoice_reminder_message(invoice):
             .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
-            .replace('$invoice_description', invoice.subscription.details)
+            .replace('$invoice_description', invoice.subscription.product.get_details())
     else:
         message = _("Dear %(member_name)s,<br><br>"
                     "This is a billing reminder that your invoice No. %(invoice_number)s "
                     "which was generated on %(date_issued)s is due on %(due_date)s.<br><br>"
                     "<strong style='font-size: 1.2em'>Invoice #%(invoice_number)s</strong><br>"
-                    "Amount: %(amount).2f %(currency)s<br>"
+                    "Amount: %(currency)s %(amount).2f<br>"
                     "Due Date:  %(due_date)s<br><br>"
                     "<strong>Invoice items:</strong><br>"
-                    "<span style='color: #111'>%(invoice_description)s</span><br><br>"
+                    "<span style='color: #444'>%(invoice_description)s</span><br><br>"
                     "Thank you for your business with "
                     "%(company_name)s." % {'member_name': member.first_name,
                                            'company_name': config.company_name,
@@ -145,7 +205,7 @@ def get_invoice_reminder_message(invoice):
                                            'currency': invoicing_config.currency,
                                            'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
                                            'due_date': invoice.due_date.strftime('%B %d, %Y'),
-                                           'invoice_description': invoice.subscription.details})
+                                           'invoice_description': invoice.subscription.product.get_details()})
     sms = None
     if invoicing_config.reminder_sms:
         sms = invoicing_config.reminder_sms.replace('$member_name', member.first_name)\
@@ -154,7 +214,7 @@ def get_invoice_reminder_message(invoice):
             .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
-            .replace('$invoice_description', invoice.subscription.details)
+            .replace('$invoice_description', invoice.subscription.product.get_details())
     return subject, message, sms
 
 
@@ -183,17 +243,17 @@ def get_invoice_overdue_message(invoice):
             .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
-            .replace('$invoice_description', invoice.subscription.details)
+            .replace('$invoice_description', invoice.subscription.product.get_details())
     else:
         message = _("Dear %(member_name)s,<br><br>"
                     "This is a billing reminder that your invoice No. %(invoice_number)s "
                     "which was due on %(due_date)s is now overdue."
                     "Please pay to avoid service suspension.<br><br>"
                     "<strong style='font-size: 1.2em'>Invoice #%(invoice_number)s</strong><br>"
-                    "Amount: %(amount).2f %(currency)s<br>"
+                    "Amount: %(currency)s %(amount).2f<br>"
                     "Due Date:  %(due_date)s<br><br>"
                     "<strong>Invoice items:</strong><br>"
-                    "<span style='color: #111'>%(invoice_description)s</span><br><br>"
+                    "<span style='color: #444'>%(invoice_description)s</span><br><br>"
                     "Thank you for your business with "
                     "%(company_name)s." % {'member_name': member.first_name,
                                            'company_name': config.company_name,
@@ -202,7 +262,7 @@ def get_invoice_overdue_message(invoice):
                                            'currency': invoicing_config.currency,
                                            'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
                                            'due_date': invoice.due_date.strftime('%B %d, %Y'),
-                                           'invoice_description': invoice.subscription.details})
+                                           'invoice_description': invoice.subscription.product.get_details()})
     sms = None
     if invoicing_config.overdue_sms:
         sms = invoicing_config.overdue_sms.replace('$member_name', member.first_name)\
@@ -211,7 +271,7 @@ def get_invoice_overdue_message(invoice):
             .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
-            .replace('$invoice_description', invoice.subscription.details)
+            .replace('$invoice_description', invoice.subscription.product.get_details())
     return subject, message, sms
 
 
@@ -234,14 +294,14 @@ def get_service_suspension_message(invoice):
             .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
-            .replace('$invoice_description', invoice.subscription.details)
+            .replace('$invoice_description', invoice.subscription.product.get_details())
     else:
         message = _("Dear %(member_name)s,<br><br>"
                     "This a notice of <strong>service suspension</strong> because of unpaid Invoice "
                     "<strong>No. %(invoice_number)s</strong> generated on %(date_issued)s and due on %(due_date)s. <br>"
-                    "Amount due is %(amount).2f %(currency)s.<br><br>"
+                    "Amount due is %(currency)s %(amount).2f.<br><br>"
                     "<strong>Invoice items:</strong><br>"
-                    "<span style='color: #111'>%(invoice_description)s</span><br><br>"
+                    "<span style='color: #444'>%(invoice_description)s</span><br><br>"
                     "Thank you for your business with "
                     "%(company_name)s." % {'member_name': member.first_name,
                                            'invoice_number': invoice.number,
@@ -249,7 +309,7 @@ def get_service_suspension_message(invoice):
                                            'currency': invoicing_config.currency,
                                            'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
                                            'due_date': invoice.due_date.strftime('%B %d, %Y'),
-                                           'invoice_description': invoice.subscription.details,
+                                           'invoice_description': invoice.subscription.product.get_details(),
                                            'company_name': config.company_name})
     sms = None
     if invoicing_config.service_suspension_sms:
@@ -259,7 +319,7 @@ def get_service_suspension_message(invoice):
             .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
-            .replace('$invoice_description', invoice.subscription.details)
+            .replace('$invoice_description', invoice.subscription.product.get_details())
     return subject, message, sms
 
 
@@ -282,14 +342,14 @@ def get_payment_confirmation_message(payment):
             .replace('$amount', payment.invoice.amount + ' ' + invoicing_config.currency)\
             .replace('$date_issued', payment.invoice.date_issued)\
             .replace('$due_date', payment.invoice.due_date)\
-            .replace('$invoice_description', payment.invoice.subscription.details)
+            .replace('$invoice_description', payment.invoice.subscription.product.details)
     else:
         message = _("Dear %(member_name)s,<br><br>"
                     "Thank you for your subscription to %(company_name)s. "
-                    "This is a payment receipt of %(amount).2f %(currency)s"
+                    "This is a payment receipt of %(currency)s %(amount).2f"
                     "for Invoice <strong>No. %(invoice_number)s</strong> generated on %(date_issued)s "
                     "towards the services provided by us. Below is a summary of your invoice.<br>"
-                    "<span style='color: #111'>%(invoice_description)s</span><br><br>"
+                    "<span style='color: #444'>%(invoice_description)s</span><br><br>"
                     "Thank you for your business with "
                     "%(company_name)s." % {'member_name': member.first_name,
                                            'company_name': config.company_name,
@@ -297,7 +357,7 @@ def get_payment_confirmation_message(payment):
                                            'amount': payment.invoice.amount,
                                            'currency': invoicing_config.currency,
                                            'date_issued': payment.invoice.date_issued.strftime('%B %d, %Y'),
-                                           'invoice_description': payment.invoice.subscription.details})
+                                           'invoice_description': payment.invoice.subscription.product.get_details()})
     sms = None
     if invoicing_config.payment_confirmation_sms:
         sms = invoicing_config.payment_confirmation_sms.replace('$member_name', member.first_name)\
@@ -306,5 +366,10 @@ def get_payment_confirmation_message(payment):
             .replace('$amount', payment.invoice.amount + ' ' + invoicing_config.currency)\
             .replace('$date_issued', payment.invoice.date_issued)\
             .replace('$due_date', payment.invoice.due_date)\
-            .replace('$invoice_description', payment.invoice.subscription.details)
+            .replace('$invoice_description', payment.invoice.subscription.product.get_details())
     return subject, message, sms
+
+
+def suspend_subscription(subscription):
+    subscription.status = AbstractSubscription.SUSPENDED
+    subscription.save()

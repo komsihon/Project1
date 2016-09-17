@@ -1,5 +1,5 @@
 
-#content {padding-top: 80px}
+#content {padding-top: 80px; min-height: 450px}
 #cover {background-color: #fff;float: left;width: 100%}
 @media (min-width: 320px) {
     #cover {background-size: auto 100%;}
@@ -9,7 +9,7 @@
 }
 #banner {height: 300px; overflow: hidden}
 #banner .frame {background: rgba(0, 0, 0, .7); float: left; height: 100%; overflow: hidden; width: 240px}
-#banner .photo {background-color: #fff; background-size: 100%; border: 4px solid #fff; height: 142px; margin: 79px auto; width: 142px}
+#banner .photo {background: #fff no-repeat center; background-size: 100%; border: 4px solid #fff; height: 142px; margin: 79px auto; width: 142px}
 #banner .photo img {height: 100%; width: 100%}
 #banner .upload-image {background-color: rgba(0,0,0, .6); color: #eee; display: none; font-size: 13px;
     height: 30px; padding: 5px; position: absolute; text-align: center}
@@ -23,38 +23,43 @@
 #cover nav {}
 @media (max-width: 992px) {
     #navbar {margin-bottom: 0}
-    #content.container {padding: 0; width: 100%}
+    #content.container {padding-top: 60px;width: 100%;}
 }
 #stage {float: left; width: 100%}
 @media (min-width: 992px) {
     #stage {width: 730px}
     #stage .container-fluid {padding: 0}
 }
-#stage section {background: #fff;float: left;margin-top: 25px;padding: 15px;width: 100%;}
+#stage section {background: #fff;float: left;margin-top: 25px;overflow: hidden;padding: 15px;width: 100%;}
 #stage section h3 {font-size: 21px; font-weight: 700; margin-top: 0}
 #stage section h3 img {margin-right: 6px}
-#stage section h4 {color: #888; font-size: 16px}
+#stage section > div:first-of-type h4 {margin-top: 7px}
+#stage section h4 {color: #666;font-size: 18px;margin-top: 30px;}
 #stage section h4 a.more {color: #0069c3;float: right;font-size: 13px}
 #about ul {margin: 0; padding: 0}
 #about ul li {list-style-type: none; line-height: 25px}
 #about ul li label {width: 90px}
 #about .actions {float: right; margin-top: 15px}
-#about .actions button {width: 150px;}
+#about .actions .btn {width: 150px;}
 
 @media (min-width: 320px) {
     .access-request .logo img {float: left; width: 33px}
     .access-request .logo h4 {float: left;font-weight: 700;margin-left: 15px;}
-    .access-request .details {clear: both; padding-top: 10px}
+    .access-request .details {clear: both;padding-top: 10px;}
     .access-request .details .groups button {width: 160px}
 }
 @media (min-width: 768px) {
-    .access-request .logo {float: left;text-align: center;width: 130px;}
+    .access-request .logo {float: left;text-align: center;width: 108px;}
     .access-request .logo img {float: none; width: 72px}
     .access-request .logo h4 {float: none; margin-left: 0}
     .access-request .details {clear: none;float: left;margin-left: 15px;padding-top: 0;width: 570px;}
 }
+@media (min-width: 992px) {
+    .access-request .logo {float: left;text-align: center;width: 130px;}
+    .access-request .logo img {float: none; width: 100px}
+}
 
-.acs-rqst-cnsl .img {margin: auto; height: 135px; width: 135px}
+.notice-cnsl .img {background: no-repeat center;background-size: 100%;margin: auto;height: 135px;width: 135px;}
 
 #ad-space-right {float: left; margin-left: 25px}
 @media (max-width: 992px) {
@@ -64,10 +69,20 @@
 #ad-space-right h4 {color: #888; font-weight: 700; margin-top: 0; text-decoration: underline}
 #ad-space-right div#ad {background: #ddd; height: 360px; margin-top: 15px}
 
-#admin-nav {background: #fff;border-right: 1px solid #eee;left: 0;padding: 20px 10px;position: fixed;width: 270px;height: 100%;}
+#admin-nav {background: #fff;border-right: 1px solid #eee;left: 0;overflow: auto; position: fixed;width: 270px;height: 100%;}
 #admin-nav .divider {border-top: 1px solid #ddd; margin: 15px 0}
-.nav-pills>li>a {padding: 5px 15px}
+.nav-pills>li>a {padding: 5px 15px;cursor: pointer;}
 .nav-pills>li.active>a, .nav-pills>li.active>a:hover, .nav-pills>li.active>a:focus {background: #eee; color: #333}
 
+#admin-content.embed {background: #fff; height: 850px}
 #stage section.fk-couture-pro {border: 1px solid #444}
 #stage section.fk-couture-pro h3 {color: #333}
+
+iframe#billing-stage {border: none;margin: -15px 0 0 -15px;height: 100%;width: 105%;}
+
+/** Events **/
+.SubscriptionEvent>h4, .NewInvoiceEvent>h4, .InvoiceReminderEvent>h4, .OverdueNoticeEvent>h4, .ServiceSuspendedEvent>h4,
+.InvoicesSentEvent>h4, .RemindersSentEvent>h4, .OverdueNoticesSentEvent>h4, .SuspensionNoticesSentEvent>h4 {display: none}
+.SubscriptionEvent p {margin-bottom: 3px}
+.SubscriptionEvent ul {float: left; padding-left: 0}
+.SubscriptionEvent li {float: left}

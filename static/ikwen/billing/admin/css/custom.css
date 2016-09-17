@@ -1,0 +1,20 @@
+/*
+    Document   : custom
+    Created on : Sep 04, 2016, 09:59:33 AM
+    Author     : Kom Sihon
+    Description:
+        Custom styles that add up to django admin styles for billing app
+*/
+#content > h1, .flex h1 {display: none; font-size: 25px}
+table a:not(.btn), .table a:not(.btn) {text-decoration: none}
+#header {background: #000; color: #FFD945; height: 54px; padding-top: 10px; display: none}
+form#login-form {background: #fff; box-shadow: 0 1px 6px 1px rgba(0, 0, 0, .1); height: 285px; margin: 30px auto 0; padding: 0 60px 60px; width: 280px}
+form#login-form input[type=text], form input[type=password] {font-size: 18px; margin-top: 10px; height: 30px; width: 273px}
+#avatar {background: url('../../../img/login-avatar.jpg') no-repeat center; height: 150px; margin: auto; width: 100%}
+button#submit {clear: both; float: left; margin: 10px 0 0; width: 90px}
+#user-tools {padding: 2.1em 10px}
+
+#raw-id-suggestions {margin-left: 166px; position: absolute}
+.autocomplete-suggestions {border: 1px solid #eee; background: #fff; padding: 0 5px}
+.autocomplete-suggestions div {color: #666; cursor: default; font-size: 14px; margin: 5px 0}
+.autocomplete-suggestions strong {color: #5b80b2}

@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load humanize %}
 {% load staticfiles %}
+{% load auth_tokens %}
 {% block page_title %}
 <title>Ikwen | {% trans "Invoice" %} #{{ invoice.number }}</title>
 {% endblock %}
@@ -40,7 +41,7 @@
                         <div>
                             <a href="#" class="button default">Mobile Money</a>
                             <span>
-                                {% blocktrans %}(<a href="http://www.google.com/search?q=cameroon" target="_blank">Cameroon</a> customers only){% endblocktrans %}
+                                {% blocktrans %}(<a href="http://www.google.com/search?q=cameroon" title="Search Cameroun with Google" target="_blank">Cameroon</a> customers only){% endblocktrans %}
                             </span>
                         </div>
                         <div>
@@ -139,7 +140,8 @@
             <div class="clear"></div>
         </div>
         <div id="actions">
-            <a href="{% url 'ikwen:invoice_list' %}" class="button default">{% trans "Back to Client Area" %}</a>
+            {% url 'ikwen:invoice_list' as invoice_list_url %}
+            <a href="{{ invoice_list_url|append_auth_tokens:request }}" class="button default">{% trans "Back to Client Area" %}</a>
             <a href="#" class="button default">{% trans "Download" %}</a>
         </div>
     </div>

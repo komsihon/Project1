@@ -2,7 +2,7 @@
 from django.http.response import HttpResponseForbidden
 from djangotoolbox.admin import admin
 from ikwen.foundation.core.models import Application, Config, Service
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 __author__ = 'Kom Sihon'
 

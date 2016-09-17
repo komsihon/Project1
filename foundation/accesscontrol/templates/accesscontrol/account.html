@@ -1,7 +1,5 @@
 {% extends "core/base_bs.html" %}
-{% load i18n %}
-{% load humanize %}
-{% load staticfiles %}
+{% load i18n humanize staticfiles %}
 
 {% block page_title %}
 <title> ikwen - {% trans "Account setup" %} </title>
@@ -59,7 +57,7 @@
                     </div>
                     <div class="row detail">
                         {% if request.user.first_name %}
-                            <label class="col-sm-9 col-md-10 name">{{ request.user.full_name }}</label>
+                            <label class="col-sm-9 col-md-10 name">{{ request.user.get_full_name }}</label>
                             <span class="col-sm-3 col-md-2 action-edit"> {% trans 'Change' %} </span>
                         {% else %}
                             <label class="col-sm-9 col-md-10 name unset"> &lt; {% trans "Name not set" %} &gt; </label>

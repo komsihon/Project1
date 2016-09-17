@@ -1,7 +1,5 @@
 {% extends "accesscontrol/profile.html" %}
-{% load i18n %}
-{% load humanize %}
-{% load staticfiles %}
+{% load i18n humanize staticfiles auth_tokens %}
 
 {% block page_title %}
 <title> Console - ikwen </title>
@@ -46,25 +44,28 @@
                 <div class="upload-image"></div>
                 <h2 class="text-has-shade">{{ member.full_name }}</h2>
             </div>
+            {% if request.user.collaborates_on|length > 0 %}
             <nav>
                 <ul>
                     <li {% if not request.GET.target or request.GET.target == 'Business' %}class="current"{% endif %}>
-                        <a href="{% url 'ikwen:console' %}?target=Business">
+                        {% url 'ikwen:console' as console_url %}
+                        <a href="{{ console_url|append_auth_tokens:request }}&target=Business">
                             {% trans "Business" %}
                             {% if member.business_notices > 0 %}<span class="label label-danger">{{ member.business_notices }}</span>{% endif %}
                         </a>
                     </li>
                     <li {% if request.GET.target == 'Personal' %}class="current"{% endif %}>
-                        <a href="{% url 'ikwen:console' %}?target=Personal">
+                        <a href="{{ console_url|append_auth_tokens:request }}&target=Personal">
                             {% trans "Personal" %}
                             {% if member.personal_notices > 0 %}<span class="label label-danger">{{ member.personal_notices }}</span>{% endif %}
                         </a>
                     </li>
                 </ul>
             </nav>
+            {% endif %}
         </header>
         <div class="container-fluid" id="cards">
-            {% for service, event_types in events.items %}
+            {% for service, event_groups in events.items %}
                 <section class="{{ service.project_name_slug }} subtle-shade">
                     <h3>
                         {% if service.config.logo.name %}
@@ -72,21 +73,18 @@
                         {% endif %}
                         {{ service.project_name }}
                     </h3>
-                    {% for type, event_groups in event_types.items %}
-                    <div class="{{ type.codename }}">
-                        {% for status, event_list in event_groups.items %}
-                            <h4>{{ event_list.0.event_type.title }} {% if event_list|length > 4 %}<a class="more" href="{% url event_list.0.event_type.target_url_name %}">{% trans "See all" %}</a>{% endif %}</h4>
-                            {% if status == 'pending' %}
-                                <div class="row" style="margin-top: 20px">
-                                    {% for event in event_list %}  {{ event.render|safe }} {% endfor %}
-                                </div>
-                            {% else %}
-                                <div class="row" style="margin-top: 20px">
-                                    {% for event in event_list %}  {{ event.render|safe }} {% endfor %}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
+                    {% for event_list in event_groups %}
+                        <div class="{{ event_list.0.event_type.codename }}">
+                            <h4>
+                                {{ event_list.0.event_type.title }}
+                                {% if event_list|length > 4 and event_list.0.event_type.target_url_name %}
+                                <a class="more" href="{% url event_list.0.event_type.target_url_name %}">{% trans "See all" %}</a>
+                                {% endif %}
+                            </h4>
+                            <div class="row" style="margin-top: 20px">
+                                {% for event in event_list %} {{ event.render|safe }} {% endfor %}
+                            </div>
+                        </div>
                     {% endfor %}
                 </section>
             {% empty %}
@@ -104,4 +102,8 @@
     {{ block.super }}
     <script src="{% static 'ajaxuploader/js/fileuploader.js' %}"></script>
     {% include 'core/snippets/banner_and_pp_uploader.html' %}
+    <script>
+        ikwen.appendAuthTokens('#cards');
+        $.getJSON('{% url 'ikwen:reset_notices_counter' %}', {target: '{{ request.GET.target }}'}, function(data) {})
+    </script>
 {% endblock %}

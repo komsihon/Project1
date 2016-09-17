@@ -2,9 +2,10 @@
 {% load i18n %}
 {% load humanize %}
 {% load staticfiles %}
+{% load auth_tokens %}
 
 {% block page_title %}
-<title> {% trans "Configurations" %} -  ikwen </title>
+<title> {% trans "Configurations" %} - ikwen </title>
 {% endblock %}
 
 {% block head_style %}
@@ -35,6 +36,7 @@
 {% block admin_content %}
     <div id="admin-content" class="container-fluid">
         <div id="stage">
+            {# TODO: Company banner placeholder for service configuration #}
             {% if config.cover_image and config.cover_image.name %}
             <header id="cover" class="subtle-shade" style="background-image: url({{ config.cover_image.url }});">
             {% else %}
@@ -47,6 +49,7 @@
                                 <div class="upload-image"></div>
                             </div>
                         {% else %}
+                            {# TODO: Company logo placeholder for service configuration #}
                             <div class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})">
                                 <div class="upload-image"></div>
                             </div>
@@ -56,10 +59,8 @@
                     <h2 class="text-has-shade">{{ config.full_name }}</h2>
                 </div>
             </header>
-    {#        <form id="context-search" onsubmit="return false">#}
-    {#            <input type="text" class="form-input input-sm" placeholder="{% trans "Search configuration variable" %}"/>#}
-    {#        </form>#}
-            <form id="configuration" method="post" action="{% url 'ikwen:configuration' %}">{% csrf_token %}
+            {% url 'ikwen:configuration' as configuration_url %}
+            <form id="configuration" method="post" action="{{ configuration_url|append_auth_tokens:request }}">{% csrf_token %}
                 <input type="hidden" name="id" value="{{ config.id }}" />
                 <input type="hidden" name="company_name_slug" value="{{ config.company_name_slug }}" />
                 {% for fieldset in config_admin_form %}

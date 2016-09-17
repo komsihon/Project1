@@ -8,20 +8,21 @@
     </head>
     <body style="background: #f6f6f6; font: normal 78% Helvetica, Arial, sans-serif; margin: 0; padding-top: 15px">
         <div style="background: #fff; margin: 0 auto; padding: 0; width: 90%">
-            {% if banner %} {# TOP #}
-                <div style="height: 150px">
-                    <img src="{{ config.cover_image.url }}" style="margin: 0; width: 100%" alt="banner"/>
+            {% if config.cover_image.name %} {# TOP #}
+                <div style="background: url({{ config.cover_image.url }}) center; background-size: auto 100%; height: 225px; width: 100%">
+                    <p style="color: #fff; float: left; font-size: 3.6em; margin: 45px 0 0 25px; text-shadow: 1px 2px 2px rgba(0, 0, 0, .7)">{{ config.company_name }}</p>
+                    <p style="color: #fff; clear: both; float: left; font-size: 2em; margin-left: 25px; text-shadow: 1px 2px 2px rgba(0, 0, 0, .7)">{{ config.short_description }}</p>
                 </div>
             {% else %}
                 <div style="background: #557cff; height: 150px">
-                    {% if config.logo.name %}
-                        <a href="{{ service.url }}" style="float: left">
-                            <img src="{{ config.logo.url }}" style="margin: 9px 0 0 9px" alt="logo" height="135"/>
-                        </a>
-                    {% endif %}
+{#                    {% if config.logo.name %}#}
+{#                        <a href="{{ service.url }}" style="float: left">#}
+{#                            <img src="{{ config.logo.url }}" style="margin: 9px 0 0 9px" alt="logo" height="135"/>#}
+{#                        </a>#}
+{#                    {% endif %}#}
                     <div style="float: left; margin-left: 36px">
-                        <p style="color: #fff; font-size: 3.6em; margin: 15px 0 0 0">{{ config.company_name }}</p>
-                        <p style="color: #fff; font-size: 1.35em">{{ config.slogan }}</p>
+                        <p style="color: #fff; float: left; font-size: 3.6em; margin: 15px 0 0 25px">{{ config.company_name }}</p>
+                        <p style="color: #fff; clear: both; float: left; font-size: 1.8em; margin-left: 25px">{{ config.short_description }}</p>
                     </div>
                 </div>
             {% endif %} {# END TOP #}

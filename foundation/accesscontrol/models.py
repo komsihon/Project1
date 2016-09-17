@@ -6,12 +6,13 @@ from django.db import models
 from django.utils.translation import gettext as _
 from django_mongodb_engine.contrib import RawQueryMixin
 from djangotoolbox.fields import ListField, EmbeddedModelField
+from ikwen.foundation.accesscontrol.templatetags.auth_tokens import ikwenize
 from permission_backend_nonrel.models import UserPermissionList
 
 from ikwen.foundation.core.fields import MultiImageField
 
 from ikwen.foundation.core.models import Service, Model
-from ikwen.foundation.core.utils import to_dict
+from ikwen.foundation.core.utils import to_dict, get_service_instance
 
 
 class MemberManager(BaseUserManager, RawQueryMixin):
@@ -20,11 +21,14 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         if not username:
             raise ValueError('Username must be set')
         member = self.model(username=username, **extra_fields)
+        member.full_name = u'%s %s' % (member.first_name.split(' ')[0], member.last_name.split(' ')[0])
         service_id = getattr(settings, 'IKWEN_SERVICE_ID', None)
         debug = getattr(settings, 'DEBUG', False)
         if not debug:
             if service_id:
-                member.entry_service = Service.objects.get(pk=service_id)
+                service = get_service_instance()
+                member.entry_service = service
+                member.customer_on.append(service)
         member.set_password(password)
         member.save()
         return member
@@ -57,6 +61,8 @@ class Member(AbstractUser):
                                              '<strong>IAO</strong> (Ikwen Application Operator).'))
     collaborates_on = ListField(EmbeddedModelField('core.Service'), editable=False,
                                 help_text="Services on which member collaborates being the IAO or no.")
+    customer_on = ListField(EmbeddedModelField('core.Service'), editable=False,
+                            help_text="Services on which member was granted customer access.")
     phone_verified = models.BooleanField(_('Phone verification status'), default=False,
                                          help_text=_('Designates whether this phone number has been '
                                                      'verified by sending a confirmation code by SMS.'))
@@ -73,6 +79,10 @@ class Member(AbstractUser):
     def __unicode__(self):
         return self.get_username()
 
+    def get_short_name(self):
+        "Returns the short name for the user."
+        return self.first_name.split(' ')[0]
+
     def _get_display_joined(self):
         return '%02d/%02d/%d %02d:%02d' % (self.date_joined.day, self.date_joined.month, self.date_joined.year,
                                            self.date_joined.hour, self.date_joined.minute)
@@ -80,7 +90,6 @@ class Member(AbstractUser):
 
     def save(self, *args, **kwargs):
         from ikwen.foundation.accesscontrol.backends import UMBRELLA
-        self.full_name = self.get_full_name()
         using = 'default'
         if kwargs.get('using'):
             using = kwargs['using']
@@ -110,9 +119,14 @@ class Member(AbstractUser):
         var['date_joined'] = self.display_date_joined
         var['status'] = self.get_status()
         var['photo'] = self.photo.small_url if self.photo.name else Member.AVATAR
-        var['profile_url'] = reverse('ikwen:profile', args=(self.id, ))
-        var['permissions'] = ','.join(UserPermissionList.objects.get(user=self).permission_fk_list)
+        url = reverse('ikwen:profile', args=(self.id, ))
+        var['url'] = ikwenize(url)
+        try:
+            var['permissions'] = ','.join(UserPermissionList.objects.get(user=self).permission_fk_list)
+        except UserPermissionList.DoesNotExist:
+            var['permissions'] = ''
         del(var['collaborates_on'])
+        del(var['customer_on'])
         del(var['password'])
         del(var['is_superuser'])
         del(var['is_staff'])
@@ -146,9 +160,13 @@ class Passport(OfficialIdentityDocument):
 
 
 SUDO = 'Sudo'
+# Business events
 COLLABORATION_REQUEST_EVENT = 'CollaborationRequestEvent'
 ACCESS_GRANTED_EVENT = 'AccessGrantedEvent'
 SERVICE_REQUEST_EVENT = 'ServiceRequestEvent'
+
+# Personal events
+CUSTOMER_REGISTERED_EVENT = 'CustomerRegisteredEvent'
 
 
 class AccessRequest(Model):
@@ -161,7 +179,7 @@ class AccessRequest(Model):
 
     member = models.ForeignKey(Member, db_index=True)
     service = models.ForeignKey(Service, related_name='+', db_index=True)
-    type = models.CharField(max_length=30)
+    type = models.CharField(max_length=30)  # COLLABORATION_REQUEST or SERVICE_REQUEST
     group_name = models.CharField(max_length=60, blank=True)
     status = models.CharField(max_length=30, default=PENDING)
 
@@ -175,5 +193,5 @@ class AccessRequest(Model):
 
     def get_description(self):
         if self.type == self.COLLABORATION_REQUEST:
-            return _('This person would like to have access and collaborate with you.')
-        return _('This person would like to have access to your services.')
+            return _('This person would like to have access and collaborate with you')
+        return _('This person would like to have access to your services')

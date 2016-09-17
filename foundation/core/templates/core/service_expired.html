@@ -1,26 +1,24 @@
-{% extends "core/base.html" %}
-{% load i18n %}
-{% load staticfiles %}
-{% block page_title %}<title>Ikwen - {% trans "Website unreachable" %} </title>{% endblock %}
+{% extends "core/base_bs.html" %}
+{% load i18n staticfiles %}
+{% block page_title %}<title>{{ service.project_name }} - {{ config.short_description  }} </title>{% endblock %}
 {% block head_style %}
     {{ block.super }}
     <style type="text/css">
         #top {height: 0}
-        #content {margin-top: 36px}
         footer {display: none}
     </style>
 {% endblock %}
 {% block content %}
-    <div id="content">
-        <div class="wrapper" style="background:#fff; padding: 10px">
-            <h1>Ooops !</h1>
-            <div style="margin-top: 180px">
-                <img src="{% static 'ikwen/img/logo-ikwen_100.png' %}" style="float: left"/>
-                <div style="float: right">
-                    <h2>{% trans "Sorry, this website is unreachable for the moment. Contact your administrator" %}</h2>
-                </div>
+    <div id="content" class="container">
+        <div style="margin-top: 9%; text-align: center">
+            <p class="text-danger" style="font-size: 24px">{% trans "Error 909. Try again later" %}</p>
+            {% if config.logo.name %}
+            <img src="{{ config.logo.url }}" height="250"/>
+            {% endif %}
+            <div style="padding-top: 30px; text-align: center">
+                <h2>{{ service.project_name }}</h2>
+                <p style="color: #888; font-weight: 300"> {{ config.short_description  }} </p>
             </div>
-            <div class="clear"></div>
         </div>
     </div>
 {% endblock %}

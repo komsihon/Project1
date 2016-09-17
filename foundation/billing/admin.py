@@ -1,32 +1,43 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
+from threading import Thread
+
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
-from django.db.models import Q, get_model
+from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
 
 from ikwen.foundation.core.models import QueuedSMS, Config
 from ikwen.foundation.accesscontrol.models import Member
-from ikwen.foundation.core.utils import get_service_instance, get_mail_content, send_sms
+from ikwen.foundation.core.utils import get_service_instance, get_mail_content, send_sms, add_event
 from import_export.admin import ImportExportMixin, ExportMixin
 from django.utils.translation import gettext_lazy as _
 
-from ikwen.foundation.billing.models import Payment, AbstractInvoice, InvoicingConfig, Invoice
+from ikwen.foundation.billing.models import Payment, AbstractInvoice, InvoicingConfig, Invoice, NEW_INVOICE_EVENT, \
+    SUBSCRIPTION_EVENT
 from ikwen.foundation.billing.utils import get_payment_confirmation_message, get_invoice_generated_message, \
-    get_next_invoice_number
+    get_next_invoice_number, get_subscription_registered_message, get_subscription_model, get_product_model
 
+Product = get_product_model()
 subscription_model_name = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
-app_label = subscription_model_name.split('.')[0]
-model = subscription_model_name.split('.')[1]
-Subscription = get_model(app_label, model)
+Subscription = get_subscription_model()
 
 
-class InvoicingConfigAdmin(admin.ModelAdmin):
+class BillingAdmin(admin.ModelAdmin):
+
+    class Media:
+        css = {
+            "all": ("ikwen/font-awesome/css/font-awesome.min.css", "ikwen/css/flatly.bootstrap.min.css",
+                    "ikwen/css/grids.css", "ikwen/billing/admin/css/custom.css", )
+        }
+        js = ("ikwen/js/jquery-1.12.4.min.js", "ikwen/js/jquery.autocomplete.min.js", "ikwen/billing/admin/js/custom.js", )
+
+
+class InvoicingConfigAdmin(BillingAdmin):
     list_display = ('name', 'gap', 'reminder_delay', 'overdue_delay', 'tolerance', 'currency', )
     fieldsets = (
         (None, {'fields': ('currency', )}),
@@ -38,12 +49,21 @@ class InvoicingConfigAdmin(admin.ModelAdmin):
     save_on_top = True
 
 
-class SubscriptionAdmin(admin.ModelAdmin, ImportExportMixin):
+class ProductAdmin(BillingAdmin, ImportExportMixin):
+    list_display = ('name', 'short_description', 'monthly_cost', )
+    search_fields = ('name', )
+    readonly_fields = ('created_on', 'updated_on', )
+
+
+class SubscriptionAdmin(BillingAdmin, ImportExportMixin):
+    add_form_template = 'admin/subscription/change_form.html'
+    change_form_template = 'admin/subscription/change_form.html'
+
     list_display = ('member', 'monthly_cost', 'billing_cycle', 'expiry', 'status', )
     list_filter = ('status', 'billing_cycle', )
-    search_fields = ('member_email', 'member_phone', )
+    search_fields = ('member_name', 'member_phone', )
     fieldsets = (
-        (None, {'fields': ('member', 'monthly_cost', 'billing_cycle', 'details', 'since', )}),
+        (None, {'fields': ('member', 'product', 'monthly_cost', 'billing_cycle', 'details', 'since', )}),
         (_('Billing'), {'fields': ('status', 'expiry', 'invoice_tolerance', )}),
         (_('Important dates'), {'fields': ('created_on', 'updated_on', )}),
     )
@@ -55,15 +75,47 @@ class SubscriptionAdmin(admin.ModelAdmin, ImportExportMixin):
         try:
             int(search_term)
             members = list(Member.objects.filter(
-                Q(phone__contains=search_term) | Q(email__icontains=search_term.lower())
+                Q(phone__contains=search_term) | Q(full_name__icontains=search_term.lower())
             ))
             queryset = self.model.objects.filter(member__in=members)
             use_distinct = False
         except ValueError:
-            members = list(Member.objects.filter(email__icontains=search_term.lower()))
+            members = list(Member.objects.filter(full_name__icontains=search_term.lower()))
             queryset = self.model.objects.filter(member__in=members)
             use_distinct = False
         return queryset, use_distinct
+
+    def save_model(self, request, obj, form, change):
+        # Send e-mail for manually generated Invoice upon creation
+        if change:
+            super(SubscriptionAdmin, self).save_model(request, obj, form, change)
+            return
+
+        # Send e-mail only if e-mail is a valid one. It will be agreed that if a client
+        # does not have an e-mail. we create a fake e-mail that contains his phone number.
+        # So e-mail containing phone number are invalid.
+        super(SubscriptionAdmin, self).save_model(request, obj, form, change)
+        member = obj.member
+        service = get_service_instance()
+        config = service.config
+        subject, message, sms_text = get_subscription_registered_message(obj)
+
+        # This helps differentiates from fake email accounts created as phone@provider.com
+        if member.email.find(member.phone) < 0:
+            add_event(service, member, SUBSCRIPTION_EVENT, obj.id, subscription_model_name)
+            html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html')
+            # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
+            # to be delivered to Spams because of origin check.
+            sender = '%s <no-reply@%s.com>' % (config.company_name, config.company_name_slug)
+            msg = EmailMessage(subject, html_content, sender, [member.email])
+            msg.content_subtype = "html"
+            Thread(target=lambda m: m.send(), args=(msg,)).start()
+        if sms_text:
+            if member.phone:
+                if config.sms_sending_method == Config.HTTP_API:
+                    send_sms(member.phone, sms_text)
+                else:
+                    QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
 
 
 class PaymentInline(admin.TabularInline):
@@ -73,11 +125,13 @@ class PaymentInline(admin.TabularInline):
     readonly_fields = ('created_on', 'cashier')
 
 
-class InvoiceAdmin(admin.ModelAdmin, ImportExportMixin):
-    list_display = ('subscription', 'number', 'amount', 'date_issued', 'due_date',
-                    'reminders_sent', 'overdue_notices_sent', 'status', )
+class InvoiceAdmin(BillingAdmin, ImportExportMixin):
+    add_form_template = 'admin/invoice/change_form.html'
+    change_form_template = 'admin/invoice/change_form.html'
+
+    list_display = ('subscription', 'number', 'amount', 'date_issued', 'due_date', 'reminders_sent', 'status', )
     list_filter = ('status', 'reminders_sent', 'overdue_notices_sent', )
-    search_fields = ('member_email', 'member_phone', )
+    search_fields = ('member_name', 'member_phone', )
     fieldsets = (
         (None, {'fields': ('number', 'subscription', 'amount', 'due_date', 'date_issued', 'status', )}),
         (_('Notices'), {'fields': ('reminders_sent', 'overdue_notices_sent', )}),
@@ -89,31 +143,39 @@ class InvoiceAdmin(admin.ModelAdmin, ImportExportMixin):
 
     def save_model(self, request, obj, form, change):
         # Send e-mail for manually generated Invoice upon creation
-        if not change:
-            # Send e-mail only if e-mail is a valid one. It will be agreed that if a client
-            # does not have an e-mail. we create a fake e-mail that contains his phone number.
-            # So e-mail containing phone number are invalid.
-            obj.number = get_next_invoice_number(auto=False)
-            member = obj.subscription.member
-            config = get_service_instance().config
-            subject, message, sms_text = get_invoice_generated_message(obj)
-            if member.email.find(member.phone) < 0:
-                invoice_url = getattr(settings, 'PROJECT_URL') + reverse('billing:invoice_detail', args=(obj.id, ))
-                html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
-                                                extra_context={'invoice_url': invoice_url})
-                sender = '%s <%s>' % (config.company_name, config.contact_email)
-                msg = EmailMessage(subject, html_content, sender, [member.email])
-                msg.content_subtype = "html"
-                if msg.send():
-                    obj.reminders_sent = 1
-                    obj.last_reminder = timezone.now()
-            if sms_text:
-                if member.phone:
-                    if config.sms_sending_method == Config.HTTP_API:
-                        send_sms(member.phone, sms_text)
-                    else:
-                        QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
+        if change:
+            super(InvoiceAdmin, self).save_model(request, obj, form, change)
+            return
+        # Send e-mail only if e-mail is a valid one. It will be agreed that if a client
+        # does not have an e-mail. we create a fake e-mail that contains his phone number.
+        # So e-mail containing phone number are invalid.
+        obj.number = get_next_invoice_number(auto=False)
         super(InvoiceAdmin, self).save_model(request, obj, form, change)
+        member = obj.subscription.member
+        service = get_service_instance()
+        config = service.config
+        subject, message, sms_text = get_invoice_generated_message(obj)
+
+        # This helps differentiates from fake email accounts created as phone@provider.com
+        if member.email.find(member.phone) < 0:
+            add_event(service, member, NEW_INVOICE_EVENT, obj.id)
+            invoice_url = getattr(settings, 'PROJECT_URL') + reverse('billing:invoice_detail', args=(obj.id, ))
+            html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+                                            extra_context={'invoice_url': invoice_url})
+            # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
+            # to be delivered to Spams because of origin check.
+            sender = '%s <no-reply@%s.com>' % (config.company_name, config.company_name_slug)
+            msg = EmailMessage(subject, html_content, sender, [member.email])
+            msg.content_subtype = "html"
+            if msg.send(fail_silently=True):
+                obj.reminders_sent = 1
+                obj.last_reminder = timezone.now()
+        if sms_text:
+            if member.phone:
+                if config.sms_sending_method == Config.HTTP_API:
+                    send_sms(member.phone, sms_text)
+                else:
+                    QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
 
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
@@ -122,7 +184,10 @@ class InvoiceAdmin(admin.ModelAdmin, ImportExportMixin):
         for instance in instances:
             if isinstance(instance, Payment):
                 if instance.cashier:
-                    instance = None  # Prevents the notification from being sent at the end of this "for" loop
+                    # Instances with non null cashier are those who previously existed.
+                    # setting them to None allows to ignore them at the end of the loop
+                    # since we want to undertake action only for newly added Payment
+                    instance = None
                     continue
                 instance.cashier = request.user
                 instance.save()
@@ -136,10 +201,12 @@ class InvoiceAdmin(admin.ModelAdmin, ImportExportMixin):
             subject, message, sms_text = get_payment_confirmation_message(instance)
             if member.email.find(member.phone) < 0:
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html')
-                sender = '%s <%s>' % (config.company_name, config.contact_email)
+                # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
+                # to be delivered to Spams because of origin check.
+                sender = '%s <no-reply@%s.com>' % (config.company_name, config.company_name_slug)
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
-                msg.send()
+                Thread(target=lambda m: m.send(), args=(msg,)).start()
             if sms_text:
                 if member.phone:
                     if config.sms_sending_method == Config.HTTP_API:
@@ -147,14 +214,14 @@ class InvoiceAdmin(admin.ModelAdmin, ImportExportMixin):
                     else:
                         QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
             if total_amount >= instance.invoice.amount:
-                instance.invoice.status == AbstractInvoice.PAID
+                instance.invoice.status = AbstractInvoice.PAID
                 instance.invoice.save()
 
     def get_search_results(self, request, queryset, search_term):
         try:
             int(search_term)
             members = list(Member.objects.filter(
-                Q(phone__contains=search_term) | Q(email__icontains=search_term.lower()),
+                Q(phone__contains=search_term) | Q(full_name__icontains=search_term.lower()),
             ))
             subscriptions = []
             for member in members:
@@ -164,7 +231,7 @@ class InvoiceAdmin(admin.ModelAdmin, ImportExportMixin):
             )
             use_distinct = False
         except ValueError:
-            members = list(Member.objects.filter(email__icontains=search_term.lower()))
+            members = list(Member.objects.filter(full_name__icontains=search_term.lower()))
             # Subscriptions should have been fetched this way:
             #
             # subscriptions = list(Subscription.objects.filter(member__in=members))
@@ -222,10 +289,10 @@ class CashierListFilter(admin.SimpleListFilter):
         return queryset
 
 
-class PaymentAdmin(admin.ModelAdmin, ExportMixin):
+class PaymentAdmin(BillingAdmin, ExportMixin):
     list_display = ('get_member', 'amount', 'method', 'created_on', 'cashier', )
     list_filter = ('created_on', 'method', CashierListFilter, )
-    search_fields = ('member_email', 'member_phone', )
+    search_fields = ('member_name', 'member_phone', )
     readonly_fields = ('created_on', 'cashier')
     raw_id_fields = ('invoice', )
 
@@ -236,7 +303,7 @@ class PaymentAdmin(admin.ModelAdmin, ExportMixin):
         try:
             int(search_term)
             members = list(Member.objects.filter(
-                Q(phone__contains=search_term) | Q(email__icontains=search_term.lower())
+                Q(phone__contains=search_term) | Q(full_name__icontains=search_term.lower())
             ))
             subscriptions = []
             for member in members:
@@ -245,7 +312,7 @@ class PaymentAdmin(admin.ModelAdmin, ExportMixin):
             queryset = self.model.objects.filter(invoice__in=invoices)
             use_distinct = False
         except ValueError:
-            members = list(Member.objects.filter(email__icontains=search_term.lower()))
+            members = list(Member.objects.filter(full_name__icontains=search_term.lower()))
             subscriptions = []
             for member in members:
                 subscriptions.extend(list(Subscription.objects.filter(member=member)))
@@ -254,12 +321,21 @@ class PaymentAdmin(admin.ModelAdmin, ExportMixin):
             use_distinct = False
         return queryset, use_distinct
 
+# Override ProductAdmin class if there's another defined in settings
+product_model_admin = getattr(settings, 'BILLING_PRODUCT_MODEL_ADMIN', None)
+if product_model_admin:
+    ProductAdmin = import_by_path(product_model_admin)
+
 # Override SubscriptionAdmin class if there's another defined in settings
 subscription_model_admin = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL_ADMIN', None)
 if subscription_model_admin:
     SubscriptionAdmin = import_by_path(subscription_model_admin)
 
 admin.site.register(InvoicingConfig, InvoicingConfigAdmin)
+try:
+    admin.site.register(Product, ProductAdmin)
+except AlreadyRegistered:
+    pass
 try:
     admin.site.register(Subscription, SubscriptionAdmin)
 except AlreadyRegistered:

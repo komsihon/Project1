@@ -1,0 +1,85 @@
+{% extends "core/base_bs.html" %}
+{% load i18n humanize staticfiles %}
+
+{% block page_title %}
+<title> {% trans "Access requests" %} - ikwen </title>
+{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <style>
+        body {background: #f6f6f6}
+        @media (min-width: 320px) {
+            .access-request .logo {float: left;text-align: center; width: 90px}
+            .access-request .logo a.photo {background: no-repeat center; background-size: 100%; display: block;height: 650px; margin: auto; width: 65px}
+        }
+        @media (min-width: 768px) {
+            .access-request .logo {float: left;text-align: center;width: 108px;}
+            .access-request .logo a.photo {display: block;height: 80px; margin: auto; width: 80px}
+        }
+        @media (min-width: 992px) {
+            .access-request .logo {float: left;text-align: center;width: 130px;}
+            .access-request .logo a.photo {display: block;height: 115px; margin: auto; width: 115px}
+        }
+        .about .spacer {border: 1px solid transparent; float: left; width: 5%}
+        .about .action {padding-left: 7px; padding-right: 7px; text-align: center; width: 22.5%}
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="content" class="container">
+        {% block stage %}
+            <div id="stage">
+                <div class="container-fluid" id="cards">
+                    {% for elt in access_requests %}
+                    <section id="{{ elt.rq.id }}" class="access-request subtle-shade">
+                        <div class="logo">
+                            {% if elt.rq.member.photo and elt.rq.member.photo.name %}
+                                <a href="{% url 'ikwen:profile' elt.rq.member.id %}" class="photo" style="background-image: url({{ elt.rq.member.photo.small_url }})"></a>
+                            {% else %}
+                                <a href="{% url 'ikwen:profile' elt.rq.member.id %}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
+                            {% endif %}
+                            <h4 style="font-size: 14px; font-weight: 400; margin-left: 0">{{ elt.rq.member.last_name }}</h4>
+                        </div>
+                        <div class="details row">
+                            <div class="about">
+                                <div class="col-sm-6 col-md-6">
+                                    <h3>{{ elt.rq.get_title }}</h3>
+                                    <p>{{ elt.rq.get_description }} {% trans "on" %}
+                                        <span class="text-success">{{ elt.rq.service.project_name }}</span></p>
+                                </div>
+                                <div class="spacer"></div>
+                                <div class="col-sm-3 col-md-3 action">
+                                    <button class="btn btn-success btn-sm btn-block allow-access" data-request-id="{{ elt.rq.id }}" data-access-type="{{ elt.rq.type }}">{% trans "Grant access" %}</button>
+                                </div>
+                                <div class="col-sm-3 col-md-3 action" style="cursor: pointer; font-weight: 700; padding-top: 7px">
+                                    <span class="text-danger deny-access" data-request-id="{{ elt.rq.id }}">{% trans "No, Refuse" %}</span>
+                                </div>
+                            </div>
+                            <div class="groups" style="display: none">
+                                <div class="group-choice">
+                                    <h3>{% trans "Grant access as:" %}</h3>
+                                    {% for group in elt.groups %}
+                                        <div class="form-group">
+                                            <div class="radio"> <label> <input type="radio" class="group" name="group" value="{{ group.id }}" /> {{ group.name }} </label> </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <p class="text-success" style="display: none">{% trans "Access successfully granted to collaborator." %}</p>
+                                <button data-request-id="{{ elt.rq.id }}" class="btn btn-success btn-sm btn-block confirm-group">{% trans "Confirm" %}</button>
+                            </div>
+                        </div>
+                    </section>
+                    {% empty %}
+                        <section class="subtle-shade">{% trans "No pending request" %}</section>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endblock %}
+        {% include 'core/snippets/ads.html' %}
+    </div>
+{% endblock %}
+{% block js %}
+    {{ block.super }}
+    {% include 'accesscontrol/snippets/request_management.html' %}
+{% endblock %}

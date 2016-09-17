@@ -12,3 +12,23 @@ Permissions
     Custom created permissions in an ikwen app must start with the prefix "ik_". This prefix differentiates from
     default created permissions. Only permissions with codename starting with "ik_" will show up in collaborators
     management panel.
+    Following permissions must absolutely exist:
+        accesscontrol.ik_manage_customers:  Collaborator granted this permission can manage customers.
+
+
+Deployment of billing app.
+    - Only one billing app may be deployed per domain, to avoid confusion in InvoicingConfig. The same way
+    only one InvoicingConfig is allowed per billing deployment. Others will be ignored
+    - DJANGO_SETTINGS_MODULE must be properly set in ikwen.foundation.billing.crons
+
+
+Deployment scripts.
+    404.html and 500.html located in core/templates must be copied to the root templates folder to override
+    django defaults one.
+
+
+Collaborators.
+    This version limits the number of collaborators to 50. Mainly because it takes away the need to care
+    about page navigation in collaborators admin page that is tabbed. Page navigation with tabs would cause
+    the need to inject the current tab when querying the datasource and replacing page navigation counters.
+    That is simply useless for a platform that is mainly aimed at small and medium size companies.

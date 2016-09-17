@@ -1,0 +1,23 @@
+{% extends 'admin/change_form.html' %}
+
+{% block content %}
+    {{ block.super }}
+    <script>
+        (function() {
+            $('<div id="raw-id-suggestions"></div>').insertAfter('#id_member');
+            $('<input type="hidden" id="member-id" name="member" />').insertAfter('#id_member');
+            {% if original %}
+                $('#id_member').val('{{ original.member.full_name }}');
+                $('#member-id').val('{{ original.member.id }}');
+            {% endif %}
+            $('#id_member').removeAttr('name').autocomplete({
+                serviceUrl: "{% url 'billing:list_members' %}",
+                minChars: 2,
+                appendTo: '#raw-id-suggestions',
+                onSelect: function(suggestion) {
+                    $('#member-id').val(suggestion.data)
+                }
+            });
+        })();
+    </script>
+{% endblock %}

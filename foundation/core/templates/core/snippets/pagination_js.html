@@ -1,0 +1,68 @@
+<script>
+    (function() {
+        ikwen.paginationEndpoint = '{{ request.META.get_full_path }}';
+        var $nav = $('#page-navigation'),
+            ajaxLoading = false,
+            pageSize = $nav.data('page-size'),
+            total = parseInt($('div#page-navigation .total').text());
+        $.getJSON(ikwen.paginationEndpoint, {start: 0, format: 'json'}, function(data) {
+            localStorage.setItem('objectList', JSON.stringify(data))
+        });
+
+        $('div#page-navigation .next').click(function() {
+            if ($(this).hasClass('finished') || ajaxLoading) return;
+            ajaxLoading = true;
+            $('body').css('cursor', 'wait');
+            var _$next = $(this),
+                _$back = $('div#page-navigation .back'),
+                pageIndex = $nav.data('page-index'),
+                start = pageIndex * pageSize,
+                finish = start + pageSize,
+                $tpl = $('.object-list .tpl'),
+                tag = $tpl.prop('tagName').toLocaleLowerCase(),
+                objectList = JSON.parse(localStorage.getItem('objectList'));
+            finish = Math.min(finish, total);
+            _$back.removeClass('finished');
+            $('div#page-navigation strong.start').text(start + 1);
+            $('div#page-navigation strong.finish').text(finish);
+            $.getJSON(ikwen.paginationEndpoint, {start: start, format: 'json'}, function(data) {
+                if (data.length < pageSize || finish == total) _$next.addClass('finished');
+                $('.object-list ' + tag + ':not(.tpl)').remove();
+                for (var i=0; i<data.length; i++) {
+                    var obj = data[i],
+                        $tplClone = $tpl.clone().removeClass('tpl');
+                    objectList.push(obj);
+                    $tplClone = ikwen.genericTemplateFunc($tplClone, obj);
+                    $tplClone.insertBefore('.object-list .tpl').show();
+                }
+                localStorage.setItem('objectList', JSON.stringify(objectList));
+                $nav.data('page-index', pageIndex + 1);
+                $('body').css('cursor', 'default');
+                ajaxLoading = false;
+            })
+        });
+        $('div#page-navigation .back').click(function() {
+            if ($(this).hasClass('finished')) return;
+            var _$next = $('div#page-navigation .next'),
+                _$back = $(this),
+                pageIndex = $nav.data('page-index'),
+                finish = (pageIndex - 1) * pageSize,
+                start = finish - pageSize,
+                $tpl = $('.object-list .tpl'),
+                tag = $tpl.prop('tagName').toLocaleLowerCase(),
+                objectList = JSON.parse(localStorage.getItem('objectList'));
+
+            _$next.removeClass('finished');
+            $('div#page-navigation strong.start').text(start + 1);
+            $('div#page-navigation strong.finish').text(finish);
+            $('.object-list ' + tag + ':not(.tpl)').remove();
+            if (start == 0) _$back.addClass('finished');
+            for (var i=start; i<finish; i++) {
+                var $tplClone = $tpl.clone().removeClass('tpl');
+                $tplClone = ikwen.genericTemplateFunc($tplClone, objectList[i]);
+                $tplClone.insertBefore('.object-list .tpl').show();
+            }
+            $nav.data('page-index', pageIndex - 1);
+        })
+    })()
+</script>

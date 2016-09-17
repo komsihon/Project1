@@ -25,12 +25,6 @@
     </style>
 {% endblock %}
 
-{% block header_brand %}
-<div class="navbar-header">
-    <a class="navbar-brand" href="{% url 'home' %}">{{ service.project_name }}</a>
-</div>
-{% endblock %}
-
 {% block content %}
     <div id="content" class="container">
         {% if login_form.errors %}
@@ -45,6 +39,7 @@
             <h2>{% trans "Login" %}</h2>
             <form action="{% url 'ikwen:sign_in' %}?{{ request.META.QUERY_STRING }}" method="post">{% csrf_token %}
                 <div style="height: 43px; padding: 0; width: 306px">
+                    {# TODO: Put login avatar above the form #}
                 </div>
                 <div class="form-group">
                     <label for="lg-username">{% trans "Username, email or phone" %}</label>
@@ -97,19 +92,32 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="rg-name" class="col-sm-5 col-md-4">{% trans "Name" %} <span>{% trans " (First and last)" context "Name" %}</span></label>
+                    <label for="rg-name" class="col-sm-5 col-md-4">{% trans "First name" %} </label>
                     <div class="col-sm-6 col-md-6">
-                        <input id="rg-name" class="form-control input-sm name" type="text" name="name" />
+                        <input id="rg-name" class="form-control input-sm name" type="text" name="first_name" />
                         {{ register_form.name.errors }}
                     </div>
                 </div>
                 <div class="form-group row">
-                    <p id="terms-warning" class="col-sm-11 col-md-10">
-                        {% trans "You are about to create an account managed by" %} <a href="http://www.ikwen.com" style="color: #999; text-decoration: underline">Ikwen</a>,
-                        {% trans "on" %} {{ service.project_name }}.
-                        {% trans "By doing so you accept" %} <a href="{% url 'ikwen:terms_and_conditions' %}">Ikwen {% trans "Terms & Conditions" %}</a>, {% trans "as well as" %}
-                        <a>{{ service.project_name }} {% trans "Terms & Conditions" %}.</a>
-                    </p>
+                    <label for="rg-name" class="col-sm-5 col-md-4">{% trans "Last name" %} </label>
+                    <div class="col-sm-6 col-md-6">
+                        <input id="rg-name" class="form-control input-sm name" type="text" name="last_name" />
+                        {{ register_form.name.errors }}
+                    </div>
+                </div>
+                <div class="form-group row">
+                    {% if settings.IS_IKWEN %}
+                        <p id="terms-warning" class="col-sm-11 col-md-10">
+                            {% trans "By creating an account you agree our " %} <a href="{% url 'ikwen:terms_and_conditions' %}">{% trans "Terms & Conditions" %}</a>
+                        </p>
+                    {% else %}
+                        <p id="terms-warning" class="col-sm-11 col-md-10">
+                            {% trans "You are about to create an account managed by" %} <a href="{{ settings.IKWEN_BASE_URL }}" style="color: #999; text-decoration: underline">Ikwen</a>,
+                            {% trans "on" %} {{ service.project_name }}.
+                            {% trans "By doing so you accept" %} <a href="{% url 'ikwen:terms_and_conditions' %}">Ikwen {% trans "Terms & Conditions" %}</a>, {% trans "as well as" %}
+                            <a href="#">{{ service.project_name }} {% trans "Terms & Conditions" %}.</a>
+                        </p>
+                    {% endif %}
                 </div>
                 <div class="form-group row">
                     <div class="checkbox" style="padding-left: 15px">

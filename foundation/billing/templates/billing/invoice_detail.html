@@ -75,8 +75,8 @@
                         <div>
                             {% if customer_config %}
                                 <p>{{ customer_config.company_name }}</p>
-                                <p>{{ customer_config.address }}</p>
-                                <p>{{ customer_config.city }}, {{ invoice.service.config.country.name }}</p>
+                                {% if customer_config.address %}<p>{{ customer_config.address }}</p>{% endif %}
+                                {% if customer_config.address %}<p>{{ customer_config.city }}{% if customer_config.address %}, {{ customer_config.country.name }}{% endif %}</p>{% endif %}
                             {% else %}
                                 <p>{{ invoice.service.member.get_full_name }}</p>
                                 <p>{{ invoice.service.member.phone }}</p>
@@ -105,7 +105,7 @@
                             {{ invoice.service.details|safe }}
                         </td>
                         <td>
-                            {% if invoice.status != 'Paid' %}
+                            {% if invoice.status != 'Paid' and extensions %}
                                 <label for="extensions">{% trans "Extend payment until" %}</label>
                                 <select id="extensions" class="form-control input-sm">
                                     <option value="0">N/A</option>

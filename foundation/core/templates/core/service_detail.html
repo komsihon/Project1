@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load humanize %}
 {% load staticfiles %}
+{% load auth_tokens %}
 
 {% block page_title %}
 <title>{% trans "Service info" %} - ikwen </title>
@@ -57,8 +58,9 @@
             </section>
             <section id="billing" class="subtle-shade">
                 <header>
-                    <h3> {% trans "Billing" %} </h3>
-                    <span class="icon" style="background-position: -177px 0"></span>
+                    <h3 style="float: left"> {% trans "Billing" %} </h3>
+                    {% if service.expired %}<span class="label label-danger" style="float: right">{% trans "Expired" %}</span>{% endif %}
+                    <div class="clear"></div>
                 </header>
                 <div class="detail row">
                     <label class="col-sm-3">{% trans "Version" %}</label>
@@ -120,7 +122,8 @@
                     {% if service.pending_invoice_count > 0 %}
                         <span>
                             <strong>{{ service.pending_invoice_count }} {% trans "Pending" %}</strong>
-                            - <a href="{% url 'billing:invoice_list' service.id %}" target="_blank"> {% trans 'See' %} </a>
+                            {% url 'billing:invoice_list' service.id as invoice_list_url %}
+                            - <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}" target="_blank"> {% trans 'See' %} </a>
                         </span>
                     {% else %}
                         <span>N/A</span>
@@ -149,7 +152,10 @@
             $('.edit.billing-cycle button.btn-primary').click(function() {
                 var value = $('#billing-cycle').val();
                 $('body, button, .button').css('cursor', 'wait');
-                $.getJSON('{% url 'billing:change_billing_cycle' %}', {new_cycle: value, subscription_id: '{{ service.id }}'}, function(response) {
+                {% url 'billing:change_billing_cycle' as change_cycle_url %}
+                $.getJSON('{{ change_cycle_url|ikwenize }}' + '?callback=?',
+                        {new_cycle: value, subscription_id: '{{ service.id }}', key: '{{request.GET.key}}', rand: '{{ request.GET.rand }}' },
+                        function(response) {
                     $('body, button, .button').css('cursor', 'default');
                     if (response.error) {
                         ikwen.showFloatingNotice('{% trans "Error while updating billing cycle. Try again later." %}', '', 6);

@@ -20,6 +20,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
+from ikwen.foundation.accesscontrol.templatetags.auth_tokens import append_auth_tokens
 
 from ikwen.foundation.billing.utils import get_invoicing_config_instance, get_billing_cycle_days_count, \
     get_billing_cycle_months_count
@@ -27,12 +28,12 @@ from ikwen.foundation.billing.utils import get_invoicing_config_instance, get_bi
 from ikwen.foundation.billing.models import Invoice
 
 from ikwen.foundation.accesscontrol.backends import UMBRELLA
-from ikwen.foundation.accesscontrol.models import Member
+from ikwen.foundation.accesscontrol.models import Member, SERVICE_REQUEST_EVENT, COLLABORATION_REQUEST_EVENT
 from ikwen.foundation.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, AbstractConfig
-from ikwen.foundation.core.utils import get_service_instance, DefaultUploadBackend, strip_datetime_fields
+from ikwen.foundation.core.utils import get_service_instance, DefaultUploadBackend
 import ikwen.conf.settings
 
-IKWEN_BASE_URL = getattr(settings, 'PROJECT_URL') if getattr(settings, 'DEBUG', False) else ikwen.conf.settings.PROJECT_URL
+IKWEN_BASE_URL = getattr(settings, 'IKWEN_BASE_URL') if getattr(settings, 'DEBUG', False) else ikwen.conf.settings.PROJECT_URL
 
 
 class BaseView(TemplateView):
@@ -56,7 +57,7 @@ class HybridListView(ListView):
     :attr:ajax_ordering: Tuple of model fields used to order results of Ajax requests. It is similar to ordering of
     django admin
     """
-    object_count = int(getattr(settings, 'HYBRID_LIST_OBJECT_COUNT', '24'))
+    page_size = int(getattr(settings, 'HYBRID_LIST_PAGE_SIZE', '25'))
     search_field = 'name'
     ordering = ('-created_on', )
     ajax_ordering = ('-created_on', )
@@ -76,7 +77,9 @@ class HybridListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(HybridListView, self).get_context_data(**kwargs)
         context.update(BaseView().get_context_data(**kwargs))
-        context[self.context_object_name] = context[self.context_object_name].order_by(*self.ordering)[:self.object_count]
+        context[self.context_object_name] = context[self.context_object_name].order_by(*self.ordering)[:self.page_size]
+        context['page_size'] = self.page_size
+        context['total_objects'] = self.get_queryset().count()
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -91,7 +94,7 @@ class HybridListView(ListView):
             elif end_date:
                 queryset = queryset.filter(created_on__lte=end_date)
             start = int(self.request.GET.get('start'))
-            length = int(self.request.GET.get('length'))
+            length = int(self.request.GET.get('length', self.page_size))
             limit = start + length
             queryset = self.get_search_results(queryset)
             queryset = queryset.order_by(*self.ajax_ordering)[start:limit]
@@ -113,6 +116,7 @@ class HybridListView(ListView):
         # TODO: Implement MongoDB native indexed text search instead of Django ORM one for better performance
         search_term = self.request.GET.get('q')
         if search_term and len(search_term) >= 2:
+            search_term = search_term.lower()
             for word in search_term.split(' '):
                 word = slugify(word)[:4]
                 if word:
@@ -197,6 +201,8 @@ class ServiceDetail(BaseView):
         else:
             now = datetime.now()
             service.next_invoice_on = service.expiry - timedelta(days=invoicing_config.gap)
+            if service.expiry < now:
+                service.expired = True
             if now > service.next_invoice_on:
                 days = get_billing_cycle_days_count(service.billing_cycle)
                 service.next_invoice_on = service.next_invoice_on + timedelta(days=days)
@@ -239,15 +245,6 @@ class Configuration(BaseView):
         context['billing_cycles'] = Service.BILLING_CYCLES_CHOICES
         return context
 
-    # def get(self, request, *args, **kwargs):
-    #     if request.user.is_authenticated():
-    #         next_url = request.REQUEST.get('next')
-    #         if next_url:
-    #             return HttpResponseRedirect(next_url)
-    #         next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', 'ikwen:console')
-    #         return HttpResponseRedirect(reverse(next_url_view))
-    #     return render(request, self.template_name, {'service': get_service_instance()})
-
     @method_decorator(sensitive_post_parameters())
     @method_decorator(csrf_protect)
     def post(self, request, *args, **kwargs):
@@ -256,12 +253,14 @@ class Configuration(BaseView):
         ModelForm = config_admin.get_form(request)
         form = ModelForm(request.POST, instance=service.config)
         if form.is_valid():
+            form.cleaned_data['company_name_slug'] = slugify(form.cleaned_data['company_name'])
             form.save()
+            cache.delete(service.id + ':config:')
+            cache.delete(service.id + ':config:default')
+            cache.delete(service.id + ':config:' + UMBRELLA)
             service.config.save(using=UMBRELLA)
-            cache.delete(service.config.id + ':')
-            cache.delete(service.config.id + ':default')
-            cache.delete(service.config.id + ':' + UMBRELLA)
             next_url = reverse('ikwen:configuration') + '?success=yes'
+            next_url = append_auth_tokens(next_url, request)
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)
@@ -301,42 +300,54 @@ class Console(BaseView):
 
     def get_context_data(self, **kwargs):
         context = super(Console, self).get_context_data(**kwargs)
-        member = Member.objects.using(UMBRELLA).get(pk=self.request.user.id)
+        member = self.request.user
         context['member'] = member
         context['profile_name'] = member.full_name
         context['profile_photo_url'] = member.photo.small_url if member.photo.name else ''
         context['profile_cover_url'] = member.cover_image.url if member.cover_image.name else ''
-        target = self.request.GET.get('target', ConsoleEvent.BUSINESS)
+        target = ConsoleEventType.PERSONAL if len(self.request.user.collaborates_on) == 0\
+            else self.request.GET.get('target', ConsoleEventType.BUSINESS)
+
         events = {}
-        for service in member.collaborates_on:
-            service_events = {}
-            for type in ConsoleEventType.objects.using(UMBRELLA).filter(app=service.app):
-                pending = list(ConsoleEvent.objects.using(UMBRELLA)
-                               .filter(target=target, event_type=type, member=member, service=service, status=ConsoleEvent.PENDING)
-                               .order_by('-id')[:4])
-                event_types = {}
-                if len(pending) > 0:
-                    event_types['pending'] = pending
-                if len(pending) < 4:
-                    c = 4 - len(pending)
-                    others = list(ConsoleEvent.objects.using(UMBRELLA)
-                                  .filter(target=target, event_type=type, member=member, service=service)
-                                  .exclude(status=ConsoleEvent.PENDING).order_by('-id')[:c])
-                    if len(others) > 0:
-                        event_types['others'] = others
-                if event_types:
-                    service_events[type] = event_types
-            if service_events:
+        for service in list(set(member.collaborates_on) | set(member.customer_on)):
+            service_events = []
+            type_service_request = ConsoleEventType.objects.get(codename=SERVICE_REQUEST_EVENT)
+            type_access_request = ConsoleEventType.objects.get(codename=COLLABORATION_REQUEST_EVENT)
+            if target == ConsoleEventType.BUSINESS:
+                service_request_items = list(ConsoleEvent.objects
+                                             .filter(event_type=type_service_request, member=member, service=service).order_by('-id'))
+                if len(service_request_items) > 0:
+                    service_events.append(service_request_items)
+                access_request_items = list(ConsoleEvent.objects
+                                            .filter(event_type=type_access_request, member=member, service=service).order_by('-id'))
+                if len(access_request_items) > 0:
+                    service_events.append(access_request_items)
+            event_types = list(ConsoleEventType.objects.filter(target=target, app=service.app)
+                               .exclude(codename__in=[SERVICE_REQUEST_EVENT, COLLABORATION_REQUEST_EVENT]))
+            other = list(ConsoleEvent.objects
+                         .filter(event_type__in=event_types, member=member, service=service).order_by('-id')[:4])
+
+            if len(other) > 0:
+                service_events.append([other[0]])
+                if len(other) > 1:
+                    for item in other[1:]:
+                        if service_events[-1][-1].event_type == item.event_type:
+                            service_events[-1].append(item)
+                        else:
+                            service_events.append([item])
+            if len(service_events) > 0:
                 events[service] = service_events
         context['events'] = events
-        context['is_console'] = True
+        context['is_console'] = True  # console.html extends profile.html, so this helps differentiates in templates
         return context
 
 
 @login_required
 def reset_notices_counter(request, *args, **kwargs):
-    target = request.GET['target']
-    if target == ConsoleEvent.BUSINESS:
+    target = ConsoleEventType.PERSONAL if len(request.user.collaborates_on) == 0 else request.GET['target']
+    if target == '':
+        target = ConsoleEventType.BUSINESS
+    if target == ConsoleEventType.BUSINESS:
         request.user.business_notices = 0
     else:
         request.user.personal_notices = 0
@@ -354,7 +365,7 @@ class DefaultDashboard(BaseView):
 
 
 def list_projects(request, *args, **kwargs):
-    q = request.GET['q']
+    q = request.GET['q'].lower()
     if len(q) < 2:
         return
 

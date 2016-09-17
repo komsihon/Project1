@@ -1,0 +1,177 @@
+{% extends "core/app_base_admin.html" %}
+{% load i18n humanize staticfiles auth_tokens %}
+
+{% block page_title %}
+<title> {% trans "Customers" %} - ikwen </title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <style>
+        body > footer {display: none}
+        #admin-content {height: 100%; overflow: auto; position: fixed; width: 100%}
+        ul#tabs {clear: both; margin-top: 45px}
+        ul#tabs li.results a {color: #333}
+        ul#tabs li.results span {color: #888}
+        .tab-content .spinner {background: rgba(255, 255, 255, .6); height: 100%; margin-left: -255px; position: fixed; width: 100%}
+        ul.people {padding-left: 0}
+        #customer-detail {background: #fff; height: 100%; margin-top: -115px; padding: 0 15px; position: fixed; right: 0; width: 330px}
+        #customer-detail .stage {border-left: 1px solid #eee; float: left; height: 100%; padding: 0 15px; width: 100%}
+        #customer-detail form {margin: 25px 0}
+        #customer-detail form button {margin-top: 25px}
+        .member.Blocked  {opacity: .72; filter:Alpha(opacity=72)}
+    </style>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>{% trans "Customers" %}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="container-fluid">
+        {% include 'core/snippets/admin_tools.html' %}
+        <ul id="tabs" class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="all" data-id="all" style="visibility: hidden">
+                <a href="#all" aria-controls="all" role="tab" data-toggle="tab">All</a>
+            </li>
+            <li role="presentation" class="results" data-id="results" style="display: none">
+                <a href="#results" aria-controls="results" role="tab" data-toggle="tab">{% trans "Search: " %} <span></span></a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="all">
+                {% include 'core/snippets/spinner.html' %}
+                <ul class="people object-list">
+                {% for customer in customer_list %}
+                    <li class="member {{ customer.get_status }}" data-id="{{ customer.id }}" data-status="{{ customer.get_status }}">
+                        {% url 'ikwen:profile' customer.id as member_url %}
+                    {% if customer.photo and customer.photo.name %}
+                        <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({{ customer.photo.small_url }})"></a>
+                    {% else %}
+                        <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
+                    {% endif %}
+                        <div style="float: left; margin-left: 30px">
+                            <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="full_name">{{ customer.full_name }}</a>
+                            <p class="about">{{ customer.phone }}, {{ customer.email }}</p>
+                        </div>
+                    </li>
+                {% endfor %}
+                    <li class="member tpl" style="display: none">
+                        <a class="photo bg-img target_url"></a>
+                        <div style="float: left; margin-left: 30px">
+                            <a class="full_name target_url"></a>
+                            <p class="about">
+                                <span class="phone"></span>, <span class="email"></span>
+                            </p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="results">
+                {% include 'core/snippets/spinner.html' %}
+                <div class="empty" style="color: #888; font-size: 18px; padding: 30px 0">{% trans "No result" %}</div>
+                <ul class="people">
+                    <li class="member tpl" style="display: none">
+                        <a class="photo bg-img target_url"></a>
+                        <div style="float: left; margin-left: 30px">
+                            <a class="full_name target_url"></a>
+                            <p class="about">
+                                <span class="phone"></span>, <span class="email"></span>
+                            </p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="customer-detail">
+            <div class="stage">
+                <div class="empty" style="color: #888; padding-top: 30px">
+                    {% trans "Click on a customer in the list to view information." %}
+                </div>
+                <div class="actions" style="display: none">
+                    <div class="info">
+                        <h3 style="margin-bottom: 30px">{% trans "Customer details" %}</h3>
+                        {% include 'core/snippets/spinner.html' %}
+                        <div class="content"></div>
+                    </div>
+                    <div id="blocking" style="margin-top: 45px">
+                        <h5>{% trans "Block/Activate" %}</h5>
+                        <button class="btn btn-danger btn-sm btn-block">{% trans "Block" %}</button>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    {% include 'core/snippets/pagination_js.html' %}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .customers').addClass('active');
+            $('ul#tabs').on('click', 'li', function (e) {
+                var tabId = $(this).data('id'),
+                    count = $('div#' + tabId + ' li.member:not(.tpl)').length;
+                $('div.tab-pane').removeClass('active').hide();
+                $('div#' + tabId).addClass('active').show();
+                if (count > 0) {
+                    $('div#' + tabId + ' li.member.active').click();
+                    return;
+                }
+                $('div#customer-detail .empty').show();
+                $('div#customer-detail .actions').hide();
+            });
+            $('body').on('click', 'li.member', function() {
+                var memberId = $(this).data('id'),
+                    status = $(this).data('status');
+                $('div#customer-detail button').data({"id": memberId, "status": status});
+                $('ul li.member').removeClass('active');
+                $(this).addClass('active');
+                $('div#customer-detail .info .spinner').show();
+                $('div#customer-detail .info .content').load('{% url 'ikwen:load_customer_detail' %}?member_id=' + memberId, null, function() {
+                    $('div#customer-detail .info .spinner').hide();
+                });
+                $('div#customer-detail .empty').hide();
+                if (status == 'Blocked') {
+                    $('div#blocking button').text("{% trans 'Activate' %}");
+                } else {
+                    $('div#blocking button').text("{% trans 'Block' %}");
+                }
+                $('div#customer-detail .actions').show();
+            });
+            $('div#blocking button').click(function() {
+                var memberId = $(this).data('id'),
+                    status = $(this).data('status');
+                $.getJSON('{% url 'ikwen:toggle_member' %}', {member_id: memberId}, function(data) {
+                    if (data.success) {
+                        if (status == 'Blocked')  {
+                            $('.member.active').removeClass('Blocked');
+                            $('div#blocking button').text("{% trans 'Block' %}").data('status', 'Active');
+                        } else  {
+                            $('.member.active').addClass('Blocked');
+                            $('div#blocking button').text("{% trans 'Activate' %}").data('status', 'Blocked');
+                        }
+                        ikwen.showFloatingNotice("{% trans "Customer status successfully changed." %}", '', 6)
+                    }
+                });
+            });
+            var searchDescriptor = [{
+                endpoint: '{% url 'ikwen:customer_list' as customer_list_url %}',
+                resultTplSelector: '#results li.member'
+            }];
+            function beforeSearch() {
+                var q = $('form#context-search input').val();
+                $('ul#tabs li.all').css('visibility', 'visible');
+                $('ul#tabs li').removeClass('active');
+                $('ul#tabs li.results').show().addClass('active').find('span').text(q);
+                $('div.tab-pane').hide();
+                $('#results').show();
+                $('div#customer-detail .empty').show();
+                $('div#customer-detail .actions').hide();
+            }
+            ikwen.setupSearch('#context-search input', '#results', searchDescriptor, beforeSearch);
+        })()
+    </script>
+{% endblock %}

@@ -3,10 +3,24 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from ikwen.foundation.core.fields import MultiImageField
 
 from ikwen.foundation.accesscontrol.models import Member
 from ikwen.foundation.core.models import Model, Service
 from ikwen.foundation.core.utils import add_database_to_settings
+
+# Business events aimed and the Billing IAO
+INVOICES_SENT_EVENT = 'InvoicesSentEvent'
+REMINDERS_SENT_EVENT = 'RemindersSentEvent'
+OVERDUE_NOTICES_SENT_EVENT = 'OverdueNoticesSentEvent'
+SUSPENSION_NOTICES_SENT_EVENT = 'SuspensionNoticesSentEvent'
+
+# Personal events aimed at the Billing IAO Customer
+SUBSCRIPTION_EVENT = 'SubscriptionEvent'  # Member newly subscribed to a Service. Rendered by accesscontrol.views.render_access_granted_event
+NEW_INVOICE_EVENT = 'NewInvoiceEvent'
+INVOICE_REMINDER_EVENT = 'InvoiceReminderEvent'
+OVERDUE_NOTICE_EVENT = 'OverdueNoticeEvent'
+SERVICE_SUSPENDED_EVENT = 'ServiceSuspendedEvent'
 
 
 class InvoicingConfig(models.Model):
@@ -67,8 +81,41 @@ class InvoicingConfig(models.Model):
 
     @staticmethod
     def get_default_tolerance():
-        config = InvoicingConfig.objects.all()[0]
-        return config.tolerance
+        try:
+            from ikwen.foundation.billing.utils import get_invoicing_config_instance
+            invoicing_config = get_invoicing_config_instance()
+            return invoicing_config.tolerance
+        except:
+            return 1
+
+
+class Product(Model):
+    """
+    Any product a customer may subscribe to
+    """
+    IMAGE_UPLOAD_TO = 'ikwen/billing/product_images'
+    name = models.CharField(max_length=100, unique=True, db_index=True,
+                            help_text="Name of the product as advertised to the customer.")
+    short_description = models.CharField(max_length=45, blank=True,
+                                         help_text=_("Short description understandable by the customer."))
+    monthly_cost = models.FloatField(help_text=_("How much the client must pay per month for this product. "
+                                                 "You may override it when subscribing a customer.<br>"
+                                                 "<strong>WARNING:</strong> Modifying this will not affect previously "
+                                                 "created subscriptions. You must change that individually if you want "
+                                                 "your update to take effect on already created subscriptions."))
+    image = MultiImageField(upload_to=IMAGE_UPLOAD_TO, blank=True, null=True)
+    details = models.TextField(blank=True,
+                               help_text=_("Detailed description of the product."))
+
+    def __unicode__(self):
+        from ikwen.foundation.billing.utils import get_invoicing_config_instance
+        invoicing_config = get_invoicing_config_instance()
+        return u'%s: %s %.2f/month' % (self.name, invoicing_config.currency, self.monthly_cost)
+
+    def get_details(self):
+        if not self.details:
+            return 'N/A'
+        return self.details
 
 
 class AbstractSubscription(Model):
@@ -85,9 +132,10 @@ class AbstractSubscription(Model):
         (CANCELED, _('Canceled')),
         (ACTIVE, _('Active'))
     )
-    member = models.ForeignKey(Member, related_name='+', related_query_name='subscription',
+    member = models.ForeignKey(Member, related_name='+',
                                help_text=_("Client who subscribes to the service."))
-    monthly_cost = models.IntegerField(help_text=_("How much the client must pay per month for the service."))
+    product = models.ForeignKey(getattr(settings, 'BILLING_PRODUCT_MODEL', 'billing.Product'))
+    monthly_cost = models.FloatField(help_text=_("How much the client must pay per month for the service."))
     billing_cycle = models.CharField(max_length=30, choices=Service.BILLING_CYCLES_CHOICES, blank=True,
                                      help_text=_("The interval after which invoice are sent to client."))
     details = models.TextField(blank=True,
@@ -114,7 +162,9 @@ class Subscription(AbstractSubscription):
     """
 
     def __unicode__(self):
-        return u'%s' % str(self.member)
+        from ikwen.foundation.billing.utils import get_invoicing_config_instance
+        invoicing_config = get_invoicing_config_instance()
+        return u'%s: %s %.2f/month' % (self.member.full_name, invoicing_config.currency, self.monthly_cost)
 
 
 class AbstractInvoice(Model):
@@ -178,7 +228,6 @@ class Invoice(AbstractInvoice):
         Let's recall that we determine if we are on Ikwen website by testing that there is no DATABASE connection
         named 'foundation', since 'foundation' is the 'default' database there.
         """
-        from ikwen.foundation.accesscontrol.backends import UMBRELLA
         using = 'default'
         if kwargs.get('using'):
             using = kwargs['using']
@@ -189,6 +238,15 @@ class Invoice(AbstractInvoice):
                 add_database_to_settings(self.subscription.database)
                 super(Invoice, self).save(using=self.subscription.database, *args, **kwargs)
         super(Invoice, self).save(using=using, *args, **kwargs)
+
+
+class SendingReport(Model):
+    """
+    Report information about a sending performed
+    by a billing cron task.
+    """
+    count = models.IntegerField()
+    total_amount = models.FloatField()
 
 
 class AbstractPayment(Model):

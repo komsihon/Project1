@@ -15,7 +15,17 @@ ARCH_EMAIL = 'arch@ikwen.com'
 
 class LocalDataStoreBackend(NonrelPermissionBackend):
     def authenticate(self, username=None, password=None, **kwargs):
-        if getattr(settings, 'DATABASES').get(UMBRELLA):
+        uid = kwargs.get('uid')
+        if uid:
+            try:
+                user = Member.objects.using('default').get(pk=uid)
+            except Member.DoesNotExist:
+                try:
+                    user = Member.objects.using(UMBRELLA).get(pk=uid)
+                    username = user.username
+                except Member.DoesNotExist:
+                    return None
+        else:
             try:
                 user = Member.objects.using(UMBRELLA).get(username=username)
                 if not user.check_password(password):
@@ -30,11 +40,11 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                         return None
                 except Member.DoesNotExist:
                     return None
-            try:
-                Member.objects.using('default').get(username=username)
-            except Member.DoesNotExist:
-                user.save(using='default')  # Saves the user to the default application database if not exists there
-            return user
+        try:
+            Member.objects.using('default').get(username=username)
+        except Member.DoesNotExist:
+            user.save(using='default')  # Saves the user to the default application database if not exists there
+        return user
 
     def get_user(self, user_id):
         try:

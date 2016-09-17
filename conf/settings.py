@@ -57,6 +57,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'ikwen.foundation.accesscontrol.middleware.XDomainTokenAuthMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -67,7 +68,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.static",
     "django.contrib.messages.context_processors.messages",
     'django.core.context_processors.request',
-    'ikwen.foundation.core.context_processors.base_urls',
+    'ikwen.foundation.core.context_processors.project_settings',
 )
 
 ROOT_URLCONF = 'ikwen.conf.urls'
@@ -117,15 +118,28 @@ AUTHENTICATION_BACKENDS = (
 # Typically the Service which the Member subscribed to
 BILLING_SUBSCRIPTION_MODEL = 'core.Service'
 BILLING_SUBSCRIPTION_MODEL_ADMIN = 'ikwen.foundation.core.admin.ServiceAdmin'
-
-HOTSPOT_APP_ID = '55eb6d04b37b3379b531e09c'
+SERVICE_SUSPENSION_ACTION = 'ikwen.foundation.billing.utils.suspend_subscription'
 
 IKWEN_SERVICE_ID = '57b702ca4fc0c2139660d9f8'
+
+# Function that renders customer detail in the Admin Panel.
+# Must return the HTML code that will be inserted above the Block/Activate button
+CUSTOMER_DETAIL_RENDERER = 'ikwen.foundation.accesscontrol.views.render_customer_detail'
 
 LOGIN_URL = 'ikwen:sign_in'
 LOGIN_REDIRECT_URL = 'home'
 
 PROJECT_URL = 'http://localhost' if DEBUG else 'http://www.ikwen.com'
+
+IKWEN_BASE_URL = 'http://localhost'  # Used only for dev purposes (DEBUG = False)
+
+WSGI_SCRIPT_ALIAS = 'ikwen'  # Used only for dev purposes (DEBUG = False)
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'ksihon'
+EMAIL_HOST_PASSWORD = 'sendgr1d'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
 LOGOUT_REDIRECT_URL = 'home'
 
@@ -144,7 +158,7 @@ USE_TZ = False
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR,  'media')
+MEDIA_ROOT = '/home/komsihon/Dropbox/PycharmProjects/ikwen/media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.

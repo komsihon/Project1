@@ -8,8 +8,10 @@ from django.utils.unittest import TestCase
 from django.test.client import Client
 
 # Override BILLING_SUBSCRIPTION_MODEL before ikwen.foundation.billing.models is loaded
-from ikwen.foundation.billing.crons import send_invoices, send_invoices_reminders, send_invoice_overdue_notices, \
-    shutdown_customers_services
+from ikwen.foundation.accesscontrol.backends import UMBRELLA
+
+from ikwen.foundation.billing.crons import send_invoices, send_invoice_reminders, send_invoice_overdue_notices, \
+    suspend_customers_services
 
 setattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
 
@@ -29,10 +31,12 @@ class BillingUtilsTest(TestCase):
     Thus, self.client is not automatically created and fixtures not automatically loaded. This
     will be achieved manually by a custom implementation of setUp()
     """
-    fixtures = ['configs.yaml', 'billing_members.yaml', 'subscriptions.yaml', 'invoices.yaml']
+    fixtures = ['ik_billing_setup_data.yaml', 'configs.yaml', 'billing_members.yaml', 'subscriptions.yaml', 'invoices.yaml']
 
     def setUp(self):
         self.client = Client()
+        call_command('loaddata', 'ik_billing_setup_data.yaml', database=UMBRELLA)
+        call_command('loaddata', 'billing_members.yaml', database=UMBRELLA)
         for fixture in self.fixtures:
             call_command('loaddata', fixture)
 
@@ -59,7 +63,7 @@ class BillingUtilsTest(TestCase):
         due_date = datetime.now() + timedelta(days=10)
         last_reminder = datetime.now() - timedelta(days=invoicing_config.reminder_delay)
         Invoice.objects.all().update(due_date=due_date, last_reminder=last_reminder)
-        send_invoices_reminders()
+        send_invoice_reminders()
         sent = Invoice.objects.filter(reminders_sent=2).count()
         self.assertEqual(sent, 3)
 
@@ -83,6 +87,6 @@ class BillingUtilsTest(TestCase):
         invoicing_config = InvoicingConfig.objects.all()[0]
         due_date = datetime.now() - timedelta(days=invoicing_config.tolerance + 3)
         Invoice.objects.all().update(due_date=due_date)
-        shutdown_customers_services()
+        suspend_customers_services()
         sent = Invoice.objects.filter(status=Invoice.EXCEEDED).count()
         self.assertEqual(sent, 3)

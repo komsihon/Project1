@@ -1,10 +1,8 @@
 {% extends "core/app_base_admin.html" %}
-{% load i18n %}
-{% load humanize %}
-{% load staticfiles %}
+{% load i18n humanize staticfiles auth_tokens %}
 
 {% block page_title %}
-<title> Collaborators -  ikwen </title>
+<title> {% trans "Collaborators" %} -  ikwen </title>
 {% endblock %}
 
 {% block head_style %}
@@ -33,9 +31,7 @@
 
 {% block admin_content %}
     <div id="admin-content" class="container-fluid">
-        <form id="context-search" onsubmit="return false">
-            <input type="text" class="form-input input-sm" placeholder="{% trans "Search collaborator" %}"/>
-        </form>
+        {% include 'core/snippets/admin_tools.html' %}
         <ul id="groups" class="nav nav-tabs" role="tablist">
             {% for group in groups %}
                 <li role="presentation" class="group {{ group.name }} active" data-id="{{ group.id }}" data-name="{{ group.name }}">
@@ -52,26 +48,29 @@
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="{{ groups.0.id }}">
                 {% include 'core/snippets/spinner.html' %}
-                <ul class="people">
+                <ul class="people object-list">
                 {% for obj in nonrel_perm_list %}
-                    <li class="member {{ obj.user.get_status }}" data-id="{{ obj.user.id }}" data-status="{{ obj.user.get_status }}"
+                    <li id="{{ obj.user.id }}" class="member {{ obj.user.get_status }}" data-id="{{ obj.user.id }}" data-status="{{ obj.user.get_status }}"
                         data-permissions="{% for perm in obj.permission_fk_list %},{{ perm }}{% endfor %}">
+                        {% url 'ikwen:profile' obj.user.id as member_url %}
                     {% if obj.user.photo and obj.user.photo.name %}
-                        <a href="{% url 'ikwen:profile' obj.user.id %}" class="photo" style="background-image: url({{ obj.user.photo.small_url }})"></a>
+                        <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({{ obj.user.photo.small_url }})"></a>
                     {% else %}
-                        <a href="{% url 'ikwen:profile' obj.user.id %}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
+                        <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
                     {% endif %}
                         <div style="float: left; margin-left: 30px">
-                            <a href="{% url 'ikwen:profile' obj.user.id %}" class="full_name">{{ obj.user.full_name }}</a>
+                            <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="full_name">{{ obj.user.full_name }}</a>
                             <p class="about">{{ obj.user.phone }}, {{ obj.user.email }}</p>
                         </div>
                     </li>
                 {% endfor %}
                     <li class="member tpl" style="display: none">
-                        <a class="photo"></a>
+                        <a class="photo bg-img target_url"></a>
                         <div style="float: left; margin-left: 30px">
-                            <a class="full_name"></a>
-                            <p class="about"></p>
+                            <a class="full_name target_url"></a>
+                            <p class="about">
+                                <span class="phone"></span>, <span class="email"></span>
+                            </p>
                         </div>
                     </li>
                 </ul>
@@ -107,9 +106,9 @@
                     <div class="empty" style="color: #888; font-size: 18px; padding: 30px 0">{% trans "No result" %}</div>
                     <ul class="people">
                         <li class="member tpl" style="display: none">
-                            <a class="photo bg-img"></a>
+                            <a class="photo bg-img target_url"></a>
                             <div style="float: left; margin-left: 30px">
-                                <a class="full_name"></a>
+                                <a class="full_name target_url"></a>
                                 <p class="about">
                                     <span class="phone"></span>, <span class="email"></span>
                                 </p>
@@ -126,7 +125,7 @@
                 </div>
                 <div class="actions" style="display: none">
                     <div id="permissions">
-                        <h4>{% trans "Permissions" %}</h4>
+                        <h3>{% trans "Permissions" %}</h3>
                         <form name="permissions" onsubmit="return false">
                             {% for perm in permissions %}
                                 <div class="form-group">
@@ -137,7 +136,7 @@
                                     </div>
                                 </div>
                             {% endfor %}
-                            <button class="btn btn-primary btn-sm btn-block">{% trans "Confirm" %}</button>
+                            <button id="set-permissions" class="btn btn-primary btn-sm btn-block">{% trans "Confirm" %}</button>
                         </form>
                     </div>
     {#                {% if groups|length > 1 %}#}
@@ -191,6 +190,7 @@
                         {group_name: groupName, start: 0, length: 100, format: 'json'}, function(data) {
                     $('body').css('cursor', 'default');
                     $('div#' + groupId + ' li.member:not(.tpl)').remove();
+                    $('div#page-navigation div').text(data.length + '/' + data.length);
                     for(var i=0; i<data.length; i++) {
                         var member = data[i],
                             $tpl = $('li.member.tpl').clone().removeClass('tpl');
@@ -230,7 +230,7 @@
                 }
                 $('div#access-control .actions').show();
             });
-            $('div#access-control form button').click(function() {
+            $('button#set-permissions').click(function() {
                 var memberId = $(this).data('member-id'),
                     permissionIds = [];
                 $('div#access-control form input:checked').each(function() {
@@ -239,6 +239,7 @@
                 $.getJSON('{% url 'ikwen:set_collaborator_permissions' %}',
                         {permission_ids: permissionIds.join(','), member_id: memberId}, function(data) {
                     if (data.success) {
+                        $('#' + memberId).data('permissions', permissionIds.join(','));
                         ikwen.showFloatingNotice("{% trans 'Permissions successfully updated' %}", '', 6)
                     }
                 });

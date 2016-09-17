@@ -1,5 +1,4 @@
-{% load i18n %}
-{% load staticfiles %}
+{% load i18n staticfiles auth_tokens %}
 <!DOCTYPE html>
 <html lang="{{ lang }}">
     <head>
@@ -32,7 +31,7 @@
                 <div class="container-fluid">
                     {% block header_brand %}
                     <div class="navbar-header">
-                        <a class="navbar-brand" href="{{ base_urls.IKWEN }}"><strong>ikwen</strong></a>
+                        <a class="navbar-brand" href="{{ settings.PROJECT_URL|append_auth_tokens:request }}">{{ service.project_name }}</a>
                     </div>
                     {% endblock %}
                     <form class="search" action="">
@@ -55,21 +54,21 @@
                     <ul class="nav navbar-nav navbar-right">
                         {% if request.user.is_authenticated %}
                             <li>
-                                <a href="{% url 'ikwen:console' %}">
+                                <a href="{{ settings.IKWEN_CONSOLE_URL|append_auth_tokens:request }}">
                                     {% trans "Home" %}
                                     {% if request.user.get_notice_count > 0 %}<span class="label label-danger">{{ request.user.get_notice_count }}</span>{% endif %}
                                 </a>
                             </li>
                             {% if request.user.collaborates_on|length == 1 %}
                                 <li>
-                                    <a href="{{ request.user.collaborates_on.0.admin_url }}">{{ request.user.collaborates_on.0.project_name }}</a>
+                                    <a href="{{ request.user.collaborates_on.0.admin_url|append_auth_tokens:request }}">{{ request.user.collaborates_on.0.project_name }}</a>
                                 </li>
                             {% elif request.user.collaborates_on|length > 1 %}
                                 <li id="apps" class="dropdown">
                                     <a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Apps</a>
                                     <ul class="dropdown-menu" aria-labelledby="apps">
                                         {% for app in request.user.collaborates_on %}
-                                            <li><a href="{{ app.admin_url }}">{{ app.project_name }}</a> </li>
+                                            <li><a href="{{ app.admin_url|append_auth_tokens:request }}">{{ app.project_name }}</a> </li>
                                         {% endfor %}
                                     </ul>
                                 </li>
@@ -79,15 +78,18 @@
                                     <img src="{% static 'ikwen/img/user-icon.png' %}" />
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="user-menu">
-                                    <li style="padding: 3px 20px"> {{ request.user.first_name }} </li>
+                                    <li style="padding: 3px 20px"> {{ request.user.get_short_name }} </li>
                                     <li role="separator" class="divider"></li>
-                                    <li><a href="{% url "ikwen:account_setup" %}">{% trans "Account setup" %}</a> </li>
+                                    <li>{% url "ikwen:account_setup" as account_setup_url%}
+                                        <a href="{{ account_setup_url|ikwenize|append_auth_tokens:request }}">{% trans "Account setup" %}</a>
+                                    </li>
                                     <li><a href="{% url "ikwen:logout" %}">{% trans "Logout" %}</a> </li>
                                 </ul>
                             </li>
                         {% else %}
                             <li>
-                                <a href="{% url 'ikwen:sign_in' %}">Login</a>
+                                {% url 'ikwen:sign_in' as sign_in_url %}
+                                <a href="{{ sign_in_url|append_auth_tokens:request }}">Login</a>
                             </li>
                         {% endif %}
                     </ul>
@@ -97,8 +99,11 @@
         {% block content %}{% endblock %}
         {% block footer %}
             <footer style="color: #999; font-size: 12px; margin-top: 45px; text-align: center">
-                &copy; {{ year }} <a href="{{ base_urls.IKWEN }}">ikwen</a>. All rights reserved -
-                <a href="{% url 'ikwen:legal_mentions' %}" style="text-decoration: underline">{% trans "Legal mentions" %}</a>
+                &copy; {{ year }} <a href="{{ service.url|append_auth_tokens:request }}" style="color: #666; text-decoration: none"><strong>{{ config.company_name }}</strong></a>.
+                {% trans "All rights reserved." %}
+                {% if config.legal_mentions_url %}
+                - <a href="{{ config.legal_mentions_url }}" style="color: #666; text-decoration: none">{% trans "Legal mentions" %}</a>
+                {% endif %}
             </footer>
         {% endblock %}
         <script src="{% static 'ikwen/js/jquery-1.12.4.min.js' %}"></script>
@@ -107,6 +112,8 @@
         {% block js %}
             <script>
                 (function() {
+                    ikwen.URL_KEY = '{{ request.GET.key }}';
+                    ikwen.URL_RAND = '{{ request.GET.rand }}';
                     $('form#lang a').click(function() {
                         var lang = $(this).data('val');
                         $('form#lang input[name=language]').val(lang);

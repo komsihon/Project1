@@ -5,6 +5,7 @@
 
 
 import json
+from datetime import datetime, timedelta
 from urllib import unquote
 from urlparse import urlparse
 
@@ -92,3 +93,30 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
         response = self.client.get(reverse('ikwen:service_detail', args=('56eb6d04b37b3379b531b101', )))
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.context['service'])
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102',
+                       MIDDLEWARE_CLASSES=('ikwen.foundation.core.middleware.ServiceStatusCheckMiddleware',
+                                           'django.contrib.sessions.middleware.SessionMiddleware',
+                                           'django.contrib.auth.middleware.AuthenticationMiddleware',))
+    def test_ServiceExpiredMiddleware(self):
+        """
+        Whenever service is expired, an error 909 page is displayed if accessing
+        a public URL. Admin URLs are redirected to service detail where user
+        can then access his invoices and do the payment.
+        """
+        service = get_service_instance()
+        service.expiry = datetime.now() - timedelta(days=10)
+        service.save()
+        response = self.client.get(reverse('ikwen:sign_in'), follow=True)
+        final = response.redirect_chain[-1]
+        location = final[0].strip('/').split('/')[-1]
+        self.assertEqual(location, 'error909')
+        response = self.client.get(reverse('ikwen:register'), follow=True)
+        final = response.redirect_chain[-1]
+        location = final[0].strip('/').split('/')[-1]
+        self.assertEqual(location, 'error909')
+        self.client.login(username='member2', password='admin')
+        response = self.client.get(reverse('ikwen:configuration'), follow=True)
+        final = response.redirect_chain[-1]
+        location = final[0].strip('/').split('/')[-2]
+        self.assertEqual(location, 'serviceDetail')

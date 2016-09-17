@@ -1,0 +1,11 @@
+{% extends "core/app_base_admin.html" %}
+{% block page_title %}<title>{{ app_name }} - ikwen</title>{% endblock %}
+{% block breadcrumb_location %}
+    <li>{{ model_name }}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="container-fluid embed">
+        <iframe id="billing-stage" src="{{ iframe_url }}"></iframe>
+    </div>
+{% endblock %}

@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
 from django.core.cache import cache
+from django.core.urlresolvers import reverse
 from django.db import models, router
-from django.db.models.loading import get_model
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from django_mongodb_engine.contrib import MongoDBManager
-from djangotoolbox.fields import ListField
 
 from ikwen.foundation.core.utils import add_database_to_settings, to_dict, get_service_instance, get_config_model
 
 
 class Model(models.Model):
     created_on = models.DateTimeField(default=timezone.now)
-    updated_on = models.DateTimeField(default=timezone.now, auto_now_add=True)
+    updated_on = models.DateTimeField(default=timezone.now, auto_now=True)
 
     class Meta:
         abstract = True
@@ -56,6 +57,7 @@ class Application(Model):
 
     name = models.CharField(max_length=60, unique=True)
     slug = models.SlugField(unique=True)
+    version = models.CharField(max_length=30)
     logo = models.ImageField(upload_to=LOGOS_FOLDER, blank=True, null=True)
     url = models.URLField(max_length=150)
     description = models.CharField(max_length=150, blank=True)
@@ -73,7 +75,7 @@ class Service(models.Model):
     """
     An instance of an Ikwen :class:`Application` that a :class:`Member` is operating.
     """
-    objects = MongoDBManager()
+    LOGO_PLACEHOLDER = settings.STATIC_URL + 'ikwen/img/logo-placeholder.jpg'
     PENDING = 'Pending'
     SUSPENDED = 'Suspended'
     CANCELED = 'Canceled'
@@ -137,6 +139,8 @@ class Service(models.Model):
     since = models.DateTimeField(default=timezone.now)
     updated_on = models.DateTimeField(default=timezone.now, auto_now_add=True)
 
+    objects = MongoDBManager()
+
     class Meta:
         db_table = 'ikwen_service'
         unique_together = ('app', 'project_name', )
@@ -147,7 +151,7 @@ class Service(models.Model):
     def to_dict(self):
         var = to_dict(self)
         config = self.config
-        var['logo'] = config.logo.url
+        var['logo'] = config.logo.url if config.logo.name else Service.LOGO_PLACEHOLDER
         var['short_description'] = config.short_description
         return var
 
@@ -158,11 +162,11 @@ class Service(models.Model):
     def _get_config(self):
         config_model = get_config_model()
         db = router.db_for_read(self.__class__, instance=self)
-        config = cache.get(self.id + ':' + db)
+        config = cache.get(self.id + ':config:' + db)
         if config:
             return config
         config = config_model.objects.using(db).get(service=self)
-        cache.set(self.id + ':' + db, config)
+        cache.set(self.id + ':config:' + db, config)
         return config
     config = property(_get_config)
 
@@ -171,6 +175,10 @@ class Service(models.Model):
                "Running as: <em>%(project_name)s</em><br>" \
                "On: <em>%(url)s</em>" % {'app_name': self.app.name, 'project_name': self.project_name, 'url': self.url}
     details = property(_get_details)
+
+    def get_profile_url(self):
+        from ikwen.foundation.core.views import IKWEN_BASE_URL
+        return IKWEN_BASE_URL + reverse('ikwen:company_profile', args=(self.app.slug, self.project_name_slug))
 
     def save(self, *args, **kwargs):
         """
@@ -223,10 +231,10 @@ class AbstractConfig(Model):
     LOGO_UPLOAD_TO = 'ikwen/configs/logos'
     COVER_UPLOAD_TO = 'ikwen/configs/cover_images'
     service = models.OneToOneField(Service, editable=False, related_name='+')
-    company_name = models.CharField(max_length=30, verbose_name=_("Website / Company name"),
+    company_name = models.CharField(max_length=60, verbose_name=_("Website / Company name"),
                                     help_text=_("Website/Company name as you want it to appear in mails and pages."))
     company_name_slug = models.SlugField(db_index=True)
-    address = models.CharField(max_length=30, blank=True, verbose_name=_("Company address"),
+    address = models.CharField(max_length=150, blank=True, verbose_name=_("Company address"),
                                help_text=_("Website/Company name as you want it to appear in mails and pages."))
     country = models.ForeignKey('core.Country', blank=True, null=True, related_name='+',
                                 help_text=_("Country where HQ of the company are located."))
@@ -314,17 +322,21 @@ class ConsoleEventType(Model):
     :attr:`codename`
     :attr:`title`
     :attr:`title_mobile` Title to use on mobile devices.
+    :attr:`target` Whether to appear as BUSINESS or PERSONAL notice.
     :attr:`target_url_name` Name of the url to hit to view the list of objects that triggered
                             this event. It is typically used to create the *View all* link
     :attr:`renderer` dotted name of the function to call to render an event of this type the :attr:`member` Console.
     Write it under the dotted form 'package.module.function_name'. :attr:`renderer`
     is called as such: function_name(service, event_type, member, object_id, model)
     """
+    BUSINESS = 'Business'
+    PERSONAL = 'Personal'
     app = models.ForeignKey(Application)
     codename = models.CharField(max_length=150)
     title = models.CharField(max_length=150)
     title_mobile = models.CharField(max_length=100, blank=True)
-    target_url_name = models.CharField(max_length=100)
+    target = models.CharField(max_length=15)  # BUSINESS or PERSONAL
+    target_url_name = models.CharField(max_length=100, blank=True)
     renderer = models.CharField(max_length=255)
 
     objects = MongoDBManager()
@@ -336,47 +348,40 @@ class ConsoleEventType(Model):
             ('app', 'title'),
         )
 
+    def __unicode__(self):
+        return self.codename
+
+    def get_resp_title(self, request):
+        if request.user_agent.is_mobile and self.title_mobile:
+            return self.title_mobile
+        return self.title
+
 
 class ConsoleEvent(Model):
     """
     An event targeted to the Member console.
 
     :attr:`service` :class:`Service` from which event was fired. It helps retrieve Application and IA0.
-    :attr:`target` Whether it is a Business or Personal event.
     :attr:`member` :class:`Member` to which the event is aimed at.
     :attr:`event_type` :class:`ConsoleEventType` for this event.
     Events of the same type will be grouped under a same :attr:`ConsoleEventType.title`
 
-    :attr:`model` dotted path of the model under the form 'app_label.models.model_class_name'
     :attr:`object_id` id of the object involved in the :attr:`service` database
     """
-    BUSINESS = 'Business'
-    PERSONAL = 'Personal'
     PENDING = 'Pending'
     PROCESSED = 'Processed'
     service = models.ForeignKey(Service, related_name='+', default=get_service_instance, db_index=True)
     member = models.ForeignKey('accesscontrol.Member', db_index=True)
-    target = models.CharField(max_length=15)  # BUSINESS or PERSONAL
-    event_type = models.ForeignKey(ConsoleEventType)
-    model = models.CharField(max_length=100)
+    event_type = models.ForeignKey(ConsoleEventType, related_name='+')
+    model = models.CharField(max_length=100, blank=True, null=True)
     object_id = models.CharField(max_length=24, db_index=True)
-    status = models.CharField(max_length=15, default=PENDING)
 
     class Meta:
         db_table = 'ikwen_consoleevent'
 
     def render(self):
         renderer = import_by_path(self.event_type.renderer)
-        tk = self.model.split('.')
-        model = get_model(app_label=tk[0], model_name=tk[1])
-        if tk[1] == 'AccessRequest':
-            from ikwen.foundation.accesscontrol.backends import UMBRELLA
-            database = UMBRELLA
-        else:
-            database = self.service.database
-            add_database_to_settings(database)
-        the_object = model.objects.using(database).get(pk=self.object_id)
-        return renderer(the_object)
+        return renderer(self)
 
 
 class QueuedSMS(Model):
@@ -385,3 +390,20 @@ class QueuedSMS(Model):
 
     class Meta:
         db_table = 'ikwen_queuedsms'
+
+
+def delete_object_events(sender, **kwargs):
+    """
+    Receiver of the post_delete signal that also deletes any ConsoleEvent
+    targeting the recently deleted object. This to ensure that we do not
+    attempt to render an event which matching object was deleted and thus
+    causing an error on the Console.
+    """
+    if sender == ConsoleEvent:  # Avoid recursive call
+        return
+    instance = kwargs['instance']
+    from ikwen.foundation.accesscontrol.backends import UMBRELLA
+    ConsoleEvent.objects.using(UMBRELLA).filter(object_id=instance.pk).delete()
+
+
+post_delete.connect(delete_object_events, dispatch_uid="object_post_delete_id")

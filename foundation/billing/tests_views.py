@@ -11,6 +11,8 @@ from django.test.client import Client
 # Override BILLING_SUBSCRIPTION_MODEL before ikwen.foundation.billing.models is loaded
 setattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
 
+from ikwen.foundation.accesscontrol.backends import UMBRELLA
+
 from ikwen.foundation.billing.models import Invoice
 
 __author__ = "Kom Sihon"
@@ -24,15 +26,16 @@ def wipe_test_data():
     import ikwen.foundation.core.models
     import ikwen.foundation.billing.models
     import ikwen.foundation.accesscontrol.models
-    for name in ('Member',):
-        model = getattr(ikwen.foundation.accesscontrol.models, name)
-        model.objects.all().delete()
-    for name in ('Config', 'Service'):
-        model = getattr(ikwen.foundation.core.models, name)
-        model.objects.all().delete()
-    for name in ('Payment', 'Invoice', 'Subscription', 'InvoicingConfig'):
-        model = getattr(ikwen.foundation.billing.models, name)
-        model.objects.all().delete()
+    for alias in getattr(settings, 'DATABASES').keys():
+        for name in ('Member',):
+            model = getattr(ikwen.foundation.accesscontrol.models, name)
+            model.objects.using(alias).all().delete()
+        for name in ('Config', 'Service', 'ConsoleEvent', ):
+            model = getattr(ikwen.foundation.core.models, name)
+            model.objects.using(alias).all().delete()
+        for name in ('Product', 'Payment', 'Invoice', 'Subscription', 'InvoicingConfig'):
+            model = getattr(ikwen.foundation.billing.models, name)
+            model.objects.using(alias).all().delete()
 
 
 class BillingViewsTest(TestCase):
@@ -41,10 +44,12 @@ class BillingViewsTest(TestCase):
     Thus, self.client is not automatically created and fixtures not automatically loaded. This
     will be achieved manually by a custom implementation of setUp()
     """
-    fixtures = ['configs.yaml', 'billing_members.yaml', 'subscriptions.yaml', 'invoices.yaml']
+    fixtures = ['ik_billing_setup_data.yaml', 'configs.yaml', 'billing_members.yaml', 'subscriptions.yaml', 'invoices.yaml']
 
     def setUp(self):
         self.client = Client()
+        call_command('loaddata', 'ik_billing_setup_data.yaml', database=UMBRELLA)
+        call_command('loaddata', 'billing_members.yaml', database=UMBRELLA)
         for fixture in self.fixtures:
             call_command('loaddata', fixture)
 
@@ -54,11 +59,12 @@ class BillingViewsTest(TestCase):
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
     def test_InvoiceList(self):
         self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('billing:invoice_list'))
+        response = self.client.get(reverse('billing:invoice_list', args=('56eb6d04b37b3379c531e012', )))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['invoices']), 2)
 
-    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
+    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801',
+                       IS_IKWEN=True)
     def test_InvoiceDetail(self):
         invoice = Invoice.objects.all()[0]
         invoice.subscription.expiry = datetime.now() + timedelta(days=20)

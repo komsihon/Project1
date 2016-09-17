@@ -15,6 +15,7 @@
     amount: 5000
 
 - model: billing.invoice
+  pk: 56eb6d04b37b3379d531e013
   fields:
     subscription: 56eb6d04b37b3379c531e012
     number: A2

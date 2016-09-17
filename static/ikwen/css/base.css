@@ -10,6 +10,7 @@
 .success {background: #B6F1B6; border: 1px solid; color: #039B03}
 .failure {background: #FFB6C1; border: 1px solid; color:  #F00}
 .clear {clear: both}
+.text-muted {color: #888}
 .arrow {color: #bbb; margin: auto; width: 40px}
 .arrow div {float: left; height: 20px; width: 20px}
 .arrow.north div:first-child {border-right: 1px solid; transform: skewX(-30deg); transform-origin: 10px 0 0}
@@ -86,14 +87,22 @@ time {color: #888;float: right;clear: both;font-size: 11px;margin-top: -15px;pad
 #app-nav .breadcrumb {background: none;float: left;padding-top: 2px;}
 #app-nav .breadcrumb a {color: #fff}
 #app-nav + div#container {padding-top: 111px}
-#admin-content {margin-left: 270px;padding-top: 16px;min-height: 450px;}
-#context-search {float: left;margin-left: 300px;}
-#context-search input {border: 1px solid #ddd}
 
 #top-notice-ctnr {left: 0;position: fixed;text-align: center;top: 66px;width: 100%;z-index: 10000;}
 .floating-notice {background: #F6FF8C; border: 1px solid #CDD570; border-radius: 2px; color: #484B2B; padding: 9px 24px; position: absolute}
 .floating-notice.failure {border: 1px solid; color:  #F00}
 .floating-notice .action {cursor: pointer; text-decoration: underline}
+
+#admin-content {margin-left: 270px;padding-top: 16px;min-height: 450px;}
+#context-search {float: left}
+#context-search input {border: 1px solid #ddd}
+#page-navigation {float: right;margin-right: 600px;}
+#page-navigation > div {float: left}
+#page-navigation i {background: #eee;border: 2px solid #ddd;cursor: default;display: block;float: left;font-weight: 700;height: 30px;padding-top: 2px;text-align: center;width: 30px;}
+#page-navigation i:hover {background: #e6e6e6}
+#page-navigation i.finished, #page-navigation i.finished:hover {background: #f8f8f8}
+
+.page-navigation {clear: both; float: left}
 
 footer a {color: #999}
 footer {padding-bottom: 30px}

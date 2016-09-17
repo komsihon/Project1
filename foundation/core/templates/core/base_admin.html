@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load humanize %}
 {% load staticfiles %}
+{% load auth_tokens %}
 {% block head_style %}
     {{ block.super }}
     <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
@@ -12,30 +13,60 @@
     <div id="app-nav" class="container-fluid">
         <span class="app-name">{{ service.app.name }}</span>
         <ol class="breadcrumb">
-            <li><a href="{% url 'admin_home' %}">{{ service.project_name }}</a></li>
+            {% url 'admin_home' as admin_home_url %}
+            <li><a href="{{ admin_home_url|append_auth_tokens:request }}">{{ service.project_name }}</a></li>
             {% block breadcrumb_location %}{% endblock %}
         </ol>
     </div>
 {% endblock %}
 
+{% block header_brand %}
+<div class="navbar-header">
+    <a class="navbar-brand" href="{{ settings.IKWEN_BASE_URL|append_auth_tokens:request }}"><strong>ikwen</strong></a>
+</div>
+{% endblock %}
+
 {% block content %}
     <div id="container">
         <div id="admin-nav">
-            <button class="btn btn-default btn-sm btn-block">{% trans "New" %}</button>
-            <div class="divider"></div>
-            {% block app_admin_nav %}{% endblock %}
-            <div class="divider"></div>
-            <ul class="nav nav-pills nav-stacked">
-{#                <li role="presentation"><a href="{% url 'ikwen:collaborators' %}">{% trans "Pages" %}</a></li>#}
-                <li role="presentation" class="collaborators"><a href="{% url 'ikwen:collaborators' %}">{% trans "Collaborators" %}</a></li>
-            </ul>
-            <div class="divider"></div>
-            <ul class="nav nav-pills nav-stacked">
-                <li role="presentation" class="configuration"><a href="{% url 'ikwen:configuration' %}">{% trans "Configuration" %}</a></li>
-                <li role="presentation" class="invoices"><a href="{% url 'billing:invoice_list' service.id %}" target="_blank"> {% trans 'Invoices' %} </a></li>
-                <li role="presentation" class="service-info"><a href="{% url 'ikwen:service_detail' service.id %}">{% trans "Info & Billing" %}</a></li>
-            </ul>
+            <div style="padding: 20px 10px 130px">
+                <button class="btn btn-default btn-sm btn-block">{% trans "New" %}</button>
+                <div class="divider"></div>
+                {% block app_admin_nav %}{% endblock %}
+                <div class="divider"></div>
+                <ul class="nav nav-pills nav-stacked">
+    {#                <li role="presentation"><a href="{% url 'ikwen:collaborators' %}">{% trans "Pages" %}</a></li>#}
+                    <li role="presentation" class="collaborators">
+                        {% url 'ikwen:collaborators' as collaborators_url %}
+                        <a href="{{ collaborators_url|append_auth_tokens:request }}">{% trans "Collaborators" %}</a>
+                    </li>
+                </ul>
+                <div class="divider"></div>
+                <ul class="nav nav-pills nav-stacked">
+                    <li role="presentation" class="configuration">
+                        {% url 'ikwen:configuration' as configuration_url %}
+                        <a href="{{ configuration_url|append_auth_tokens:request }}">{% trans "Configuration" %}</a>
+                    </li>
+                    <li role="presentation" class="invoices">
+                        {% url 'billing:invoice_list' service.id as invoice_list_url %}
+                        <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}" target="_blank"> {% trans 'Invoices' %} </a>
+                    </li>
+                    <li role="presentation" class="service-info">
+                        {% url 'ikwen:service_detail' service.id as service_detail_url%}
+                        <a href="{{ service_detail_url|append_auth_tokens:request }}">{% trans "Info & Billing" %}</a>
+                    </li>
+                </ul>
+                <div class="clear"></div>
+            </div>
         </div>
         {% block admin_content %}{% endblock %}
+        <div class="clear"></div>
     </div>
+{% endblock %}
+
+{% block footer %}
+    <footer style="color: #999; font-size: 12px; margin-top: 45px; text-align: center">
+        &copy; {{ year }} <a href="{{ settings.IKWEN_BASE_URL|append_auth_tokens:request }}">{{ service.project_name }}</a>. {% trans "All rights reserved." %} -
+        <a href="{% url 'ikwen:legal_mentions' %}" style="text-decoration: underline">{% trans "Legal mentions" %}</a>
+    </footer>
 {% endblock %}

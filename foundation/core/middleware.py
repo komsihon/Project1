@@ -4,7 +4,12 @@ This module groups utility middlewares that Ikwen uses.
 """
 from datetime import datetime
 
+from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
+
+from ikwen.foundation.core.urls import SERVICE_DETAIL, REGISTER, SIGN_IN, SERVICE_EXPIRED
 
 from ikwen.foundation.accesscontrol.backends import UMBRELLA
 from ikwen.foundation.core.models import Service
@@ -18,12 +23,21 @@ class ServiceStatusCheckMiddleware(object):
     Service's status is set to Active.
 
     If those conditions are not met, user is shown an "error" page at an url
-    which template is ikwen/service_expired.html
+    which template is core/service_expired.html
     """
 
-    def process_request(self, request):
+    def process_view(self, request, view_func, view_args, view_kwargs):
         service = get_service_instance(using=UMBRELLA)
-        now = datetime.now()
         if service.expiry:
+            now = datetime.now()
             if now >= service.expiry or service.status != Service.ACTIVE:
-                return render(request, 'core/service_expired.html')
+                rm = request.resolver_match
+                if rm.namespace == 'ikwen':
+                    if rm.url_name == SERVICE_EXPIRED or rm.url_name == SERVICE_DETAIL:
+                        return None
+                    if rm.url_name == REGISTER or rm.url_name == SIGN_IN:
+                        return HttpResponseRedirect(reverse('ikwen:' + SERVICE_EXPIRED))
+                    query_string = request.META['QUERY_STRING']
+                    service_detail_url = reverse('ikwen:' + SERVICE_DETAIL, args=(service.id, )) + '?' + query_string
+                    return HttpResponseRedirect(service_detail_url)
+                return HttpResponseRedirect(reverse('ikwen:' + SERVICE_EXPIRED))

@@ -47,7 +47,6 @@ def strip_datetime_fields(obj):
             obj.__dict__[key] = None
 
 
-
 def get_config_model():
     """
     Returns the Config model class for the current Service.
@@ -63,7 +62,6 @@ def get_service_instance(using='default'):
     Gets the Service currently running on this website in the Service
     local database or from foundation database.
     @param using: database alias to search in
-    @return:
     """
     from ikwen.foundation.core.models import Service
     service_id = getattr(settings, 'IKWEN_SERVICE_ID')
@@ -376,15 +374,14 @@ def set_counters(watch_object, *args, **kwargs):
     watch_object.save()
 
 
-def add_event(service, member, target, codename, model, object_id):
+def add_event(service, member, codename, object_id=None, model=None):
     """
-    Pushes an event to the ikwen Console.
+    Pushes an event to the ikwen Console and return the created ConsoleEvent object.
     :param service: Service targeted by this event
     :param member: Member to whom the event is aimed
     :param target: Target panel where to display the event. One of ConsoleEvent.BUSINESS or ConsoleEvent.PERSONAL
-    :param codename: string of your choice to identify the type of event
-    :param model: full dotted path to the model involved in the event. *Eg: ikwen.foundation.billing.Invoice*
     :param object_id: id of the model involved.
+    :param model: full dotted path to the model involved in the event. *Eg: ikwen.foundation.billing.Invoice*
     """
     from ikwen.foundation.accesscontrol.backends import UMBRELLA
     from ikwen.foundation.core.models import ConsoleEventType, ConsoleEvent, Service
@@ -393,9 +390,9 @@ def add_event(service, member, target, codename, model, object_id):
     service = Service.objects.using(UMBRELLA).get(pk=service.id)
     member = Member.objects.using(UMBRELLA).get(pk=member.id)
     event_type = ConsoleEventType.objects.using(UMBRELLA).get(app=service.app, codename=codename)
-    event = ConsoleEvent.objects.using(UMBRELLA).create(service=service, member=member, target=target,
+    event = ConsoleEvent.objects.using(UMBRELLA).create(service=service, member=member,
                                                         event_type=event_type, model=model, object_id=object_id)
-    if target == ConsoleEvent.BUSINESS:
+    if event_type.target == ConsoleEventType.BUSINESS:
         Member.objects.using(UMBRELLA).filter(pk=member.id).update(business_notices=F('business_notices')+1)
     else:
         Member.objects.using(UMBRELLA).filter(pk=member.id).update(personal_notices=F('personal_notices')+1)

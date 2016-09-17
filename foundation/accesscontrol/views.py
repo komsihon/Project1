@@ -2,7 +2,6 @@
 import json
 from threading import Thread
 
-from ajaxuploader.views import AjaxFileUploader
 from bson import ObjectId
 from django.conf import settings
 from django.contrib.auth import login, authenticate
@@ -16,30 +15,32 @@ from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.core.validators import validate_email
 from django.http.response import HttpResponseRedirect, HttpResponse, HttpResponseForbidden
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.template import Context
-from django.template.defaultfilters import urlencode
 from django.template.loader import get_template
 from django.utils.decorators import method_decorator
-from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode, urlunquote
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
+from ikwen.foundation.accesscontrol.templatetags.auth_tokens import append_auth_tokens
+
+from ikwen.foundation.accesscontrol.middleware import UID_B64, TOKEN, TOKEN_CHUNK
+
 from ikwen.foundation.accesscontrol.utils import is_collaborator
 
-from ikwen.foundation.accesscontrol.backends import UMBRELLA
-
-from ikwen.foundation.core.models import Service, Application, ConsoleEvent, ConsoleEventType
+from ikwen.foundation.core.models import Service, Application, ConsoleEvent
 from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_group
 
 from ikwen.foundation.accesscontrol.forms import MemberForm, PasswordResetForm, SetPasswordForm
 from ikwen.foundation.accesscontrol.models import Member, AccessRequest, COLLABORATION_REQUEST_EVENT, \
-    SERVICE_REQUEST_EVENT, SUDO, ACCESS_GRANTED_EVENT
+    SERVICE_REQUEST_EVENT, SUDO, ACCESS_GRANTED_EVENT, CUSTOMER_REGISTERED_EVENT
 from ikwen.foundation.core.utils import get_service_instance, get_mail_content, add_database_to_settings, add_event
-from ikwen.foundation.core.views import BaseView, HybridListView
+from ikwen.foundation.core.views import BaseView, HybridListView, IKWEN_BASE_URL
 
 
 def register(request, *args, **kwargs):
@@ -84,10 +85,21 @@ def register(request, *args, **kwargs):
             next_url = request.REQUEST.get('next')
             if next_url:
                 # Remove next_url from the original query_string
-                query_string = query_string.replace('next=%s' % urlencode(next_url), '').strip('&')
+                next_url = next_url.split('?')[0]
+                query_string = urlunquote(query_string).replace('next=%s' % next_url, '').strip('?').strip('&')
             else:
-                next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', 'ikwen:console')
+                if getattr(settings, 'IS_IKWEN', False):
+                    next_url_view = 'ikwen:console'
+                else:
+                    next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', 'ikwen:console')
                 next_url = reverse(next_url_view)
+
+            uid = urlsafe_base64_encode(force_bytes(member.pk))
+            token = member.password[-TOKEN_CHUNK:-1]
+            if query_string:
+                query_string += '&' + UID_B64 + '=' + uid + '&' + TOKEN + '=' + token
+            else:
+                query_string = UID_B64 + '=' + uid + '&' + TOKEN + '=' + token
             return HttpResponseRedirect(next_url + "?" + query_string)
         else:
             msg = _("You already created an Ikwen account with this username on %s. Use it to login." % member.entry_service.project_name)
@@ -106,8 +118,9 @@ class SignIn(BaseView):
             next_url = request.REQUEST.get('next')
             if next_url:
                 return HttpResponseRedirect(next_url)
-            next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', 'ikwen:console')
-            return HttpResponseRedirect(reverse(next_url_view))
+            next_url = reverse('ikwen:console')
+            next_url = append_auth_tokens(next_url, request)
+            return HttpResponseRedirect(next_url)
         return render(request, self.template_name, {'service': get_service_instance()})
 
     @method_decorator(sensitive_post_parameters())
@@ -122,23 +135,24 @@ class SignIn(BaseView):
             for path in events:
                 event = import_by_path(path)
                 event(request, *args, **kwargs)
+            uid = urlsafe_base64_encode(force_bytes(member.pk))
+            token = member.password[-TOKEN_CHUNK:-1]
             query_string = request.META.get('QUERY_STRING')
             next_url = request.REQUEST.get('next')
             if next_url:
                 # Remove next_url from the original query_string
-                query_string = query_string.replace('next=%s' % urlencode(next_url), '').strip('&')
+                next_url = next_url.split('?')[0]
+                query_string = urlunquote(query_string).replace('next=%s' % next_url, '').strip('?').strip('&')
             else:
-                next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL')
-                if next_url_view:
-                    next_url = reverse(next_url_view)
+                if not getattr(settings, 'IS_IKWEN', False) and member.is_iao:
+                    next_url = reverse('admin_home')
                 else:
-                    if member.is_iao:
-                        next_url = reverse('admin_home')
-                    else:
-                        next_url = reverse('ikwen:console')
+                    next_url = reverse('ikwen:console')
             if query_string:
-                return HttpResponseRedirect(next_url + "?" + query_string)
-            return HttpResponseRedirect(next_url)
+                query_string += '&' + UID_B64 + '=' + uid + '&' + TOKEN + '=' + token
+            else:
+                query_string = UID_B64 + '=' + uid + '&' + TOKEN + '=' + token
+            return HttpResponseRedirect(next_url + "?" + query_string)
         else:
             context = {'login_form': form}
             if form.errors:
@@ -175,8 +189,7 @@ class SetNewPassword(BaseView):
     """
     template_name = 'accesscontrol/set_new_password.html'
 
-    def get_member(self, uidb64, token):
-        assert uidb64 is not None and token is not None  # checked by URLconf
+    def get_member(self, uidb64):
         try:
             uid = urlsafe_base64_decode(uidb64)
             member = Member.objects.get(pk=uid)
@@ -186,7 +199,7 @@ class SetNewPassword(BaseView):
 
     def get(self, request, *args, **kwargs):
         uidb64, token = kwargs['uidb64'], kwargs['token']
-        member = self.get_member(uidb64, token)
+        member = self.get_member(uidb64)
         validlink = False
         if member is not None and default_token_generator.check_token(member, token):
             validlink = True
@@ -201,12 +214,12 @@ class SetNewPassword(BaseView):
     # Doesn't need csrf_protect since no-one can guess the URL
     @method_decorator(sensitive_post_parameters())
     @method_decorator(never_cache)
-    def post(self, request, uidb64, token, *args, **kwargs):
-        member = self.get_member(uidb64, token)
+    def post(self, request, uidb64, *args, **kwargs):
+        member = self.get_member(uidb64)
         form = SetPasswordForm(member, request.POST)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('ikwen:sign_in') + '?successPasswordReset=yes')
+            return HttpResponseRedirect(reverse('ikwen:sign_in') + '?successfulPasswordReset=yes')
 
 
 def send_welcome_email(member):
@@ -231,19 +244,11 @@ def send_welcome_email(member):
     sender = '%s <%s>' % (config.company_name, config.contact_email)
     msg = EmailMessage(subject, html_content, sender, [member.email])
     msg.content_subtype = "html"
-    msg.send()
+    Thread(target=lambda m: m.send(), args=(msg,)).start()
 
 
-@login_required
-def account_setup(request, template_name='accesscontrol/account.html', extra_context=None):
-    context = {}
-    if extra_context is not None:
-        # extra_context can be a dictionary or a callable that returns a dictionary
-        if type(extra_context).__name__ == 'function':
-            context.update(extra_context(request))
-        else:
-            context.update(extra_context)
-    return render(request, template_name, context)
+class AccountSetup(BaseView):
+    template_name='accesscontrol/account.html'
 
 
 @login_required
@@ -312,16 +317,12 @@ class Profile(BaseView):
     template_name = 'accesscontrol/profile.html'
 
     def get_context_data(self, **kwargs):
-        member_id = kwargs.get('member_id', None)
-        if member_id:
-            member = Member.objects.using(UMBRELLA).get(pk=member_id)
-        else:
-            member = self.request.user
-
+        member_id = kwargs['member_id']
+        member = get_object_or_404(Member, pk=member_id)
         context = super(Profile, self).get_context_data(**kwargs)
         if self.request.user.is_authenticated() and self.request.user.is_iao:
             rqs = []
-            for rq in AccessRequest.objects.using(UMBRELLA).filter(member=member, status=AccessRequest.PENDING):
+            for rq in AccessRequest.objects.filter(member=member, status=AccessRequest.PENDING):
                 if rq.service in self.request.user.collaborates_on:
                     add_database_to_settings(rq.service.database)
                     groups = Group.objects.using(rq.service.database).exclude(name=SUDO).order_by('name')
@@ -356,23 +357,29 @@ class CompanyProfile(BaseView):
         context['profile_city'] = config.city
         context['profile_photo_url'] = config.logo.url if config.logo.name else ''
         context['profile_cover_url'] = config.cover_image.url if config.cover_image.name else ''
-        try:
-            AccessRequest.objects.using(UMBRELLA).get(member=self.request.user, service=service,
-                                                      type=AccessRequest.COLLABORATION_REQUEST, status=AccessRequest.PENDING)
-            context['is_collabo'] = True
-        except:
-            is_collabo = is_collaborator(self.request.user, service)
-            context['is_collabo'] = is_collabo
-        try:
-            add_database_to_settings(service.database)
-            Member.objects.using(service.database)
-            context['is_customer'] = True
-        except Member.DoesNotExist:
+        if self.request.user.is_authenticated():
+            try:
+                AccessRequest.objects.get(member=self.request.user, service=service,
+                                          status=AccessRequest.PENDING)
+                context['is_collabo'] = True  # Causes the "Request Collaboration" button not to appear when there's a pending Access Request
+                context['is_customer'] = True  # Causes the "Request Service" button not to appear when there's a pending Access Request
+            except AccessRequest.DoesNotExist:
+                context['is_collabo'] = is_collaborator(self.request.user, service)
+                try:
+                    add_database_to_settings(service.database)
+                    Member.objects.using(service.database).get(pk=self.request.user.id)
+                    context['is_customer'] = True
+                except Member.DoesNotExist:
+                    context['is_customer'] = False
+        else:
+            context['is_collabo'] = False
             context['is_customer'] = False
         return context
 
 
 class Collaborators(HybridListView):
+    MAX = 50
+    page_size = 50
     template_name = 'accesscontrol/collabos.html'
     context_object_name = 'nonrel_perm_list'
     ordering = ('-id', )
@@ -394,9 +401,35 @@ class Collaborators(HybridListView):
         return context
 
 
+class CustomerList(HybridListView):
+    template_name = 'accesscontrol/customer_list.html'
+    context_object_name = 'customer_list'
+    model = Member
+    search_field = 'full_name'
+    ordering = ('-id', )
+    ajax_ordering = ('-id', )
+    page_size = 2
+
+
+@permission_required('accesscontrol.ik_manage_customer')
+def load_customer_detail(request, *args, **kwargs):
+    member_id = request.GET['member_id']
+    member = Member.objects.get(pk=member_id)
+    path = getattr(settings, 'CUSTOMER_DETAIL_RENDERER', 'ikwen.foundation.accesscontrol.views.render_customer_detail')
+    fn = import_by_path(path)
+    content = fn(member)
+    return HttpResponse(content)
+
+
+def render_customer_detail(member):
+    html_template = get_template('accesscontrol/snippets/customer_detail.html')
+    c = Context({'member': member})
+    return html_template.render(c)
+
+
 @permission_required('accesscontrol.sudo')
 def list_collaborators(request, *args, **kwargs):
-    q = request.GET['q']
+    q = request.GET['q'].lower()
     if len(q) < 2:
         return
     q = q[:4]
@@ -407,36 +440,74 @@ def list_collaborators(request, *args, **kwargs):
     return HttpResponse(json.dumps(members), content_type='application/json')
 
 
+class AccessRequestList(BaseView):
+    template_name = 'accesscontrol/access_request_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(AccessRequestList, self).get_context_data(**kwargs)
+        rqs = []
+        services = self.request.user.collaborates_on
+        for rq in AccessRequest.objects.filter(service__in=services, status=AccessRequest.PENDING,
+                                               type=AccessRequest.COLLABORATION_REQUEST):
+            if rq.service in self.request.user.collaborates_on:
+                add_database_to_settings(rq.service.database)
+                groups = Group.objects.using(rq.service.database).exclude(name=SUDO).order_by('name')
+                rqs.append({'rq': rq, 'groups': groups})
+        context['access_requests'] = rqs
+        return context
+
+
+class ServiceRequestList(AccessRequestList):
+    def get_context_data(self, **kwargs):
+        context = super(ServiceRequestList, self).get_context_data(**kwargs)
+        rqs = []
+        services = self.request.user.collaborates_on
+        for rq in AccessRequest.objects.filter(service__in=services, status=AccessRequest.PENDING,
+                                               type=AccessRequest.SERVICE_REQUEST):
+            rqs.append({'rq': rq})
+        context['access_requests'] = rqs
+        return context
+
+
 @login_required  # The user must be logged in to ikwen and not his own service, this view runs on ikwen
 def request_access(request, *args, **kwargs):
     service_id = request.GET['service_id']
     access_type = request.GET['access_type']
     format = request.GET.get('format')
-    service = Service.objects.using(UMBRELLA).get(pk=service_id)
-    member = Member.objects.using(UMBRELLA).get(pk=request.user.id)
-    rq = AccessRequest.objects.using(UMBRELLA).create(member=member, service=service, type=access_type)
-    if access_type == AccessRequest.COLLABORATION_REQUEST:
-        event_type = COLLABORATION_REQUEST_EVENT
-    else:
-        event_type = SERVICE_REQUEST_EVENT
-    add_event(service, service.member, ConsoleEvent.BUSINESS, event_type, 'accesscontrol.AccessRequest', rq.id)
-    subject = _("Collaboration access request")
-    message = _("Hi %(member_name)s,<br><br>%(collabo_name)s requested access to collaborate with you on "
-                "<b>%(project_name)s</b>.<br><br>" % {'member_name': service.member.first_name,
-                                                      'collabo_name': member.full_name,
-                                                      'project_name': service.project_name})
-    html_content = get_mail_content(subject, message, template_name='core/mails/notice.html',
-                                    extra_context={'cta_text': _("View"),
-                                                   'cta_url': 'http://www.ikwen.com' + reverse('ikwen:profile', args=(member.id, ))})
-    sender = '%s <%s>' % ('IKWEN', 'contact@ikwen.com')
-    msg = EmailMessage(subject, html_content, sender, [service.member.email])
-    msg.content_subtype = "html"
-    Thread(target=lambda m: m.send(), args=(msg, )).start()
+    service = Service.objects.get(pk=service_id)
+    member = Member.objects.get(pk=request.user.id)
+    try:
+        AccessRequest.objects.get(member=member, service=service, type=access_type)
+    except AccessRequest.DoesNotExist:
+        rq = AccessRequest.objects.create(member=member, service=service, type=access_type)
+        if access_type == AccessRequest.COLLABORATION_REQUEST:
+            event_type = COLLABORATION_REQUEST_EVENT
+            subject = _("Collaboration access request")
+            message = _("Hi %(member_name)s,<br><br>%(collabo_name)s requested access to collaborate with you on "
+                        "<b>%(project_name)s</b>.<br><br>" % {'member_name': service.member.first_name,
+                                                              'collabo_name': member.full_name,
+                                                              'project_name': service.project_name})
+        else:
+            event_type = SERVICE_REQUEST_EVENT
+            subject = _("Customer access request")
+            message = _("Hi %(member_name)s,<br><br>%(customer_name)s requested customer access on "
+                        "<b>%(project_name)s</b>.<br><br>" % {'member_name': service.member.first_name,
+                                                              'customer_name': member.full_name,
+                                                              'project_name': service.project_name})
+        add_event(service, service.member, event_type, rq.id)
+        html_content = get_mail_content(subject, message, template_name='core/mails/notice.html',
+                                        extra_context={'cta_text': _("View"),
+                                                       'cta_url': IKWEN_BASE_URL + reverse('ikwen:profile', args=(member.id, ))})
+        sender = '%s <%s>' % ('IKWEN', 'contact@ikwen.com')
+        msg = EmailMessage(subject, html_content, sender, [service.member.email])
+        # msg = EmailMessage(subject, html_content, sender, ['nouty1931@rhyta.com'])  # Testing
+        msg.content_subtype = "html"
+        Thread(target=lambda m: m.send(), args=(msg, )).start()
     if format == 'json':
         return HttpResponse(json.dumps({'success': True}), content_type='application/json')
     else:
-        next_url = request.GET['next_url']
-        return HttpResponseRedirect(next_url + '?success=yes')
+        next_url = service.get_profile_url()
+        return HttpResponseRedirect(next_url + '?successfulRequest=yes')
 
 
 @login_required   # The user must be logged in to ikwen and not his own service, this view runs on ikwen
@@ -444,16 +515,20 @@ def grant_access_to_collaborator(request, *args, **kwargs):
     if not request.user.is_iao:
         # TODO: Verify that IA0 is actually the owner of the service for which the request is made
         return HttpResponseForbidden('Only IA0 May grant access')
-    # TODO: Work on access revocation also
     request_id = request.GET['request_id']
     group_id = request.GET['group_id']
-    event = ConsoleEvent.objects.using(UMBRELLA).get(member=request.user, object_id=request_id)
-    rq = AccessRequest.objects.using(UMBRELLA).get(pk=request_id)
+    rq = AccessRequest.objects.get(pk=request_id)
+    count = Member.objects.raw_query({'collaborates_on': {'$elemMatch': {'id': ObjectId(rq.service.id)}}}).count()
+    if count > Collaborators.MAX:
+        response = {'error': "Maximum of %d collaborators reached" % Collaborators.MAX}
+        return HttpResponse(json.dumps(response), content_type='application/json')
     rq.member.collaborates_on.append(rq.service)
     rq.member.save()
     database = rq.service.database
     add_database_to_settings(database)
     group = Group.objects.using(database).get(pk=group_id)
+    rq.member.is_staff = True
+    rq.member.is_iao = False
     rq.member.save(using=database)
     member = Member.objects.using(database).get(pk=rq.member.id)  # Reload from local database to avoid database router error
     obj_list, created = UserPermissionList.objects.using(database).get_or_create(user=member)
@@ -462,12 +537,9 @@ def grant_access_to_collaborator(request, *args, **kwargs):
     rq.status = AccessRequest.CONFIRMED
     rq.group_name = group.name
     rq.save()
-    event.status = ConsoleEvent.PROCESSED
-    event.save()
-    new_event = add_event(rq.service, rq.member, ConsoleEvent.BUSINESS,
-                          ACCESS_GRANTED_EVENT, 'accesscontrol.AccessRequest', rq.id)
-    new_event.status = ConsoleEvent.PROCESSED
-    new_event.save()
+    ConsoleEvent.objects.get(member=rq.service.member, object_id=rq.id).delete()
+    add_event(rq.service, rq.member, ACCESS_GRANTED_EVENT, rq.id)
+    add_event(rq.service, rq.service.member, ACCESS_GRANTED_EVENT, rq.id)
     subject = _("Collaboration access granted")
     message = _("Hi %(member_name)s,<br><br>You were granted access to collaborate on <b>%(project_name)s</b> as "
                 "<b>%(group_name)s</b>.<br><br>" % {'member_name': rq.member.first_name,
@@ -476,10 +548,50 @@ def grant_access_to_collaborator(request, *args, **kwargs):
     html_content = get_mail_content(subject, message, template_name='core/mails/notice.html',
                                     extra_context={'cta_text': _("Join"),
                                                    'cta_url': rq.service.admin_url})
-    sender = '%s <%s>' % ('IKWEN', 'contact@ikwen.com')
+    sender = '%s <no-reply@%s.com>' % (rq.service.project_name, rq.service.project_name_slug)
     msg = EmailMessage(subject, html_content, sender, [rq.member.email])
     msg.content_subtype = "html"
     Thread(target=lambda m: m.send(), args=(msg, )).start()
+    return HttpResponse(json.dumps({'success': True}), content_type='application/json')
+
+
+@login_required   # The user must be logged in to ikwen and not his own service, this view runs on ikwen
+def grant_access_to_customer(request, *args, **kwargs):
+    if not request.user.is_iao:
+        # TODO: Verify that IA0 is actually the owner of the service for which the request is made
+        return HttpResponseForbidden('Only IA0 May grant access')
+    request_id = request.GET['request_id']
+    rq = AccessRequest.objects.get(pk=request_id)
+    rq.member.customer_on.append(rq.service)
+    rq.member.save()
+    database = rq.service.database
+    add_database_to_settings(database)
+    rq.member.save(using=database)
+    rq.status = AccessRequest.CONFIRMED
+    rq.save()
+    ConsoleEvent.objects.get(member=rq.service.member, object_id=rq.id).delete()
+    add_event(rq.service, rq.service.member, ACCESS_GRANTED_EVENT, rq.id)
+    add_event(rq.service, rq.member, CUSTOMER_REGISTERED_EVENT, rq.id)
+    subject = _("Customer access granted")
+    message = _("Hi %(member_name)s,<br><br>You were happily added as customer on <b>%(project_name)s</b>.<br><br>"
+                "Thanks for choosing us." % {'member_name': rq.member.first_name,
+                                             'project_name': rq.service.project_name})
+    html_content = get_mail_content(subject, message, template_name='core/mails/notice.html')
+    sender = '%s <no-reply@%s.com>' % (rq.service.project_name, rq.service.project_name_slug)
+    msg = EmailMessage(subject, html_content, sender, [rq.member.email])
+    msg.content_subtype = "html"
+    Thread(target=lambda m: m.send(), args=(msg, )).start()
+    return HttpResponse(json.dumps({'success': True}), content_type='application/json')
+
+
+@login_required   # The user must be logged in to ikwen and not his own service, this view runs on ikwen
+def deny_access(request, *args, **kwargs):
+    if not request.user.is_iao:
+        # TODO: Verify that IA0 is actually the owner of the service for which the request is made
+        return HttpResponseForbidden('Only IA0 May deny access')
+    request_id = request.GET['request_id']
+    ConsoleEvent.objects.get(object_id=request_id).delete()
+    AccessRequest.objects.get(pk=request_id).delete()
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
 
@@ -496,9 +608,17 @@ def set_collaborator_permissions(request, *args, **kwargs):
         for perm_id in permission_ids.split(','):
             perm = Permission.objects.get(pk=perm_id)
             add_permission_to_user(perm, member)
+            # Add Django original permissions of the content_type so that
+            # member can manipulate the object in the django admin app. This
+            # because ikwen admin can sometimes embed django admin in iframe.
+            ct = perm.content_type
+            django_perms = Permission.objects.filter(content_type=ct)
+            for perm in django_perms:
+                add_permission_to_user(perm, member)
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
 
+# TODO: Write test and live test view below
 @permission_required('accesscontrol.sudo')
 def move_collaborator_to_group(request, *args, **kwargs):
     group_id = request.GET['group_id']
@@ -517,6 +637,9 @@ def move_collaborator_to_group(request, *args, **kwargs):
 @permission_required('accesscontrol.sudo')
 def toggle_member(request, *args, **kwargs):
     member_id = request.GET['member_id']
+    if member_id == request.user.id:
+        # One cannot block himself
+        return HttpResponse(json.dumps({'success': True}), content_type='application/json')
     member = Member.objects.get(pk=member_id)
     if member.is_active:
         member.is_active = False
@@ -526,15 +649,24 @@ def toggle_member(request, *args, **kwargs):
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
 
-def render_collaboration_request_event(access_request):
+def render_access_request_event(event):
+    try:
+        access_request = AccessRequest.objects.get(pk=event.object_id)
+    except AccessRequest.DoesNotExist:
+        return None
     html_template = get_template('accesscontrol/events/collaboration_request.html')
-    context = {'rq': access_request}
-    d = Context(context)
-    return html_template.render(d)
+    c = Context({'rq': access_request})
+    return html_template.render(c)
 
 
-def render_access_granted_event(access_request):
+def render_access_granted_event(event):
+    try:
+        access_request = AccessRequest.objects.get(pk=event.object_id)
+    except AccessRequest.DoesNotExist:
+        return None
     html_template = get_template('accesscontrol/events/access_granted.html')
-    context = {'rq': access_request}
-    d = Context(context)
-    return html_template.render(d)
+    database = event.service.database
+    add_database_to_settings(database)
+    member = Member.objects.using(database).get(pk=event.member.id)
+    c = Context({'rq': access_request, 'is_iao': member.is_iao})
+    return html_template.render(c)

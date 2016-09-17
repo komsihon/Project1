@@ -40,8 +40,7 @@ def request_cash_out(request, *args, **kwargs):
             car = CashOutRequest.objects.using('default').create(member=request.user, amount=balance,
                                                                  profile_type=config.business_type)
             if member != config.service.member:
-                add_event(config.service.member, ConsoleEvent.BUSINESS,
-                          CASH_OUT_REQUEST_EVENT, 'kakocase.models.CashOutRequest', car.id)
+                add_event(service, service.member, CASH_OUT_REQUEST_EVENT, car.id)
                 subject, message = get_cash_out_requested_message(member)
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'member': member})

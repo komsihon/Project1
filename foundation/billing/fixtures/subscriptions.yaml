@@ -1,7 +1,15 @@
+- model: billing.product
+  pk: 55eb63379c531e012d04b37a
+  fields:
+    name: Cool product
+    monthly_cost: 5000
+    short_description: Cool product for you
+
 - model: billing.subscription
   pk: 56eb6d04b37b3379c531e012
   fields:
     member: 56eb6d04b37b3379b531e012
+    product: 55eb63379c531e012d04b37a
     monthly_cost: 5000
     status: Active
     since: 2016-01-01T10:31:11.345Z
@@ -10,6 +18,7 @@
   pk: 56eb6d04b37b3379c531e013
   fields:
     member: 56eb6d04b37b3379b531e013
+    product: 55eb63379c531e012d04b37a
     monthly_cost: 5000
     status: Active
     since: 2016-01-01T10:31:11.345Z
@@ -18,6 +27,7 @@
   pk: 56eb6d04b37b3379c531e014
   fields:
     member: 56eb6d04b37b3379b531e014
+    product: 55eb63379c531e012d04b37a
     monthly_cost: 5000
     status: Active
     since: 2016-01-01T10:31:11.345Z

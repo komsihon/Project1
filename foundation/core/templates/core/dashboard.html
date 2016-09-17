@@ -100,37 +100,3 @@
         </div>
     </div>
 {% endblock %}
-
-{% block js %}
-    {{ block.super }}
-    <script src="{% static 'ajaxuploader/js/fileuploader.js' %}"></script>
-    <script>
-        (function() {
-            {# Set notice counters to 0 #}
-            var target = "{% if not request.GET.target or request.GET.target == 'business' %}Business{% else %}Personal{% endif %}";
-            $.getJSON('{% url 'ikwen:reset_notices_counter' %}', {target: target});
-            ikwen.initUploader = function(selector, title, usage, target) {
-                var uploader = new qq.FileUploader({
-                    action: "{% url 'ikwen:upload_member_image' %}?member_id={{ request.user.id }}&usage=" + usage,
-                    element: $(selector)[0],
-                    buttonText: title,
-                    multiple: false,
-                    onComplete: function(id, fileName, responseJSON) {
-                        if(responseJSON.success) {
-                            $(target).css('background-image', "url('" + responseJSON.url +"')");
-                        } else {
-                            alert("upload failed!");
-                        }
-                    },
-                    params: {
-                        'csrf_token': '{{ csrf_token }}',
-                        'csrf_name': 'csrfmiddlewaretoken',
-                        'csrf_xname': 'X-CSRFToken'
-                    }
-                });
-            };
-            ikwen.initUploader('div#banner .photo .upload-image', "{% trans "Change photo" %}", 'profile', 'div#banner .photo');
-            ikwen.initUploader('div#banner > .upload-image', "{% trans "Change cover" %}", 'cover', 'div#cover');
-        })()
-    </script>
-{% endblock %}

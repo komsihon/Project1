@@ -113,7 +113,7 @@
             for (var i=0; i<descriptors.length; i++) {
                 var descriptor = descriptors[i],
                     url = descriptor.endpoint,
-                    params = {q: q, start: 0, length: 10},
+                    params = {q: q, start: 0, length: 10, format: 'json'},
                     selector = descriptor.resultTplSelector;
                 grabResults(url, params, resultPanelSelector, selector, call.length, afterResults);
                 call.push(q);
@@ -149,10 +149,35 @@
             if ($fieldElt.hasClass('bg-img')) $fieldElt.css('background-image', 'url(' + value + ')');
             else if ($fieldElt.prop('tagName') == 'IMG') $fieldElt.attr('src', value);
             else $fieldElt.html(content);
-            if (field == 'url') $tpl.find('.target_url').attr('href', value);
+            if (field == 'url') {
+                if (ikwen.URL_KEY && ikwen.URL_RAND) {
+                    if (value.indexOf('?') == -1 ) value += '?key=' + ikwen.URL_KEY + '&rand=' + ikwen.URL_RAND;
+                    else value += '&key=' + ikwen.URL_KEY + '&rand=' + ikwen.URL_RAND;
+                }
+                $tpl.find('.target_url').attr('href', value);
+            }
             if (typeof value == 'string' || typeof value == 'number') $tpl.data(field, value);
+            
+            /* Some comon special fields */
+            if (field == 'status') $tpl.addClass(value)
         }
         return $tpl
+    };
+
+    /**
+     * Appends authentication tokens to "href" of all A elements
+     * contained in the element with the given selector
+     * @param selector a jQuery selector
+     */
+    c.appendAuthTokens = function(selector) {
+        if (ikwen.URL_KEY && ikwen.URL_RAND) {
+            $(selector).find('a').each(function () {
+                var href = $(this).attr('href');
+                if (href.indexOf('?') == -1) href += '?key=' + ikwen.URL_KEY + '&rand=' + ikwen.URL_RAND;
+                else href += '&key=' + ikwen.URL_KEY + '&rand=' + ikwen.URL_RAND;
+                $(this).attr('href', href);
+            })
+        }
     };
 
     w.ikwen = c; /*Creating the namespace ikwen for all this*/

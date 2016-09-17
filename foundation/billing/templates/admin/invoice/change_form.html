@@ -1,0 +1,23 @@
+{% extends 'admin/change_form.html' %}
+
+{% block content %}
+    {{ block.super }}
+    <script>
+        (function() {
+            $('<div id="raw-id-suggestions"></div>').insertAfter('#id_subscription');
+            $('<input type="hidden" id="subscription-id" name="subscription" />').insertAfter('#id_subscription');
+            {% if original %}
+                $('#id_subscription').val('{{ original.subscription.member.full_name }}: {{ original.subscription.monthly_cost }}');
+                $('#subscription-id').val('{{ original.subscription.id }}');
+            {% endif %}
+            $('#id_subscription').removeAttr('name').autocomplete({
+                serviceUrl: "{% url 'billing:list_subscriptions' %}",
+                minChars: 2,
+                appendTo: '#raw-id-suggestions',
+                onSelect: function(suggestion) {
+                    $('#subscription-id').val(suggestion.data)
+                }
+            });
+        })();
+    </script>
+{% endblock %}

@@ -3,6 +3,7 @@
   fields:
     name: Ikwen App
     slug: ikwen-app
+    version: 1
     logo: app_logos/ikwen-app-logo.png
     url: ''
     base_monthly_cost: 5000
@@ -12,6 +13,7 @@
   fields:
     name: Ikwen App2
     slug: ikwen-app2
+    version: 1
     logo: app_logos/ikwen-app2-logo.png
     url: ''
     base_monthly_cost: 5000
@@ -66,8 +68,9 @@
     app: 56eb6d04b37b3379b531a002
     codename: CollaborationRequestEvent
     title: Those people would like to collaborate with you
+    target: Business
     target_url_name: ikwen:collaborators
-    renderer: ikwen.foundation.accesscontrol.views.render_collaboration_request_event
+    renderer: ikwen.foundation.accesscontrol.views.render_access_request_event
 
 - model: core.consoleeventtype
   pk: 56eb6db3379b531a0104b372
@@ -75,5 +78,25 @@
     app: 56eb6d04b37b3379b531a002
     codename: AccessGrantedEvent
     title: Collaboration request accepted
-    target_url_name: ikwen:collaborators
+    target: Business
+    target_url_name: ikwen:access_request_list
+    renderer: ikwen.foundation.accesscontrol.views.render_access_granted_event
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b373
+  fields:
+    app: 56eb6d04b37b3379b531a002
+    codename: ServiceRequestEvent
+    title: Those people would like to be registered as customers.
+    target: Business
+    target_url_name: ikwen:service_request_list
+    renderer: ikwen.foundation.accesscontrol.views.render_access_request_event
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b374
+  fields:
+    app: 56eb6d04b37b3379b531a002
+    codename: CustomerRegisteredEvent
+    title: ''
+    target: Personal
     renderer: ikwen.foundation.accesscontrol.views.render_access_granted_event

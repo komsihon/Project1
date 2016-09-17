@@ -1,0 +1,12 @@
+{% load i18n humanize staticfiles %}
+
+<div>
+    <div>
+        <h4>{% trans "Last activity" %}</h4>
+        <p class="text-muted">{{ member.last_login }}</p>
+    </div>
+    <div style="margin-top: 33px">
+        <h4>{% trans "Date joined" %}</h4>
+        <p class="text-muted">{{ member.date_joined }}</p>
+    </div>
+</div>

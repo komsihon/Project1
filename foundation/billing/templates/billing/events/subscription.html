@@ -1,0 +1,20 @@
+{% load i18n staticfiles humanize %}
+<div class="col-xs-4 col-sm-3">
+    {% if image_url %}
+        <img src="{{ image_url }}" alt="Invoice" class="img-responsive" />
+    {% else %}
+        {# TODO: Create image URL placeholder #}
+        <img src="{% static 'ikwen/img/invoice-icon.png' %}" alt="Invoice" class="img-responsive" />
+    {% endif %}
+</div>
+<div class="col-xs-8 col-sm-9">
+    <h4 class="text-primary">{{ title }}</h4>
+    <p class="text-muted">{% blocktrans %}You were registered to <strong>{{ product_name }}</strong>{% endblocktrans %}
+    {% if short_description %}: {% trans short_description %}{% endif %}
+    <ul class="text-muted">
+        <li style="display: inline-block">{{ currency }} {{ cost }}</li>
+        {% if billing_cycle %}<li style="margin-left: 22px">{% trans "Charged" context 'billing cycle' %} {{ billing_cycle }}</li>{% endif %}
+    </ul>
+    <time>{{ obj.created_on|naturaltime }}</time>
+</div>
+<div class="clear"></div>
