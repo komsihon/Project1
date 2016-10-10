@@ -46,7 +46,7 @@
     Number.prototype.formatMoney = function(decPlaces, thouSeparator, decSeparator) {
         var n = this,
         decPlaces = isNaN(decPlaces = Math.abs(decPlaces)) ? 0 : decPlaces,
-        decSeparator = decSeparator == undefined ? "," : decSeparator, thouSeparator = thouSeparator == undefined ? "." : thouSeparator,
+        decSeparator = decSeparator == undefined ? "." : decSeparator, thouSeparator = thouSeparator == undefined ? "," : thouSeparator,
         sign = n < 0 ? "-" : "",
         i = parseInt(n = Math.abs(+n || 0).toFixed(decPlaces)) + "",
         j = (j = i.length) > 3 ? j % 3 : 0;
@@ -122,12 +122,29 @@
         });
     };
 
+    c.setupFilter = function(resultPanelSelector, descriptor, beforeSearch, afterResults) {
+        $('div#admin-nav').on('click', '.choices li', function() {
+            $(this).siblings().removeClass('active');
+            $(this).addClass('active');
+            if (beforeSearch) beforeSearch();
+            $(resultPanelSelector).find('.empty').hide();
+            $(resultPanelSelector).show().find('.spinner').show();
+            var url = descriptor.endpoint,
+                params = {start: 0, length: 100, format: 'json'},
+                selector = descriptor.resultTplSelector;
+            $('div#admin-nav .filter li.active').each(function() {
+                var paramName = $(this).parent().data('param'),
+                    paramVal = $(this).data('value');
+                params[paramName] = paramVal;
+            });
+            grabResults(url, params, resultPanelSelector, selector, call.length, afterResults);
+        });
+    };
+
     function grabResults(url, params, resultPanelSelector, resultSelector, callSeqNumber, afterResults) {
         $.getJSON(url, params, function(data) {
             if (data.error) return;
             if (data.length == 0) $(resultPanelSelector).find('.empty').show();
-            if (call.length != callSeqNumber + 1) return;
-            call = [];
             $(resultPanelSelector).find('.spinner').hide();
             $(resultSelector + ':not(.tpl)').remove();
             for (var i=0; i<data.length; i++) {
@@ -135,9 +152,8 @@
                 $tpl = c.genericTemplateFunc($tpl, data[i]);
                 $tpl.insertBefore(resultSelector + '.tpl').show();
             }
-            if (afterResults) afterResults();
+            if (afterResults) afterResults(data);
         });
-
     }
 
     c.genericTemplateFunc = function($tpl, object, searchTerm) {
@@ -146,9 +162,25 @@
                 content = value,
                 $fieldElt = $tpl.find('.' + field);
             if (searchTerm) content = value.replace(searchTerm, '<strong>' + searchTerm + '</strong>');
+            if (typeof value == 'number') content = content.formatMoney();
             if ($fieldElt.hasClass('bg-img')) $fieldElt.css('background-image', 'url(' + value + ')');
             else if ($fieldElt.prop('tagName') == 'IMG') $fieldElt.attr('src', value);
-            else $fieldElt.html(content);
+            else {
+                if ($fieldElt.hasClass('hide') && content) $fieldElt.removeClass('hide');
+                if ($fieldElt.find('.value').length > 0) {
+                    if (!content && $fieldElt.hasClass('n-a')) $fieldElt.find('.value').text('N/A');
+                    else if (content) {
+                        if ($fieldElt.hasClass('in-brackets')) $fieldElt.find('.value').html('(' + content + ')');
+                        $fieldElt.find('.value').html(content);
+                    }
+                } else {
+                    if (!content && $fieldElt.hasClass('n-a')) $fieldElt.text('N/A');
+                    else if (content) {
+                        if ($fieldElt.hasClass('in-brackets')) $fieldElt.html('(' + content + ')');
+                        else $fieldElt.html(content);
+                    }
+                }
+            }
             if (field == 'url') {
                 if (ikwen.URL_KEY && ikwen.URL_RAND) {
                     if (value.indexOf('?') == -1 ) value += '?key=' + ikwen.URL_KEY + '&rand=' + ikwen.URL_RAND;
@@ -156,9 +188,10 @@
                 }
                 $tpl.find('.target_url').attr('href', value);
             }
+            if (field == 'id') $tpl.attr('id', value);
             if (typeof value == 'string' || typeof value == 'number') $tpl.data(field, value);
             
-            /* Some comon special fields */
+            /* Some common boolean fields */
             if (field == 'status') $tpl.addClass(value)
         }
         return $tpl

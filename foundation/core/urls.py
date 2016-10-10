@@ -10,8 +10,7 @@ from ikwen.foundation.accesscontrol.views import SignIn, AccountSetup, register,
     ServiceRequestList
 from ikwen.foundation.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, Contact, \
     ServiceExpired, reset_notices_counter, get_queued_sms, LegalMentions, TermsAndConditions, Configuration, \
-    upload_customization_image, list_projects
-
+    upload_customization_image, list_projects, upload_image
 
 REGISTER = 'register'
 SIGN_IN = 'sign_in'
@@ -49,6 +48,7 @@ urlpatterns = patterns(
     url(r'^load_customer_detail$', load_customer_detail, name='load_customer_detail'),
 
     url(r'^console/$', login_required(Console.as_view()), name='console'),
+    url(r'^upload_image$', upload_image, name='upload_image'),
     url(r'^upload_customization_image$', upload_customization_image, name='upload_customization_image'),
     url(r'^reset_notices_counter$', reset_notices_counter, name='reset_notices_counter'),
     url(r'^configuration/$', permission_required('accesscontrol.sudo')(Configuration.as_view()), name='configuration'),

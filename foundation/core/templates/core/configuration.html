@@ -1,8 +1,5 @@
 {% extends "core/app_base_admin.html" %}
-{% load i18n %}
-{% load humanize %}
-{% load staticfiles %}
-{% load auth_tokens %}
+{% load i18n humanize staticfiles auth_tokens admin_list %}
 
 {% block page_title %}
 <title> {% trans "Configurations" %} - ikwen </title>
@@ -13,17 +10,6 @@
     <link href="{% static 'ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" />
     <style>
         body {background: #f6f6f6}
-        @media (min-width: 768px) {
-            form#configuration .form-group:last-child {padding-left: 0}
-        }
-        @media (min-width: 972px) {
-            section .form-control {width: 400px}
-            .help {padding-top: 3px}
-        }
-        @media (min-width: 1200px) {
-            #admin-content {padding-left: 40px}
-        }
-        .help {color: #888; font-size: 14px}
         #context-search {clear: both; margin: 10px 0 6px 0;}
         #context-search input {width: 270px}
     </style>
@@ -34,7 +20,7 @@
 {% endblock %}
 
 {% block admin_content %}
-    <div id="admin-content" class="container-fluid">
+    <div id="admin-content" class="container-fluid change-form">
         <div id="stage">
             {# TODO: Company banner placeholder for service configuration #}
             {% if config.cover_image and config.cover_image.name %}
@@ -60,7 +46,7 @@
                 </div>
             </header>
             {% url 'ikwen:configuration' as configuration_url %}
-            <form id="configuration" method="post" action="{{ configuration_url|append_auth_tokens:request }}">{% csrf_token %}
+            <form id="configuration" class="admin-form" method="post" action="{{ configuration_url|append_auth_tokens:request }}">{% csrf_token %}
                 <input type="hidden" name="id" value="{{ config.id }}" />
                 <input type="hidden" name="company_name_slug" value="{{ config.company_name_slug }}" />
                 {% for fieldset in config_admin_form %}
@@ -101,7 +87,7 @@
 
 {% block js %}
     {{ block.super }}
-    <script src="{% static 'ajaxuploader/js/fileuploader.js' %}"></script>
+    <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
     {% include 'core/snippets/banner_and_pp_uploader.html' %}
     <script type="text/javascript">
         (function() {

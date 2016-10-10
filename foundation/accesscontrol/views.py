@@ -26,6 +26,8 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
+from ikwen.foundation.accesscontrol.backends import UMBRELLA
+
 from ikwen.foundation.accesscontrol.templatetags.auth_tokens import append_auth_tokens
 
 from ikwen.foundation.accesscontrol.middleware import UID_B64, TOKEN, TOKEN_CHUNK
@@ -106,7 +108,8 @@ def register(request, *args, **kwargs):
             existing_account_url = reverse('ikwen:sign_in') + "?existingUsername=yes&msg=%s&%s" % (msg, query_string)
             return HttpResponseRedirect(existing_account_url.strip('&'))
     else:
-        context = {'register_form': form, 'service': get_service_instance()}
+        context = BaseView().get_context_data(**kwargs)
+        context['register_form'] = form
         return render(request, 'accesscontrol/sign_in.html', context)
 
 
@@ -121,7 +124,7 @@ class SignIn(BaseView):
             next_url = reverse('ikwen:console')
             next_url = append_auth_tokens(next_url, request)
             return HttpResponseRedirect(next_url)
-        return render(request, self.template_name, {'service': get_service_instance()})
+        return super(SignIn, self).get(request, *args, **kwargs)
 
     @method_decorator(sensitive_post_parameters())
     @method_decorator(csrf_protect)
@@ -154,12 +157,12 @@ class SignIn(BaseView):
                 query_string = UID_B64 + '=' + uid + '&' + TOKEN + '=' + token
             return HttpResponseRedirect(next_url + "?" + query_string)
         else:
-            context = {'login_form': form}
+            context = self.get_context_data(**kwargs)
+            context['login_form'] = form
             if form.errors:
                 error_message = getattr(settings, 'IKWEN_LOGIN_FAILED_ERROR_MSG',
                                         _("Invalid username/password or account inactive"))
                 context['error_message'] = error_message
-                context['service'] = get_service_instance()
             return render(request, 'accesscontrol/sign_in.html', context)
 
 
@@ -441,6 +444,10 @@ def list_collaborators(request, *args, **kwargs):
 
 
 class AccessRequestList(BaseView):
+    """
+    Lists all Access requests for the admin to process them all from
+    a single page rather than going to everyone's profile
+    """
     template_name = 'accesscontrol/access_request_list.html'
 
     def get_context_data(self, **kwargs):
@@ -458,6 +465,10 @@ class AccessRequestList(BaseView):
 
 
 class ServiceRequestList(AccessRequestList):
+    """
+    Lists all Service requests for the admin to process them all from
+    a single page rather than going to everyone's profile
+    """
     def get_context_data(self, **kwargs):
         context = super(ServiceRequestList, self).get_context_data(**kwargs)
         rqs = []

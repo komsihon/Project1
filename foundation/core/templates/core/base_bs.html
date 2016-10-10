@@ -52,22 +52,22 @@
                         </div>
                     </form>
                     <ul class="nav navbar-nav navbar-right">
-                        {% if request.user.is_authenticated %}
+                        {% if user.is_authenticated %}
                             <li>
                                 <a href="{{ settings.IKWEN_CONSOLE_URL|append_auth_tokens:request }}">
                                     {% trans "Home" %}
-                                    {% if request.user.get_notice_count > 0 %}<span class="label label-danger">{{ request.user.get_notice_count }}</span>{% endif %}
+                                    {% if user.get_notice_count > 0 %}<span class="label label-danger">{{ user.get_notice_count }}</span>{% endif %}
                                 </a>
                             </li>
-                            {% if request.user.collaborates_on|length == 1 %}
+                            {% if user.collaborates_on|length == 1 %}
                                 <li>
-                                    <a href="{{ request.user.collaborates_on.0.admin_url|append_auth_tokens:request }}">{{ request.user.collaborates_on.0.project_name }}</a>
+                                    <a href="{{ user.collaborates_on.0.admin_url|append_auth_tokens:request }}">{{ user.collaborates_on.0.project_name }}</a>
                                 </li>
-                            {% elif request.user.collaborates_on|length > 1 %}
+                            {% elif user.collaborates_on|length > 1 %}
                                 <li id="apps" class="dropdown">
                                     <a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Apps</a>
                                     <ul class="dropdown-menu" aria-labelledby="apps">
-                                        {% for app in request.user.collaborates_on %}
+                                        {% for app in user.collaborates_on %}
                                             <li><a href="{{ app.admin_url|append_auth_tokens:request }}">{{ app.project_name }}</a> </li>
                                         {% endfor %}
                                     </ul>
@@ -78,7 +78,7 @@
                                     <img src="{% static 'ikwen/img/user-icon.png' %}" />
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="user-menu">
-                                    <li style="padding: 3px 20px"> {{ request.user.get_short_name }} </li>
+                                    <li style="padding: 3px 20px"> {{ user.get_short_name }} </li>
                                     <li role="separator" class="divider"></li>
                                     <li>{% url "ikwen:account_setup" as account_setup_url%}
                                         <a href="{{ account_setup_url|ikwenize|append_auth_tokens:request }}">{% trans "Account setup" %}</a>
@@ -96,6 +96,7 @@
                 </div>
             </nav>
         {% endblock %}
+        {% block selection_control %}{% endblock %}
         {% block content %}{% endblock %}
         {% block footer %}
             <footer style="color: #999; font-size: 12px; margin-top: 45px; text-align: center">

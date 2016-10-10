@@ -17,6 +17,10 @@ class Model(models.Model):
     created_on = models.DateTimeField(default=timezone.now)
     updated_on = models.DateTimeField(default=timezone.now, auto_now=True)
 
+    def get_from(self, db):
+        add_database_to_settings(db)
+        return type(self).objects.using(db).get(pk=self.id)
+
     class Meta:
         abstract = True
 
@@ -30,7 +34,7 @@ class AbstractWatchModel(Model):
     A Watch model is a model with history fields used to keep progression
     of some data on a daily basis, so to ease the report visualizations.
     """
-    counters_reset_on = models.DateTimeField(default=timezone.now)
+    counters_reset_on = models.DateTimeField(default=timezone.now, editable=False)
 
     class Meta:
         abstract = True
@@ -42,7 +46,7 @@ class AbstractWatchModel(Model):
 
 
 class Application(Model):
-    LOGOS_FOLDER = 'app_logos/'
+    LOGOS_FOLDER = 'ikwen/app_logos'
 
     PENDING = 'Pending'
     SUBMITTED = 'Submitted'
@@ -200,20 +204,8 @@ class Service(models.Model):
             if not self.id:
                 # Upon creation of a Service object. Add the member who owns it in the
                 # Service's database as a staff, then increment operators_count for the Service.app
-                self.member.is_iao = True
-                self.member.save()
-                self.member.is_staff = True
-                self.member.is_superuser = True
-                self.member.save(using=self.database)
                 self.app.operators_count += 1
                 self.app.save()
-                link = self.url.replace('http://', '').replace('https://', '')
-                mail_signature = "%s<br>" \
-                                 "<a href='%s'>%s</a>" % (self.project_name, self.url, link)
-                config_model = get_config_model()
-                config_model.objects.using(self.database)\
-                    .create(service=self, company_name=self.project_name,
-                            contact_email=self.member.email,  signature=mail_signature)
             super(Service, self).save(using=self.database, *args, **kwargs)
         super(Service, self).save(using=using, *args, **kwargs)
 

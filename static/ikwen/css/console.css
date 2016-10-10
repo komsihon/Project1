@@ -1,6 +1,6 @@
 
 #content {padding-top: 80px; min-height: 450px}
-#cover {background-color: #fff;float: left;width: 100%}
+#cover {background-color: #fff;float: left;width: 100%;overflow: hidden;}
 @media (min-width: 320px) {
     #cover {background-size: auto 100%;}
 }
@@ -61,21 +61,20 @@
 
 .notice-cnsl .img {background: no-repeat center;background-size: 100%;margin: auto;height: 135px;width: 135px;}
 
-#ad-space-right {float: left; margin-left: 25px}
-@media (max-width: 992px) {
-    #ad-space-right {display: none}
+#ad-space-right {display: none}
+@media (min-width: 992px) {
+    #ad-space-right {display: block; float: left; margin-left: 25px}
+    #ad-space-right > div {position: fixed; width: 190px}
 }
-#ad-space-right > div {position: fixed; width: 240px}
+@media (min-width: 1200px) {
+    #ad-space-right > div {width: 240px}
+}
+
 #ad-space-right h4 {color: #888; font-weight: 700; margin-top: 0; text-decoration: underline}
 #ad-space-right div#ad {background: #ddd; height: 360px; margin-top: 15px}
 
-#admin-nav {background: #fff;border-right: 1px solid #eee;left: 0;overflow: auto; position: fixed;width: 270px;height: 100%;}
-#admin-nav .divider {border-top: 1px solid #ddd; margin: 15px 0}
-.nav-pills>li>a {padding: 5px 15px;cursor: pointer;}
-.nav-pills>li.active>a, .nav-pills>li.active>a:hover, .nav-pills>li.active>a:focus {background: #eee; color: #333}
-
 #admin-content.embed {background: #fff; height: 850px}
-#stage section.fk-couture-pro {border: 1px solid #444}
+#stage section.fk-couture-pro {border: 1px solid #444;}
 #stage section.fk-couture-pro h3 {color: #333}
 
 iframe#billing-stage {border: none;margin: -15px 0 0 -15px;height: 100%;width: 105%;}

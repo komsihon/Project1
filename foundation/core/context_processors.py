@@ -3,11 +3,6 @@ from django.core.urlresolvers import reverse
 
 from ikwen.foundation.core.views import IKWEN_BASE_URL
 
-__author__ = 'Kom Sihon'
-
-import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
-
 
 def project_settings(request):
     """

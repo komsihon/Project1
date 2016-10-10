@@ -69,6 +69,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.contrib.messages.context_processors.messages",
     'django.core.context_processors.request',
     'ikwen.foundation.core.context_processors.project_settings',
+
 )
 
 ROOT_URLCONF = 'ikwen.conf.urls'

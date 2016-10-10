@@ -12,7 +12,7 @@ from permission_backend_nonrel.models import UserPermissionList
 from ikwen.foundation.core.fields import MultiImageField
 
 from ikwen.foundation.core.models import Service, Model
-from ikwen.foundation.core.utils import to_dict, get_service_instance
+from ikwen.foundation.core.utils import to_dict, get_service_instance, add_database_to_settings
 
 
 class MemberManager(BaseUserManager, RawQueryMixin):
@@ -97,11 +97,19 @@ class Member(AbstractUser):
         if not getattr(settings, 'IS_IKWEN', False):
             member = Member.objects.using(UMBRELLA).get(pk=self.id) if self.id else None
             new_is_staff_value = self.is_staff
+            new_su_value = self.is_superuser
             umbrella_is_staff_value = member.is_staff if member else False
+            umbrella_su_value = member.is_superuser if member else False
             self.is_staff = umbrella_is_staff_value  # staff status should not take effect in UMBRELLA database
+            self.is_superuser = umbrella_su_value
             super(Member, self).save(using=UMBRELLA, *args, **kwargs)
             self.is_staff = new_is_staff_value
+            self.is_superuser = new_su_value
         super(Member, self).save(using=using, *args, **kwargs)  # Now copy to the application default database
+
+    def get_from(self, db):
+        add_database_to_settings(db)
+        return type(self).objects.using(db).get(pk=self.id)
 
     def get_apps_operated(self):
         return list(Service.objects.filter(member=self))

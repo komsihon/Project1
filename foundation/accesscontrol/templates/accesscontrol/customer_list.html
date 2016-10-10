@@ -43,7 +43,7 @@
                 {% include 'core/snippets/spinner.html' %}
                 <ul class="people object-list">
                 {% for customer in customer_list %}
-                    <li class="member {{ customer.get_status }}" data-id="{{ customer.id }}" data-status="{{ customer.get_status }}">
+                    <li class="member {{ customer.get_status }}" id="{{ customer.id }}" data-id="{{ customer.id }}" data-status="{{ customer.get_status }}">
                         {% url 'ikwen:profile' customer.id as member_url %}
                     {% if customer.photo and customer.photo.name %}
                         <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({{ customer.photo.small_url }})"></a>
@@ -158,7 +158,7 @@
                 });
             });
             var searchDescriptor = [{
-                endpoint: '{% url 'ikwen:customer_list' as customer_list_url %}',
+                endpoint: '{% url 'ikwen:customer_list' %}',
                 resultTplSelector: '#results li.member'
             }];
             function beforeSearch() {

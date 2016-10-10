@@ -27,12 +27,13 @@ class ConfigAdmin(admin.ModelAdmin):
     fieldsets = (
         (_('General'), {'fields': ('company_name', 'short_description', )}),
         (_('Address & Contact'), {'fields': ('contact_email', 'contact_phone', 'address', 'country', 'city')}),
-        (_('Mailing'), {'fields': ('welcome_message', 'signature', )}),
-        # (_('SMS'), {'fields': ('sms_sending_method', 'sms_api_script_url', 'sms_api_username', 'sms_api_password', )}),
         (_('Social'), {'fields': ('facebook_link', 'twitter_link', 'google_plus_link', 'instagram_link', 'linkedin_link', )}),
+        # (_('SMS'), {'fields': ('sms_sending_method', 'sms_api_script_url', 'sms_api_username', 'sms_api_password', )}),
+        (_('Mailing'), {'fields': ('welcome_message', 'signature', )}),
         # (_('PayPal'), {'fields': ('paypal_user', 'paypal_password', 'paypal_api_signature', )}),
         # (_('Scripts'), {'fields': ('google_analytics', )}),
     )
+    list_filter = ('company_name', 'contact_email', )
     save_on_top = True
 
     def delete_model(self, request, obj):

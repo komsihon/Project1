@@ -8,6 +8,16 @@
     <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
 {% endblock %}
 
+{% block selection_control %}
+    <div id="selection-control" class="container-fluid has-shade">
+        <div class="clear-selection" title="{% trans "Clear selection" %}"></div>
+        <div class="select-count">
+            <strong class="value">1</strong> {% trans "Selected" %}
+        </div>
+        {% block selection_actions %}{% endblock %}
+    </div>
+{% endblock %}
+
 {% block header %}
     {{ block.super }}
     <div id="app-nav" class="container-fluid">
@@ -27,36 +37,77 @@
 {% endblock %}
 
 {% block content %}
-    <div id="container">
+    <div id="container" class="admin">
         <div id="admin-nav">
-            <div style="padding: 20px 10px 130px">
-                <button class="btn btn-default btn-sm btn-block">{% trans "New" %}</button>
-                <div class="divider"></div>
-                {% block app_admin_nav %}{% endblock %}
-                <div class="divider"></div>
-                <ul class="nav nav-pills nav-stacked">
-    {#                <li role="presentation"><a href="{% url 'ikwen:collaborators' %}">{% trans "Pages" %}</a></li>#}
-                    <li role="presentation" class="collaborators">
-                        {% url 'ikwen:collaborators' as collaborators_url %}
-                        <a href="{{ collaborators_url|append_auth_tokens:request }}">{% trans "Collaborators" %}</a>
-                    </li>
-                </ul>
-                <div class="divider"></div>
-                <ul class="nav nav-pills nav-stacked">
-                    <li role="presentation" class="configuration">
-                        {% url 'ikwen:configuration' as configuration_url %}
-                        <a href="{{ configuration_url|append_auth_tokens:request }}">{% trans "Configuration" %}</a>
-                    </li>
-                    <li role="presentation" class="invoices">
-                        {% url 'billing:invoice_list' service.id as invoice_list_url %}
-                        <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}" target="_blank"> {% trans 'Invoices' %} </a>
-                    </li>
-                    <li role="presentation" class="service-info">
-                        {% url 'ikwen:service_detail' service.id as service_detail_url%}
-                        <a href="{{ service_detail_url|append_auth_tokens:request }}">{% trans "Info & Billing" %}</a>
-                    </li>
-                </ul>
-                <div class="clear"></div>
+            <div style="padding: 20px 0 130px">
+                <div class="btn-group" style="width: 100%">
+                    <button class="btn btn-default btn-sm btn-block dropdown-toggle" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">{% trans "New" %}</button>
+                    {% block new_menu %}{% endblock %}
+                </div>
+                <div><div class="divider"></div></div>
+                <div class="stage" {% if filter and filter|length > 0 %}style="margin-left: -100%"{% endif %}>
+                    {% if filter and filter|length > 0 %}
+                        <nav id="filter-nav">
+                            <span style="text-align: right">
+{#                                {% trans "Menu" %}&nbsp;&nbsp;#}
+                                <img class="show-filter" src="{% static 'ikwen/img/arrow-right.png' %}" width="18" height="18">
+                            </span>
+                            <span>
+                                <img class="show-menu" src="{% static 'ikwen/img/arrow-left.png' %}" width="18" height="18">
+                                &nbsp;&nbsp;{% trans "Filter" %}
+                            </span>
+                        </nav>
+                    {% endif %}
+                    <div class="menu">
+                        {% block app_admin_nav %}{% endblock %}
+                        {% if perms.accesscontrol.sudo %}
+                            <div class="divider"></div>
+                            <ul class="nav nav-pills nav-stacked">
+                {#                <li role="presentation"><a href="{% url 'ikwen:collaborators' %}">{% trans "Pages" %}</a></li>#}
+                                <li role="presentation" class="collaborators">
+                                    {% url 'ikwen:collaborators' as collaborators_url %}
+                                    <a href="{{ collaborators_url|append_auth_tokens:request }}">{% trans "Collaborators" %}</a>
+                                </li>
+                            </ul>
+                            <div class="divider"></div>
+                            <ul class="nav nav-pills nav-stacked">
+                                <li role="presentation" class="configuration">
+                                    {% url 'ikwen:configuration' as configuration_url %}
+                                    <a href="{{ configuration_url|append_auth_tokens:request }}">{% trans "Configuration" %}</a>
+                                </li>
+                                <li role="presentation" class="invoices">
+                                    {% url 'billing:invoice_list' service.id as invoice_list_url %}
+                                    <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}" target="_blank">{% trans 'Invoices' %}</a>
+                                </li>
+                                <li role="presentation" class="service-info">
+                                    {% url 'ikwen:service_detail' service.id as service_detail_url%}
+                                    <a href="{{ service_detail_url|append_auth_tokens:request }}">{% trans "Info & Billing" %}</a>
+                                </li>
+                            </ul>
+                        {% endif %}
+                    </div>
+                    {% if filter and filter|length > 0 %}
+                        <ul class="nav nav-pills nav-stacked filter">
+                            {% for elt in filter %}
+                                <li>
+                                    <a href="javascript:;" data-toggle="collapse" data-target="#{{ elt.parameter_name }}" aria-expanded="true">
+                                        {{ elt.title }} <i class="fa fa-fw fa-caret-down"></i>
+                                    </a>
+                                    <ul id="#{{ elt.parameter_name }}" data-param="{{ elt.parameter_name }}"
+                                        class="nav nav-pills nav-stacked collapse in choices" aria-expanded="true" style="padding-left: 15px">
+                                        {% for choice in elt.choices %}
+                                            <li data-value="{{ choice.0 }}">
+                                                <a href="javascript:;">{{ choice.1 }}</a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    <div class="clear"></div>
+                </div>
             </div>
         </div>
         {% block admin_content %}{% endblock %}
@@ -69,4 +120,59 @@
         &copy; {{ year }} <a href="{{ settings.IKWEN_BASE_URL|append_auth_tokens:request }}">{{ service.project_name }}</a>. {% trans "All rights reserved." %} -
         <a href="{% url 'ikwen:legal_mentions' %}" style="text-decoration: underline">{% trans "Legal mentions" %}</a>
     </footer>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script>
+        (function() {
+            $('nav#filter-nav .show-menu').click(function() {
+                $('div#admin-nav .stage').animate({marginLeft: 0})
+            });
+            $('nav#filter-nav .show-filter').click(function() {
+                $('div#admin-nav .stage').animate({marginLeft: '-100%'})
+            });
+            $('body').on('click', '.ik-li .select', function() {
+                $(this).parent().toggleClass('selected');
+                var id = $(this).data('id'),
+                    count = $('.ik-li.selected').length;
+                if (count > 0) {
+                    var selected = [];
+                    $('.ik-li.selected').each(function() {
+                        selected.push($(this).data('id'));
+                    }).data('id');
+                    $('#selection-control').addClass('visible').data('selection', selected.join(','));
+                    $('div#selection-control .select-count .value').text(count);
+                }
+                else $('#selection-control').removeClass('visible');
+            }).on('click', '.ik-li .trash', function() {
+                var selection = $(this).parents('.ik-li').data('id');
+                deleteSelection(selection);
+            });
+            $('div#selection-control .clear-selection').click(function() {
+                $('.ik-li').removeClass('selected');
+                $('#selection-control').removeClass('visible');
+            });
+            $('div#selection-control .trash').click(function() {
+                var selection = $('#selection-control').data('selection');
+                deleteSelection(selection);
+            });
+            function deleteSelection(selection) {
+                if (!confirm("{% trans "Confirm deletion ?" %}")) return;
+                $('body, div#selection-control .trash').css('cursor', 'wait');
+                $.getJSON(ikwen.deleteEndpoint, {selection: selection}, function(data) {
+                    $('body, div#selection-control .trash').css('cursor', '');
+                    var list = selection.split(',');
+                    for (var i=0; i<list.length; i++) $('#' + list[i]).remove();
+                    $('#selection-control').removeClass('visible');
+                    ikwen.showFloatingNotice(data.message, '', 6);
+                })
+            }
+            var filterDescriptor = {
+                endpoint: '{{ request.META.get_full_path }}',
+                resultTplSelector: '#results li.ik-li'
+            };
+            ikwen.setupFilter('#results', filterDescriptor)
+        })()
+    </script>
 {% endblock %}

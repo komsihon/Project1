@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import requests
 from ajaxuploader.backends.local import LocalUploadBackend
 from django.conf import settings
+from django.contrib.admin import AdminSite
 from django.core.cache import cache
 from django.db.models import F, Model
 from django.db.models.loading import get_model
@@ -264,7 +265,7 @@ def calculate_watch_info(history_value_list, duration=0):
     if len(history_value_list) == 0:
         return None
 
-    total, total_0, change = 0, None, None
+    total, total_0, change, change_rate = 0, None, None, None
     if duration == 1:  # When duration is a day, we compare to the same day of the previous week.
         total = history_value_list[-1]
         if len(history_value_list) >= 8:
@@ -276,14 +277,16 @@ def calculate_watch_info(history_value_list, duration=0):
             total_0 = sum(history_value_list[start:finish])
 
     if total_0 is not None:
+        change = total - total_0
         if total_0 == 0:
-            change = 100  # When moving from 0 to another value, we consider change to be 100%
+            change_rate = 100  # When moving from 0 to another value, we consider change to be 100%
         else:
-            change = (total - total_0) / float(total_0) * 100
+            change_rate = change / float(total_0) * 100
 
     return {
         'total': total,
-        'change': change
+        'change': change,
+        'change_rate': change_rate
     }
 
 
@@ -383,13 +386,17 @@ def add_event(service, member, codename, object_id=None, model=None):
     :param object_id: id of the model involved.
     :param model: full dotted path to the model involved in the event. *Eg: ikwen.foundation.billing.Invoice*
     """
+    # TODO: Handle the broadcasting of an event. That is an event for a list of Member
     from ikwen.foundation.accesscontrol.backends import UMBRELLA
     from ikwen.foundation.core.models import ConsoleEventType, ConsoleEvent, Service
     from ikwen.foundation.accesscontrol.models import Member
 
     service = Service.objects.using(UMBRELLA).get(pk=service.id)
     member = Member.objects.using(UMBRELLA).get(pk=member.id)
-    event_type = ConsoleEventType.objects.using(UMBRELLA).get(app=service.app, codename=codename)
+    try:
+        event_type = ConsoleEventType.objects.using(UMBRELLA).get(app=service.app, codename=codename)
+    except ConsoleEventType.DoesNotExist:
+        event_type = ConsoleEventType.objects.using(UMBRELLA).get(codename=codename)
     event = ConsoleEvent.objects.using(UMBRELLA).create(service=service, member=member,
                                                         event_type=event_type, model=model, object_id=object_id)
     if event_type.target == ConsoleEventType.BUSINESS:
@@ -397,3 +404,9 @@ def add_event(service, member, codename, object_id=None, model=None):
     else:
         Member.objects.using(UMBRELLA).filter(pk=member.id).update(personal_notices=F('personal_notices')+1)
     return event
+
+
+def get_model_admin_instance(model, model_admin):
+    default_site = AdminSite()
+    instance = model_admin(model, default_site)
+    return instance

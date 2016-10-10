@@ -60,6 +60,7 @@ class HybridListView(ListView):
     page_size = int(getattr(settings, 'HYBRID_LIST_PAGE_SIZE', '25'))
     search_field = 'name'
     ordering = ('-created_on', )
+    list_filter = ()
     ajax_ordering = ('-created_on', )
 
     def get_queryset(self):
@@ -80,11 +81,13 @@ class HybridListView(ListView):
         context[self.context_object_name] = context[self.context_object_name].order_by(*self.ordering)[:self.page_size]
         context['page_size'] = self.page_size
         context['total_objects'] = self.get_queryset().count()
+        context['filter'] = self.get_filter()
         return context
 
     def render_to_response(self, context, **response_kwargs):
         if self.request.GET.get('format') == 'json':
             queryset = self.get_queryset()
+            queryset = self.filter_queryset(queryset)
             start_date = self.request.GET.get('start_date')
             end_date = self.request.GET.get('end_date')
             if start_date and end_date:
@@ -125,6 +128,30 @@ class HybridListView(ListView):
                     if queryset.count() > 0:
                         break
         return queryset
+
+    def get_filter(self):
+        options = []
+        for item in self.list_filter:
+            if callable(item):
+                filter = item()
+                choices = filter.lookups()
+                if choices:
+                    options.append({
+                        'title': filter.title,
+                        'parameter_name': filter.parameter_name,
+                        'choices': filter.lookups()
+                    })
+        return options
+
+    def filter_queryset(self, queryset):
+        for item in self.list_filter:
+            if callable(item):
+                filter = item()
+                queryset = filter.queryset(self.request, queryset)
+        return queryset
+
+
+upload_image = AjaxFileUploader(DefaultUploadBackend)
 
 
 class CustomizationImageUploadBackend(DefaultUploadBackend):
@@ -196,7 +223,7 @@ class ServiceDetail(BaseView):
         invoice = Invoice.get_last(service)
         if invoice:
             service.last_payment = invoice.created_on
-        if service.version == Service.FREE:
+        if not service.version or service.version == Service.FREE:
             service.expiry = None
         else:
             now = datetime.now()
@@ -243,6 +270,17 @@ class Configuration(BaseView):
         context['config_admin_form'] = admin_form
         context['img_upload_context'] = self.UPLOAD_CONTEXT
         context['billing_cycles'] = Service.BILLING_CYCLES_CHOICES
+        # ChangeList = config_admin.get_changelist(self.request)
+        #
+        # list_display = config_admin.get_list_display(self.request)
+        # list_display_links = config_admin.get_list_display_links(self.request, list_display)
+        # list_filter = config_admin.get_list_filter(self.request)
+        # cl = ChangeList(self.request, config_admin.model, list_display,
+        #                 list_display_links, list_filter, config_admin.date_hierarchy,
+        #                 config_admin.search_fields, config_admin.list_select_related,
+        #                 config_admin.list_per_page, config_admin.list_max_show_all, config_admin.list_editable,
+        #                 config_admin)
+        # context['cl'] = cl
         return context
 
     @method_decorator(sensitive_post_parameters())

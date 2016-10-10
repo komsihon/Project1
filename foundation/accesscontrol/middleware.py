@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.http.response import HttpResponseRedirect
 from django.utils.http import urlsafe_base64_decode
@@ -34,3 +35,11 @@ class XDomainTokenAuthMiddleware(object):
                 member = authenticate(uid=uid)
                 if token == member.password[-TOKEN_CHUNK:-1]:
                     login(request, member)
+
+        if request.user.is_authenticated():
+            # Copy notices count from UMBRELLA database that keeps actual values
+            from ikwen.foundation.accesscontrol.backends import UMBRELLA
+            if not getattr(settings, 'IS_IKWEN', False):
+                m2 = request.user.get_from(UMBRELLA)
+                request.user.business_notices = m2.business_notices
+                request.user.personal_notices = m2.personal_notices

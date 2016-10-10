@@ -25,7 +25,12 @@
             _$back.removeClass('finished');
             $('div#page-navigation strong.start').text(start + 1);
             $('div#page-navigation strong.finish').text(finish);
-            $.getJSON(ikwen.paginationEndpoint, {start: start, format: 'json'}, function(data) {
+            if (!ikwen.paginationParams) {
+                ikwen.paginationParams = {format: 'json'}
+            }
+            var params = ikwen.paginationParams;
+            params.start = start;
+            $.getJSON(ikwen.paginationEndpoint, params, function(data) {
                 if (data.length < pageSize || finish == total) _$next.addClass('finished');
                 $('.object-list ' + tag + ':not(.tpl)').remove();
                 for (var i=0; i<data.length; i++) {

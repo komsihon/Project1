@@ -52,7 +52,7 @@ class MultiImageFieldFile(ImageFieldFile):
         parts = self.path.split(".")
 
         if self.field.lowqual > 0: #Create the Low Quality version only if lowqual is set
-            IMAGE_WIDTH_LIMIT = 800 #Too big img are of no use on this web site
+            IMAGE_WIDTH_LIMIT = 1600 #Too big img are of no use on this web site
             lowqual_size = img.size if img.size[0] <= IMAGE_WIDTH_LIMIT else IMAGE_WIDTH_LIMIT, IMAGE_WIDTH_LIMIT
             img.thumbnail(lowqual_size, Image.NEAREST)
             img.save(self.lowqual_path, quality=self.field.lowqual)
@@ -62,14 +62,14 @@ class MultiImageFieldFile(ImageFieldFile):
             (self.field.small_side, self.field.small_side),
             Image.ANTIALIAS
         )
-        img.save(self.small_path, quality=87)
+        img.save(self.small_path, quality=96)
         #Save the .thumb version of the image
         img = Image.open(self.path)
         img.thumbnail(
             (self.field.thumb_side, self.field.thumb_side),
             Image.ANTIALIAS
         )
-        img.save(self.thumb_path, quality=87)
+        img.save(self.thumb_path, quality=96)
 
     def delete(self, save=True):
         if os.path.exists(self.lowqual_path):

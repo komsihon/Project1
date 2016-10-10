@@ -28,7 +28,7 @@ class InvoicingConfig(models.Model):
                             help_text=_("Name of this configuration."))
     currency = models.CharField(max_length=15,
                                 help_text=_("Abbreviation of currency in use for the billing system. Eg: "
-                                            "<strong>USD Dollar, XAF, Euro, etc.</strong>"))
+                                            "<strong>XAF, $, €, etc.</strong>"))
     new_invoice_subject = models.CharField(max_length=100, blank=True, verbose_name=_("New invoice subject"),
                                            help_text=_("Subject of the mail of notice of invoice generation."))
     new_invoice_message = models.TextField(blank=True, verbose_name=_("New invoice mail message"),
@@ -134,7 +134,8 @@ class AbstractSubscription(Model):
     )
     member = models.ForeignKey(Member, related_name='+',
                                help_text=_("Client who subscribes to the service."))
-    product = models.ForeignKey(getattr(settings, 'BILLING_PRODUCT_MODEL', 'billing.Product'))
+    product = models.ForeignKey(getattr(settings, 'BILLING_PRODUCT_MODEL', 'billing.Product'),
+                                related_name='+')
     monthly_cost = models.FloatField(help_text=_("How much the client must pay per month for the service."))
     billing_cycle = models.CharField(max_length=30, choices=Service.BILLING_CYCLES_CHOICES, blank=True,
                                      help_text=_("The interval after which invoice are sent to client."))
