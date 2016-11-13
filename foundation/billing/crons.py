@@ -59,6 +59,12 @@ def send_invoices():
                 amount = subscription.monthly_cost * get_billing_cycle_months_count(service.billing_cycle)
             else:
                 amount = subscription.product.cost
+
+            path_before = getattr(settings, 'BILLING_BEFORE_NEW_INVOICE', None)
+            if path_before:
+                before_new_invoice = import_by_path(path_before)
+                before_new_invoice(subscription)
+
             invoice = Invoice.objects.create(subscription=subscription, amount=amount,
                                              number=number, due_date=subscription.expiry)
             count += 1
@@ -89,6 +95,12 @@ def send_invoices():
                         send_sms(member.phone, sms_text)
                     else:
                         QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
+
+            path_after = getattr(settings, 'BILLING_AFTER_NEW_INVOICE', None)
+            if path_after:
+                after_new_invoice = import_by_path(path_after)
+                after_new_invoice(invoice)
+
     try:
         connection.close()
     finally:

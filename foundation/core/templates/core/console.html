@@ -6,29 +6,26 @@
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
-    <link href="{% static 'ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <link href="{% static 'ikwen/ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" />
     <style type="text/css">
         #cover nav {background: #fff; height: 42px; width: 100%}
         #cover nav ul {margin: 0; padding: 0}
         #cover nav li {border-right: 1px solid #ddd; display: inline-block; height: 42px; 
-            overflow: hidden; padding-top: 9px; text-align: center; width: 160px}
+            overflow: hidden; padding-top: 9px; text-align: center; width: 49.5%}
+        #cover nav li:last-child {border-right: none}
         #cover nav li a {color: #587389}
         #cover nav li a:hover {text-decoration: none}
         #cover nav li.current a {color: #18bc9c; font-weight: 700}
-        @media (max-width: 475px) {
-            #cover nav li {width: 49.5%}
-            #cover nav li:last-child {border-right: none}
+        @media (min-width: 476px) {
+            #cover nav li {width: 160px}
+            #cover nav li:last-child {border-right: 1px solid #ddd}
         }
     </style>
 {% endblock %}
 
 {% block stage %}
     <div id="stage">
-        {% if member.cover_image and member.cover_image.name %}
-        <header id="cover" class="subtle-shade" style="background-image: url({{ member.cover_image.url }});">
-        {% else %}
-        <header id="cover" class="subtle-shade" style="background-image: url({% static 'ikwen/img/default-cover.jpg' %});">
-        {% endif %}
+        <header id="cover" class="subtle-shade">
             <div id="banner">
                 <div class="frame">
                     {% if member.photo and member.photo.name %}
@@ -64,46 +61,110 @@
             </nav>
             {% endif %}
         </header>
-        <div class="container-fluid" id="cards">
-            {% for service, event_groups in events.items %}
-                <section class="{{ service.project_name_slug }} subtle-shade">
-                    <h3>
-                        {% if service.config.logo.name %}
-                            <img src="{{ service.config.logo.url }}" width="30" />
-                        {% endif %}
-                        {{ service.project_name }}
-                    </h3>
-                    {% for event_list in event_groups %}
-                        <div class="{{ event_list.0.event_type.codename }}">
+        {% for service, event_list in access_request_events.items %}
+            <div id="access-requests" class="container-fluid row">
+                <div style="padding: 0 15px">
+                    <div class="{{ service.project_name_slug }} card subtle-shade">
+                        <h3>
+                            {% if service.config.logo.name %}
+                                <img src="{{ service.config.logo.url }}" width="30" />
+                            {% endif %}
+                            {{ service.project_name }}
+                        </h3>
+                        <div class="AccessRequest">
                             <h4>
-                                {{ event_list.0.event_type.title }}
+                                {% trans "Request to join" %}
                                 {% if event_list|length > 4 and event_list.0.event_type.target_url_name %}
-                                <a class="more" href="{% url event_list.0.event_type.target_url_name %}">{% trans "See all" %}</a>
+                                    {% url event_list.0.event_type.target_url_name as target_url %}
+                                    <a class="more" href="{{ target_url|append_auth_tokens:request }}">{% trans "See all" %}</a>
                                 {% endif %}
                             </h4>
-                            <div class="row" style="margin-top: 20px">
+                            <div class="row" style="margin-top: 15px">
                                 {% for event in event_list %} {{ event.render|safe }} {% endfor %}
                             </div>
                         </div>
-                    {% endfor %}
-                </section>
-            {% empty %}
-                <section class="subtle-shade">
-                    <div>
-                        <h4>{% trans "No event" %}</h4>
                     </div>
-                </section>
-            {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+        <div id="events" class="container-fluid row">
+            {% if event_list|length == 0 %}
+                <div class="col-xs-12">
+                    <div class="card subtle-shade">
+                        <div>
+                            <h4>{% trans "No event" %}</h4>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            {% if request.user_agent.is_mobile %}
+                {% include 'core/snippets/console_event_list_mobile.html' %}
+            {% else %}
+                {% include 'core/snippets/console_event_list.html' %}
+            {% endif %}
         </div>
     </div>
 {% endblock %}
 
 {% block js %}
     {{ block.super }}
-    <script src="{% static 'ajaxuploader/js/fileuploader.js' %}"></script>
+    <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
     {% include 'core/snippets/banner_and_pp_uploader.html' %}
     <script>
-        ikwen.appendAuthTokens('#cards');
-        $.getJSON('{% url 'ikwen:reset_notices_counter' %}', {target: '{{ request.GET.target }}'}, function(data) {})
+        (function() {
+            ikwen.appendAuthTokens('#access-requests');
+            function loadCardContent(eventId) {
+                var _$card = $('#' + eventId),
+                    baseUrl = _$card.data('base-url');
+                $.getJSON(baseUrl + '{% url 'ikwen:load_event_content' %}?callback=?',
+                        {event_id: eventId, key: '{{ request.GET.key }}', rand: '{{ request.GET.rand }}'},
+                        function(res) {
+                        _$card.find('.content').html(res.html);
+                        ikwen.appendAuthTokens('#' + eventId)
+                    });
+                _$card.addClass('loaded');
+            }
+            var dataSourceEmpty = false,
+                loadingCards = false;
+            $(window).scroll(function() {
+                if (dataSourceEmpty || loadingCards) return;
+                var scrollTop = $(this).scrollTop();
+                if ($(document).height() - $(this).height() - scrollTop <= $('footer').height()) {
+                    loadingCards = true;
+                    var start = $('div#events .card').length,
+                        $col1 = $('div#events > div:first'),
+                        $col2 = $('div#events > div:last'),
+                        col1Height = $col1.height(),
+                        col2Height = $col2.height();
+                    var colCycle = col1Height > col2Height ? [$col2, $col1] : [$col1, $col2];
+                    $.getJSON('{% url 'ikwen:console' %}',
+                        {start: start, key: '{{ request.GET.key }}', rand: '{{ request.GET.rand }}', format: 'json'},
+                        function(events) {
+                        if (events.length == 0) {
+                            dataSourceEmpty = true;
+                            return;
+                        }
+                        for (var i=0; i<events.length; i++) {
+                            var event = events[i],
+                                $card = $('div#events .card:first').clone();
+                            $card.attr('id', event.id);
+                            $card.data('base-url', event.project_url);
+                            $card.find('h3 span').text(event.project_name);
+                            $card.find('time').text(event.created_on);
+                            $card.find('.content').html('');
+                            colCycle[i%2].append($card);
+                            loadCardContent(event.id);
+                        }
+                        loadingCards = false;
+                    });
+                    $(this).addClass('loaded');
+                }
+            });
+            $('div#events .card:not(.loaded)').each(function() {
+                var id = $(this).attr('id');
+                loadCardContent(id);
+            });
+            $.getJSON('{% url 'ikwen:reset_notices_counter' %}', {target: '{{ request.GET.target }}'}, function(data) {})
+        })()
     </script>
 {% endblock %}

@@ -15,16 +15,16 @@
         ul#tabs li.results span {color: #888}
         .tab-content .spinner {background: rgba(255, 255, 255, .6); height: 100%; margin-left: -255px; position: fixed; width: 100%}
         ul.people {padding-left: 0}
-        #customer-detail {background: #fff; height: 100%; margin-top: -115px; padding: 0 15px; position: fixed; right: 0; width: 330px}
-        #customer-detail .stage {border-left: 1px solid #eee; float: left; height: 100%; padding: 0 15px; width: 100%}
-        #customer-detail form {margin: 25px 0}
-        #customer-detail form button {margin-top: 25px}
+        #member-detail {background: #fff; height: 100%; margin-top: -115px; padding: 0 15px; position: fixed; right: 0; width: 330px}
+        #member-detail .stage {border-left: 1px solid #eee; float: left; height: 100%; padding: 0 15px; width: 100%}
+        #member-detail form {margin: 25px 0}
+        #member-detail form button {margin-top: 25px}
         .member.Blocked  {opacity: .72; filter:Alpha(opacity=72)}
     </style>
 {% endblock %}
 
 {% block breadcrumb_location %}
-    <li>{% trans "Customers" %}</li>
+    <li>{% trans "Members" %}</li>
 {% endblock %}
 
 {% block admin_content %}
@@ -42,17 +42,17 @@
             <div role="tabpanel" class="tab-pane active" id="all">
                 {% include 'core/snippets/spinner.html' %}
                 <ul class="people object-list">
-                {% for customer in customer_list %}
-                    <li class="member {{ customer.get_status }}" id="{{ customer.id }}" data-id="{{ customer.id }}" data-status="{{ customer.get_status }}">
-                        {% url 'ikwen:profile' customer.id as member_url %}
-                    {% if customer.photo and customer.photo.name %}
-                        <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({{ customer.photo.small_url }})"></a>
+                {% for member in member_list %}
+                    <li class="member {{ member.get_status }}" id="{{ member.id }}" data-id="{{ member.id }}" data-status="{{ member.get_status }}">
+                        {% url 'ikwen:profile' member.id as member_url %}
+                    {% if member.photo and member.photo.name %}
+                        <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({{ member.photo.small_url }})"></a>
                     {% else %}
                         <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
                     {% endif %}
                         <div style="float: left; margin-left: 30px">
-                            <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="full_name">{{ customer.full_name }}</a>
-                            <p class="about">{{ customer.phone }}, {{ customer.email }}</p>
+                            <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="full_name">{{ member.full_name }}</a>
+                            <p class="about">{{ member.phone }}, {{ member.email }}</p>
                         </div>
                     </li>
                 {% endfor %}
@@ -83,10 +83,10 @@
                 </ul>
             </div>
         </div>
-        <div id="customer-detail">
+        <div id="member-detail">
             <div class="stage">
                 <div class="empty" style="color: #888; padding-top: 30px">
-                    {% trans "Click on a customer in the list to view information." %}
+                    {% trans "Click on a member in the list to view information." %}
                 </div>
                 <div class="actions" style="display: none">
                     <div class="info">
@@ -110,7 +110,7 @@
     {% include 'core/snippets/pagination_js.html' %}
     <script type="text/javascript">
         (function() {
-            $('div#admin-nav .customers').addClass('active');
+            $('div#admin-nav .members').addClass('active');
             $('ul#tabs').on('click', 'li', function (e) {
                 var tabId = $(this).data('id'),
                     count = $('div#' + tabId + ' li.member:not(.tpl)').length;
@@ -120,26 +120,26 @@
                     $('div#' + tabId + ' li.member.active').click();
                     return;
                 }
-                $('div#customer-detail .empty').show();
-                $('div#customer-detail .actions').hide();
+                $('div#member-detail .empty').show();
+                $('div#member-detail .actions').hide();
             });
             $('body').on('click', 'li.member', function() {
                 var memberId = $(this).data('id'),
                     status = $(this).data('status');
-                $('div#customer-detail button').data({"id": memberId, "status": status});
+                $('div#member-detail button').data({"id": memberId, "status": status});
                 $('ul li.member').removeClass('active');
                 $(this).addClass('active');
-                $('div#customer-detail .info .spinner').show();
-                $('div#customer-detail .info .content').load('{% url 'ikwen:load_customer_detail' %}?member_id=' + memberId, null, function() {
-                    $('div#customer-detail .info .spinner').hide();
+                $('div#member-detail .info .spinner').show();
+                $('div#member-detail .info .content').load('{% url 'ikwen:load_member_detail' %}?member_id=' + memberId, null, function() {
+                    $('div#member-detail .info .spinner').hide();
                 });
-                $('div#customer-detail .empty').hide();
+                $('div#member-detail .empty').hide();
                 if (status == 'Blocked') {
                     $('div#blocking button').text("{% trans 'Activate' %}");
                 } else {
                     $('div#blocking button').text("{% trans 'Block' %}");
                 }
-                $('div#customer-detail .actions').show();
+                $('div#member-detail .actions').show();
             });
             $('div#blocking button').click(function() {
                 var memberId = $(this).data('id'),
@@ -158,7 +158,7 @@
                 });
             });
             var searchDescriptor = [{
-                endpoint: '{% url 'ikwen:customer_list' %}',
+                endpoint: '{% url 'ikwen:member_list' %}',
                 resultTplSelector: '#results li.member'
             }];
             function beforeSearch() {
@@ -168,8 +168,8 @@
                 $('ul#tabs li.results').show().addClass('active').find('span').text(q);
                 $('div.tab-pane').hide();
                 $('#results').show();
-                $('div#customer-detail .empty').show();
-                $('div#customer-detail .actions').hide();
+                $('div#member-detail .empty').show();
+                $('div#member-detail .actions').hide();
             }
             ikwen.setupSearch('#context-search input', '#results', searchDescriptor, beforeSearch);
         })()

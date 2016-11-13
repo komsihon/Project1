@@ -49,7 +49,6 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.client.login(username='member3', password='admin')
         response = self.client.get(reverse('ikwen:request_access'),
                                    {'service_id': '56eb6d04b37b3379b531b102',
-                                    'access_type': AccessRequest.COLLABORATION_REQUEST,
                                     'format': 'json'})
         self.assertEqual(response.status_code, 200)
         json_response = json.loads(response.content)
@@ -61,12 +60,12 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         response = self.client.get(reverse('ikwen:console'))
         s = Member.objects.get(username='member2').collaborates_on[0]
         et = ConsoleEventType.objects.get(pk='56eb6db3379b531a0104b371')
-        self.assertEqual(len(response.context['events'][s][0]), 1)
+        self.assertEqual(len(response.context['access_request_events'][s]), 1)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
                        EMAIL_FILE_PATH='test_emails/accesscontrol/')
-    def test_grant_access_to_collaborator(self):
+    def test_grant_access(self):
         """
         Granting access to collaborator adds him in the local database and
         create the corresponding UserPermissionList object with the right group
@@ -75,16 +74,15 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         member2 = Member.objects.get(pk='56eb6d04b37b3379b531e012')
         service = Service.objects.get(pk='56eb6d04b37b3379b531b102')
         et = ConsoleEventType.objects.get(pk='56eb6db3379b531a0104b371')  # Collaboration Access Request event type
-        et2 = ConsoleEventType.objects.get(pk='56eb6db3379b531a0104b372')  # Access granted event type
         group_id = '5804b37b3379b531e01eb6d2'
         add_database_to_settings(service.database)
         Group.objects.using(service.database).create(pk=group_id, name='Collabo')
         UserPermissionList.objects.using(service.database).all().delete()
-        rq = AccessRequest.objects.create(member=member3, service=service, type=AccessRequest.COLLABORATION_REQUEST)
+        rq = AccessRequest.objects.create(member=member3, service=service)
         ConsoleEvent.objects.create(event_type=et, service=service, member=member2,
                                     model='accesscontrol.AccessRequest', object_id=rq.id)
         self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('ikwen:grant_access_to_collaborator'),
+        response = self.client.get(reverse('ikwen:grant_access'),
                                    {'group_id': group_id,
                                     'request_id': rq.id})
         json_response = json.loads(response.content)
@@ -98,52 +96,12 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.client.login(username='member2', password='admin')
         response = self.client.get(reverse('ikwen:console'))
         s2 = Member.objects.get(username='member2').collaborates_on[0]
-        self.assertEqual(len(response.context['events'][s2][0]), 1)
+        self.assertEqual(len(response.context['event_list']), 1)
         self.client.logout()
         self.client.login(username='member3', password='admin')
         response = self.client.get(reverse('ikwen:console'))
         s3 = Member.objects.get(username='member3').collaborates_on[-1]
-        self.assertEqual(len(response.context['events'][s3][0]), 1)
-        from pymongo import Connection
-        cnx = Connection()
-        cnx.drop_database(service.database)
-
-    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
-                       EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-                       EMAIL_FILE_PATH='test_emails/accesscontrol/')
-    def test_grant_access_to_customer(self):
-        """
-
-        """
-        member3 = Member.objects.get(pk='56eb6d04b37b3379b531e013')
-        member3.collaborates_on = []
-        member3.save()
-        member2 = Member.objects.get(pk='56eb6d04b37b3379b531e012')
-        service = Service.objects.get(pk='56eb6d04b37b3379b531b102')
-        et = ConsoleEventType.objects.get(pk='56eb6db3379b531a0104b373')  # Service request event type
-        et2 = ConsoleEventType.objects.get(pk='56eb6db3379b531a0104b372')  # Access granted event type
-        et4 = ConsoleEventType.objects.get(pk='56eb6db3379b531a0104b374')  # Customer added event type
-        add_database_to_settings(service.database)
-        rq = AccessRequest.objects.create(member=member3, service=service, type=AccessRequest.SERVICE_REQUEST)
-        ConsoleEvent.objects.create(event_type=et, service=service, member=member2,
-                                    model='accesscontrol.AccessRequest', object_id=rq.id)
-        self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('ikwen:grant_access_to_customer'), {'request_id': rq.id})
-        json_response = json.loads(response.content)
-        self.assertTrue(json_response['success'])
-        rq = AccessRequest.objects.get(member=member3)
-        self.assertEqual(rq.status, AccessRequest.CONFIRMED)
-        self.assertEqual(ConsoleEvent.objects.filter(member=service.member, event_type=et).count(), 0)
-        self.client.logout()
-        self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('ikwen:console'))
-        s2 = Member.objects.get(username='member2').collaborates_on[0]
-        self.assertEqual(len(response.context['events'][s2][0]), 1)
-        self.client.logout()
-        self.client.login(username='member3', password='admin')
-        response = self.client.get(reverse('ikwen:console'))
-        s3 = Member.objects.get(username='member3').customer_on[-1]
-        self.assertEqual(len(response.context['events'][s3][0]), 1)
+        self.assertEqual(len(response.context['event_list']), 1)
         from pymongo import Connection
         cnx = Connection()
         cnx.drop_database(service.database)
@@ -192,7 +150,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.assertIn(perm4.id, obj.permission_fk_list)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
-    def test_move_collaborator_to_group(self):
+    def test_move_member_to_group(self):
         """
         Make sure the url is reachable
         """
@@ -202,7 +160,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         m3 = Member.objects.get(username='member3')
         add_permission_to_user(perm1, m3)
         self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('ikwen:move_collaborator_to_group'),
+        response = self.client.get(reverse('ikwen:move_member_to_group'),
                                     {'member_id': m3.id, 'group_id': '5804b37b3379b531e01eb6d1'})
         self.assertEqual(response.status_code, 200)
         obj = UserPermissionList.objects.get(user=m3)
@@ -220,12 +178,12 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
-    def test_CustomerList(self):
+    def test_MemberList(self):
         """
         Make sure the url is reachable
         """
         self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('ikwen:customer_list'))
+        response = self.client.get(reverse('ikwen:member_list'))
         self.assertEqual(response.status_code, 200)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
@@ -235,15 +193,6 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         """
         self.client.login(username='member2', password='admin')
         response = self.client.get(reverse('ikwen:access_request_list'))
-        self.assertEqual(response.status_code, 200)
-
-    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
-    def test_ServiceRequestList(self):
-        """
-        Make sure the url is reachable
-        """
-        self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('ikwen:service_request_list'))
         self.assertEqual(response.status_code, 200)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')

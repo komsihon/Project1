@@ -117,11 +117,11 @@
                                 </select>
                             {% endif %}
                         </td>
-                        <td id="subtotal">{{ invoice.amount|intcomma }} {{ invoicing_config.currency }}</td>
+                        <td id="subtotal">{{ invoice.amount|intcomma }} {{ currency_symbol }}</td>
                     </tr>
                     <tr class="em1">
                         <td colspan="4">{% trans "Total" %}</td>
-                        <td id="total">{{ invoice.amount|intcomma }} {{ invoicing_config.currency }}</td>
+                        <td id="total">{{ invoice.amount|intcomma }} {{ currency_symbol }}</td>
                     </tr>
                     {% if invoice.payment_set.all|length > 0 %}
                         <tr class="dashed-separator">
@@ -143,7 +143,7 @@
                                 <td colspan="2">{{ payment.when }}</td>
                                 <td>{{ payment.method }}</td>
                                 <td>{{ payment.id }}</td>
-                                <td>{{ payment.amount|intcomma }} {{ invoicing_config.currency }}</td>
+                                <td>{{ payment.amount|intcomma }} {{ currency_symbol }}</td>
                             </tr>
                         {% endfor %}
                     {% endif %}
@@ -167,8 +167,8 @@
                     invoiceAmount = $('#main').data('amount'),
                     monthlyCost = $('#main').data('monthly-cost'),
                     total = additionalMonth * monthlyCost + invoiceAmount;
-                $('#subtotal').text(total.formatMoney() + ' {{ currency }}');
-                $('#total').text(total.formatMoney() + ' {{ currency }}');
+                $('#subtotal').text(total.formatMoney() + ' {{ currency_symbol }}');
+                $('#total').text(total.formatMoney() + ' {{ currency_symbol }}');
             });
         })()
     </script>

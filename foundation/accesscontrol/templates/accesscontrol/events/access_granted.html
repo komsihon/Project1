@@ -1,40 +1,38 @@
 {% load i18n staticfiles humanize %}
 {% if is_iao %}
-    <div class="member" style="float: none; margin: auto; width: 96%">
-        {% if rq.member.photo and rq.member.photo.name %}
-            <a href="{% url 'ikwen:profile' rq.member.id %}" class="photo" style="background-image: url({{ rq.member.photo.small_url }})"></a>
+    <div style="padding: 0 15px">
+        {% if rq.type == 'CollaborationRequest' %}
+            <h4>{% trans "Collaboration Access Granted" %}</h4>
         {% else %}
-            <a href="{% url 'ikwen:profile' rq.member.id %}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
+            <h4>{% trans "New Customer" %}</h4>
         {% endif %}
-        <div style="float: left; margin-left: 30px">
-            <p class="name">{{ rq.member.full_name }}</p>
-            {% if rq.type == 'CollaborationRequest' %}
-                {% url 'ikwen:collaborators' as collabo_url %}
-                <p class="about">{% blocktrans with group_name=rq.group_name %}
-                     Was granted access and added to <a href="{{ collabo_url }}?group_name={{ group_name }}">{{ group_name }}</a> group.
-                {% endblocktrans %}</p>
+        <div class="member" style="border-bottom: none; padding: 15px 0">
+            {% if rq.member.photo and rq.member.photo.name %}
+                <a href="{% url 'ikwen:profile' rq.member.id %}" class="photo" style="background-image: url({{ rq.member.photo.small_url }})"></a>
             {% else %}
-                {% url 'ikwen:customer_list' as customer_list_url %}
-                <p class="about">{% blocktrans %}
-                     Was granted customer access. <a href="{{ customer_list_url }}">View customers</a>
-                {% endblocktrans %}</p>
+                <a href="{% url 'ikwen:profile' rq.member.id %}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
             {% endif %}
+            <div style="margin-left: 80px">
+                <a href="{% url 'ikwen:profile' rq.member.id %}" class="name" style="display: block; margin-bottom: 5px">{{ rq.member.full_name }}</a>
+                {% if rq.type == 'CollaborationRequest' %}
+                    {% url 'ikwen:collaborators' as collabo_url %}
+                    <p class="about">{% blocktrans with group_name=rq.group_name %}
+                         Was granted access and added to <a href="{{ collabo_url }}?group_name={{ group_name }}">{{ group_name }}</a> group.
+                    {% endblocktrans %}</p>
+                {% else %}
+                    {% url 'ikwen:customer_list' as customer_list_url %}
+                    <p class="about">{% blocktrans %}
+                         Was granted customer access. <a href="{{ customer_list_url }}">View customers</a>
+                    {% endblocktrans %}</p>
+                {% endif %}
+            </div>
         </div>
-        <time>{{ rq.updated_on|naturaltime }}</time>
-        <div class="clear"></div>
     </div>
 {% else %}
-    <div style="margin-top: -15px; padding: 0 15px">
-        {% if rq.type == 'CollaborationRequest' %}
-            <p>
-                {% blocktrans with group_name=rq.group_name %}You were added as <em>{{ group_name }}</em>.{% endblocktrans %}
-                <a href="{{ rq.service.admin_url }}">{% trans "Join in" %}</a>
-            </p>
-        {% else %}
-            <p>
-                {% blocktrans %}You were happily added as a customer. Thank you for joining us.{% endblocktrans %}
-            </p>
-        {% endif %}
-        <time>{{ rq.updated_on|naturaltime }}</time>
+    <div style="margin-top: -7px; padding: 0 15px">
+        <h4>{% trans "Welcome" %}</h4>
+        <p>
+            {% blocktrans %}You were happily added to our community. Thank you for joining us.{% endblocktrans %}
+        </p>
     </div>
 {% endif %}

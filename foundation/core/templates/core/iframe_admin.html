@@ -1,5 +1,5 @@
 {% extends "core/app_base_admin.html" %}
-{% block page_title %}<title>{{ app_name }} - ikwen</title>{% endblock %}
+{% block page_title %}<title>{{ service.project_name }} - ikwen</title>{% endblock %}
 {% block breadcrumb_location %}
     <li style="text-transform: capitalize">{{ model_name }}</li>
 {% endblock %}
@@ -8,4 +8,7 @@
     <div id="admin-content" class="container-fluid embed">
         <iframe id="billing-stage" src="{{ iframe_url }}"></iframe>
     </div>
+{% endblock %}
+
+{% block footer %}
 {% endblock %}

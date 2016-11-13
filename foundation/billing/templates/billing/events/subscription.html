@@ -11,10 +11,9 @@
     <h4 class="text-primary">{{ title }}</h4>
     <p class="text-muted">{% blocktrans %}You were registered to <strong>{{ product_name }}</strong>{% endblocktrans %}
     {% if short_description %}: {% trans short_description %}{% endif %}
-    <ul class="text-muted">
-        <li style="display: inline-block">{{ currency }} {{ cost }}</li>
-        {% if billing_cycle %}<li style="margin-left: 22px">{% trans "Charged" context 'billing cycle' %} {{ billing_cycle }}</li>{% endif %}
+    <ul class="text-muted" style="padding-left: 0">
+        <li style="display: inline-block; float: left">{{ currency_symbol }} {{ cost }}</li>
+        {% if billing_cycle %}<li style="float: left; margin-left: 29px">{% trans "Charged" context 'billing cycle' %} {{ billing_cycle }}</li>{% endif %}
     </ul>
-    <time>{{ obj.created_on|naturaltime }}</time>
 </div>
 <div class="clear"></div>

@@ -38,12 +38,13 @@ class BillingBaseView(BaseView):
 
 
 class IframeAdmin(BillingBaseView):
-    template_name = 'billing/iframe_admin.html'
+    template_name = 'core/iframe_admin.html'
 
     def get_context_data(self, **kwargs):
         context = super(IframeAdmin, self).get_context_data(**kwargs)
         model_name = kwargs['model_name']
-        iframe_url = reverse('admin:billing_' + model_name + '_changelist')
+        app_name = kwargs.get('app_name', 'billing')
+        iframe_url = reverse('admin:%s_%s_changelist' % (app_name, model_name))
         context['model_name'] = model_name
         context['iframe_url'] = iframe_url
         return context
@@ -189,8 +190,6 @@ def list_subscriptions(request, *args, **kwargs):
 def render_subscription_event(event):
     database = event.service.database
     add_database_to_settings(database)
-    qs = InvoicingConfig.objects.using(database).all()
-    currency = qs[0].currency if qs.count() > 0 else 'XAF'
     tk = event.model.split('.')
     app_label = tk[0]
     model = tk[1]
@@ -209,7 +208,7 @@ def render_subscription_event(event):
         c = Context({'title': _(event.event_type.title),
                      'product_name': subscription.product.name,
                      'short_description': short_description,
-                     'currency': currency,
+                     'currency_symbol': event.service.config.currency_symbol,
                      'cost': cost,
                      'image_url': image.url if image and image.name else None,
                      'billing_cycle': billing_cycle,
@@ -224,12 +223,11 @@ def render_subscription_event(event):
 def render_billing_event(event):
     database = event.service.database
     add_database_to_settings(database)
-    qs = InvoicingConfig.objects.using(database).all()
-    currency = qs[0].currency if qs.count() > 0 else 'XAF'
+    currency_symbol = event.service.config.currency_symbol
     try:
         invoice = Invoice.objects.using(database).get(pk=event.object_id)
         c = Context({'title': _(event.event_type.title),
-                     'currency': currency,
+                     'currency_symbol': currency_symbol,
                      'amount': invoice.amount,
                      'obj': invoice,
                      'details_url': event.service.url + reverse('billing:invoice_list', args=(invoice.id, )),
@@ -239,7 +237,7 @@ def render_billing_event(event):
         try:
             report = SendingReport.objects.using(database).get(pk=event.object_id)
             c = Context({'title': '<strong>%d</strong> %s' % (report.count, _(event.event_type.title)),
-                         'currency': currency,
+                         'currency_symbol': currency_symbol,
                          'amount': report.total_amount,
                          'details_url': event.service.url + reverse('billing:iframe_admin', args=('invoice', )),
                          'obj': report})

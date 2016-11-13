@@ -4,12 +4,10 @@ This module groups utility middlewares that Ikwen uses.
 """
 from datetime import datetime
 
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
-from django.shortcuts import render
 
-from ikwen.foundation.core.urls import SERVICE_DETAIL, REGISTER, SIGN_IN, SERVICE_EXPIRED
+from ikwen.foundation.core.urls import SERVICE_DETAIL, REGISTER, SIGN_IN, SERVICE_EXPIRED, LOAD_EVENT
 
 from ikwen.foundation.accesscontrol.backends import UMBRELLA
 from ikwen.foundation.core.models import Service
@@ -33,7 +31,7 @@ class ServiceStatusCheckMiddleware(object):
             if now >= service.expiry or service.status != Service.ACTIVE:
                 rm = request.resolver_match
                 if rm.namespace == 'ikwen':
-                    if rm.url_name == SERVICE_EXPIRED or rm.url_name == SERVICE_DETAIL:
+                    if rm.url_name in [SERVICE_EXPIRED, SERVICE_DETAIL, LOAD_EVENT]:
                         return None
                     if rm.url_name == REGISTER or rm.url_name == SIGN_IN:
                         return HttpResponseRedirect(reverse('ikwen:' + SERVICE_EXPIRED))

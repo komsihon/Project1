@@ -91,8 +91,8 @@
         }
     };
 
-    c.showFloatingNotice = function(message, type, duration) {
-        $('div#top-notice-ctnr span').removeClass('success failure').html(message).addClass(type);
+    c.showFloatingNotice = function(message, className, duration) {
+        $('div#top-notice-ctnr span').removeClass('success failure').html(message).addClass(className);
         if (duration) $('#top-notice-ctnr').fadeIn().delay(duration * 1000).fadeOut();
         else $('#top-notice-ctnr').fadeIn();
     };

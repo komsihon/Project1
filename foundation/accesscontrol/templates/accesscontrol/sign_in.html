@@ -35,7 +35,7 @@
         {% elif request.GET.successfulPasswordReset %}
             <p class="success" style="font-size: 1em; padding: 9px">{% trans "Your password was successfully reset, login now." %}</p>
         {% endif %}
-        {% if not request.GET.action or login_form %}
+        {% if not request.GET.action or request.GET.action == 'login' or login_form %}
         <div id="login">
             <h2>{% trans "Login" %}</h2>
             <form action="{% url 'ikwen:sign_in' %}?{{ request.META.QUERY_STRING }}" method="post">{% csrf_token %}
@@ -123,7 +123,7 @@
                             {% trans "You are about to create an account managed by" %} <a href="{{ settings.IKWEN_BASE_URL }}" style="color: #999; text-decoration: underline">Ikwen</a>,
                             {% trans "on" %} {{ service.project_name }}.
                             {% trans "By doing so you accept" %} <a href="{% url 'ikwen:terms_and_conditions' %}">Ikwen {% trans "Terms & Conditions" %}</a>, {% trans "as well as" %}
-                            <a href="#">{{ service.project_name }} {% trans "Terms & Conditions" %}.</a>
+                            <a href="{{ settings.AGREEMENT_URL }}">{{ service.project_name }} {% trans "Terms & Conditions" %}.</a>
                         </p>
                     {% endif %}
                 </div>

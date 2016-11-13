@@ -64,10 +64,10 @@
                         {% if perms.accesscontrol.sudo %}
                             <div class="divider"></div>
                             <ul class="nav nav-pills nav-stacked">
-                {#                <li role="presentation"><a href="{% url 'ikwen:collaborators' %}">{% trans "Pages" %}</a></li>#}
-                                <li role="presentation" class="collaborators">
-                                    {% url 'ikwen:collaborators' as collaborators_url %}
-                                    <a href="{{ collaborators_url|append_auth_tokens:request }}">{% trans "Collaborators" %}</a>
+                                <li role="presentation" class="flatpages"><a href="{% url 'ikwen:flatpage_list' %}">{% trans "Pages" %}</a></li>
+                                <li role="presentation" class="community">
+                                    {% url 'ikwen:community' as community_url %}
+                                    <a href="{{ community_url|append_auth_tokens:request }}">{% trans "Community" %}</a>
                                 </li>
                             </ul>
                             <div class="divider"></div>
@@ -163,7 +163,7 @@
                 $.getJSON(ikwen.deleteEndpoint, {selection: selection}, function(data) {
                     $('body, div#selection-control .trash').css('cursor', '');
                     var list = selection.split(',');
-                    for (var i=0; i<list.length; i++) $('#' + list[i]).remove();
+                    for (var i=0; i<data.deleted.length; i++) $('#' + data.deleted[i]).remove();
                     $('#selection-control').removeClass('visible');
                     ikwen.showFloatingNotice(data.message, '', 6);
                 })

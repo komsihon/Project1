@@ -22,6 +22,12 @@
     </style>
 {% endblock %}
 
+{% block header_brand %}
+<strong class="navbar-header">
+    <a class="navbar-brand" href="{{ settings.IKWEN_BASE_URL|append_auth_tokens:request }}">ikwen</a>
+</strong>
+{% endblock %}
+
 {% block content %}
     <div id="content" class="container">
         {% block stage %}
@@ -69,7 +75,7 @@
                                         </div>
                                     {% endfor %}
                                 </div>
-                                <p class="text-success" style="display: none">{% trans "Access successfully granted to collaborator." %}</p>
+                                <p class="text-success" style="display: none">{% trans "Access successfully granted to member." %}</p>
                                 <button data-request-id="{{ elt.rq.id }}" class="btn btn-success btn-sm btn-block confirm-group">{% trans "Confirm" %}</button>
                             </div>
                         </div>
@@ -110,14 +116,11 @@
                         {% if is_company %}
                             <div class="actions">
                                 {% if request.user.is_authenticated %}
-                                    {% if not is_customer %}
-                                        <button class="btn btn-primary btn-sm request-access" data-service-id="{{ service.id }}" data-access-type="ServiceRequest">{% trans "Request service" %}</button>
+                                    {% if not is_member %}
+                                        <button class="btn btn-primary btn-sm request-access" data-service-id="{{ service.id }}">{% trans "Join" %}</button>
                                     {% endif %}
-                                    {% if not is_collabo %}
-                                        <button class="btn btn-success btn-sm request-access" data-service-id="{{ service.id }}" data-access-type="CollaborationRequest">{% trans "Request collaboration" %}</button>
-                                    {% endif %}
-                                {% elif not is_customer %}
-                                    <a class="btn btn-primary btn-sm" href="{% url 'ikwen:request_access' %}?service_id={{ service.id }}&access_type=ServiceRequest">{% trans "Request service" %}</a>
+                                {% else %}
+                                    <a class="btn btn-primary btn-sm" href="{% url 'ikwen:request_access' %}?service_id={{ service.id }}">{% trans "Join" %}</a>
                                 {% endif %}
                             </div>
                         {% endif %}

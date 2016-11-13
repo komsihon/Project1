@@ -2,8 +2,10 @@
 import json
 from datetime import datetime, timedelta
 
+import requests
 from ajaxuploader.views import AjaxFileUploader
 from django.conf import settings
+from django.contrib.admin import helpers
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.files import File
@@ -20,6 +22,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
+
 from ikwen.foundation.accesscontrol.templatetags.auth_tokens import append_auth_tokens
 
 from ikwen.foundation.billing.utils import get_invoicing_config_instance, get_billing_cycle_days_count, \
@@ -28,9 +31,9 @@ from ikwen.foundation.billing.utils import get_invoicing_config_instance, get_bi
 from ikwen.foundation.billing.models import Invoice
 
 from ikwen.foundation.accesscontrol.backends import UMBRELLA
-from ikwen.foundation.accesscontrol.models import Member, SERVICE_REQUEST_EVENT, COLLABORATION_REQUEST_EVENT
-from ikwen.foundation.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, AbstractConfig
-from ikwen.foundation.core.utils import get_service_instance, DefaultUploadBackend
+from ikwen.foundation.accesscontrol.models import Member, ACCESS_REQUEST_EVENT
+from ikwen.foundation.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, AbstractConfig, Country
+from ikwen.foundation.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons
 import ikwen.conf.settings
 
 IKWEN_BASE_URL = getattr(settings, 'IKWEN_BASE_URL') if getattr(settings, 'DEBUG', False) else ikwen.conf.settings.PROJECT_URL
@@ -43,7 +46,10 @@ class BaseView(TemplateView):
         context['year'] = datetime.now().year
         service = get_service_instance()
         context['service'] = service
-        context['config'] = service.config
+        config = service.config
+        context['config'] = config
+        context['currency_code'] = config.currency_code
+        context['currency_symbol'] = config.currency_symbol
         return context
 
 
@@ -162,34 +168,66 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
         import os
         path = self.UPLOAD_DIR + "/" + filename
         self._dest.close()
-        media_root = getattr(settings, 'MEDIA_ROOT')
         img_upload_context = request.GET['img_upload_context']
+        media_root = getattr(settings, 'MEDIA_ROOT')
         usage = request.GET['usage']
         try:
             with open(media_root + path, 'r') as f:
                 content = File(f)
                 if img_upload_context == Configuration.UPLOAD_CONTEXT:
+                    service = get_service_instance()
                     config = get_service_instance().config
                     if usage == 'profile':
+                        current_image_path = config.logo.path if config.logo.name else None
                         destination = media_root + AbstractConfig.LOGO_UPLOAD_TO + "/" + filename
                         config.logo.save(destination, content)
                         url = config.logo.url
+                        src = config.logo.path
+                        generate_favicons(src)
                     else:
+                        current_image_path = config.cover_image.path if config.cover_image.name else None
                         destination = media_root + AbstractConfig.COVER_UPLOAD_TO + "/" + filename
                         config.cover_image.save(destination, content)
                         url = config.cover_image.url
+                        src = config.cover_image.path
+                    cache.delete(service.id + ':config:')
+                    cache.delete(service.id + ':config:default')
+                    cache.delete(service.id + ':config:' + UMBRELLA)
+                    config.save(using=UMBRELLA)
+                    from ikwen.conf import settings as ikwen_settings
+                    dst = src.replace(media_root, ikwen_settings.MEDIA_ROOT)
+                    dst_folder = '/'.join(dst.split('/')[:-1])
+                    if not os.path.exists(dst_folder):
+                        os.makedirs(dst_folder)
+                    try:
+                        os.rename(src, dst)
+                    except Exception as e:
+                        if getattr(settings, 'DEBUG', False):
+                            raise e
                 else:
                     member_id = request.GET['member_id']
                     member = Member.objects.get(pk=member_id)
                     if usage == 'profile':
+                        current_image_path = member.photo.path if member.photo.name else None
                         destination = media_root + Member.PROFILE_UPLOAD_TO + "/" + filename
                         member.photo.save(destination, content)
                         url = member.photo.small_url
                     else:
+                        current_image_path = member.cover_image.path if member.cover_image.name else None
                         destination = media_root + Member.COVER_UPLOAD_TO + "/" + filename
                         member.cover_image.save(destination, content)
                         url = member.cover_image.url
-            os.unlink(media_root + path)
+            try:
+                os.unlink(media_root + path)
+            except Exception as e:
+                if getattr(settings, 'DEBUG', False):
+                    raise e
+            if current_image_path:
+                try:
+                    os.unlink(current_image_path)
+                except OSError as e:
+                    if getattr(settings, 'DEBUG', False):
+                        raise e
             return {
                 'url': url
             }
@@ -266,21 +304,11 @@ class Configuration(BaseView):
         ModelForm = config_admin.get_form(self.request)
         form = ModelForm(instance=context['config'])
         admin_form = helpers.AdminForm(form, list(config_admin.get_fieldsets(self.request)),
-                                       config_admin.get_prepopulated_fields(self.request))
-        context['config_admin_form'] = admin_form
+                                       config_admin.get_prepopulated_fields(self.request),
+                                       config_admin.get_readonly_fields(self.request))
+        context['model_admin_form'] = admin_form
         context['img_upload_context'] = self.UPLOAD_CONTEXT
         context['billing_cycles'] = Service.BILLING_CYCLES_CHOICES
-        # ChangeList = config_admin.get_changelist(self.request)
-        #
-        # list_display = config_admin.get_list_display(self.request)
-        # list_display_links = config_admin.get_list_display_links(self.request, list_display)
-        # list_filter = config_admin.get_list_filter(self.request)
-        # cl = ChangeList(self.request, config_admin.model, list_display,
-        #                 list_display_links, list_filter, config_admin.date_hierarchy,
-        #                 config_admin.search_fields, config_admin.list_select_related,
-        #                 config_admin.list_per_page, config_admin.list_max_show_all, config_admin.list_editable,
-        #                 config_admin)
-        # context['cl'] = cl
         return context
 
     @method_decorator(sensitive_post_parameters())
@@ -303,14 +331,6 @@ class Configuration(BaseView):
         else:
             context = self.get_context_data(**kwargs)
             return render(request, self.template_name, context)
-
-
-def before_paypal_set_checkout(request, *args, **kwargs):
-    config = get_service_instance().config
-    setattr(settings, 'PAYPAL_WPP_USER', config.paypal_user)
-    setattr(settings, 'PAYPAL_WPP_PASSWORD', config.paypal_password)
-    setattr(settings, 'PAYPAL_WPP_SIGNATURE', config.paypal_api_signature)
-    # return set_ch
 
 
 def pay_invoice(request, *args, **kwargs):
@@ -339,6 +359,12 @@ class Console(BaseView):
     def get_context_data(self, **kwargs):
         context = super(Console, self).get_context_data(**kwargs)
         member = self.request.user
+        if self.request.user_agent.is_mobile:
+            length = 10
+        elif self.request.user_agent.is_tablet:
+            length = 20
+        else:
+            length = 30
         context['member'] = member
         context['profile_name'] = member.full_name
         context['profile_photo_url'] = member.photo.small_url if member.photo.name else ''
@@ -346,38 +372,45 @@ class Console(BaseView):
         target = ConsoleEventType.PERSONAL if len(self.request.user.collaborates_on) == 0\
             else self.request.GET.get('target', ConsoleEventType.BUSINESS)
 
-        events = {}
+        access_request_events = {}
         for service in list(set(member.collaborates_on) | set(member.customer_on)):
-            service_events = []
-            type_service_request = ConsoleEventType.objects.get(codename=SERVICE_REQUEST_EVENT)
-            type_access_request = ConsoleEventType.objects.get(codename=COLLABORATION_REQUEST_EVENT)
+            type_access_request = ConsoleEventType.objects.get(codename=ACCESS_REQUEST_EVENT)
             if target == ConsoleEventType.BUSINESS:
-                service_request_items = list(ConsoleEvent.objects
-                                             .filter(event_type=type_service_request, member=member, service=service).order_by('-id'))
-                if len(service_request_items) > 0:
-                    service_events.append(service_request_items)
-                access_request_items = list(ConsoleEvent.objects
-                                            .filter(event_type=type_access_request, member=member, service=service).order_by('-id'))
-                if len(access_request_items) > 0:
-                    service_events.append(access_request_items)
-            event_types = list(ConsoleEventType.objects.filter(target=target, app=service.app)
-                               .exclude(codename__in=[SERVICE_REQUEST_EVENT, COLLABORATION_REQUEST_EVENT]))
-            other = list(ConsoleEvent.objects
-                         .filter(event_type__in=event_types, member=member, service=service).order_by('-id')[:4])
+                request_event_list = list(ConsoleEvent.objects
+                                          .filter(event_type=type_access_request, member=member, service=service)
+                                          .order_by('-id'))
+                if len(request_event_list) > 0:
+                    access_request_events[service] = request_event_list
 
-            if len(other) > 0:
-                service_events.append([other[0]])
-                if len(other) > 1:
-                    for item in other[1:]:
-                        if service_events[-1][-1].event_type == item.event_type:
-                            service_events[-1].append(item)
-                        else:
-                            service_events.append([item])
-            if len(service_events) > 0:
-                events[service] = service_events
-        context['events'] = events
+        targeted_type = list(ConsoleEventType.objects.filter(target=target).exclude(codename=ACCESS_REQUEST_EVENT))
+        event_list = ConsoleEvent.objects.filter(event_type__in=targeted_type, member=member).order_by('-id')[:length]
+        context['access_request_events'] = access_request_events
+        context['event_list'] = event_list
         context['is_console'] = True  # console.html extends profile.html, so this helps differentiates in templates
         return context
+
+    def render_to_response(self, context, **response_kwargs):
+        if self.request.GET.get('format') == 'json':
+            start = int(self.request.GET['start'])
+            if self.request.user_agent.is_mobile:
+                length = 10
+            elif self.request.user_agent.is_tablet:
+                length = 20
+            else:
+                length = 30
+            limit = start + length
+            type_access_request = list(ConsoleEventType.objects
+                                       .filter(codename=ACCESS_REQUEST_EVENT))
+            queryset = ConsoleEvent.objects.filter(member=self.request.user)\
+                           .exclude(event_type__in=type_access_request).order_by('-id')[start:limit]
+            response = [event.to_dict() for event in queryset]
+            return HttpResponse(
+                json.dumps(response),
+                'content-type: text/json',
+                **response_kwargs
+            )
+        else:
+            return super(Console, self).render_to_response(context, **response_kwargs)
 
 
 @login_required
@@ -389,6 +422,7 @@ def reset_notices_counter(request, *args, **kwargs):
         request.user.business_notices = 0
     else:
         request.user.personal_notices = 0
+
     request.user.save()
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
@@ -421,6 +455,39 @@ def list_projects(request, *args, **kwargs):
         p['url'] = IKWEN_BASE_URL + reverse('ikwen:company_profile', args=(s.app.slug, s.project_name_slug))
         projects.append(p)
     return HttpResponse(json.dumps(projects), content_type='application/json')
+
+
+@login_required
+def load_event_content(request, *args, **kwargs):
+    event_id = request.GET['event_id']
+    try:
+        event = ConsoleEvent.objects.using(UMBRELLA).get(pk=event_id)
+        response = {'html': event.render()}
+        callback = request.GET['callback']
+        response = callback + '(' + json.dumps(response) + ')'
+        return HttpResponse(response, content_type='application/json')
+    except ConsoleEvent.DoesNotExist:
+        return None
+
+
+def get_location_by_ip(request, *args, **kwargs):
+    try:
+        if getattr(settings, 'LOCAL_DEV', False):
+            ip = '154.72.166.181'  # My Local IP by the time I was writing this code
+        else:
+            ip = request.META['REMOTE_ADDR']
+        r = requests.get('http://geo.groupkt.com/ip/%s/json' % ip)
+        result = json.loads(r.content.decode('utf-8'))
+        location = result['RestResponse']['result']
+        country = Country.objects.get(iso2=location['countryIso2'])
+        city = location['city']
+        response = {
+            'country': country.to_dict(),
+            'city': city
+        }
+    except:
+        response = {'error': True}
+    return HttpResponse(json.dumps(response))
 
 
 class Contact(BaseView):

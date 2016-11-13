@@ -109,11 +109,11 @@
                                 </div>
                             {% endif %}
                         </td>
-                        <td id="subtotal">{{ invoice.amount|intcomma }} XAF</td>
+                        <td id="subtotal">{{ invoice.amount|intcomma }} {{ currency_symbol }}</td>
                     </tr>
                     <tr class="em1">
                         <td colspan="4">{% trans "Total" %}</td>
-                        <td id="total">{{ invoice.amount|intcomma }} XAF</td>
+                        <td id="total">{{ invoice.amount|intcomma }} {{ currency_symbol }}</td>
                     </tr>
                     {% if invoice.payment %}
                         <tr>

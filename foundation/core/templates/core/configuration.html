@@ -12,6 +12,7 @@
         body {background: #f6f6f6}
         #context-search {clear: both; margin: 10px 0 6px 0;}
         #context-search input {width: 270px}
+        #stage section {box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .15)}
     </style>
 {% endblock %}
 
@@ -49,34 +50,7 @@
             <form id="configuration" class="admin-form" method="post" action="{{ configuration_url|append_auth_tokens:request }}">{% csrf_token %}
                 <input type="hidden" name="id" value="{{ config.id }}" />
                 <input type="hidden" name="company_name_slug" value="{{ config.company_name_slug }}" />
-                {% for fieldset in config_admin_form %}
-                    <section class="subtle-shade">
-                    {% if fieldset.name %}<h3>{{ fieldset.name }}</h3>{% endif %}
-                    {% for line in fieldset %}
-                        <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
-                            {% if line.fields|length_is:'1' %}{{ line.errors }}{% endif %}
-                            {% for field in line %}
-                                <div{% if not line.fields|length_is:'1' %} class="field-box{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% if not field.is_readonly and field.errors %} errors{% endif %}"{% elif field.is_checkbox %} class="checkbox-row"{% endif %}>
-                                    {% if not line.fields|length_is:'1' and not field.is_readonly %}{{ field.errors }}{% endif %}
-                                    {% if field.is_checkbox %}
-                                        {{ field.field }}{{ field.label_tag }}
-                                    {% else %}
-                                        {{ field.label_tag }}
-                                        {% if field.is_readonly %}
-                                            <p>{{ field.contents|linebreaksbr }}</p>
-                                        {% else %}
-                                            {{ field.field }}
-                                        {% endif %}
-                                    {% endif %}
-                                    {% if field.field.help_text %}
-                                        <p class="help">{{ field.field.help_text|safe }}</p>
-                                    {% endif %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endfor %}
-                    </section>
-                {% endfor %}
+                {% include 'core/snippets/model_admin_form.html' %}
                 <div class="form-group col-xs-12 col-sm-4 col-md-3" style="padding-top: 15px">
                     <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
                 </div>

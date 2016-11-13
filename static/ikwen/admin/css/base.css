@@ -477,6 +477,7 @@ select[multiple] {
 
 .module {
     margin-bottom: 5px;
+    margin-top: 60px;
     background: white;
 }
 
@@ -609,6 +610,7 @@ div.system-message p.system-message-title {
 
 div.breadcrumbs {
     /* background: white url(../img/nav-bg-reverse.gif) 0 -10px repeat-x; */
+    display: none;
     padding: 2px 8px 3px;
     font-size: 16px;
     color: #999;
@@ -649,10 +651,7 @@ a.deletelink:hover {
     font-size: 10px;
     font-weight: bold;
     padding-left: 0;
-    float: right;
     position: relative;
-    margin-top: -2.4em;
-    margin-bottom: -2em;
 }
 
 .form-row .object-tools {
@@ -666,45 +665,13 @@ a.deletelink:hover {
 .object-tools li {
     display: block;
     float: left;
-    background: url(../img/tool-left.gif) 0 0 no-repeat;
-    padding: 0 0 0 8px;
-    margin-left: 2px;
     height: 16px;
-}
-
-.object-tools li:hover {
-    background: url(../img/tool-left_over.gif) 0 0 no-repeat;
 }
 
 .object-tools a:link, .object-tools a:visited {
     display: block;
     float: left;
     color: white;
-    padding: .1em 14px .1em 8px;
-    height: 16px;
-    background: #999 url(../img/tool-right.gif) 100% 0 no-repeat;
-}
-
-.object-tools a:hover, .object-tools li:hover a {
-    background: #5b80b2 url(../img/tool-right_over.gif) 100% 0 no-repeat;
-}
-
-.object-tools a.viewsitelink, .object-tools a.golink {
-    background: #999 url(../img/tooltag-arrowright.gif) top right no-repeat;
-    padding-right: 28px;
-}
-
-.object-tools a.viewsitelink:hover, .object-tools a.golink:hover {
-    background: #5b80b2 url(../img/tooltag-arrowright_over.gif) top right no-repeat;
-}
-
-.object-tools a.addlink {
-    background: #999 url(../img/tooltag-add.gif) top right no-repeat;
-    padding-right: 28px;
-}
-
-.object-tools a.addlink:hover {
-    background: #5b80b2 url(../img/tooltag-add_over.gif) top right no-repeat;
 }
 
 /* OBJECT HISTORY */

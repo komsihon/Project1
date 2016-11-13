@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.utils.datetime_safe import strftime
 from django.utils.translation import gettext as _
 from django_mongodb_engine.contrib import RawQueryMixin
 from djangotoolbox.fields import ListField, EmbeddedModelField
@@ -84,28 +85,8 @@ class Member(AbstractUser):
         return self.first_name.split(' ')[0]
 
     def _get_display_joined(self):
-        return '%02d/%02d/%d %02d:%02d' % (self.date_joined.day, self.date_joined.month, self.date_joined.year,
-                                           self.date_joined.hour, self.date_joined.minute)
+        return strftime(self.date_joined, '%y/%m/%d %H:%M')
     display_date_joined = property(_get_display_joined)
-
-    def save(self, *args, **kwargs):
-        from ikwen.foundation.accesscontrol.backends import UMBRELLA
-        using = 'default'
-        if kwargs.get('using'):
-            using = kwargs['using']
-            del(kwargs['using'])
-        if not getattr(settings, 'IS_IKWEN', False):
-            member = Member.objects.using(UMBRELLA).get(pk=self.id) if self.id else None
-            new_is_staff_value = self.is_staff
-            new_su_value = self.is_superuser
-            umbrella_is_staff_value = member.is_staff if member else False
-            umbrella_su_value = member.is_superuser if member else False
-            self.is_staff = umbrella_is_staff_value  # staff status should not take effect in UMBRELLA database
-            self.is_superuser = umbrella_su_value
-            super(Member, self).save(using=UMBRELLA, *args, **kwargs)
-            self.is_staff = new_is_staff_value
-            self.is_superuser = new_su_value
-        super(Member, self).save(using=using, *args, **kwargs)  # Now copy to the application default database
 
     def get_from(self, db):
         add_database_to_settings(db)
@@ -122,7 +103,18 @@ class Member(AbstractUser):
     def get_notice_count(self):
         return self.business_notices + self.personal_notices
 
+    def get_services(self):
+        return list(set(self.collaborates_on) | set(self.customer_on))
+
+    def replicate_changes(self):
+        for s in self.get_services():
+            db = s.database
+            add_database_to_settings(db)
+            self.save(using=db)
+
     def to_dict(self):
+        self.collaborates_on = []  # Empty this as it is useless and may cause error
+        self.customer_on = []  # Empty this as it is useless and may cause error
         var = to_dict(self)
         var['date_joined'] = self.display_date_joined
         var['status'] = self.get_status()
@@ -133,8 +125,6 @@ class Member(AbstractUser):
             var['permissions'] = ','.join(UserPermissionList.objects.get(user=self).permission_fk_list)
         except UserPermissionList.DoesNotExist:
             var['permissions'] = ''
-        del(var['collaborates_on'])
-        del(var['customer_on'])
         del(var['password'])
         del(var['is_superuser'])
         del(var['is_staff'])
@@ -168,26 +158,22 @@ class Passport(OfficialIdentityDocument):
 
 
 SUDO = 'Sudo'
+COMMUNITY = 'Community'
 # Business events
-COLLABORATION_REQUEST_EVENT = 'CollaborationRequestEvent'
+ACCESS_REQUEST_EVENT = 'AccessRequestEvent'
 ACCESS_GRANTED_EVENT = 'AccessGrantedEvent'
-SERVICE_REQUEST_EVENT = 'ServiceRequestEvent'
 
 # Personal events
 CUSTOMER_REGISTERED_EVENT = 'CustomerRegisteredEvent'
 
 
 class AccessRequest(Model):
-    COLLABORATION_REQUEST = 'CollaborationRequest'
-    SERVICE_REQUEST = 'ServiceRequest'
-
     PENDING = 'Pending'
     CONFIRMED = 'Confirmed'
     REJECTED = 'Rejected'
 
     member = models.ForeignKey(Member, db_index=True)
     service = models.ForeignKey(Service, related_name='+', db_index=True)
-    type = models.CharField(max_length=30)  # COLLABORATION_REQUEST or SERVICE_REQUEST
     group_name = models.CharField(max_length=60, blank=True)
     status = models.CharField(max_length=30, default=PENDING)
 

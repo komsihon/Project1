@@ -20,12 +20,24 @@ Deployment of billing app.
     - Only one billing app may be deployed per domain, to avoid confusion in InvoicingConfig. The same way
     only one InvoicingConfig is allowed per billing deployment. Others will be ignored
     - DJANGO_SETTINGS_MODULE must be properly set in ikwen.foundation.billing.crons
+    - One may define the following settings:
+        * BILLING_BEFORE_NEW_INVOICE = 'path.to.callable'
+            callable must have the following signature: callable(subscription).
+            subscription is an instance of model defined by BILLING_SUBSCRIPTION_MODEL
+
+        * BILLING_AFTER_NEW_INVOICE = 'path.to.callable'
+            callable must have the following signature: callable(invoice)
 
 
 Deployment scripts.
     404.html and 500.html located in core/templates must be copied to the root templates folder to override
     django defaults one.
+    Same thing for django admin templates located in core/templates/admin. They must be copied to the root
+    templates of the project
 
+Favicon.
+    Create a folder favicons in static root folder and give write access to web server on that folder.
+    It will be used for the different favicons to be generated and deposited there!
 
 Collaborators.
     This version limits the number of collaborators to 50. Mainly because it takes away the need to care

@@ -71,7 +71,7 @@
                 {% if service.version != 'Free' %}
                 <div class="detail row">
                     <label class="col-sm-3">{% trans "Monthly cost" %}</label>
-                    <span>{{ service.monthly_cost|intcomma }} {{ currency }}</span>
+                    <span>{{ service.monthly_cost|intcomma }} {{ currency_symbol }}</span>
                 </div>
                 <div class="detail billing-cycle row">
                     <label class="col-sm-3">{% trans "Billing cycle" %}</label>
@@ -109,7 +109,7 @@
                 <div class="detail row">
                     <label class="col-sm-3">{% trans "Next invoice" %}</label>
                     {% if service.next_invoice_on %}
-                        <span>{{ service.next_invoice_on }} <em style="font-size: 11px">({{ service.next_invoice_amount|intcomma }} {{ currency }})</em></span>
+                        <span>{{ service.next_invoice_on }} <em style="font-size: 11px">({{ service.next_invoice_amount|intcomma }} {{ currency_symbol }})</em></span>
                     {% else %}
                         <span>N/A</span>
                     {% endif %}

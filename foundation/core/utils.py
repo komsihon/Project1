@@ -4,6 +4,7 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 
 import requests
+from PIL import Image
 from ajaxuploader.backends.local import LocalUploadBackend
 from django.conf import settings
 from django.contrib.admin import AdminSite
@@ -229,7 +230,10 @@ def increment_history_field(watch_object, history_field, increment_value=1):
     """
     sequence = watch_object.__dict__[history_field]
     if type(sequence) is list:  # This means that the sequence is an instance of a ListField
-        sequence[-1] += increment_value
+        if len(sequence) >= 1:
+            sequence[-1] += increment_value
+        else:
+            sequence[0] = increment_value
     else:
         value_list = [val.strip() for val in sequence.split(',')]
         value_list[-1] = float(value_list[-1]) + increment_value
@@ -313,7 +317,10 @@ def rank_watch_objects(watch_object_list, history_field, duration=0):
     if duration == 0:
         for item in watch_object_list:
             value_list = get_value_list(item.__dict__[history_field])
-            item.total = value_list[-1]
+            if value_list:
+                item.total = value_list[-1]
+            else:
+                item.total = 0
     elif duration == 1:
         for item in watch_object_list:
             value_list = get_value_list(item.__dict__[history_field])
@@ -323,7 +330,11 @@ def rank_watch_objects(watch_object_list, history_field, duration=0):
         duration += 1
         for item in watch_object_list:
             value_list = get_value_list(item.__dict__[history_field])
-            item.total = sum(value_list[-duration:-1])
+            length = len(value_list)
+            if length >= duration:
+                item.total = sum(value_list[-duration:-1])
+            else:
+                item.total = sum(value_list[-length:-1])
     return sorted(watch_object_list, _cmp, reverse=True)
 
 
@@ -410,3 +421,91 @@ def get_model_admin_instance(model, model_admin):
     default_site = AdminSite()
     instance = model_admin(model, default_site)
     return instance
+
+
+def as_matrix(object_list, col_length, strict=False):
+    """
+    Takes a list and turns it into a matrix with col_length columns
+
+    Ex:
+    input_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    as_matrix(input_list, 4) -->  [[1, 2, 3, 4],
+                                   [5, 6, 7, 8],
+                                   [9, 10, 11, 12]]
+
+    as_matrix(input_list, 6) -->  [[1, 2, 3, 4, 5, 6],
+                                   [7, 8, 9, 10, 11, 12]]
+    :param object_list: the input list
+    :param col_length: length of a column in the output matrix
+    :param strict: if True, the output matrix will include the last row if
+                    the number of elements equals col_length
+    :return:
+    """
+    if len(object_list) == 0:
+        return []
+    rows = len(object_list) / col_length
+    if not strict:
+        rows += 1
+    matrix = []
+    for i in range(rows):
+        start = i * col_length
+        end = start + col_length
+        row = object_list[start:end]
+        if row:
+            matrix.append(row)
+    return matrix
+
+
+def generate_favicons(logo_path):
+    """
+    Generate favicon based on a logo image
+    :param logo_path: Path to the logo image
+    """
+    static_root = getattr(settings, 'STATIC_ROOT')
+    FAVICONS_FOLDER = 'favicons/'
+
+    try:
+        # WEB FAVICONS
+        for d in (16, 32, 96):
+            img = Image.open(logo_path)
+            img.thumbnail((d, d), Image.ANTIALIAS)
+            output = static_root + FAVICONS_FOLDER + 'favicon-%dx%d.png' % (d, d)
+            img.save(output, format="PNG", quality=100)
+
+        # iOS FAVICONS
+        for d in (57, 60, 72, 76, 114, 120, 144, 152, 180):
+            img = Image.open(logo_path)
+            img.thumbnail((d, d), Image.ANTIALIAS)
+            output = static_root + FAVICONS_FOLDER + 'apple-icon-%dx%d.png' % (d, d)
+            img.save(output, format="PNG", quality=100)
+
+        # Android FAVICONS
+        for d in (36, 48, 72, 96, 144, 192):
+            img = Image.open(logo_path)
+            img.thumbnail((d, d), Image.ANTIALIAS)
+            output = static_root + FAVICONS_FOLDER + 'android-icon-%dx%d.png' % (d, d)
+            img.save(output, format="PNG", quality=100)
+
+        # MS FAVICONS
+        for d in (70, 144, 150, 310):
+            img = Image.open(logo_path)
+            img.thumbnail((d, d), Image.ANTIALIAS)
+            output = static_root + FAVICONS_FOLDER + 'ms-icon-%dx%d.png' % (d, d)
+            img.save(output, format="PNG", quality=100)
+    except Exception as e:
+        if getattr(settings, 'DEBUG', False):
+            raise e
+
+
+# *** PayPal Stuffs *** #
+
+EC_ENDPOINT = 'https://api-3t.sandbox.paypal.com/nvp' if getattr(settings, 'DEBUG', False) \
+    else 'https://api-3t.paypal.com/nvp'
+
+
+def parse_paypal_response(response_string):
+    result = {}
+    for pair in response_string.split('&'):
+        tokens = pair.split('=')
+        result[tokens[0]] = tokens[1]
+    return result

@@ -88,7 +88,7 @@ def get_subscription_registered_message(subscription):
     if new_invoice_message:
         message = new_invoice_message.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
-            .replace('$amount', invoicing_config.currency + ' ' + subscription.monthly_cost)\
+            .replace('$amount', config.currency_symbol + ' ' + subscription.monthly_cost)\
             .replace('$details', subscription.product.get_details())\
             .replace('$short_description', subscription.product.short_description)
     else:
@@ -104,7 +104,7 @@ def get_subscription_registered_message(subscription):
                                            'short_description': subscription.product.short_description,
                                            'amount': subscription.monthly_cost,
                                            'billing_cyle': subscription.billing_cycle,
-                                           'currency': invoicing_config.currency,
+                                           'currency': config.currency_symbol,
                                            'details': subscription.product.get_details(),
                                            'company_name': config.company_name})
     sms = None
@@ -112,7 +112,7 @@ def get_subscription_registered_message(subscription):
     #     sms = invoicing_config.new_invoice_sms.replace('$member_name', member.first_name)\
     #         .replace('$company_name', config.company_name)\
     #         .replace('$invoice_number', subscription.number)\
-    #         .replace('$amount', subscription.amount + ' ' + invoicing_config.currency)\
+    #         .replace('$amount', subscription.amount + ' ' + config.currency_symbol)\
     #         .replace('$date_issued', subscription.date_issued)\
     #         .replace('$due_date', subscription.due_date)\
     #         .replace('$invoice_description', subscription.subscription.details)
@@ -135,7 +135,7 @@ def get_invoice_generated_message(invoice):
         message = new_invoice_message.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
             .replace('$invoice_number', invoice.number)\
-            .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
+            .replace('$amount', invoice.amount + ' ' + config.currency_symbol)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', invoice.subscription.product.details)
@@ -152,7 +152,7 @@ def get_invoice_generated_message(invoice):
                                            'company_name': config.company_name,
                                            'invoice_number': invoice.number,
                                            'amount': invoice.amount,
-                                           'currency': invoicing_config.currency,
+                                           'currency': config.currency_symbol,
                                            'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
                                            'due_date': invoice.due_date.strftime('%B %d, %Y'),
                                            'invoice_description': invoice.subscription.product.get_details()})
@@ -161,7 +161,7 @@ def get_invoice_generated_message(invoice):
         sms = invoicing_config.new_invoice_sms.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
             .replace('$invoice_number', invoice.number)\
-            .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
+            .replace('$amount', invoice.amount + ' ' + config.currency_symbol)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', invoice.subscription.product.get_details())
@@ -184,7 +184,7 @@ def get_invoice_reminder_message(invoice):
         message = reminder_message.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
             .replace('$invoice_number', invoice.number)\
-            .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
+            .replace('$amount', invoice.amount + ' ' + config.currency_symbol)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', invoice.subscription.product.get_details())
@@ -202,7 +202,7 @@ def get_invoice_reminder_message(invoice):
                                            'company_name': config.company_name,
                                            'invoice_number': invoice.number,
                                            'amount': invoice.amount,
-                                           'currency': invoicing_config.currency,
+                                           'currency': config.currency_symbol,
                                            'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
                                            'due_date': invoice.due_date.strftime('%B %d, %Y'),
                                            'invoice_description': invoice.subscription.product.get_details()})
@@ -211,7 +211,7 @@ def get_invoice_reminder_message(invoice):
         sms = invoicing_config.reminder_sms.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
             .replace('$invoice_number', invoice.number)\
-            .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
+            .replace('$amount', invoice.amount + ' ' + config.currency_symbol)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', invoice.subscription.product.get_details())
@@ -240,7 +240,7 @@ def get_invoice_overdue_message(invoice):
         message = overdue_message.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
             .replace('$invoice_number', invoice.number)\
-            .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
+            .replace('$amount', invoice.amount + ' ' + config.currency_symbol)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', invoice.subscription.product.get_details())
@@ -259,7 +259,7 @@ def get_invoice_overdue_message(invoice):
                                            'company_name': config.company_name,
                                            'invoice_number': invoice.number,
                                            'amount': invoice.amount,
-                                           'currency': invoicing_config.currency,
+                                           'currency': config.currency_symbol,
                                            'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
                                            'due_date': invoice.due_date.strftime('%B %d, %Y'),
                                            'invoice_description': invoice.subscription.product.get_details()})
@@ -268,7 +268,7 @@ def get_invoice_overdue_message(invoice):
         sms = invoicing_config.overdue_sms.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
             .replace('$invoice_number', invoice.number)\
-            .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
+            .replace('$amount', invoice.amount + ' ' + config.currency_symbol)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', invoice.subscription.product.get_details())
@@ -291,7 +291,7 @@ def get_service_suspension_message(invoice):
         message = service_suspension_message.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
             .replace('$invoice_number', invoice.number)\
-            .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
+            .replace('$amount', invoice.amount + ' ' + config.currency_symbol)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', invoice.subscription.product.get_details())
@@ -306,7 +306,7 @@ def get_service_suspension_message(invoice):
                     "%(company_name)s." % {'member_name': member.first_name,
                                            'invoice_number': invoice.number,
                                            'amount': invoice.amount,
-                                           'currency': invoicing_config.currency,
+                                           'currency': config.currency_symbol,
                                            'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
                                            'due_date': invoice.due_date.strftime('%B %d, %Y'),
                                            'invoice_description': invoice.subscription.product.get_details(),
@@ -316,7 +316,7 @@ def get_service_suspension_message(invoice):
         sms = invoicing_config.service_suspension_sms.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
             .replace('$invoice_number', invoice.number)\
-            .replace('$amount', invoice.amount + ' ' + invoicing_config.currency)\
+            .replace('$amount', invoice.amount + ' ' + config.currency_symbol)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', invoice.subscription.product.get_details())
@@ -339,7 +339,7 @@ def get_payment_confirmation_message(payment):
         message = payment_confirmation_message.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
             .replace('$invoice_number', payment.invoice.number)\
-            .replace('$amount', payment.invoice.amount + ' ' + invoicing_config.currency)\
+            .replace('$amount', payment.invoice.amount + ' ' + config.currency_symbol)\
             .replace('$date_issued', payment.invoice.date_issued)\
             .replace('$due_date', payment.invoice.due_date)\
             .replace('$invoice_description', payment.invoice.subscription.product.details)
@@ -355,7 +355,7 @@ def get_payment_confirmation_message(payment):
                                            'company_name': config.company_name,
                                            'invoice_number': payment.invoice.number,
                                            'amount': payment.invoice.amount,
-                                           'currency': invoicing_config.currency,
+                                           'currency': config.currency_symbol,
                                            'date_issued': payment.invoice.date_issued.strftime('%B %d, %Y'),
                                            'invoice_description': payment.invoice.subscription.product.get_details()})
     sms = None
@@ -363,7 +363,7 @@ def get_payment_confirmation_message(payment):
         sms = invoicing_config.payment_confirmation_sms.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
             .replace('$invoice_number', payment.invoice.number)\
-            .replace('$amount', payment.invoice.amount + ' ' + invoicing_config.currency)\
+            .replace('$amount', payment.invoice.amount + ' ' + config.currency_symbol)\
             .replace('$date_issued', payment.invoice.date_issued)\
             .replace('$due_date', payment.invoice.due_date)\
             .replace('$invoice_description', payment.invoice.subscription.product.get_details())

@@ -15,4 +15,5 @@ urlpatterns = patterns(
     url(r'^noticeMail$', NoticeMail.as_view()),
 
     url(r'^(?P<model_name>[-\w]+)/$', login_required(IframeAdmin.as_view()), name='iframe_admin'),
+    url(r'^(?P<app_name>[-\w]+)/(?P<model_name>[-\w]+)/$', login_required(IframeAdmin.as_view()), name='iframe_admin'),
 )

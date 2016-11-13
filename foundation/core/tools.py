@@ -2,6 +2,15 @@
 
 # import os
 # os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
+from django.contrib.auth.models import Group
+from ikwen.foundation.core.models import FlatPage
+from permission_backend_nonrel.models import UserPermissionList
+from permission_backend_nonrel.utils import add_user_to_group
+
+from ikwen.foundation.accesscontrol.models import COMMUNITY
+
+from ikwen.foundation.accesscontrol.models import SUDO
+
 from ikwen.foundation.billing.models import InvoicingConfig
 
 from ikwen.foundation.accesscontrol.backends import UMBRELLA
@@ -21,6 +30,7 @@ def setup_dev_env(app_name, username, database=None, project_name=None, base_mon
         app = Application.objects.using(UMBRELLA).create(name=app_name, slug=slug, version='1.0',
                                                          url=slug + '.com', base_monthly_cost=base_monthly_cost)
         app.save(using='default')
+    app = Application.objects.using(UMBRELLA).get(pk=app.id)
     m = Member.objects.using(UMBRELLA).get(username=username)
     if not project_name:
         project_name = app_name
@@ -41,7 +51,13 @@ def setup_dev_env(app_name, username, database=None, project_name=None, base_mon
     c = config_model.objects.using(UMBRELLA).create(service=s, company_name=project_name, contact_email=m.email,
                                                     company_name_slug=project_name_slug, signature=mail_signature)
     c.save(using='default')
-    InvoicingConfig.objects.create(name='Default', currency='F`')
+    InvoicingConfig.objects.create(name='Default')
+    FlatPage.objects.create(url=FlatPage.AGREEMENT, title=FlatPage.AGREEMENT)
+    FlatPage.objects.create(url=FlatPage.LEGAL_MENTIONS, title=FlatPage.LEGAL_MENTIONS)
+    Group.objects.create(name=COMMUNITY)
+    sudo_group = Group.objects.create(name=SUDO)
+    UserPermissionList.objects.create(user=m)
+    add_user_to_group(m,  sudo_group)
 
     if s not in m.collaborates_on:
         m.collaborates_on.append(s)
@@ -58,16 +74,16 @@ def setup_dev_env(app_name, username, database=None, project_name=None, base_mon
     print "Add this to your project settings: IKWEN_SERVICE_ID = '%s'\n\n" % s.pk
 
 
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) < 3:
-        print "At least 2 arguments are required: app_name and username"
-    project_name, database, base_monthly_cost = None, None, 0
-    if len(sys.argv) >= 4:
-        database = sys.argv[3]
-    if len(sys.argv) >= 5:
-        project_name = sys.argv[4]
-    if len(sys.argv) >= 6:
-        base_monthly_cost = sys.argv[5]
-    setup_dev_env(sys.argv[1], sys.argv[2], database, project_name, base_monthly_cost)
+# if __name__ == "__main__":
+#     import sys
+#     if len(sys.argv) < 3:
+#         print "At least 2 arguments are required: app_name and username"
+#     project_name, database, base_monthly_cost = None, None, 0
+#     if len(sys.argv) >= 4:
+#         database = sys.argv[3]
+#     if len(sys.argv) >= 5:
+#         project_name = sys.argv[4]
+#     if len(sys.argv) >= 6:
+#         base_monthly_cost = sys.argv[5]
+#     setup_dev_env(sys.argv[1], sys.argv[2], database, project_name, base_monthly_cost)
 

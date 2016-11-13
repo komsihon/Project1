@@ -11,6 +11,7 @@ from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
 
+from ikwen.foundation.core.admin import CustomBaseAdmin
 from ikwen.foundation.core.models import QueuedSMS, Config
 from ikwen.foundation.accesscontrol.models import Member
 from ikwen.foundation.core.utils import get_service_instance, get_mail_content, send_sms, add_event
@@ -27,20 +28,9 @@ subscription_model_name = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billi
 Subscription = get_subscription_model()
 
 
-class BillingAdmin(admin.ModelAdmin):
-
-    class Media:
-        css = {
-            "all": ("ikwen/font-awesome/css/font-awesome.min.css", "ikwen/css/flatly.bootstrap.min.css",
-                    "ikwen/css/grids.css", "ikwen/billing/admin/css/custom.css", )
-        }
-        js = ("ikwen/js/jquery-1.12.4.min.js", "ikwen/js/jquery.autocomplete.min.js", "ikwen/billing/admin/js/custom.js", )
-
-
-class InvoicingConfigAdmin(BillingAdmin):
-    list_display = ('name', 'gap', 'reminder_delay', 'overdue_delay', 'tolerance', 'currency', )
+class InvoicingConfigAdmin(CustomBaseAdmin):
+    list_display = ('name', 'gap', 'reminder_delay', 'overdue_delay', 'tolerance', )
     fieldsets = (
-        (None, {'fields': ('currency', )}),
         (_('Invoice generation'), {'fields': ('gap', 'new_invoice_subject', 'new_invoice_message', 'new_invoice_sms', )}),
         (_('Reminders'), {'fields': ('reminder_delay', 'reminder_subject', 'reminder_message', 'reminder_sms', )}),
         (_('Overdue'), {'fields': ('overdue_delay', 'tolerance', 'overdue_subject', 'overdue_message', 'overdue_sms')}),
@@ -49,13 +39,13 @@ class InvoicingConfigAdmin(BillingAdmin):
     save_on_top = True
 
 
-class ProductAdmin(BillingAdmin, ImportExportMixin):
+class ProductAdmin(CustomBaseAdmin, ImportExportMixin):
     list_display = ('name', 'short_description', 'monthly_cost', )
     search_fields = ('name', )
     readonly_fields = ('created_on', 'updated_on', )
 
 
-class SubscriptionAdmin(BillingAdmin, ImportExportMixin):
+class SubscriptionAdmin(CustomBaseAdmin, ImportExportMixin):
     add_form_template = 'admin/subscription/change_form.html'
     change_form_template = 'admin/subscription/change_form.html'
 
@@ -125,7 +115,7 @@ class PaymentInline(admin.TabularInline):
     readonly_fields = ('created_on', 'cashier')
 
 
-class InvoiceAdmin(BillingAdmin, ImportExportMixin):
+class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
     add_form_template = 'admin/invoice/change_form.html'
     change_form_template = 'admin/invoice/change_form.html'
 
@@ -289,7 +279,7 @@ class CashierListFilter(admin.SimpleListFilter):
         return queryset
 
 
-class PaymentAdmin(BillingAdmin, ExportMixin):
+class PaymentAdmin(CustomBaseAdmin, ExportMixin):
     list_display = ('get_member', 'amount', 'method', 'created_on', 'cashier', )
     list_filter = ('created_on', 'method', CashierListFilter, )
     search_fields = ('member_name', 'member_phone', )

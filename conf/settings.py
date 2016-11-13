@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
 
     #Third parties
+    'django_user_agents',
     'ajaxuploader',
     # 'paypal.standard',
     # 'paypal.pro',
@@ -47,6 +48,7 @@ INSTALLED_APPS = (
     'ikwen.foundation.core',
     'ikwen.foundation.accesscontrol',
     'ikwen.foundation.billing',
+    'ikwen.foundation.flatpages',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -57,6 +59,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_user_agents.middleware.UserAgentMiddleware',
     'ikwen.foundation.accesscontrol.middleware.XDomainTokenAuthMiddleware',
 )
 
@@ -105,45 +108,6 @@ CACHES = {
     }
 }
 
-IS_IKWEN = True
-SITE_ID = '54eb6d3379b531e09cb3704b'
-
-AUTH_USER_MODEL = 'accesscontrol.Member'
-
-AUTHENTICATION_BACKENDS = (
-    'permission_backend_nonrel.backends.NonrelPermissionBackend',
-    'ikwen.foundation.accesscontrol.backends.LocalDataStoreBackend',
-)
-
-# Model to use to generate Invoice for.
-# Typically the Service which the Member subscribed to
-BILLING_SUBSCRIPTION_MODEL = 'core.Service'
-BILLING_SUBSCRIPTION_MODEL_ADMIN = 'ikwen.foundation.core.admin.ServiceAdmin'
-SERVICE_SUSPENSION_ACTION = 'ikwen.foundation.billing.utils.suspend_subscription'
-
-IKWEN_SERVICE_ID = '57b702ca4fc0c2139660d9f8'
-
-# Function that renders customer detail in the Admin Panel.
-# Must return the HTML code that will be inserted above the Block/Activate button
-CUSTOMER_DETAIL_RENDERER = 'ikwen.foundation.accesscontrol.views.render_customer_detail'
-
-LOGIN_URL = 'ikwen:sign_in'
-LOGIN_REDIRECT_URL = 'home'
-
-PROJECT_URL = 'http://localhost' if DEBUG else 'http://www.ikwen.com'
-
-IKWEN_BASE_URL = 'http://localhost'  # Used only for dev purposes (DEBUG = False)
-
-WSGI_SCRIPT_ALIAS = 'ikwen'  # Used only for dev purposes (DEBUG = False)
-
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'ksihon'
-EMAIL_HOST_PASSWORD = 'sendgr1d'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-
-LOGOUT_REDIRECT_URL = 'home'
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
 
@@ -178,3 +142,58 @@ STATIC_ROOT = os.path.join(BASE_DIR,  'static')
 STATIC_URL = '/ikwen/static/'
 
 TEMPLATE_DIRS = (os.path.join(BASE_DIR,  'templates'),)
+
+
+#  *******       IKWEN CONFIGURATION       *******      #
+
+IS_IKWEN = True
+
+SITE_ID = '54eb6d3379b531e09cb3704b'
+
+IKWEN_SERVICE_ID = '57b702ca4fc0c2139660d9f8'
+
+AUTH_USER_MODEL = 'accesscontrol.Member'
+
+AUTHENTICATION_BACKENDS = (
+    'permission_backend_nonrel.backends.NonrelPermissionBackend',
+    'ikwen.foundation.accesscontrol.backends.LocalDataStoreBackend',
+)
+
+# Model to use to generate Invoice for.
+# Typically the Service which the Member subscribed to
+BILLING_SUBSCRIPTION_MODEL = 'core.Service'
+BILLING_SUBSCRIPTION_MODEL_ADMIN = 'ikwen.foundation.core.admin.ServiceAdmin'
+SERVICE_SUSPENSION_ACTION = 'ikwen.foundation.billing.utils.suspend_subscription'
+
+gettext = lambda s: s
+GROUPS = {
+    'Sudo': {
+        'alias': gettext('Sudo')
+    },
+    'Collabos': {
+        'alias': gettext('Executive'),
+        'permissions': ('kakocase.manage_products')
+    }
+}
+
+# Function that renders customer detail in the Admin Panel.
+# Must return the HTML code that will be inserted above the Block/Activate button
+CUSTOMER_DETAIL_RENDERER = 'ikwen.foundation.accesscontrol.views.render_customer_detail'
+
+LOGIN_URL = 'ikwen:sign_in'
+LOGIN_REDIRECT_URL = 'home'
+MEMBER_AVATAR = 'ikwen/img/member-avatar.jpg'
+
+PROJECT_URL = 'http://localhost' if DEBUG else 'http://www.ikwen.com'
+
+IKWEN_BASE_URL = 'http://localhost'  # Used only for dev purposes (DEBUG = False)
+
+WSGI_SCRIPT_ALIAS = 'ikwen'  # Used only for dev purposes (DEBUG = False)
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'ksihon'
+EMAIL_HOST_PASSWORD = 'sendgr1d'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+LOGOUT_REDIRECT_URL = 'home'

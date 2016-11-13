@@ -1,0 +1,62 @@
+{% extends "core/app_base_admin.html" %}
+{% load i18n humanize staticfiles auth_tokens admin_list %}
+
+{% block page_title %}
+<title> {% if page %}{{ page.title }}{% else %}{% trans "New page" %}{% endif %} - {{ service.project_name }} </title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <link href="{% static 'ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <style>
+        body {background: #f6f6f6}
+        #context-search {clear: both; margin: 10px 0 6px 0;}
+        #context-search input {width: 270px}
+        #stage section {box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .15)}
+    </style>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>{% url 'ikwen:flatpage_list' as flatpage_list_url %}
+        <a href="{{ flatpage_list_url|append_auth_tokens:request }}">{% trans "Flat pages" %}</a>
+    </li>
+    {% if page %}
+        <li>{{ page.title }}</li>
+    {% else %}
+        <li>{% trans 'New' %}</li>
+    {% endif %}
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="container-fluid change-form">
+        {% url 'ikwen:change_flatpage' as change_flatpage_url %}
+        {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
+        <form id="submit-page" class="admin-form" method="post" action="{{ change_flatpage_url|append_auth_tokens:request }}">{% csrf_token %}
+            <input type="hidden" name="page_id" value="{{ page.id }}" />
+            <input type="hidden" name="image_url" id="image_url" value="" />
+            {% include 'core/snippets/model_admin_form.html' %}
+            <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
+                <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .flatpages').addClass('active');
+            $('.form-row').addClass('form-group');
+            $('.form-row input, .form-row select, .form-row textarea').addClass('form-control input-sm');
+            $('.form-row textarea').addClass('form-control input-sm');
+            {% if request.GET.success %}
+                {% if page %}
+                    ikwen.showFloatingNotice('{% trans "Page successfully updated." %}', '', 6);
+                {% else %}
+                    ikwen.showFloatingNotice('{% trans "Page successfully added." %}', '', 6);
+                {% endif %}
+            {% endif %}
+        })()
+    </script>
+{% endblock %}

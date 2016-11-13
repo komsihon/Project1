@@ -7,6 +7,18 @@ from django.utils.translation import gettext_lazy as _
 __author__ = 'Kom Sihon'
 
 
+class CustomBaseAdmin(admin.ModelAdmin):
+
+    class Media:
+        css = {
+            "all": ("ikwen/admin/css/base.css", "ikwen/admin/css/changelists.css", "ikwen/admin/css/dashboard.css",
+                    "ikwen/admin/css/forms.css", "ikwen/admin/css/ie.css", "ikwen/admin/css/login.css",
+                    "ikwen/admin/css/widget.css", "ikwen/font-awesome/css/font-awesome.min.css",
+                    "ikwen/css/flatly.bootstrap.min.css", "ikwen/css/grids.css", "ikwen/billing/admin/css/custom.css", )
+        }
+        js = ("ikwen/js/jquery-1.12.4.min.js", "ikwen/js/jquery.autocomplete.min.js", "ikwen/billing/admin/js/custom.js", )
+
+
 class ApplicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'logo', 'url', 'created_on', 'operators_count', )
     search_fields = ('name', )
@@ -25,13 +37,10 @@ class ServiceAdmin(admin.ModelAdmin):
 class ConfigAdmin(admin.ModelAdmin):
     list_display = ('company_name', 'short_description', 'contact_email', 'contact_phone')
     fieldsets = (
-        (_('General'), {'fields': ('company_name', 'short_description', )}),
+        (_('General'), {'fields': ('company_name', 'short_description', 'slogan', 'description', 'currency', )}),
         (_('Address & Contact'), {'fields': ('contact_email', 'contact_phone', 'address', 'country', 'city')}),
         (_('Social'), {'fields': ('facebook_link', 'twitter_link', 'google_plus_link', 'instagram_link', 'linkedin_link', )}),
-        # (_('SMS'), {'fields': ('sms_sending_method', 'sms_api_script_url', 'sms_api_username', 'sms_api_password', )}),
         (_('Mailing'), {'fields': ('welcome_message', 'signature', )}),
-        # (_('PayPal'), {'fields': ('paypal_user', 'paypal_password', 'paypal_api_signature', )}),
-        # (_('Scripts'), {'fields': ('google_analytics', )}),
     )
     list_filter = ('company_name', 'contact_email', )
     save_on_top = True

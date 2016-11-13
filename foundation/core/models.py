@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
+from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.db import models, router
@@ -11,6 +12,9 @@ from django.utils.translation import gettext_lazy as _
 from django_mongodb_engine.contrib import MongoDBManager
 
 from ikwen.foundation.core.utils import add_database_to_settings, to_dict, get_service_instance, get_config_model
+
+
+WELCOME_ON_IKWEN_EVENT = 'WelcomeOnIkwen'
 
 
 class Model(models.Model):
@@ -64,8 +68,9 @@ class Application(Model):
     version = models.CharField(max_length=30)
     logo = models.ImageField(upload_to=LOGOS_FOLDER, blank=True, null=True)
     url = models.URLField(max_length=150)
-    description = models.CharField(max_length=150, blank=True)
-    base_monthly_cost = models.PositiveIntegerField()
+    short_description = models.CharField(max_length=150, blank=True)
+    description = models.TextField(blank=True)
+    base_monthly_cost = models.PositiveIntegerField(default=0)
     operators_count = models.PositiveIntegerField(default=0, blank=True)
 
     class Meta:
@@ -126,8 +131,10 @@ class Service(models.Model):
     project_name_slug = models.SlugField()
     database = models.CharField(max_length=150, blank=True)
     domain_type = models.CharField(max_length=15, blank=True, choices=DOMAIN_TYPE_CHOICES)
-    url = models.URLField(blank=True)
-    admin_url = models.URLField(blank=True, help_text=_("Access to application's control panel"))
+    url = models.URLField(blank=True,
+                          help_text="URL of the service. WRITE IT WITHOUT A TRAILING SLASH")
+    admin_url = models.URLField(blank=True,
+                                help_text=_("URL of the service's admin panel. WRITE IT WITHOUT A TRAILING SLASH"))
     billing_cycle = models.CharField(max_length=30, choices=BILLING_CYCLES_CHOICES, blank=True)
     monthly_cost = models.PositiveIntegerField()
     version = models.CharField(max_length=15, blank=True, choices=VERSION_CHOICES)  # Free, Trial, Full
@@ -227,13 +234,21 @@ class AbstractConfig(Model):
                                     help_text=_("Website/Company name as you want it to appear in mails and pages."))
     company_name_slug = models.SlugField(db_index=True)
     address = models.CharField(max_length=150, blank=True, verbose_name=_("Company address"),
-                               help_text=_("Website/Company name as you want it to appear in mails and pages."))
+                               help_text=_("Your company address."))
     country = models.ForeignKey('core.Country', blank=True, null=True, related_name='+',
                                 help_text=_("Country where HQ of the company are located."))
     city = models.CharField(max_length=60, blank=True,
                             help_text=_("City where HQ of the company are located."))
     short_description = models.CharField(max_length=150, blank=True,
                                          help_text=_("Short description of your business <em>(150 chars max.)</em>."))
+    description = models.TextField(blank=True,
+                                   help_text=_("More detailed description of your business."))
+    slogan = models.CharField(max_length=18, blank=True,
+                              help_text=_("Your slogan <em>(18 chars max.)</em>."))
+    currency_code = models.CharField(max_length=5, default='USD',
+                                     help_text=_("Code of your currency. Eg: <strong>USD, GBP, EUR, XAF,</strong> ..."))
+    currency_symbol = models.CharField(max_length=5, default='$',
+                                       help_text=_("Symbol of your currency, Eg: <strong>$, £, €, F</strong>."))
     logo = models.ImageField(upload_to=LOGO_UPLOAD_TO, verbose_name=_("Your logo"), blank=True, null=True,
                              help_text=_("Image in <strong>PNG with transparent background</strong> is advised. "
                                          "(Maximum 400 x 400px)"))
@@ -246,26 +261,34 @@ class AbstractConfig(Model):
                                        help_text="Model of message to send to user upon registration.")
     contact_email = models.EmailField(verbose_name=_("Contact email"),
                                       help_text="Contact email of the company for customers to send inquiries.")
-    contact_phone = models.CharField(max_length=18, blank=True,
+    contact_phone = models.CharField(max_length=30, blank=True,
                                      help_text=_("Main phone number for your customers to contact you."))
     facebook_link = models.URLField(blank=True,
-                                    help_text=_("Facebook link. Eg: https://www.facebook.com/myvodstore"))
+                                    help_text=_("Facebook link. Eg: https://www.facebook.com/mywebsite"))
     twitter_link = models.URLField(blank=True,
-                                   help_text=_("Twitter link. Eg: https://www.twitter.com/myvodstore"))
+                                   help_text=_("Twitter link. Eg: https://www.twitter.com/mywebsite"))
     google_plus_link = models.URLField(blank=True,
-                                       help_text=_("Google+ link. Eg: https://www.googleplus.com/myvodstore"))
+                                       help_text=_("Google+ link. Eg: https://www.googleplus.com/mywebsite"))
+    youtube_link = models.URLField(blank=True,
+                                   help_text=_("Youtube link. Eg: https://www.youtube.com/mywebsite"))
     instagram_link = models.URLField(blank=True,
-                                     help_text=_("Instagram link. Eg: https://www.instagram.com/myvodstore"))
+                                     help_text=_("Instagram link. Eg: https://www.instagram.com/mywebsite"))
+    tumblr_link = models.URLField(blank=True,
+                                  help_text=_("Tumblr link. Eg: https://www.tumblr.com/mywebsite"))
     linkedin_link = models.URLField(blank=True,
-                                    help_text=_("LinkedIn link. Eg: https://www.linkedin.com/myvodstore"))
-    google_analytics = models.TextField(blank=True,
-                                        help_text=_("Google Analytics tracking code."))
-    paypal_user = models.CharField(max_length=60, blank=True, verbose_name=_("PAYPAL USER"),
-                                   help_text=_("Username for PayPal API"))
-    paypal_password = models.CharField(max_length=60, blank=True, verbose_name=_("PAYPAL PASSWORD"),
-                                       help_text=_("Password for PayPal API"))
-    paypal_api_signature = models.CharField(max_length=60, blank=True, verbose_name=_("PAYPAL API SIGNATURE"),
-                                            help_text=_("API Signature for PayPal API"))
+                                    help_text=_("LinkedIn link. Eg: https://www.linkedin.com/mywebsite"))
+    scripts = models.TextField(blank=True,
+                               help_text=_("External scripts like <em>Google Analytics tracking code, Facebook Pixels</em>, "
+                                           "etc. <br> Please refer to <a href='http://support.ikwen.com/tutorials/external-scripts'> "
+                                           "support.ikwen.com/tutorials/external-scripts</a> for detailed instructions on "
+                                           "how to add external scripts to your platform."))
+    paypal_user = models.CharField(_("Username for PayPal API"), max_length=60, blank=True)
+    paypal_password = models.CharField(_("PayPal password"), max_length=60, blank=True)
+    paypal_api_signature = models.CharField(_("PayPal API Signature"), max_length=60, blank=True)
+    paypal_merchant_id = models.CharField(_("PayPal Merchant ID"), max_length=60, blank=True)
+    # allow_paypal_direct = models.BooleanField(default=False, verbose_name=_("PAYPAL API SIGNATURE"),
+    #                                           help_text=_("Check to allow PayPal direct Checkout that allows user "
+    #                                                       "to enter his bank card directly."))
     sms_sending_method = models.CharField(max_length='15', verbose_name=_("SMS Sending method"),
                                           choices=SMS_SENDING_METHOD_CHOICES, blank=True,
                                           help_text=_("Method used to send SMS from the platform. If <strong>Modem</strong>, "
@@ -286,6 +309,55 @@ class AbstractConfig(Model):
     def __unicode__(self):
         return 'Config ' + str(self.service)
 
+    def get_base_config(self):
+        """
+        Acts like a casting operator that returns a :class:`Config` version of
+        IKWEN_CONFIG_MODEL. That *simpler* Config object is used by ikwen to render a
+        CompanyProfile page rather than a Configuration object from any model of the
+        application powering the project which Profile page is being rendered.
+
+        Applications using a custom Config model (extending AbstractBaseConfig) must
+        save a :class:`Config` object in the UMBRELLA database.
+
+        Assuming that you create an ikwen application which uses a custom
+        Config model defined as such
+
+        class MyAppCustomConfig(AbstractBaseConfig):
+            custom_var = models.CharField(max_length=30)
+            ...
+
+        When you save an instance of MyAppCustomConfig model, save a Config model also. Do it this way:
+
+        custom_config = MyAppCustomConfig()
+        custom_config.custom_var = 'Custom value'
+        custom_config.save()
+        base_config = custom_config.get_base_config()
+        base_config.save(using=UMBRELLA)
+        """
+        try:
+            from ikwen.foundation.accesscontrol.backends import UMBRELLA
+            config = Config.objects.using(UMBRELLA).get(service=self.service)
+        except Config.DoesNotExist:
+            config = Config(service=self.service)
+        config.company_name = self.company_name
+        config.company_name_slug = self.company_name_slug
+        config.short_description = self.short_description
+        config.description = self.description
+        config.slogan = self.slogan
+        config.logo = self.logo
+        config.cover_image = self.cover_image
+        config.signature = self.signature
+        config.contact_email = self.contact_email
+        config.contact_phone = self.contact_phone
+        return config
+
+    def save(self, *args, **kwargs):
+        super(AbstractConfig, self).save(*args, **kwargs)
+        if type(self) is not Config:  # If it is any descending class
+            from ikwen.foundation.accesscontrol.backends import UMBRELLA
+            base_config = self.get_base_config()
+            base_config.save(using=UMBRELLA)
+
 
 class Config(AbstractConfig):
     """
@@ -298,9 +370,13 @@ class Config(AbstractConfig):
         db_table = 'ikwen_config'
 
 
-class Country(models.Model):
-    name = models.CharField(max_length=100)
-    slug = models.SlugField()
+class Country(Model):
+    name = models.CharField(max_length=100, unique=True, db_index=True)
+    iso2 = models.CharField(max_length=2, unique=True, db_index=True)
+    iso3 = models.CharField(max_length=3, unique=True, db_index=True)
+
+    def __unicode__(self):
+        return self.name
 
     class Meta:
         db_table = 'ikwen_country'
@@ -375,6 +451,18 @@ class ConsoleEvent(Model):
         renderer = import_by_path(self.event_type.renderer)
         return renderer(self)
 
+    def to_dict(self):
+        var = to_dict(self)
+        var['project_url'] = self.service.url
+        var['project_name'] = self.service.project_name
+        var['created_on'] = naturaltime(self.created_on)
+        del(var['model'])
+        del(var['object_id'])
+        del(var['service_id'])
+        del(var['member_id'])
+        del(var['event_type_id'])
+        return var
+
 
 class QueuedSMS(Model):
     recipient = models.CharField(max_length=18)
@@ -391,7 +479,7 @@ def delete_object_events(sender, **kwargs):
     attempt to render an event which matching object was deleted and thus
     causing an error on the Console.
     """
-    if sender == ConsoleEvent:  # Avoid recursive call
+    if sender == ConsoleEvent:  # Avoid unending recursive call
         return
     instance = kwargs['instance']
     from ikwen.foundation.accesscontrol.backends import UMBRELLA

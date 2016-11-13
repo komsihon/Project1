@@ -57,7 +57,7 @@
                             {% for invoice in invoices %}
                                 <tr class="invoice {{ invoice.status|lower }}" id="{{ invoice.id }}">
                                     <td class="item">App:{{ invoice.service.app.name }} / <em>{{ invoice.service.project_name }}</em></td>
-                                    <td class="amount">{{ invoice.amount|intcomma }} {{ invoicing_config.currency }}</td>
+                                    <td class="amount">{{ invoice.amount|intcomma }} {{ currency_symbol }}</td>
                                     <td class="due_date">{{ invoice.due_date }}</td>
                                     <td class="paid_on">{{ invoice.paid_on }}</td>
                                     <td class="payment-method">{{ invoice.method }}</td>

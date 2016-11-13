@@ -26,9 +26,6 @@ SERVICE_SUSPENDED_EVENT = 'ServiceSuspendedEvent'
 class InvoicingConfig(models.Model):
     name = models.CharField(max_length=100, default=_('Default'),
                             help_text=_("Name of this configuration."))
-    currency = models.CharField(max_length=15,
-                                help_text=_("Abbreviation of currency in use for the billing system. Eg: "
-                                            "<strong>XAF, $, €, etc.</strong>"))
     new_invoice_subject = models.CharField(max_length=100, blank=True, verbose_name=_("New invoice subject"),
                                            help_text=_("Subject of the mail of notice of invoice generation."))
     new_invoice_message = models.TextField(blank=True, verbose_name=_("New invoice mail message"),

@@ -2,7 +2,7 @@
 {% load i18n humanize staticfiles auth_tokens %}
 
 {% block page_title %}
-<title> {% trans "Collaborators" %} -  ikwen </title>
+<title> {% trans "Collaborators" %} - ikwen </title>
 {% endblock %}
 
 {% block head_style %}
@@ -33,9 +33,12 @@
     <div id="admin-content" class="container-fluid">
         {% include 'core/snippets/admin_tools.html' %}
         <ul id="groups" class="nav nav-tabs" role="tablist">
-            {% for group in groups %}
-                <li role="presentation" class="group {{ group.name }} active" data-id="{{ group.id }}" data-name="{{ group.name }}">
-                    <a href="#{{ group.id }}" aria-controls="{{ group.id }}" role="tab" data-toggle="tab">{{ group.name }}</a>
+            <li role="presentation" class="group {{ groups.0.name }} active" data-id="{{ groups.0.id }}" data-name="{{ groups.0.name }}">
+                <a href="#{{ groups.0.id }}" aria-controls="{{ groups.0.id }}" role="tab" data-toggle="tab">{% trans groups.0.name %}</a>
+            </li>
+            {% for group in groups|slice:"1:" %}
+                <li role="presentation" class="group {{ group.name }}" data-id="{{ group.id }}" data-name="{{ group.name }}">
+                    <a href="#{{ group.id }}" aria-controls="{{ group.id }}" role="tab" data-toggle="tab">{% trans group.name %}</a>
                 </li>
             {% endfor %}
             <li role="presentation" class="group {{ sudo_group.name }}" data-id="{{ sudo_group.id }}" data-name="{{ sudo_group.name }}">
@@ -75,22 +78,8 @@
                     </li>
                 </ul>
             </div>
-            {% for group in groups %}
-                {% if forloop.counter > 1 %}
-                    <div role="tabpanel" class="tab-pane" id="{{ group.id }}">
-                        <ul class="people">
-                            <li class="member tpl" style="display: none">
-                                <a class="photo"></a>
-                                <div style="float: left; margin-left: 30px">
-                                    <a class="full_name"></a>
-                                    <p class="about"></p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                {% endif %}
-                <div role="tabpanel" class="tab-pane" id="{{ sudo_group.id }}">
-                    {% include 'core/snippets/spinner.html' %}
+            {% for group in groups|slice:'1:' %}
+                <div role="tabpanel" class="tab-pane" id="{{ group.id }}">
                     <ul class="people">
                         <li class="member tpl" style="display: none">
                             <a class="photo"></a>
@@ -101,27 +90,39 @@
                         </li>
                     </ul>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="results">
-                    {% include 'core/snippets/spinner.html' %}
-                    <div class="empty" style="color: #888; font-size: 18px; padding: 30px 0">{% trans "No result" %}</div>
-                    <ul class="people">
-                        <li class="member tpl" style="display: none">
-                            <a class="photo bg-img target_url"></a>
-                            <div style="float: left; margin-left: 30px">
-                                <a class="full_name target_url"></a>
-                                <p class="about">
-                                    <span class="phone"></span>, <span class="email"></span>
-                                </p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
             {% endfor %}
+            <div role="tabpanel" class="tab-pane" id="{{ sudo_group.id }}">
+                {% include 'core/snippets/spinner.html' %}
+                <ul class="people">
+                    <li class="member tpl" style="display: none">
+                        <a class="photo"></a>
+                        <div style="float: left; margin-left: 30px">
+                            <a class="full_name"></a>
+                            <p class="about"></p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="results">
+                {% include 'core/snippets/spinner.html' %}
+                <div class="empty" style="color: #888; font-size: 18px; padding: 30px 0">{% trans "No result" %}</div>
+                <ul class="people">
+                    <li class="member tpl" style="display: none">
+                        <a class="photo bg-img target_url"></a>
+                        <div style="float: left; margin-left: 30px">
+                            <a class="full_name target_url"></a>
+                            <p class="about">
+                                <span class="phone"></span>, <span class="email"></span>
+                            </p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
         </div>
         <div id="access-control">
             <div class="stage">
                 <div class="empty" style="color: #888; padding-top: 30px">
-                    {% trans "Click on a collaborator in the list to view and update permissions." %}
+                    {% trans "Click on a member in the list to view and manage." %}
                 </div>
                 <div class="actions" style="display: none">
                     <div id="permissions">
@@ -139,7 +140,6 @@
                             <button id="set-permissions" class="btn btn-primary btn-sm btn-block">{% trans "Confirm" %}</button>
                         </form>
                     </div>
-    {#                {% if groups|length > 1 %}#}
                     <div id="group-update">
                         <h5>{% trans "Group" %}: <em>{{ groups.0.name }}</em></h5>
                         <div class="btn-group">
@@ -149,12 +149,12 @@
                             </button>
                             <ul class="dropdown-menu">
                                 {% for group in groups %}
-                                    <li role="presentation" class="group {{ group.name }}" data-id="{{ group.id }}"><a href="#">{{ group.name }}</a></li>
+                                    <li role="presentation" class="group {{ group.name }}" data-id="{{ group.id }}" data-name="{{ group.name }}">
+                                        <a href="#">{{ group.name }}</a></li>
                                 {% endfor %}
                             </ul>
                         </div>
                     </div>
-    {#                {% endif %}#}
                     <div id="blocking" style="margin-top: 45px">
                         <h5>{% trans "Block/Activate" %}</h5>
                         <button class="btn btn-danger btn-sm btn-block">{% trans "Block" %}</button>
@@ -170,7 +170,7 @@
     {{ block.super }}
     <script type="text/javascript">
         (function() {
-            $('div#admin-nav .collaborators').addClass('active');
+            $('div#admin-nav .community').addClass('active');
             $('ul#groups').on('click', 'li', function (e) {
                 var groupId = $(this).data('id'),
                     groupName = $(this).data('name'),
@@ -186,16 +186,16 @@
                 $('div#access-control .actions').hide();
                 if (groupId == 'results') return;
                 $('body').css('cursor', 'wait');
-                $.getJSON('{% url 'ikwen:collaborators' %}',
+                $.getJSON('{% url 'ikwen:community' %}',
                         {group_name: groupName, start: 0, length: 100, format: 'json'}, function(data) {
                     $('body').css('cursor', 'default');
                     $('div#' + groupId + ' li.member:not(.tpl)').remove();
                     $('div#page-navigation div').text(data.length + '/' + data.length);
                     for(var i=0; i<data.length; i++) {
                         var member = data[i],
-                            $tpl = $('li.member.tpl').clone().removeClass('tpl');
+                            $tpl = $('div#' + groupId + ' li.member.tpl').clone().removeClass('tpl');
                         $tpl = applyMemberTemplate($tpl, member);
-                        $tpl.insertBefore('li.member.tpl').show();
+                        $tpl.insertBefore('div#' + groupId + ' li.member.tpl').show();
                     }
                 });
             });
@@ -218,6 +218,7 @@
                     $('#' + permissions[i]).prop('checked', true)
                 }
                 $('div#access-control button').data({"member-id": memberId, "status": status});
+                $('div#group-update .group').data("member-id", memberId);
                 $('ul li.member').removeClass('active');
                 $(this).addClass('active');
                 $('div#access-control .empty').hide();
@@ -241,6 +242,20 @@
                     if (data.success) {
                         $('#' + memberId).data('permissions', permissionIds.join(','));
                         ikwen.showFloatingNotice("{% trans 'Permissions successfully updated' %}", '', 6)
+                    }
+                });
+            });
+            $('div#group-update .group').click(function() {
+                var groupId = $(this).data('id'),
+                    name = $(this).data('name'),
+                    memberId = $(this).data('member-id');
+                $.getJSON('{% url 'ikwen:move_member_to_group' %}', {group_id: groupId, member_id: memberId}, function(data) {
+                    if (data.success) {
+                        var activeGroupId = $('ul#groups li.active').data('id');
+                        if (groupId != activeGroupId) {
+                            $('.member.active').remove().appendTo('#' + groupId + ' .people').click();
+                        }
+                        ikwen.showFloatingNotice("{% trans 'Member moved to group' %}" + ' ' + name, '', 6)
                     }
                 });
             });

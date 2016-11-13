@@ -53,7 +53,7 @@
 
 - model: billing.invoicingconfig
   fields:
-    currency: XAF
+    name: Default
 
 - model: core.config
   fields:
@@ -66,7 +66,7 @@
   pk: 56eb6db3379b531a0104b371
   fields:
     app: 56eb6d04b37b3379b531a002
-    codename: CollaborationRequestEvent
+    codename: AccessRequestEvent
     title: Those people would like to collaborate with you
     target: Business
     target_url_name: ikwen:collaborators
