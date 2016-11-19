@@ -240,8 +240,10 @@ def increment_history_field(watch_object, history_field, increment_value=1):
         value_list[-1] = str(value_list[-1])
         watch_object.__dict__[history_field] = ','.join(value_list)
     matching_total_field = 'total_' + history_field.replace('_history', '')
-    if watch_object.__dict__.get(matching_total_field):
+    try:
         watch_object.__dict__[matching_total_field] += increment_value
+    except KeyError:
+        pass
     watch_object.save()
 
 
@@ -262,7 +264,8 @@ def calculate_watch_info(history_value_list, duration=0):
     if duration == 0:
         return {
             'total': history_value_list[-1],
-            'change': None
+            'change': None,
+            'change_rate': None
         }
 
     history_value_list = history_value_list[:-1]  # Strip the last value as it represents today
@@ -285,7 +288,7 @@ def calculate_watch_info(history_value_list, duration=0):
         if total_0 == 0:
             change_rate = 100  # When moving from 0 to another value, we consider change to be 100%
         else:
-            change_rate = change / float(total_0) * 100
+            change_rate = float(change) / total_0 * 100
 
     return {
         'total': total,
@@ -393,7 +396,6 @@ def add_event(service, member, codename, object_id=None, model=None):
     Pushes an event to the ikwen Console and return the created ConsoleEvent object.
     :param service: Service targeted by this event
     :param member: Member to whom the event is aimed
-    :param target: Target panel where to display the event. One of ConsoleEvent.BUSINESS or ConsoleEvent.PERSONAL
     :param object_id: id of the model involved.
     :param model: full dotted path to the model involved in the event. *Eg: ikwen.foundation.billing.Invoice*
     """

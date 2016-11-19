@@ -1,13 +1,14 @@
 {% load humanize %}
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
     {% for event in event_list %}
+        {% with service=event.service %}
         {% if forloop.counter0|divisibleby:"2" %}
-            <div id="{{ event.id }}" class="{{ event.service.project_name_slug }} card subtle-shade" data-base-url="{{ event.service.url }}">
+            <div id="{{ event.id }}" class="{{ service.project_name_slug }} card subtle-shade" data-base-url="{{ service.url }}">
                 <h3>
-                    {% if event.service.config.logo.name %}
-                        <img src="{{ event.service.config.logo.url }}" width="30" />
+                    {% if service.config.logo.name %}
+                        <img src="{{ service.config.logo.url }}" width="30" />
                     {% endif %}
-                    <span>{{ event.service.project_name }}</span>
+                    <a href="{{ service.url }}">{{ service.project_name }}</a>
                     <time>{{ event.created_on|naturaltime }}</time>
                 </h3>
                 <div class="{{ event.event_type.codename }}">
@@ -15,17 +16,19 @@
                 </div>
             </div>
         {% endif %}
+        {% endwith %}
     {% endfor %}
 </div>
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
     {% for event in event_list %}
+        {% with service=event.service %}
         {% if forloop.counter|divisibleby:"2" %}
-            <div id="{{ event.id }}" class="{{ event.service.project_name_slug }} card subtle-shade" data-base-url="{{ event.service.url }}">
+            <div id="{{ event.id }}" class="{{ service.project_name_slug }} card subtle-shade" data-base-url="{{ service.url }}">
                 <h3>
-                    {% if event.service.config.logo.name %}
-                        <img src="{{ event.service.config.logo.url }}" width="30" />
+                    {% if service.config.logo.name %}
+                        <img src="{{ service.config.logo.url }}" width="30" />
                     {% endif %}
-                    <span>{{ event.service.project_name }}</span>
+                    <a href="{{ service.url }}">{{ service.project_name }}</a>
                     <time>{{ event.created_on|naturaltime }}</time>
                 </h3>
                 <div class="{{ event.event_type.codename }}">
@@ -33,5 +36,6 @@
                 </div>
             </div>
         {% endif %}
+        {% endwith %}
     {% endfor %}
 </div>

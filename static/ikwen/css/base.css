@@ -22,6 +22,7 @@
 .icon:hover {border: 1px solid #ddd; border-radius: 3px}
 .icon.trash {background-image: url('../img/trash.png')}
 .icon.link {background-image: url('../img/link-24.png')}
+
 .spinner-container {-webkit-animation: rotate 2s linear infinite; animation: rotate 2s linear infinite; z-index: 2}
 .spinner-container .path {
   stroke-dasharray: 1,150;
@@ -67,11 +68,13 @@
 .member .full_name, .ik-li .name, .ik-li .title {cursor: pointer; color: #333; font-size: 18px; margin: 10px 0 0}
 .member .about, .ik-li .about {color: #888; font-size: 14px}
 .ik-li .select {background: #fff url('../img/tick-15.png') no-repeat center;border-radius: 10px;display: none; height: 20px;position: absolute;width: 20px;margin: -25px}
+.ik-li .glyphicon, #selection-control .glyphicon {box-sizing: content-box; padding: 5px; border: 1px solid transparent}
+.ik-li .glyphicon:hover, #selection-control .glyphicon:hover {border: 1px solid #ddd; border-radius: 3px}
 .ik-li.selected {border: 3px solid #9433ff; transition: border .1s}
 .ik-li.selected + .ik-li.selected {border-top: none}
 .ik-li.selected .select {background: #9433ff url('../img/white-tick-15.png') no-repeat center; display: block}
 .ik-li .actions {display: none;float: right;}
-.ik-li:hover .select, .ik-li:hover .actions {display: block}
+.ik-li:hover .select, .ik-li:not(.selected):hover .actions {display: block}
 time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;}
 
 .tiles .ik-li {border: 1px solid #eee;height: 150px;margin: 15px;width: 45%;}
@@ -180,3 +183,8 @@ div#container.admin {padding-top: 92px;}
 #stage section h3 {font-size: 21px; font-weight: 700; margin-top: 0}
 footer a {color: #999}
 footer {padding-bottom: 30px}
+
+#object-detail {background: #fff; height: 100%; margin-top: -115px; padding: 0 15px; position: fixed; right: 0; width: 330px}
+#object-detail .stage {border-left: 1px solid #eee; float: left; height: 100%; overflow: auto; padding: 0 15px 120px; width: 100%}
+#object-detail form {margin: 25px 0}
+#object-detail form button {margin-top: 25px}

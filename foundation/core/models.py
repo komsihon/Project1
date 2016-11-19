@@ -164,6 +164,8 @@ class Service(models.Model):
         config = self.config
         var['logo'] = config.logo.url if config.logo.name else Service.LOGO_PLACEHOLDER
         var['short_description'] = config.short_description
+        del(var['database'])
+        del(var['admin_url'])
         return var
 
     def _get_created_on(self):
@@ -243,8 +245,8 @@ class AbstractConfig(Model):
                                          help_text=_("Short description of your business <em>(150 chars max.)</em>."))
     description = models.TextField(blank=True,
                                    help_text=_("More detailed description of your business."))
-    slogan = models.CharField(max_length=18, blank=True,
-                              help_text=_("Your slogan <em>(18 chars max.)</em>."))
+    slogan = models.CharField(max_length=60, blank=True,
+                              help_text=_("Your slogan <em>(60 chars max.)</em>."))
     currency_code = models.CharField(max_length=5, default='USD',
                                      help_text=_("Code of your currency. Eg: <strong>USD, GBP, EUR, XAF,</strong> ..."))
     currency_symbol = models.CharField(max_length=5, default='$',

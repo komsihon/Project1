@@ -23,6 +23,6 @@ def project_settings(request):
             'AGREEMENT_URL': reverse('flatpage', args=(FlatPage.AGREEMENT, )),
             'LEGAL_MENTIONS_URL': reverse('flatpage', args=(FlatPage.LEGAL_MENTIONS, )),
             'PROJECT_URL': getattr(settings, 'PROJECT_URL', ''),
-            'MEMBER_AVATAR': getattr(settings, 'MEMBER_AVATAR', 'login-avatar.jpg')
+            'MEMBER_AVATAR': getattr(settings, 'MEMBER_AVATAR', 'ikwen/img/login-avatar.jpg')
         }
     }

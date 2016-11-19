@@ -134,6 +134,9 @@ class SignIn(BaseView):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             member = form.get_user()
+            m2 = member.get_from(UMBRELLA)
+            member.business_notices = m2.business_notices
+            member.personal_notices = m2.personal_notices
             login(request, member)
             events = getattr(settings, 'IKWEN_LOGIN_EVENTS', ())
             for path in events:
@@ -236,8 +239,9 @@ def send_welcome_email(member):
 
     @param member: Member object to whom message is sent
     """
-    config = get_service_instance().config
-    subject = _("Welcome to %s" % config.company_name)
+    service = get_service_instance()
+    config = service.config
+    subject = _("Welcome to %s" % service.project_name)
     if config.welcome_message:
         message = config.welcome_message.replace('$member_name', member.first_name)
     else:
@@ -245,7 +249,7 @@ def send_welcome_email(member):
                     "Your registration was successful and you can now enjoy our service.<br><br>"
                     "Thank you." % {'member_name': member.first_name})
     html_content = get_mail_content(subject, message, template_name='accesscontrol/mails/welcome.html')
-    sender = '%s <%s>' % (config.company_name, config.contact_email)
+    sender = '%s <no-reply@%s.com>' % (service.project_name, service.project_name_slug)
     msg = EmailMessage(subject, html_content, sender, [member.email])
     msg.content_subtype = "html"
     Thread(target=lambda m: m.send(), args=(msg,)).start()

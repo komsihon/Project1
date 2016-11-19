@@ -100,13 +100,18 @@
     var call = [];
     c.setupSearch = function(inputSelector, resultPanelSelector, descriptors, beforeSearch, afterResults) {
         $('body').on('keyup', inputSelector, function() {
-            var q = $(inputSelector).val();
-            if (q.length < 2) {
-                $(resultPanelSelector).hide();
-                call = [];
-                return;
+            var q = $(inputSelector).val(),
+                min = $(resultPanelSelector).data('min-search-chars');
+            if (min) {
+                if (q.length < parseInt(min)) {
+                    $(resultPanelSelector).hide();
+                    call = [];
+                    return;
+                }
             }
-            if (beforeSearch) beforeSearch();
+            if (beforeSearch) {
+                if (beforeSearch() === false) return;
+            }
             $(resultPanelSelector).find('.empty').hide();
             if (call.length == 0) $(resultPanelSelector).find('.spinner').show();
             $(resultPanelSelector).show();
@@ -115,7 +120,7 @@
                     url = descriptor.endpoint,
                     params = {q: q, start: 0, length: 10, format: 'json'},
                     selector = descriptor.resultTplSelector;
-                grabResults(url, params, resultPanelSelector, selector, call.length, afterResults);
+                grabResults(url, params, resultPanelSelector, selector, call.length, afterResults, descriptor.jsonp);
                 call.push(q);
                 // TODO: Manage multiple descriptors and sectioned results
             }
@@ -141,15 +146,17 @@
         });
     };
 
-    function grabResults(url, params, resultPanelSelector, resultSelector, callSeqNumber, afterResults) {
+    function grabResults(url, params, resultPanelSelector, resultSelector, callSeqNumber, afterResults, jsonp) {
+        if (jsonp) url.indexOf('?') == -1 ? url += '?callback=?' : url += '&callback=?';
         $.getJSON(url, params, function(data) {
             if (data.error) return;
             if (data.length == 0) $(resultPanelSelector).find('.empty').show();
             $(resultPanelSelector).find('.spinner').hide();
             $(resultSelector + ':not(.tpl)').remove();
-            for (var i=0; i<data.length; i++) {
+            var objectList = jsonp ? data.object_list : data;
+            for (var i=0; i<objectList.length; i++) {
                 var $tpl = $(resultSelector + '.tpl').clone().removeClass('tpl');
-                $tpl = c.genericTemplateFunc($tpl, data[i]);
+                $tpl = c.genericTemplateFunc($tpl, objectList[i]);
                 $tpl.insertBefore(resultSelector + '.tpl').show();
             }
             if (afterResults) afterResults(data);

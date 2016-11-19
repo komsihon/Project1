@@ -11,6 +11,8 @@ from ikwen.foundation.core.utils import increment_history_field, calculate_watch
 class WatchObject(models.Model):
     history1 = models.CharField(max_length=20)
     history2 = ListField()
+    total_history1 = models.IntegerField(default=0)
+    total_history2 = models.IntegerField(default=0)
 
     class Meta:
         app_label = 'core'
@@ -48,6 +50,8 @@ class CoreUtilsTestCase(unittest.TestCase):
         increment_history_field(watch_object, 'history2', 10)
         self.assertEqual(watch_object.history1, '18,9,57,23,56.0')
         self.assertListEqual(watch_object.history2, [18, 9, 57, 23, 56])
+        self.assertEqual(watch_object.total_history1, 10)
+        self.assertEqual(watch_object.total_history2, 10)
 
     def test_calculate_watch_info_with_less_history_values_than_period(self):
         watch_object = init_watch_object()
@@ -56,10 +60,10 @@ class CoreUtilsTestCase(unittest.TestCase):
         watch_info7 = calculate_watch_info(watch_object.history2, duration=7)
         watch_info28 = calculate_watch_info(watch_object.history2, duration=28)
 
-        self.assertDictEqual(watch_info0, {'total': 46, 'change': None})
-        self.assertDictEqual(watch_info1, {'total': 23, 'change': None})
-        self.assertDictEqual(watch_info7, {'total': 107, 'change': None})
-        self.assertDictEqual(watch_info28, {'total': 107, 'change': None})
+        self.assertDictEqual(watch_info0, {'total': 46, 'change': None, 'change_rate': None})
+        self.assertDictEqual(watch_info1, {'total': 23, 'change': None, 'change_rate': None})
+        self.assertDictEqual(watch_info7, {'total': 107, 'change': None, 'change_rate': None})
+        self.assertDictEqual(watch_info28, {'total': 107, 'change': None, 'change_rate': None})
 
     def test_calculate_watch_info_with_sufficient_history_values(self):
         watch_object = init_watch_object()
@@ -71,10 +75,10 @@ class CoreUtilsTestCase(unittest.TestCase):
 
         t0_28 = sum(range(28))
         t28_56 = sum(range(28, 56))
-        self.assertDictEqual(watch_info0, {'total': 56, 'change': None})
-        self.assertDictEqual(watch_info1, {'total': 55, 'change': (55 - 48)/48.0 * 100})
-        self.assertDictEqual(watch_info7, {'total': 364, 'change': (364 - 315)/315.0 * 100})
-        self.assertDictEqual(watch_info28, {'total': t28_56, 'change': float(t28_56 - t0_28) / t0_28 * 100})
+        self.assertDictEqual(watch_info0, {'total': 56, 'change': None, 'change_rate': None})
+        self.assertDictEqual(watch_info1, {'total': 55, 'change': 55 - 48, 'change_rate': (55 - 48)/48.0 * 100})
+        self.assertDictEqual(watch_info7, {'total': 364, 'change': 364 - 315, 'change_rate': (364 - 315)/315.0 * 100})
+        self.assertDictEqual(watch_info28, {'total': t28_56, 'change': t28_56 - t0_28, 'change_rate': float(t28_56 - t0_28) / t0_28 * 100})
 
     def test_calculate_rank_watch_objects(self):
         wo1 = WatchObject()

@@ -36,12 +36,12 @@
                     {% endblock %}
                     <form class="search" action="">
                         <input type="text" class="form-control input-sm inner-shade" placeholder="{% trans "Search" %}"/>
-                        <div class="results has-shade" style="display: none">
+                        <div class="results has-shade" style="display: none" data-min-search-chars="2">
                             {% include 'core/snippets/spinner.html' %}
                             <ul>
                                 <li class="member tpl" style="display: none">
                                     <a class="target_url" style="display: block">
-                                        <span class="photo logo bg-img" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></span>
+                                        <span class="photo logo bg-img" style="background-image: url({% static 'ikwen/img/no_photo.png' %})"></span>
                                         <div style="float: left; margin-left: 30px">
                                             <span class="full_name project_name"></span>
                                             <p class="about short_description"></p>
@@ -121,9 +121,11 @@
                         $('form#lang').submit();
                         return false
                     });
+                    {% url 'ikwen:list_projects' as list_projects_url %}
                     var searchDescriptor = [{
-                        endpoint: '{% url 'ikwen:list_projects' %}',
-                        resultTplSelector: '#navbar .search .results li.member'
+                        endpoint: '{{ list_projects_url|ikwenize }}',
+                        resultTplSelector: '#navbar .search .results li.member',
+                        jsonp: true
                     }];
                     $('nav#navbar .search input').focusout(function() {$('nav#navbar .search .results').fadeOut()});
                     ikwen.setupSearch('#navbar .search input', '#navbar .search .results', searchDescriptor);

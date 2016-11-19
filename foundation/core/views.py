@@ -275,7 +275,6 @@ class ServiceDetail(BaseView):
             service.pending_invoice_count = Invoice.objects.filter(subscription=service, status=Invoice.PENDING).count()
 
         context['service'] = service
-        context['currency'] = invoicing_config.currency
         context['billing_cycles'] = Service.BILLING_CYCLES_CHOICES
         return context
 
@@ -391,6 +390,8 @@ class Console(BaseView):
 
     def render_to_response(self, context, **response_kwargs):
         if self.request.GET.get('format') == 'json':
+            target = ConsoleEventType.PERSONAL if len(self.request.user.collaborates_on) == 0\
+                else self.request.GET.get('target', ConsoleEventType.BUSINESS)
             start = int(self.request.GET['start'])
             if self.request.user_agent.is_mobile:
                 length = 10
@@ -399,10 +400,9 @@ class Console(BaseView):
             else:
                 length = 30
             limit = start + length
-            type_access_request = list(ConsoleEventType.objects
-                                       .filter(codename=ACCESS_REQUEST_EVENT))
-            queryset = ConsoleEvent.objects.filter(member=self.request.user)\
-                           .exclude(event_type__in=type_access_request).order_by('-id')[start:limit]
+            targeted_type = list(ConsoleEventType.objects.filter(target=target).exclude(codename=ACCESS_REQUEST_EVENT))
+            queryset = ConsoleEvent.objects \
+                           .filter(event_type__in=targeted_type, member=self.request.user).order_by('-id')[start:limit]
             response = [event.to_dict() for event in queryset]
             return HttpResponse(
                 json.dumps(response),
@@ -454,7 +454,11 @@ def list_projects(request, *args, **kwargs):
         p = s.to_dict()
         p['url'] = IKWEN_BASE_URL + reverse('ikwen:company_profile', args=(s.app.slug, s.project_name_slug))
         projects.append(p)
-    return HttpResponse(json.dumps(projects), content_type='application/json')
+
+    response = {'object_list': projects}
+    callback = request.GET['callback']
+    jsonp = callback + '(' + json.dumps(response) + ')'
+    return HttpResponse(jsonp, content_type='application/json')
 
 
 @login_required

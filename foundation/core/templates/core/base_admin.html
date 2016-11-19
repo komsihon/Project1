@@ -40,12 +40,12 @@
     <div id="container" class="admin">
         <div id="admin-nav">
             <div style="padding: 20px 0 130px">
-                <div class="btn-group" style="width: 100%">
-                    <button class="btn btn-default btn-sm btn-block dropdown-toggle" data-toggle="dropdown"
-                            aria-haspopup="true" aria-expanded="false">{% trans "New" %}</button>
-                    {% block new_menu %}{% endblock %}
-                </div>
-                <div><div class="divider"></div></div>
+{#                <div class="btn-group" style="width: 100%">#}
+{#                    <button class="btn btn-default btn-sm btn-block dropdown-toggle" data-toggle="dropdown"#}
+{#                            aria-haspopup="true" aria-expanded="false">{% trans "New" %}</button>#}
+{#                    {% block new_menu %}{% endblock %}#}
+{#                </div>#}
+{#                <div><div class="divider"></div></div>#}
                 <div class="stage" {% if filter and filter|length > 0 %}style="margin-left: -100%"{% endif %}>
                     {% if filter and filter|length > 0 %}
                         <nav id="filter-nav">
@@ -64,11 +64,14 @@
                         {% if perms.accesscontrol.sudo %}
                             <div class="divider"></div>
                             <ul class="nav nav-pills nav-stacked">
-                                <li role="presentation" class="flatpages"><a href="{% url 'ikwen:flatpage_list' %}">{% trans "Pages" %}</a></li>
-                                <li role="presentation" class="community">
-                                    {% url 'ikwen:community' as community_url %}
-                                    <a href="{{ community_url|append_auth_tokens:request }}">{% trans "Community" %}</a>
+                                <li role="presentation" class="flatpages">
+                                    {% url 'ikwen:flatpage_list' as flatpage_list_url %}
+                                    <a href="{{ flatpage_list_url|append_auth_tokens:request }}">{% trans "Pages" %}</a>
                                 </li>
+{#                                <li role="presentation" class="community">#}
+{#                                    {% url 'ikwen:community' as community_url %}#}
+{#                                    <a href="{{ community_url|append_auth_tokens:request }}">{% trans "Community" %}</a>#}
+{#                                </li>#}
                             </ul>
                             <div class="divider"></div>
                             <ul class="nav nav-pills nav-stacked">
@@ -76,14 +79,14 @@
                                     {% url 'ikwen:configuration' as configuration_url %}
                                     <a href="{{ configuration_url|append_auth_tokens:request }}">{% trans "Configuration" %}</a>
                                 </li>
-                                <li role="presentation" class="invoices">
-                                    {% url 'billing:invoice_list' service.id as invoice_list_url %}
-                                    <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}" target="_blank">{% trans 'Invoices' %}</a>
-                                </li>
-                                <li role="presentation" class="service-info">
-                                    {% url 'ikwen:service_detail' service.id as service_detail_url%}
-                                    <a href="{{ service_detail_url|append_auth_tokens:request }}">{% trans "Info & Billing" %}</a>
-                                </li>
+{#                                <li role="presentation" class="invoices">#}
+{#                                    {% url 'billing:invoice_list' service.id as invoice_list_url %}#}
+{#                                    <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}" target="_blank">{% trans 'Invoices' %}</a>#}
+{#                                </li>#}
+{#                                <li role="presentation" class="service-info">#}
+{#                                    {% url 'ikwen:service_detail' service.id as service_detail_url%}#}
+{#                                    <a href="{{ service_detail_url|append_auth_tokens:request }}">{% trans "Info & Billing" %}</a>#}
+{#                                </li>#}
                             </ul>
                         {% endif %}
                     </div>

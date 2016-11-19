@@ -35,11 +35,12 @@
 }
 #stage .card {background: #fff;float: left;margin-top: 25px;overflow: hidden;padding: 15px;width: 100%;}
 #stage .card h3 {font-size: 16px;font-weight: 700;margin-top: 0;}
+#stage .card h3 a {color: #333;}
 #stage .card h3 img {margin-right: 6px}
 #stage .card > div:first-of-type h4 {margin: 0 0 .5em;}
 #stage .card h4 {color: #666;font-size: 17px;margin-top: 30px;}
 #stage .card h4 a.more {color: #0069c3;float: right;font-size: 13px}
-#stage .card .event-media {margin: 1em 0}
+#stage .card .event-media {background-size: cover; float: left; height: 260px; margin: 1em 0; width: 100%}
 #about ul {margin: 0; padding: 0}
 #about ul li {list-style-type: none; line-height: 25px}
 #about ul li label {width: 90px}
