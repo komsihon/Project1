@@ -19,7 +19,7 @@ class MemberForm(forms.Form):
     username = forms.CharField(max_length=30)
     password = forms.CharField(max_length=30)
     password2 = forms.CharField(max_length=30)
-    phone = forms.IntegerField()
+    phone = forms.IntegerField(required=False)
     email = forms.EmailField(required=False)
     first_name = forms.CharField(max_length=60)
     last_name = forms.CharField(max_length=60)

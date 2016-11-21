@@ -68,7 +68,13 @@
 .member .full_name, .ik-li .name, .ik-li .title {cursor: pointer; color: #333; font-size: 18px; margin: 10px 0 0}
 .member .about, .ik-li .about {color: #888; font-size: 14px}
 .ik-li .select {background: #fff url('../img/tick-15.png') no-repeat center;border-radius: 10px;display: none; height: 20px;position: absolute;width: 20px;margin: -25px}
-.ik-li .glyphicon, #selection-control .glyphicon {box-sizing: content-box; padding: 5px; border: 1px solid transparent}
+
+.ik-li .glyphicon, #selection-control .glyphicon {
+    box-sizing: content-box;
+    cursor: default;
+    padding: 5px;
+    border: 1px solid transparent
+}
 .ik-li .glyphicon:hover, #selection-control .glyphicon:hover {border: 1px solid #ddd; border-radius: 3px}
 .ik-li.selected {border: 3px solid #9433ff; transition: border .1s}
 .ik-li.selected + .ik-li.selected {border-top: none}

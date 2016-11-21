@@ -8,10 +8,10 @@ from ikwen.foundation.flatpages.views import FlatPageList
 
 from ikwen.foundation.core.views import get_location_by_ip
 
-from ikwen.foundation.accesscontrol.views import SignIn, AccountSetup, register, update_info, \
+from ikwen.foundation.accesscontrol.views import SignIn, AccountSetup, update_info, \
     update_password, ForgottenPassword, SetNewPassword, Profile, Community, CompanyProfile, \
     grant_access, request_access, set_collaborator_permissions, move_member_to_group, toggle_member, \
-    list_collaborators, MemberList, load_member_detail, AccessRequestList, deny_access
+    list_collaborators, MemberList, load_member_detail, AccessRequestList, deny_access, Register
 from ikwen.foundation.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, Contact, \
     ServiceExpired, reset_notices_counter, get_queued_sms, LegalMentions, TermsAndConditions, Configuration, \
     upload_customization_image, list_projects, upload_image, load_event_content
@@ -27,7 +27,7 @@ urlpatterns = patterns(
     url(r'^logout$', 'django.contrib.auth.views.logout', {'next_page': getattr(settings, "LOGIN_URL")}, name='logout'),
     url(r'^signOut$', 'django.contrib.auth.views.logout', {'next_page': getattr(settings, "LOGIN_URL")}),
     url(r'^signIn/$', SignIn.as_view(), name=SIGN_IN),
-    url(r'^register$', register, name=REGISTER),
+    url(r'^register/$', Register.as_view(), name=REGISTER),
 
     url(r'^accountSetup/$', login_required(AccountSetup.as_view()), name='account_setup'),
     url(r'^update_info$', update_info, name='update_info'),

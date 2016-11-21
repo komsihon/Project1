@@ -57,9 +57,16 @@ class Member(AbstractUser):
     cover_image = models.ImageField(upload_to=COVER_UPLOAD_TO, blank=True, null=True)
     entry_service = models.ForeignKey(Service, blank=True, null=True, related_name='+',
                                       help_text=_("Service where user registered for the first time on ikwen"))
-    is_iao = models.BooleanField('IAO', default=False,
+    is_iao = models.BooleanField('IAO', default=False, editable=False,
                                  help_text=_('Designates whether this user is an '
                                              '<strong>IAO</strong> (Ikwen Application Operator).'))
+    is_sudo = models.BooleanField('Sudo', default=False, editable=False,
+                                  help_text=_('Designates whether this user is the Sudo in the current service. '
+                                              'Sudo can be seen as the main IT for the application.'))
+    is_bao = models.BooleanField('Bao', default=False, editable=False,
+                                 help_text=_('Designates whether this user is the Bao in the current service. '
+                                             'Bao is the highest person in a deployed ikwen application. The only that '
+                                             'can change or block Sudo.'))
     collaborates_on = ListField(EmbeddedModelField('core.Service'), editable=False,
                                 help_text="Services on which member collaborates being the IAO or no.")
     customer_on = ListField(EmbeddedModelField('core.Service'), editable=False,
@@ -179,11 +186,6 @@ class AccessRequest(Model):
 
     class Meta:
         db_table = 'ikwen_accessrequest'
-
-    def get_title(self):
-        if self.type == self.COLLABORATION_REQUEST:
-            return _('Collaboration request')
-        return _('Service request')
 
     def get_description(self):
         if self.type == self.COLLABORATION_REQUEST:

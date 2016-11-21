@@ -44,23 +44,31 @@
                     </div>
                 </header>
                 <div class="container-fluid" id="cards">
-                    {% for elt in access_requests %}
+                    {% for elt in access_request_list %}
+                        {% with rq=elt.rq service=elt.rq.service %}
                     <section id="{{ elt.rq.id }}" class="access-request subtle-shade">
                         <div class="logo">
-                            <img src="{{ elt.rq.service.config.logo.url }}" />
-                            <h4>{{ elt.rq.service.project_name }}</h4>
+                            {% if service.config.logo.name %}
+                                <img src="{{ service.config.logo.url }}"/>
+                            {% else %}
+                                <img src="{% static 'ikwen/img/no_photo.png' %}"/>
+                            {% endif %}
+                            <h4>{{ service.project_name }}</h4>
                         </div>
                         <div class="details row">
                             <div class="about">
                                 <div class="col-sm-6 col-md-6">
-                                    <h3>{{ elt.rq.get_title }}</h3>
-                                    <p>{{ elt.rq.get_description }}</p>
+                                    <h3>{% trans "Request to join" %}</h3>
+                                    <p>{% trans "This person would like to join your community." %}</p>
                                 </div>
                                 <div class="col-sm-3 col-md-3">
-                                    <button class="btn btn-success btn-sm btn-block allow-access" data-request-id="{{ elt.rq.id }}" data-access-type="{{ elt.rq.type }}">{% trans "Grant access" %}</button>
+                                    <button class="btn btn-success btn-sm btn-block allow-access"
+                                            data-request-id="{{ rq.id }}"
+                                            data-access-type="{{ rq.type }}">{% trans "Grant access" %}</button>
                                 </div>
                                 <div class="col-sm-3 col-md-3" style="cursor: pointer; font-weight: 700; padding-top: 7px">
-                                    <span class="text-danger deny-access" data-request-id="{{ elt.rq.id }}">{% trans "No, Refuse" %}</span>
+                                    <span class="text-danger deny-access"
+                                          data-request-id="{{ rq.id }}">{% trans "No, Refuse" %}</span>
                                 </div>
 {#                                <div class="col-sm-3 col-md-3">#}
 {#                                    <button id="deny-access" class="btn btn-danger btn-sm btn-block" data-request-id="{{ elt.rq.id }}">{% trans "Refuse" %}</button>#}
@@ -75,11 +83,14 @@
                                         </div>
                                     {% endfor %}
                                 </div>
-                                <p class="text-success" style="display: none">{% trans "Access successfully granted to member." %}</p>
-                                <button data-request-id="{{ elt.rq.id }}" class="btn btn-success btn-sm btn-block confirm-group">{% trans "Confirm" %}</button>
+                                <p class="text-success"
+                                   style="display: none">{% trans "Access granted with success." %}</p>
+                                <button data-request-id="{{ rq.id }}"
+                                        class="btn btn-success btn-sm btn-block confirm-group">{% trans "Confirm" %}</button>
                             </div>
                         </div>
                     </section>
+                        {% endwith %}
                     {% endfor %}
                     <section id="about" class="subtle-shade">
                         {% if is_company and config.short_description %}
@@ -117,10 +128,12 @@
                             <div class="actions">
                                 {% if request.user.is_authenticated %}
                                     {% if not is_member %}
-                                        <button class="btn btn-primary btn-sm request-access" data-service-id="{{ service.id }}">{% trans "Join" %}</button>
+                                        <button class="btn btn-success btn-sm request-access"
+                                                data-service-id="{{ service.id }}">{% trans "Join" %}</button>
                                     {% endif %}
                                 {% else %}
-                                    <a class="btn btn-primary btn-sm" href="{% url 'ikwen:request_access' %}?service_id={{ service.id }}">{% trans "Join" %}</a>
+                                    <a class="btn btn-success btn-sm"
+                                       href="{% url 'ikwen:request_access' %}?service_id={{ service.id }}">{% trans "Join" %}</a>
                                 {% endif %}
                             </div>
                         {% endif %}

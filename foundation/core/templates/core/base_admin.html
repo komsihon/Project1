@@ -68,10 +68,10 @@
                                     {% url 'ikwen:flatpage_list' as flatpage_list_url %}
                                     <a href="{{ flatpage_list_url|append_auth_tokens:request }}">{% trans "Pages" %}</a>
                                 </li>
-{#                                <li role="presentation" class="community">#}
-{#                                    {% url 'ikwen:community' as community_url %}#}
-{#                                    <a href="{{ community_url|append_auth_tokens:request }}">{% trans "Community" %}</a>#}
-{#                                </li>#}
+                                <li role="presentation" class="community">
+                                    {% url 'ikwen:community' as community_url %}
+                                    <a href="{{ community_url|append_auth_tokens:request }}">{% trans "Community" %}</a>
+                                </li>
                             </ul>
                             <div class="divider"></div>
                             <ul class="nav nav-pills nav-stacked">

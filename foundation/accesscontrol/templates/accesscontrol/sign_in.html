@@ -42,6 +42,9 @@
                 <div style="height: 43px; padding: 0; width: 306px">
                     {# TODO: Put login avatar above the form #}
                 </div>
+                {#                <div style="margin-bottom: 1em; text-align: center">#}
+                {#                    <img src="{% static settings.MEMBER_AVATAR %}" alt="Login avatar" />#}
+                {#                </div>#}
                 <div class="form-group">
                     <label for="lg-username">{% trans "Username, email or phone" %}</label>
                     <input id="lg-username" class="form-control input-sm username" type="text" name="username"
@@ -57,7 +60,8 @@
                 </div>
             </form>
             <div style="clear: both; padding-top: 15px; text-align: center">
-                {% trans "No account yet ?" %} <a id="show-register" href="{% url 'ikwen:sign_in' %}?action=register">{% trans "Register" %}</a>
+                {% trans "No account yet ?" %} <a id="show-register"
+                                                  href="{% url 'ikwen:register' %}">{% trans "Register" %}</a>
             </div>
         </div>
         {% else %}
@@ -92,7 +96,7 @@
                         {{ register_form.email.errors }}
                     </div>
                 </div>
-                <div class="form-group row">
+                <div class="form-group row phone">
                     <label for="rg-phone" class="col-sm-5 col-md-4">{% trans "Phone number" %} <span style="font-weight: normal">(Optional)</span></label>
                     <div class="col-sm-6 col-md-6">
                         <input id="rg-phone" class="form-control input-sm phone" type="text" name="phone" />
@@ -100,16 +104,16 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="rg-name" class="col-sm-5 col-md-4">{% trans "First name" %} </label>
+                    <label for="rg-first-name" class="col-sm-5 col-md-4">{% trans "First name" %} </label>
                     <div class="col-sm-6 col-md-6">
-                        <input id="rg-name" class="form-control input-sm name" type="text" name="first_name" />
+                        <input id="rg-first-name" class="form-control input-sm name" type="text" name="first_name"/>
                         {{ register_form.name.errors }}
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="rg-name" class="col-sm-5 col-md-4">{% trans "Last name" %} </label>
+                    <label for="rg-last-name" class="col-sm-5 col-md-4">{% trans "Last name" %} </label>
                     <div class="col-sm-6 col-md-6">
-                        <input id="rg-name" class="form-control input-sm name" type="text" name="last_name" />
+                        <input id="rg-last-name" class="form-control input-sm name" type="text" name="last_name"/>
                         {{ register_form.name.errors }}
                     </div>
                 </div>
@@ -120,9 +124,13 @@
                         </p>
                     {% else %}
                         <p id="terms-warning" class="col-sm-11 col-md-10">
-                            {% trans "You are about to create an account managed by" %} <a href="{{ settings.IKWEN_BASE_URL }}" style="color: #999; text-decoration: underline">Ikwen</a>,
+                            {% trans "You are about to create an account managed by" %} <a
+                                href="{{ settings.IKWEN_BASE_URL }}"
+                                style="color: #999; text-decoration: underline"><strong>ikwen</strong></a>,
                             {% trans "on" %} {{ service.project_name }}.
-                            {% trans "By doing so you accept" %} <a href="{% url 'ikwen:terms_and_conditions' %}">Ikwen {% trans "Terms & Conditions" %}</a>, {% trans "as well as" %}
+                            {% trans "By doing so you accept" %} <a
+                                href="{% url 'ikwen:terms_and_conditions' %}"><strong>ikwen</strong> {% trans "Terms & Conditions" %}
+                        </a>, {% trans "as well as" %}
                             <a href="{{ settings.AGREEMENT_URL }}">{{ service.project_name }} {% trans "Terms & Conditions" %}.</a>
                         </p>
                     {% endif %}
@@ -176,9 +184,11 @@
                 $('#rg-email').blur(testEmail);
                 $('#rg-phone').blur(function() {
                     var phone = $(this).val();
-                    if (!/\d*/.test(phone)) {
-                        $('<ul class="errorlist"><li>' + "{% trans "Invalid phone. Use digits only." %}" + '</li><ul>')
+                    if (phone && !/\d+/.test(phone)) {
+                        $('<ul class="errorlist"><li>' + "{% trans "Please use digits only and prepend country code." %}" + '</li><ul>')
                             .insertAfter('#rg-phone');
+                    } else {
+                        $('.form-group.phone .errorlist').hide();
                     }
                 });
                 function testEmail() {
@@ -208,5 +218,5 @@
 {#            })#}
         })()
     </script>
-    {% include 'core/snippets/google_analytics.html' %}
+    {{ config.scripts|safe }}
 {% endblock %}

@@ -29,7 +29,7 @@
         });
         $('.confirm-group').click(function() {
             var requestId = $(this).data('request-id'),
-                groupId = $('.access-request .groups input[name=group]').val(),
+                    groupId = $('.access-request .groups input:checked').val(),
                 _$details = $(this).parents('.details');
             grantAccess(requestId, groupId, _$details);
         });
@@ -38,7 +38,7 @@
                 if (data.success) {
                     _$details.find('.about, .groups button').hide();
                     _$details.find('.groups').show();
-                    _$details.find('.groups p.text-success').text("{% trans "Access successfully granted to collaborator." %}").show();
+                    _$details.find('.groups p.text-success').text("{% trans "Access granted with success." %}").show();
                 }
             })
         }

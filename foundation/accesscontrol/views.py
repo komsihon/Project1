@@ -43,75 +43,92 @@ from ikwen.foundation.core.utils import get_service_instance, get_mail_content, 
 from ikwen.foundation.core.views import BaseView, HybridListView, IKWEN_BASE_URL
 
 
-def register(request, *args, **kwargs):
-    form = MemberForm(request.POST)
-    if form.is_valid():
-        username = form.cleaned_data['username']
-        phone = form.cleaned_data.get('phone', '')
-        email = form.cleaned_data.get('email', '')
-        first_name = form.cleaned_data.get('first_name')
-        last_name = form.cleaned_data.get('last_name')
-        query_string = request.META.get('QUERY_STRING')
-        try:
-            validate_email(username)
-            email = username
-        except ValidationError:
-            pass
-        try:
-            member = Member.objects.get(username=username)
-        except Member.DoesNotExist:
-            if phone:
-                try:
-                    member = Member.objects.get(phone=phone)
-                except Member.DoesNotExist:
-                    pass
-                else:
-                    msg = _("You already created an Ikwen account with this phone on %s. Use it to login." % member.entry_service.project_name)
-                    existing_account_url = reverse('ikwen:sign_in') + "?existingPhone=yes&msg=%s&%s" % (msg, query_string)
-                    return HttpResponseRedirect(existing_account_url.strip('&'))
-            password = form.cleaned_data['password']
-            password2 = form.cleaned_data['password2']
-            if password != password2:
-                return HttpResponseRedirect(reverse('ikwen:sign_in') + "?passwordMismatch=yes&" + query_string)
-            Member.objects.create_user(username=username, phone=phone, email=email, password=password,
-                                       first_name=first_name, last_name=last_name)
-            member = authenticate(username=username, password=password)
-            login(request, member)
-            events = getattr(settings, 'IKWEN_REGISTER_EVENTS', ())
-            for path in events:
-                event = import_by_path(path)
-                event(request, *args, **kwargs)
-            send_welcome_email(member)
+class Register(BaseView):
+    template_name = 'accesscontrol/register.html'
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated():
             next_url = request.REQUEST.get('next')
             if next_url:
-                # Remove next_url from the original query_string
-                next_url = next_url.split('?')[0]
-                query_string = urlunquote(query_string).replace('next=%s' % next_url, '').strip('?').strip('&')
-            else:
-                if getattr(settings, 'IS_IKWEN', False):
-                    next_url = reverse('ikwen:console')
-                else:
-                    next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', None)
-                    if next_url_view:
-                        next_url = reverse(next_url_view)
-                    else:
-                        next_url = ikwenize(reverse('ikwen:console'))
+                return HttpResponseRedirect(next_url)
+            next_url = ikwenize(reverse('ikwen:console'))
+            next_url = append_auth_tokens(next_url, request)
+            return HttpResponseRedirect(next_url)
+        return super(Register, self).get(request, *args, **kwargs)
 
-            uid = urlsafe_base64_encode(force_bytes(member.pk))
-            token = member.password[-TOKEN_CHUNK:-1]
-            if query_string:
-                query_string += '&' + UID_B64 + '=' + uid + '&' + TOKEN + '=' + token
+    def post(self, request, *args, **kwargs):
+        form = MemberForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            phone = form.cleaned_data.get('phone', '')
+            email = form.cleaned_data.get('email', '')
+            first_name = form.cleaned_data.get('first_name')
+            last_name = form.cleaned_data.get('last_name')
+            query_string = request.META.get('QUERY_STRING')
+            try:
+                validate_email(username)
+                email = username
+            except ValidationError:
+                pass
+            try:
+                member = Member.objects.get(username=username)
+            except Member.DoesNotExist:
+                if phone:
+                    try:
+                        member = Member.objects.get(phone=phone)
+                    except Member.DoesNotExist:
+                        pass
+                    else:
+                        msg = _(
+                            "You already created an Ikwen account with this phone on %s. Use it to login." % member.entry_service.project_name)
+                        existing_account_url = reverse('ikwen:sign_in') + "?existingPhone=yes&msg=%s&%s" % (
+                        msg, query_string)
+                        return HttpResponseRedirect(existing_account_url.strip('&'))
+                password = form.cleaned_data['password']
+                password2 = form.cleaned_data['password2']
+                if password != password2:
+                    return HttpResponseRedirect(reverse('ikwen:sign_in') + "?passwordMismatch=yes&" + query_string)
+                Member.objects.create_user(username=username, phone=phone, email=email, password=password,
+                                           first_name=first_name, last_name=last_name)
+                member = authenticate(username=username, password=password)
+                login(request, member)
+                events = getattr(settings, 'IKWEN_REGISTER_EVENTS', ())
+                for path in events:
+                    event = import_by_path(path)
+                    event(request, *args, **kwargs)
+                send_welcome_email(member)
+                next_url = request.REQUEST.get('next')
+                if next_url:
+                    # Remove next_url from the original query_string
+                    next_url = next_url.split('?')[0]
+                    query_string = urlunquote(query_string).replace('next=%s' % next_url, '').strip('?').strip('&')
+                else:
+                    if getattr(settings, 'IS_IKWEN', False):
+                        next_url = reverse('ikwen:console')
+                    else:
+                        next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', None)
+                        if next_url_view:
+                            next_url = reverse(next_url_view)
+                        else:
+                            next_url = ikwenize(reverse('ikwen:console'))
+
+                uid = urlsafe_base64_encode(force_bytes(member.pk))
+                token = member.password[-TOKEN_CHUNK:-1]
+                if query_string:
+                    query_string += '&' + UID_B64 + '=' + uid + '&' + TOKEN + '=' + token
+                else:
+                    query_string = UID_B64 + '=' + uid + '&' + TOKEN + '=' + token
+                return HttpResponseRedirect(next_url + "?" + query_string)
             else:
-                query_string = UID_B64 + '=' + uid + '&' + TOKEN + '=' + token
-            return HttpResponseRedirect(next_url + "?" + query_string)
+                msg = _(
+                    "You already created an ikwen account with this username on %s. Use it to login." % member.entry_service.project_name)
+                existing_account_url = reverse('ikwen:sign_in') + "?existingUsername=yes&msg=%s&%s" % (
+                msg, query_string)
+                return HttpResponseRedirect(existing_account_url.strip('&'))
         else:
-            msg = _("You already created an ikwen account with this username on %s. Use it to login." % member.entry_service.project_name)
-            existing_account_url = reverse('ikwen:sign_in') + "?existingUsername=yes&msg=%s&%s" % (msg, query_string)
-            return HttpResponseRedirect(existing_account_url.strip('&'))
-    else:
-        context = BaseView().get_context_data(**kwargs)
-        context['register_form'] = form
-        return render(request, 'accesscontrol/sign_in.html', context)
+            context = BaseView().get_context_data(**kwargs)
+            context['register_form'] = form
+            return render(request, 'accesscontrol/sign_in.html', context)
 
 
 class SignIn(BaseView):
@@ -172,9 +189,6 @@ class SignIn(BaseView):
 
 class ForgottenPassword(BaseView):
     template_name = 'accesscontrol/forgotten_password.html'
-
-    def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, {'service': get_service_instance()})
 
     @method_decorator(csrf_protect)
     def post(self, request, *args, **kwargs):
@@ -337,7 +351,7 @@ class Profile(BaseView):
                     add_database_to_settings(rq.service.database)
                     groups = Group.objects.using(rq.service.database).exclude(name=SUDO).order_by('name')
                     rqs.append({'rq': rq, 'groups': groups})
-            context['access_requests'] = rqs
+            context['access_request_list'] = rqs
         context['profile_name'] = member.full_name
         context['profile_email'] = member.email
         context['profile_phone'] = member.phone
@@ -395,7 +409,7 @@ class Community(HybridListView):
         if group_name:
             group_id = Group.objects.get(name=group_name).id
         else:
-            group_id = Group.objects.exclude(name=SUDO).order_by('name')[0].id
+            group_id = Group.objects.get(name=COMMUNITY).id
         return UserPermissionList.objects.raw_query({'group_fk_list': {'$elemMatch': {'$eq': group_id}}})
 
     def get_context_data(self, **kwargs):
@@ -510,11 +524,13 @@ def grant_access(request, *args, **kwargs):
     if count > Community.MAX:
         response = {'error': "Maximum of %d collaborators reached" % Community.MAX}
         return HttpResponse(json.dumps(response), content_type='application/json')
-    rq.member.collaborates_on.append(rq.service)
-    rq.member.save()
     database = rq.service.database
-    add_database_to_settings(database)
     group = Group.objects.using(database).get(pk=group_id)
+    rq.member.customer_on.append(rq.service)
+    if group.name != COMMUNITY:
+        rq.member.collaborates_on.append(rq.service)
+    rq.member.save()
+    add_database_to_settings(database)
     rq.member.is_staff = True
     rq.member.is_iao = False
     rq.member.save(using=database)
@@ -527,13 +543,10 @@ def grant_access(request, *args, **kwargs):
     rq.save()
     ConsoleEvent.objects.get(member=rq.service.member, object_id=rq.id).delete()
     add_event(rq.service, rq.member, ACCESS_GRANTED_EVENT, rq.id)
-    add_event(rq.service, rq.service.member, ACCESS_GRANTED_EVENT, rq.id)
     subject = _("You were added to %s community" % rq.service.project_name)
-    message = _("Hi %(member_name)s,<br><br>You were added to <b>%(project_name)s</b> community as "
-                "<b>%(group_name)s</b>.<br><br>."
+    message = _("Hi %(member_name)s,<br><br>You were added to <b>%(project_name)s</b> community.<br><br>"
                 "Thanks for joining us." % {'member_name': rq.member.first_name,
-                                            'project_name': rq.service.project_name,
-                                            'group_name': rq.group_name})
+                                            'project_name': rq.service.project_name})
     html_content = get_mail_content(subject, message, template_name='core/mails/notice.html',
                                     extra_context={'cta_text': _("Join"),
                                                    'cta_url': rq.service.admin_url})
@@ -578,15 +591,20 @@ def set_collaborator_permissions(request, *args, **kwargs):
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
 
-# TODO: Write test and live test view below
 @permission_required('accesscontrol.sudo')
 def move_member_to_group(request, *args, **kwargs):
     group_id = request.GET['group_id']
     member_id = request.GET['member_id']
+    if member_id == request.user.id:
+        # One cannot block himself
+        return HttpResponse(json.dumps({'error': "One cannot move himself"}), content_type='application/json')
     group = Group.objects.get(pk=group_id)
     member = Member.objects.get(pk=member_id)
-    if member.is_iao:
-        return HttpResponse(json.dumps({'error': True}), content_type='application/json')
+    if member.is_bao:
+        return HttpResponse(json.dumps({'error': "BAO can only be transferred."}), content_type='application/json')
+    if group.name == SUDO:
+        member.is_superuser = True
+        member.save()
     obj = UserPermissionList.objects.get(user=member)
     obj.permission_list = []
     obj.permission_fk_list = []
@@ -596,13 +614,35 @@ def move_member_to_group(request, *args, **kwargs):
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
 
+# @permission_required('accesscontrol.sudo')
+# def send_request_to_become_bao(request, *args, **kwargs):
+#     group_id = request.GET['group_id']
+#     member_id = request.GET['member_id']
+#     if member_id == request.user.id:
+#         # One cannot block himself
+#         return HttpResponse(json.dumps({'error': "One cannot move himself"}), content_type='application/json')
+#     group = Group.objects.get(pk=group_id)
+#     member = Member.objects.get(pk=member_id)
+#     if member.is_bao:
+#         return HttpResponse(json.dumps({'error': "BAO can only be transferred."}), content_type='application/json')
+#     obj = UserPermissionList.objects.get(user=member)
+#     obj.permission_list = []
+#     obj.permission_fk_list = []
+#     obj.group_fk_list = []
+#     obj.save()
+#     add_user_to_group(member,  group)
+#     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
+
+
 @permission_required('accesscontrol.sudo')
 def toggle_member(request, *args, **kwargs):
     member_id = request.GET['member_id']
     if member_id == request.user.id:
         # One cannot block himself
-        return HttpResponse(json.dumps({'success': True}), content_type='application/json')
+        return HttpResponse(json.dumps({'error': "One cannot block himself"}), content_type='application/json')
     member = Member.objects.get(pk=member_id)
+    if member.is_bao:
+        return HttpResponse(json.dumps({'error': "BAO can only be transferred."}), content_type='application/json')
     if member.is_active:
         member.is_active = False
     else:

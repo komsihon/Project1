@@ -80,6 +80,14 @@ class IkwenAuthTestCase(unittest.TestCase):
         wipe_test_data()
 
     @override_settings(DATABASES=DATABASES, IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
+    def test_Register_page(self):
+        """
+        Register page must return http 200
+        """
+        response = self.client.get(reverse('ikwen:register'))
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(DATABASES=DATABASES, IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
     def test_login_with_wrong_credentials_and_no_prior_get_parameters(self):
         """
         Wrong parameters set the login_form in context
