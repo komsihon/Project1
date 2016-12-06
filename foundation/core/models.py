@@ -15,10 +15,11 @@ from ikwen.foundation.core.utils import add_database_to_settings, to_dict, get_s
 
 
 WELCOME_ON_IKWEN_EVENT = 'WelcomeOnIkwen'
+CASH_OUT_REQUEST_EVENT = 'CashOutRequest'
 
 
 class Model(models.Model):
-    created_on = models.DateTimeField(default=timezone.now)
+    created_on = models.DateTimeField(default=timezone.now, editable=False)
     updated_on = models.DateTimeField(default=timezone.now, auto_now=True)
 
     def get_from(self, db):
@@ -128,7 +129,7 @@ class Service(models.Model):
     app = models.ForeignKey(Application, blank=True, null=True)
     project_name = models.CharField(max_length=60,
                                     help_text="Name of the project")
-    project_name_slug = models.SlugField()
+    project_name_slug = models.SlugField(unique=True)
     database = models.CharField(max_length=150, blank=True)
     domain_type = models.CharField(max_length=15, blank=True, choices=DOMAIN_TYPE_CHOICES)
     url = models.URLField(blank=True,
@@ -142,13 +143,14 @@ class Service(models.Model):
     # Date of expiry of the service. The billing system automatically sets it to
     # IkwenInvoice.due_date + IkwenInvoice.tolerance
     # IkwenInvoice in this case is the invoice addressed to client for this Service
-    expiry = models.DateTimeField(blank=True, null=True,
-                                  help_text=_("Date of expiry of the service."))
+    expiry = models.DateField(blank=True, null=True,
+                              help_text=_("Date of expiry of the service."))
     invoice_tolerance = models.IntegerField(default=1,
                                             help_text=_("Number of overdue days allowed. "
                                                         "After that, severe action must be undertaken."))
     since = models.DateTimeField(default=timezone.now)
     updated_on = models.DateTimeField(default=timezone.now, auto_now_add=True)
+    retailer = models.ForeignKey('self', blank=True, null=True, related_name='+')
 
     objects = MongoDBManager()
 
@@ -157,7 +159,7 @@ class Service(models.Model):
         unique_together = ('app', 'project_name', )
 
     def __unicode__(self):
-        return u'%s: %s' % (self.project_name, self.member.email)
+        return u'%s: %s' % (self.project_name, self.url)
 
     def to_dict(self):
         var = to_dict(self)
@@ -231,7 +233,7 @@ class AbstractConfig(Model):
     )
     LOGO_UPLOAD_TO = 'ikwen/configs/logos'
     COVER_UPLOAD_TO = 'ikwen/configs/cover_images'
-    service = models.OneToOneField(Service, editable=False, related_name='+')
+    service = models.OneToOneField(Service, editable=getattr(settings, 'IS_IKWEN', False), related_name='+')
     company_name = models.CharField(max_length=60, verbose_name=_("Website / Company name"),
                                     help_text=_("Website/Company name as you want it to appear in mails and pages."))
     company_name_slug = models.SlugField(db_index=True)
@@ -241,6 +243,10 @@ class AbstractConfig(Model):
                                 help_text=_("Country where HQ of the company are located."))
     city = models.CharField(max_length=60, blank=True,
                             help_text=_("City where HQ of the company are located."))
+    latitude = models.CharField(max_length=60, blank=True,
+                                help_text=_("Latitude of the Company location."))
+    longitude = models.CharField(max_length=60, blank=True,
+                                 help_text=_("Longitude of the Company location."))
     short_description = models.CharField(max_length=150, blank=True,
                                          help_text=_("Short description of your business <em>(150 chars max.)</em>."))
     description = models.TextField(blank=True,
@@ -251,6 +257,9 @@ class AbstractConfig(Model):
                                      help_text=_("Code of your currency. Eg: <strong>USD, GBP, EUR, XAF,</strong> ..."))
     currency_symbol = models.CharField(max_length=5, default='$',
                                        help_text=_("Symbol of your currency, Eg: <strong>$, £, €, F</strong>."))
+    cash_out_min = models.IntegerField(_("cash-out minimum"), blank=True, null=True,
+                                       default=getattr(settings, 'CASH_OUT_MIN', None),
+                                       help_text="Minimum balance that allows cash out.")
     logo = models.ImageField(upload_to=LOGO_UPLOAD_TO, verbose_name=_("Your logo"), blank=True, null=True,
                              help_text=_("Image in <strong>PNG with transparent background</strong> is advised. "
                                          "(Maximum 400 x 400px)"))
@@ -288,9 +297,9 @@ class AbstractConfig(Model):
     paypal_password = models.CharField(_("PayPal password"), max_length=60, blank=True)
     paypal_api_signature = models.CharField(_("PayPal API Signature"), max_length=60, blank=True)
     paypal_merchant_id = models.CharField(_("PayPal Merchant ID"), max_length=60, blank=True)
-    # allow_paypal_direct = models.BooleanField(default=False, verbose_name=_("PAYPAL API SIGNATURE"),
-    #                                           help_text=_("Check to allow PayPal direct Checkout that allows user "
-    #                                                       "to enter his bank card directly."))
+    allow_paypal_direct = models.BooleanField(editable=getattr(settings, 'IS_IKWEN', False), default=False,
+                                              help_text=_("Check to allow <strong>PayPal Direct Checkout</strong> "
+                                                          "that lets user enter his bank card directly."))
     sms_sending_method = models.CharField(max_length='15', verbose_name=_("SMS Sending method"),
                                           choices=SMS_SENDING_METHOD_CHOICES, blank=True,
                                           help_text=_("Method used to send SMS from the platform. If <strong>Modem</strong>, "
@@ -347,6 +356,8 @@ class AbstractConfig(Model):
         config.description = self.description
         config.slogan = self.slogan
         config.logo = self.logo
+        config.latitude = self.latitude
+        config.longitude = self.longitude
         config.cover_image = self.cover_image
         config.signature = self.signature
         config.contact_email = self.contact_email
@@ -370,6 +381,14 @@ class Config(AbstractConfig):
 
     class Meta:
         db_table = 'ikwen_config'
+
+
+class OperatorWallet(Model):
+    mongo_id = models.CharField(max_length=24, unique=True)
+    balance = models.FloatField(_("balance"), default=0)
+
+    class Meta:
+        db_table = 'ikwen_operator_wallet'
 
 
 class Country(Model):
@@ -396,23 +415,30 @@ class ConsoleEventType(Model):
     :attr:`target_url_name` Name of the url to hit to view the list of objects that triggered
                             this event. It is typically used to create the *View all* link
     :attr:`renderer` dotted name of the function to call to render an event of this type the :attr:`member` Console.
+    :attr:`min_height` the min height space the browser should reserve to display this event.
+                       It helps have a smoother rendering of the timeline as it loads.
     Write it under the dotted form 'package.module.function_name'. :attr:`renderer`
     is called as such: function_name(service, event_type, member, object_id, model)
     """
     BUSINESS = 'Business'
     PERSONAL = 'Personal'
-    app = models.ForeignKey(Application)
+    TARGET_CHOICES = (
+        (BUSINESS, 'Business'),
+        (PERSONAL, 'Personal')
+    )
+    app = models.ForeignKey(Application, blank=True, null=True)
     codename = models.CharField(max_length=150)
-    title = models.CharField(max_length=150)
+    title = models.CharField(max_length=150, blank=True)
     title_mobile = models.CharField(max_length=100, blank=True)
-    target = models.CharField(max_length=15)  # BUSINESS or PERSONAL
+    target = models.CharField(max_length=15, choices=TARGET_CHOICES)  # BUSINESS or PERSONAL
     target_url_name = models.CharField(max_length=100, blank=True)
     renderer = models.CharField(max_length=255)
+    min_height = models.IntegerField(max_length=255, blank=True, null=True)
 
     objects = MongoDBManager()
 
     class Meta:
-        db_table = 'ikwen_consoleeventtype'
+        db_table = 'ikwen_console_event_type'
         unique_together = (
             ('app', 'codename'),
             ('app', 'title'),
@@ -421,7 +447,7 @@ class ConsoleEventType(Model):
     def __unicode__(self):
         return self.codename
 
-    def get_resp_title(self, request):
+    def get_responsive_title(self, request):
         if request.user_agent.is_mobile and self.title_mobile:
             return self.title_mobile
         return self.title
@@ -444,10 +470,10 @@ class ConsoleEvent(Model):
     member = models.ForeignKey('accesscontrol.Member', db_index=True)
     event_type = models.ForeignKey(ConsoleEventType, related_name='+')
     model = models.CharField(max_length=100, blank=True, null=True)
-    object_id = models.CharField(max_length=24, db_index=True)
+    object_id = models.CharField(max_length=24, blank=True, null=True, db_index=True)
 
     class Meta:
-        db_table = 'ikwen_consoleevent'
+        db_table = 'ikwen_console_event'
 
     def render(self):
         renderer = import_by_path(self.event_type.renderer)
@@ -458,6 +484,7 @@ class ConsoleEvent(Model):
         var['project_url'] = self.service.url
         var['project_name'] = self.service.project_name
         var['created_on'] = naturaltime(self.created_on)
+        var['min_height'] = self.event_type.min_height
         del(var['model'])
         del(var['object_id'])
         del(var['service_id'])
@@ -466,12 +493,69 @@ class ConsoleEvent(Model):
         return var
 
 
+class CashOutRequest(Model):
+    """
+    Request of cash out initiated by an Operator of a any Service.
+    A django admin action is used to actually transfer money to the
+    user by any available mean.
+    """
+    PENDING = 'Pending'
+    PAID = 'Paid'
+
+    MOBILE_MONEY = 'MobileMoney'
+    BANK_TRANSFER = 'BankTransfer'
+    CASH_TRANSFER = 'CashTransfer'
+    PAYMENT_METHOD_CHOICES = (
+        (MOBILE_MONEY, _('Mobile Money')),
+        (BANK_TRANSFER, _('Bank Transfer')),
+        (CASH_TRANSFER, _('Cash Transfer')),
+    )
+    # service = models.ForeignKey(Service)
+    service_id = models.CharField(max_length=24)
+    # member = models.ForeignKey('accesscontrol.Member')
+    member_id = models.CharField(max_length=24)
+    amount = models.IntegerField(default=0)
+    status = models.CharField(max_length=15, default=PENDING)
+    country = models.CharField(max_length=60)
+    city = models.CharField(max_length=60)
+    method = models.CharField(_("payment method"), max_length=30, choices=PAYMENT_METHOD_CHOICES,
+                              help_text=_("Method used to pay the member"))
+    account_number = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        db_table = 'ikwen_cash_out_request'
+        permissions = (
+            ("ik_manage_cash_out_request", _("Request cash-out")),
+        )
+
+
+class CashOutAddress(Model):
+    """
+    Details of Cash-out
+    """
+    country = models.ForeignKey(Country)
+    city = models.CharField(max_length=60)
+    method = models.CharField(_("payment method"), max_length=30, choices=CashOutRequest.PAYMENT_METHOD_CHOICES,
+                              help_text=_("Method used to pay the member"))
+    account_number = models.CharField(max_length=100, blank=True)
+
+    @staticmethod
+    def get_instance():
+        try:
+            return list(CashOutAddress.objects.all())[-1]
+        except IndexError:
+            pass
+
+    class Meta:
+        db_table = 'ikwen_cash_out_address'
+
+
 class QueuedSMS(Model):
     recipient = models.CharField(max_length=18)
     text = models.TextField()
 
     class Meta:
-        db_table = 'ikwen_queuedsms'
+        db_table = 'ikwen_queued_sms'
 
 
 def delete_object_events(sender, **kwargs):

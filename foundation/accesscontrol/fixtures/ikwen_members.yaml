@@ -7,13 +7,7 @@
     phone: 677000001
     is_iao: Yes
     gender: Male
-    collaborates_on:
-      - id: 56eb6d04b37b3379b531b101
-        member_id: 56eb6d04b37b3379b531e011
-        app_id: 56eb6d04b37b3379b531a001
-        project_name: Ikwen Service
-        project_name_slug: ikwen-service
-        database: test_ikwen_service
+    collaborates_on_fk_list: [56eb6d04b37b3379b531b101]
 
 - model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e012
@@ -26,13 +20,7 @@
     is_iao: Yes
     is_superuser: Yes
     gender: Male
-    collaborates_on:
-      - id: 56eb6d04b37b3379b531b102
-        member_id: 56eb6d04b37b3379b531e012
-        app_id: 56eb6d04b37b3379b531a002
-        project_name: Ikwen Service 2
-        project_name_slug: ikwen-service-2
-        database: test_ikwen_service_2
+    collaborates_on_fk_list: [56eb6d04b37b3379b531b102]
 
 - model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e013
@@ -45,13 +33,7 @@
     last_name: Tchuendom
     full_name: Foka Tchuendom
     gender: Male
-    collaborates_on:
-      - id: 56eb6d04b37b3379b531b101
-        member_id: 56eb6d04b37b3379b531e012
-        app_id: 56eb6d04b37b3379b531a001
-        project_name: Ikwen Service
-        project_name_slug: ikwen-service-1
-        database: test_ikwen_service_1
+    collaborates_on_fk_list: [56eb6d04b37b3379b531b101]
 
 - model: accesscontrol.member
   pk: 56eb6d04b37b3379b531e014
@@ -64,13 +46,7 @@
     last_name: Tchuente
     full_name: Simo Tchuente
     gender: Female
-    collaborates_on:
-      - id: 56eb6d04b37b3379b531b102
-        member_id: 56eb6d04b37b3379b531e012
-        app_id: 56eb6d04b37b3379b531a002
-        project_name: Ikwen Service 2
-        project_name_slug: ikwen-service-2
-        database: test_ikwen_service_2
+    collaborates_on_fk_list: [56eb6d04b37b3379b531b102]
 
 - model: auth.group
   pk: 5804b37b3379b531e01eb6d1

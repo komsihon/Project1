@@ -8,12 +8,23 @@
     <style  type="text/css">
         #navbar .search, #navbar .navbar-right {display: none}
         #content {margin-top: 5%}
+
+        @media (min-width: 415px) {
+            #content {
+                margin-top: 2%
+            }
+        }
+
+        @media (min-width: 992px) {
+            #content {
+                margin-top: 7%
+            }
+        }
         #content > div {margin: auto}
         #content form {margin-top: 25px}
         div#login {width: 360px}
         div#login form {border: 2px solid #dce4ec; border-radius: 4px; padding: 30px}
         @media (max-width: 768px) {
-            #content {margin-top: 120px}
             #content div#login {margin: auto; width: 96%}
         }
         label span {font-weight: normal}
@@ -37,16 +48,18 @@
         {% endif %}
         {% if not request.GET.action or request.GET.action == 'login' or login_form %}
         <div id="login">
-            <h2>{% trans "Login" %}</h2>
-            <form action="{% url 'ikwen:sign_in' %}?{{ request.META.QUERY_STRING }}" method="post">{% csrf_token %}
-                <div style="height: 43px; padding: 0; width: 306px">
-                    {# TODO: Put login avatar above the form #}
+            <h3 style="text-align: center">
+                <div style="margin-bottom: .3em; text-align: center">
+                    {% if config.logo.name %}
+                        <img src="{{ config.logo.url }}" alt="Logo {{ service.project_name }}"
+                             style="max-height: 80px"/>
+                    {% endif %}
                 </div>
-                {#                <div style="margin-bottom: 1em; text-align: center">#}
-                {#                    <img src="{% static settings.MEMBER_AVATAR %}" alt="Login avatar" />#}
-                {#                </div>#}
-                <div class="form-group">
-                    <label for="lg-username">{% trans "Username, email or phone" %}</label>
+                {% trans "Login" %}
+            </h3>
+            <form action="{% url 'ikwen:sign_in' %}?{{ request.META.QUERY_STRING }}" method="post">{% csrf_token %}
+                <div class="form-group" style="margin-top: .4em">
+                    <label for="lg-username">{% trans "Username or email" %}</label>
                     <input id="lg-username" class="form-control input-sm username" type="text" name="username"
                            value="{{ request.GET.username }}{{ request.GET.phone }}" /> {#Only username or phone will be output depending on what is available#}
                 </div>
@@ -60,8 +73,8 @@
                 </div>
             </form>
             <div style="clear: both; padding-top: 15px; text-align: center">
-                {% trans "No account yet ?" %} <a id="show-register"
-                                                  href="{% url 'ikwen:register' %}">{% trans "Register" %}</a>
+                {% trans "No account yet ?" %}
+                <a id="show-register" href="{% url 'ikwen:register' %}">{% trans "Register" %}</a>
             </div>
         </div>
         {% else %}

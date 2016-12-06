@@ -49,7 +49,7 @@ class BillingUtilsTest(TestCase):
     def test_send_invoices(self):
         Invoice.objects.all().delete()
         invoicing_config = InvoicingConfig.objects.all()[0]
-        expiry = datetime.now() + timedelta(days=invoicing_config.gap + 1)
+        expiry = datetime.now() + timedelta(days=invoicing_config.gap)
         Subscription.objects.all().update(expiry=expiry)
         send_invoices()
         sent = Invoice.objects.filter(reminders_sent=1).count()

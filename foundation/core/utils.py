@@ -75,7 +75,7 @@ def get_service_instance(using='default'):
     return service
 
 
-def add_database_to_settings(database):
+def add_database_to_settings(alias, engine='django_mongodb_engine', name=None, username=None, password=None):
     """
     Adds a database connection to the global settings on the fly.
     That is equivalent to do the following in Django settings file:
@@ -86,7 +86,7 @@ def add_database_to_settings(database):
             'NAME': 'default_database',
             ...
         },
-        'database': {
+        'alias': {
             'ENGINE': 'current_database_engine',
             'NAME': database,
             ...
@@ -94,14 +94,21 @@ def add_database_to_settings(database):
     }
 
     That connection is named 'database'
-    @param database: name of the connection
+    @param alias: name of the connection
+    @param engine: database engine
+    @param name: database name
+    @param username: database username
+    @param password: database password
     """
     DATABASES = getattr(settings, 'DATABASES')
-    if DATABASES.get(database) is None:
-        DATABASES[database] = {
-            'ENGINE': 'django_mongodb_engine',
-            'NAME': database,
+    if DATABASES.get(alias) is None:
+        DATABASES[alias] = {
+            'ENGINE': engine,
+            'NAME': name if name is not None else alias,
         }
+        if username:
+            DATABASES[alias]['USERNAME'] = username
+            DATABASES[alias]['PASSWORD'] = password
     setattr(settings, 'DATABASES', DATABASES)
 
 

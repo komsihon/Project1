@@ -18,13 +18,14 @@ from ikwen.foundation.core.views import Console, ServiceDetail, WelcomeMail, Bas
 
 REGISTER = 'register'
 SIGN_IN = 'sign_in'
+LOGOUT = 'logout'
 SERVICE_DETAIL = 'service_detail'
 SERVICE_EXPIRED = 'service_expired'
 LOAD_EVENT = 'load_event_content'
 
 urlpatterns = patterns(
     '',
-    url(r'^logout$', 'django.contrib.auth.views.logout', {'next_page': getattr(settings, "LOGIN_URL")}, name='logout'),
+    url(r'^logout$', 'django.contrib.auth.views.logout', {'next_page': getattr(settings, "LOGIN_URL")}, name=LOGOUT),
     url(r'^signOut$', 'django.contrib.auth.views.logout', {'next_page': getattr(settings, "LOGIN_URL")}),
     url(r'^signIn/$', SignIn.as_view(), name=SIGN_IN),
     url(r'^register/$', Register.as_view(), name=REGISTER),
@@ -59,7 +60,10 @@ urlpatterns = patterns(
     url(r'^upload_customization_image$', upload_customization_image, name='upload_customization_image'),
     url(r'^reset_notices_counter$', reset_notices_counter, name='reset_notices_counter'),
     url(r'^configuration/$', permission_required('accesscontrol.sudo')(Configuration.as_view()), name='configuration'),
-    url(r'^serviceDetail/(?P<service_id>[-\w]+)/$', login_required(ServiceDetail.as_view()), name=SERVICE_DETAIL),
+    url(r'^configuration/(?P<service_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(Configuration.as_view()),
+        name='configuration'),
+    url(r'^serviceDetail/(?P<service_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(ServiceDetail.as_view()),
+        name=SERVICE_DETAIL),
     url(r'^list_projects$', list_projects, name='list_projects'),
     url(r'^get_location_by_ip$', get_location_by_ip, name='get_location_by_ip'),
 
@@ -69,7 +73,7 @@ urlpatterns = patterns(
     url(r'^legalMentions$', LegalMentions.as_view(), name='legal_mentions'),
     url(r'^termsAndConditions$', TermsAndConditions.as_view(), name='terms_and_conditions'),
 
-    url(r'^(?P<app_slug>[-\w]+)/(?P<project_name_slug>[-\w]+)/$', CompanyProfile.as_view(), name='company_profile'),
+    url(r'^(?P<project_name_slug>[-\w]+)/$', CompanyProfile.as_view(), name='company_profile'),
 
     # These URLs are for verification purposes. They are not regular pages of Ikwen website
     url(r'^welcomeMail$', WelcomeMail.as_view()),

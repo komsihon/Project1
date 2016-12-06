@@ -57,6 +57,8 @@
                 <header>
                     <h3 style="float: left"> {% trans "Billing" %} </h3>
                     {% if service.expired %}<span class="label label-danger" style="float: right">{% trans "Expired" %}</span>{% endif %}
+                    {#                    {% url 'billing:invoice_list' service.id as invoice_list_url %}#}
+                    {#                    <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}" target="_blank">{% trans "Pay your invoice" %}</a>#}
                     <div class="clear"></div>
                 </header>
                 <div class="detail row">

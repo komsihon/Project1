@@ -12,12 +12,28 @@
         {% if profile_cover_url %}
             #cover {background-image: url({{ profile_cover_url }})}
         {% else %}
-            #cover {background-image: url({% static 'ikwen/img/default-cover.jpg' %})}
+            {% if is_company %}
+                #cover {
+                    background-image: url({% static 'ikwen/img/default-cover-company.jpg' %})
+                }
+            {% else %}
+                #cover {
+                    background-image: url({% static 'ikwen/img/default-cover.jpg' %})
+                }
+            {% endif %}
         {% endif %}
         {% if profile_photo_url %}
             #banner .frame .photo {background-image: url({{ profile_photo_url }})}
         {% else %}
-            #banner .frame .photo {background-image: url({% static 'ikwen/img/login-avatar.jpg' %})}
+            {% if is_company %}
+                #banner .frame .photo {
+                    background-image: url({% static 'ikwen/img/logo-placeholder.jpg' %})
+                }
+            {% else %}
+                #banner .frame .photo {
+                    background-image: url({% static 'ikwen/img/login-avatar.jpg' %})
+                }
+            {% endif %}
         {% endif %}
     </style>
 {% endblock %}
@@ -37,9 +53,21 @@
                         <div class="frame">
                             <div class="photo" style="">
                                 {% if is_console %}<div class="upload-image"></div>{% endif %}
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                                         aria-valuemax="100">
+                                        <span class="sr-only"></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         {% if is_console %}<div class="upload-image"></div>{% endif %}
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                                 aria-valuemax="100">
+                                <span class="sr-only"></span>
+                            </div>
+                        </div>
                         <h2 class="text-has-shade">{{ profile_name }}</h2>
                     </div>
                 </header>

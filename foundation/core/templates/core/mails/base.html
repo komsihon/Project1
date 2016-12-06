@@ -73,6 +73,7 @@
                         - <a href="{{ config.legal_mentions_url }}" style="color: #666; text-decoration: none">{% trans "Legal mentions" %}</a>
                         {% endif %}
                     </div>
+                    {% if service.project_name != 'ikwen' %}
                     <div style="color: #888; border-top: solid 1px #DDD; clear: both; float: right; font-size: .9em; margin-top: 6px; padding-top: 3px; text-align: right; width: 100%">
 {#                        {% blocktrans %}#}
 {#                            This is an <a href="http://www.ikwen.com">Ikwen &reg; </a> powered <a href="http://www.nodevtrend.org">NoDev</a> website.#}
@@ -81,6 +82,7 @@
                             Powered by <a href="http://www.ikwen.com" style="color: #666; text-decoration: none"><strong>ikwen</strong></a> &reg;.
                         {% endblocktrans %}
                     </div>
+                    {% endif %}
                 </div>
             </footer>
         </div>

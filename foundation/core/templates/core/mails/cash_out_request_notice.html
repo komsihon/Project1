@@ -1,0 +1,31 @@
+{% extends 'core/mails/base.html' %}
+{% load i18n %}
+{% block content %}
+    <div style="color: #777; font: normal 1.35em 'Open Sans', 'Helvetica Neue', Lato, Verdana, Arial, sans-serif; line-height: 1.44em; margin-top: 45px; min-height: 180px; padding: 0 15px; text-align: justify">
+        {% blocktrans with iao_name=service.member.first_name %}Dear {{ iao_name }}{% endblocktrans %},<br>
+
+        {% blocktrans with project_name=service.project_name %}
+            This is a notice that we just received a request to cash-out your money on {{ project_name }}. See details
+            below.
+        {% endblocktrans %}
+
+        <br><br>
+
+        <div style="clear: both; font-size: .9em">
+            <div>
+                <h4 style="color: #555; margin-bottom: 0">{% trans "Pay to" %}:</h4>
+                {{ member.full_name }},
+                <p style="font-size: .8em; line-height: 1.4em; margin-top: .3em">
+                    <ins>Amount:</ins>
+                    {{ cash_out_request.amount }}<br>
+                    <ins>Method:</ins>
+                    {{ cash_out_request.method }}<br>
+                    {% if cash_out_request.account_number %}
+                        <ins>Account number:</ins> {{ cash_out_request.account_number }}<br>
+                    {% endif %}
+                    <strong style="color: #666">{{ cash_out_request.city }}, {{ cash_out_request.country }}.</strong><br>
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

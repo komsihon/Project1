@@ -23,7 +23,7 @@ class MemberManager(BaseUserManager, RawQueryMixin):
             raise ValueError('Username must be set')
         member = self.model(username=username, **extra_fields)
         member.full_name = u'%s %s' % (member.first_name.split(' ')[0], member.last_name.split(' ')[0])
-        service_id = getattr(settings, 'IKWEN_SERVICE_ID', None)
+        service_id = getattr(settings, 'IKWEN_SERVICE_ID')
         debug = getattr(settings, 'DEBUG', False)
         if not debug:
             if service_id:
@@ -34,10 +34,17 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         member.save()
         return member
 
-    def create_superuser(self, email, password, **extra_fields):
-        member = self.create_user(email, password, **extra_fields)
+    def create_superuser(self, username, password, **extra_fields):
+        member = self.create_user(username, password, **extra_fields)
+        member.collaborate_on_fk_list = []
+        if getattr(settings, 'IS_IKWEN', False):
+            member.customer_on_fk_list = []
+        else:
+            member.customer_on_fk_list = [getattr(settings, 'IKWEN_SERVICE_ID')]
         member.is_staff = True
         member.is_superuser = True
+        member.is_iao = True
+        member.is_bao = True
         member.save()
         return member
 
@@ -50,7 +57,7 @@ class Member(AbstractUser):
     FEMALE = 'Female'
     # TODO: Create and set field full_name in collection ikwen_member in database itself
     full_name = models.CharField(max_length=150, db_index=True)
-    phone = models.CharField(max_length=18, unique=True, blank=True)
+    phone = models.CharField(max_length=30, db_index=True, blank=True)
     gender = models.CharField(max_length=15, blank=True)
     dob = models.DateField(blank=True, null=True)
     photo = MultiImageField(upload_to=PROFILE_UPLOAD_TO, blank=True, null=True)
@@ -60,17 +67,14 @@ class Member(AbstractUser):
     is_iao = models.BooleanField('IAO', default=False, editable=False,
                                  help_text=_('Designates whether this user is an '
                                              '<strong>IAO</strong> (Ikwen Application Operator).'))
-    is_sudo = models.BooleanField('Sudo', default=False, editable=False,
-                                  help_text=_('Designates whether this user is the Sudo in the current service. '
-                                              'Sudo can be seen as the main IT for the application.'))
     is_bao = models.BooleanField('Bao', default=False, editable=False,
                                  help_text=_('Designates whether this user is the Bao in the current service. '
                                              'Bao is the highest person in a deployed ikwen application. The only that '
                                              'can change or block Sudo.'))
-    collaborates_on = ListField(EmbeddedModelField('core.Service'), editable=False,
-                                help_text="Services on which member collaborates being the IAO or no.")
-    customer_on = ListField(EmbeddedModelField('core.Service'), editable=False,
-                            help_text="Services on which member was granted customer access.")
+    collaborates_on_fk_list = ListField(editable=False,
+                                        help_text="Services on which member collaborates being the IAO or no.")
+    customer_on_fk_list = ListField(editable=False,
+                                    help_text="Services on which member was granted mere member access.")
     phone_verified = models.BooleanField(_('Phone verification status'), default=False,
                                          help_text=_('Designates whether this phone number has been '
                                                      'verified by sending a confirmation code by SMS.'))
@@ -89,7 +93,7 @@ class Member(AbstractUser):
 
     def get_short_name(self):
         "Returns the short name for the user."
-        return self.first_name.split(' ')[0]
+        return self.full_name.split(' ')[0]
 
     def _get_display_joined(self):
         return strftime(self.date_joined, '%y/%m/%d %H:%M')
@@ -113,6 +117,18 @@ class Member(AbstractUser):
     def get_services(self):
         return list(set(self.collaborates_on) | set(self.customer_on))
 
+    def _get_customer_on(self):
+        from ikwen.foundation.accesscontrol.backends import UMBRELLA
+        return [Service.objects.using(UMBRELLA).get(pk=pk) for pk in self.customer_on_fk_list]
+
+    customer_on = property(_get_customer_on)
+
+    def _get_collaborates_on(self):
+        from ikwen.foundation.accesscontrol.backends import UMBRELLA
+        return [Service.objects.using(UMBRELLA).get(pk=pk) for pk in self.collaborates_on_fk_list]
+
+    collaborates_on = property(_get_collaborates_on)
+
     def replicate_changes(self):
         for s in self.get_services():
             db = s.database
@@ -120,8 +136,8 @@ class Member(AbstractUser):
             self.save(using=db)
 
     def to_dict(self):
-        self.collaborates_on = []  # Empty this as it is useless and may cause error
-        self.customer_on = []  # Empty this as it is useless and may cause error
+        self.collaborate_on_fk_list = []  # Empty this as it is useless and may cause error
+        self.customer_on_fk_list = []  # Empty this as it is useless and may cause error
         var = to_dict(self)
         var['date_joined'] = self.display_date_joined
         var['status'] = self.get_status()
@@ -171,7 +187,7 @@ ACCESS_REQUEST_EVENT = 'AccessRequestEvent'
 ACCESS_GRANTED_EVENT = 'AccessGrantedEvent'
 
 # Personal events
-CUSTOMER_REGISTERED_EVENT = 'CustomerRegisteredEvent'
+WELCOME_EVENT = 'WelcomeEvent'
 
 
 class AccessRequest(Model):
@@ -185,7 +201,7 @@ class AccessRequest(Model):
     status = models.CharField(max_length=30, default=PENDING)
 
     class Meta:
-        db_table = 'ikwen_accessrequest'
+        db_table = 'ikwen_access_request'
 
     def get_description(self):
         if self.type == self.COLLABORATION_REQUEST:

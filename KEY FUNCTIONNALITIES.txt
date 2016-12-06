@@ -6,6 +6,7 @@ Deployment of a service and access control:
 
 Deployment of ikwen itself.
     InvoicingConfig must be create in the database.
+    settings.DEBUG must be set to False in ikwen settings
 
 
 Permissions
@@ -16,7 +17,7 @@ Permissions
         accesscontrol.ik_manage_customers:  Collaborator granted this permission can manage customers.
 
 
-Deployment of billing app.
+Deployment of BILLING app.
     - Only one billing app may be deployed per domain, to avoid confusion in InvoicingConfig. The same way
     only one InvoicingConfig is allowed per billing deployment. Others will be ignored
     - DJANGO_SETTINGS_MODULE must be properly set in ikwen.foundation.billing.crons

@@ -13,14 +13,14 @@ from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
-from ikwen.foundation.core.utils import add_database_to_settings
+from ikwen.foundation.core.utils import add_database_to_settings, get_service_instance
 
 from ikwen.foundation.accesscontrol.models import Member
 
 from ikwen.foundation.accesscontrol.backends import UMBRELLA
 
 from ikwen.foundation.core.views import BaseView
-from ikwen.foundation.billing.models import Invoice, InvoicingConfig, SendingReport
+from ikwen.foundation.billing.models import Invoice, SendingReport, SERVICE_SUSPENDED_EVENT
 from ikwen.foundation.billing.utils import get_invoicing_config_instance, get_subscription_model
 
 
@@ -109,6 +109,8 @@ class InvoiceDetail(BillingBaseView):
                 if month > 12:
                     year += 1
                     month = (exp_month + i) % 12
+                    if month == 0:
+                        month = 12
                 valid_date = False
                 while not valid_date:
                     try:
@@ -188,7 +190,8 @@ def list_subscriptions(request, *args, **kwargs):
 
 
 def render_subscription_event(event):
-    database = event.service.database
+    service = event.service
+    database = service.database
     add_database_to_settings(database)
     tk = event.model.split('.')
     app_label = tk[0]
@@ -208,7 +211,7 @@ def render_subscription_event(event):
         c = Context({'title': _(event.event_type.title),
                      'product_name': subscription.product.name,
                      'short_description': short_description,
-                     'currency_symbol': event.service.config.currency_symbol,
+                     'currency_symbol': service.config.currency_symbol,
                      'cost': cost,
                      'image_url': image.url if image and image.name else None,
                      'billing_cycle': billing_cycle,
@@ -221,17 +224,19 @@ def render_subscription_event(event):
 
 
 def render_billing_event(event):
-    database = event.service.database
+    service = event.service
+    database = service.database
     add_database_to_settings(database)
-    currency_symbol = event.service.config.currency_symbol
+    currency_symbol = service.config.currency_symbol
     try:
         invoice = Invoice.objects.using(database).get(pk=event.object_id)
         c = Context({'title': _(event.event_type.title),
+                     'danger': event.event_type.codename == SERVICE_SUSPENDED_EVENT,
                      'currency_symbol': currency_symbol,
                      'amount': invoice.amount,
                      'obj': invoice,
-                     'details_url': event.service.url + reverse('billing:invoice_list', args=(invoice.id, )),
-                     'pay_now_url': event.service.url + reverse('billing:invoice_detail', args=(invoice.id, )),
+                     'details_url': service.url + reverse('billing:invoice_list', args=(invoice.id,)),
+                     'pay_now_url': service.url + reverse('billing:invoice_detail', args=(invoice.id,)),
                      'show_pay_now': invoice.status != Invoice.PAID})
     except Invoice.DoesNotExist:
         try:
@@ -239,7 +244,7 @@ def render_billing_event(event):
             c = Context({'title': '<strong>%d</strong> %s' % (report.count, _(event.event_type.title)),
                          'currency_symbol': currency_symbol,
                          'amount': report.total_amount,
-                         'details_url': event.service.url + reverse('billing:iframe_admin', args=('invoice', )),
+                         'details_url': service.url + reverse('billing:iframe_admin', args=('invoice',)),
                          'obj': report})
         except SendingReport.DoesNotExist:
             return None

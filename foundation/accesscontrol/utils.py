@@ -1,3 +1,7 @@
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+from permission_backend_nonrel.models import UserPermissionList, GroupPermissionList
+
 from ikwen.foundation.accesscontrol.models import Member
 
 from ikwen.foundation.accesscontrol.backends import UMBRELLA
@@ -24,3 +28,18 @@ def is_admin(member):
     return False
 
 
+def get_members_having_permission(model, codename):
+    """
+    Gets a list of members having the permission of the given model and codename
+    :param model: content_type model
+    :param codename: permission codename
+    :return: list of Member
+    """
+    ct = ContentType.objects.get_for_model(model)
+    perm_pk = Permission.objects.get(content_type=ct, codename=codename).id
+    group_pk_list = [gp.group.pk for gp in
+                     GroupPermissionList.objects.raw_query({'permission_fk_list': {'$elemMatch': {'$eq': perm_pk}}})]
+    group_user_perm = UserPermissionList.objects.raw_query({'group_fk_list': {'$elemMatch': {'$in': group_pk_list}}})
+    user_perm = UserPermissionList.objects.raw_query({'permission_fk_list': {'$elemMatch': {'$eq': perm_pk}}})
+    user_perm_list = list(set(group_user_perm) | set(user_perm))
+    return [obj.user for obj in user_perm_list]

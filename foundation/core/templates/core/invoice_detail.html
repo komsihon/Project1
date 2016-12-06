@@ -6,7 +6,9 @@
 {% block head_style %}
     {{ block.super }}
     <style>
-        body {background: #f6f6f6}
+        body {
+            background: #f9f8f8
+        }
         #top {display: none}
         header#main {background: #f9f9f9; border-bottom: 1px solid #ddd; padding: 6px 15px 15px}
         header#main img {float: left}
@@ -62,12 +64,13 @@
                     </section>
                     <section>
                         <header>{% trans "Invoiced To" %}</header>
-                        <div>
-                            <p>{{ invoice.service.company.name }}</p>
-                            <p>{{ invoice.service.company.address }}</p>
-                            <p>{{ invoice.service.company.city }}, {{ invoice.service.company.po_box }}</p>
-                            <p>{{ invoice.service.company.country.name }}</p>
-                        </div>
+                        {% with bill_to=invoice.service.config %}
+                            <div>
+                                <p>{{ bill_to.company_name }}</p>
+                                <p>{{ bill_to.address }}</p>
+                                <p>{{ bill_to.city }}, {{ bill_to.country.name }}</p>
+                            </div>
+                        {% endwith %}
                     </section>
                     <section>
                         <header>{% trans "Pay To" %}</header>
@@ -109,11 +112,11 @@
                                 </div>
                             {% endif %}
                         </td>
-                        <td id="subtotal">{{ invoice.amount|intcomma }} {{ currency_symbol }}</td>
+                        <td id="subtotal">{{ currency_symbol }} {{ invoice.amount|intcomma }}</td>
                     </tr>
                     <tr class="em1">
                         <td colspan="4">{% trans "Total" %}</td>
-                        <td id="total">{{ invoice.amount|intcomma }} {{ currency_symbol }}</td>
+                        <td id="total">{{ currency_symbol }} {{ invoice.amount|intcomma }}</td>
                     </tr>
                     {% if invoice.payment %}
                         <tr>
@@ -126,10 +129,12 @@
                             <td>{% trans "Amount" %}</td>
                         </tr>
                         <tr>
-                            <td colspan="2">{{ invoice.payment.when }}</td>
-                            <td>{{ invoice.payment.method }}</td>
-                            <td>{{ invoice.payment.transaction_id }}</td>
-                            <td>{{ invoice.payment.amount|intcomma }}</td>
+                            {% with payment=invoice.payment %}
+                                <td colspan="2">{{ payment.created_on }}</td>
+                                <td>{{ payment.method }}</td>
+                                <td>{{ payment.id }}</td>
+                                <td>{{ currency_symbol }} {{ payment.amount|intcomma }}</td>
+                            {% endwith %}
                         </tr>
                     {% endif %}
                 </table>

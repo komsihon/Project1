@@ -1,32 +1,39 @@
 {% load i18n staticfiles humanize %}
 {% if is_iao %}
     <div style="padding: 0 15px">
-        {% if rq.type == 'CollaborationRequest' %}
-            <h4>{% trans "Collaboration Access Granted" %}</h4>
+        {% if rq.group_name != 'Community' %}
+            <h4>{% trans "New collaborator" %}</h4>
         {% else %}
-            <h4>{% trans "New Customer" %}</h4>
+            <h4>{% trans "New member" %}</h4>
         {% endif %}
+        {% with service_url=rq.service.url group_name=rq.group_name %}
         <div class="member" style="border-bottom: none; padding: 15px 0">
             {% if rq.member.photo and rq.member.photo.name %}
-                <a href="{% url 'ikwen:profile' rq.member.id %}" class="photo" style="background-image: url({{ rq.member.photo.small_url }})"></a>
+                <a href="{% url 'ikwen:profile' rq.member.id %}" class="photo"
+                   style="background-image: url({{ rq.member.photo.small_url }}); cursor: pointer"></a>
             {% else %}
-                <a href="{% url 'ikwen:profile' rq.member.id %}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
+                <a href="{% url 'ikwen:profile' rq.member.id %}" class="photo"
+                   style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %}); cursor: pointer"></a>
             {% endif %}
             <div style="margin-left: 80px">
-                <a href="{% url 'ikwen:profile' rq.member.id %}" class="name" style="display: block; margin-bottom: 5px">{{ rq.member.full_name }}</a>
-                {% if rq.type == 'CollaborationRequest' %}
-                    {% url 'ikwen:collaborators' as collabo_url %}
-                    <p class="about">{% blocktrans with group_name=rq.group_name %}
-                         Was granted access and added to <a href="{{ collabo_url }}?group_name={{ group_name }}">{{ group_name }}</a> group.
+                <a href="{% url 'ikwen:profile' rq.member.id %}" class="name"
+                   style="cursor: pointer; display: block; margin-bottom: 5px">{{ rq.member.full_name }}</a>
+                {% url 'ikwen:community' as community_url %}
+                {% if rq.group_name != 'Community' %}
+                    <p class="about">{% blocktrans %}
+                        Was granted access and added to
+                        <a href="{{ service_url }}{{ community_url }}?group_name={{ group_name }}"
+                           style="cursor: pointer">{{ group_name }}</a> group.
                     {% endblocktrans %}</p>
                 {% else %}
-                    {% url 'ikwen:customer_list' as customer_list_url %}
                     <p class="about">{% blocktrans %}
-                         Was granted customer access. <a href="{{ customer_list_url }}">View customers</a>
+                        Joined your community.
+                        <a href="{{ service_url }}{{ community_url }}" style="cursor: pointer">View community</a>
                     {% endblocktrans %}</p>
                 {% endif %}
             </div>
         </div>
+        {% endwith %}
     </div>
 {% else %}
     <div style="margin-top: -7px; padding: 0 15px">

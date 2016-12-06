@@ -92,6 +92,12 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 .tiles .ik-li:hover, .tiles .ik-li.active {background: #f6f6f6}
 .tiles .ik-li .image {height: 200px;width: 100%}
 .tiles .ik-li .info {margin: 7px 0 0 0}
+
+.tiles .sortable-placeholder {
+    border: 3px dashed #777;
+    float: left;
+    display: block
+}
 .ik-li .actions {margin-top: 7px;}
 
 .has-shade {box-shadow: 1px 1px 9px 4px rgba(0, 0, 0, .1)}
@@ -104,6 +110,15 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 #navbar form.search {display: none; float: left; margin: 15px 0 0 200px}
 #navbar form.search input {border: 1px solid}
 #navbar form.search .results ul {padding-left: 0}
+
+#navbar form.search .results ul li {
+    height: 91px;
+    overflow: hidden
+}
+
+#navbar form.search .results .short_description {
+    max-width: 175px;
+}
 #navbar ul.navbar-right > li > a {padding: 10px}
 @media (max-width: 992px) {
     #navbar {margin-bottom: 0}
@@ -113,6 +128,10 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     #navbar form.search {display: block;float: left;margin: 6px 0 0 55px;}
     #navbar form.search input {border: 1px solid;width: 330px;}
     #navbar form.search .results {background: #fff;max-height: 300px;position: absolute;overflow: auto;width: 330px;}
+
+    #navbar form.search .results .short_description {
+        max-width: 185px;
+    }
 }
 @media (min-width: 992px) {
     #navbar {height: 66px;min-height: 66px}
@@ -120,12 +139,20 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     #navbar form.search {margin: 15px 0 0 160px;}
     #navbar form.search input {width: 420px;}
     #navbar form.search .results {width: 420px;}
+
+    #navbar form.search .results .short_description {
+        max-width: 275px;
+    }
     #navbar ul.navbar-right > li > a {padding: 18px 10px}
 }
 @media (min-width: 1200px) {
     #navbar form.search {margin: 15px 0 0 200px;}
     #navbar form.search input {width: 500px;}
     #navbar form.search .results {width: 500px;}
+
+    #navbar form.search .results .short_description {
+        max-width: 355px;
+    }
 }
 #navbar ul.navbar-right {float: right; margin: 0}
 #navbar ul.navbar-right > li {display: inline-block}

@@ -83,8 +83,7 @@ class MemberAdmin(NonrelPermissionCustomUserAdmin):
     filter_horizontal = ('groups', 'user_permissions',)
 
     def get_queryset(self, request):
-        databases = getattr(settings, 'DATABASES')
-        if databases.get(UMBRELLA):  # Means we are not in the main application
+        if not getattr(settings, 'IS_IKWEN'):  # Means we are not in the main application
             qs = Member.objects.exclude(email=ARCH_EMAIL)
             ordering = self.get_ordering(request)
             if ordering:

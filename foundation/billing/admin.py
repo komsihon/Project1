@@ -46,8 +46,9 @@ class ProductAdmin(CustomBaseAdmin, ImportExportMixin):
 
 
 class SubscriptionAdmin(CustomBaseAdmin, ImportExportMixin):
-    add_form_template = 'admin/subscription/change_form.html'
-    change_form_template = 'admin/subscription/change_form.html'
+    if not getattr(settings, 'IS_IKWEN', False):
+        add_form_template = 'admin/subscription/change_form.html'
+        change_form_template = 'admin/subscription/change_form.html'
 
     list_display = ('member', 'monthly_cost', 'billing_cycle', 'expiry', 'status', )
     list_filter = ('status', 'billing_cycle', )
@@ -116,8 +117,9 @@ class PaymentInline(admin.TabularInline):
 
 
 class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
-    add_form_template = 'admin/invoice/change_form.html'
-    change_form_template = 'admin/invoice/change_form.html'
+    if not getattr(settings, 'IS_IKWEN', False):
+        add_form_template = 'admin/invoice/change_form.html'
+        change_form_template = 'admin/invoice/change_form.html'
 
     list_display = ('subscription', 'number', 'amount', 'date_issued', 'due_date', 'reminders_sent', 'status', )
     list_filter = ('status', 'reminders_sent', 'overdue_notices_sent', )
@@ -149,7 +151,7 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
         # This helps differentiates from fake email accounts created as phone@provider.com
         if member.email.find(member.phone) < 0:
             add_event(service, member, NEW_INVOICE_EVENT, obj.id)
-            invoice_url = getattr(settings, 'PROJECT_URL') + reverse('billing:invoice_detail', args=(obj.id, ))
+            invoice_url = service.url + reverse('billing:invoice_detail', args=(obj.id,))
             html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                             extra_context={'invoice_url': invoice_url})
             # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail

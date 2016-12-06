@@ -141,8 +141,8 @@ class AbstractSubscription(Model):
     # Date of expiry of the service. The billing system automatically sets it to
     # Invoice.due_date + invoice_tolerance
     # Invoice in this case is the invoice addressed to client for this Service
-    expiry = models.DateTimeField(blank=True, null=True,
-                                  help_text=_("Date of expiry of the service."))
+    expiry = models.DateField(blank=True, null=True,
+                              help_text=_("Date of expiry of the service."))
     invoice_tolerance = models.IntegerField(default=InvoicingConfig.get_default_tolerance,
                                             help_text=_("Number of overdue days allowed. "
                                                         "After that, severe action must be undertaken."))

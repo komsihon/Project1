@@ -31,7 +31,7 @@
                 <div class="container-fluid">
                     {% block header_brand %}
                     <div class="navbar-header">
-                        <a class="navbar-brand" href="{{ settings.PROJECT_URL|append_auth_tokens:request }}">{{ service.project_name }}</a>
+                        <a class="navbar-brand" href="{{ service.url }}">{{ service.project_name }}</a>
                     </div>
                     {% endblock %}
                     <form class="search" action="">
@@ -59,20 +59,22 @@
                                     {% if user.get_notice_count > 0 %}<span class="label label-danger">{{ user.get_notice_count }}</span>{% endif %}
                                 </a>
                             </li>
-                            {% if user.collaborates_on|length == 1 %}
-                                <li>
-                                    <a href="{{ user.collaborates_on.0.admin_url|append_auth_tokens:request }}">{{ user.collaborates_on.0.project_name }}</a>
-                                </li>
-                            {% elif user.collaborates_on|length > 1 %}
-                                <li id="apps" class="dropdown">
-                                    <a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Apps</a>
-                                    <ul class="dropdown-menu" aria-labelledby="apps">
-                                        {% for app in user.collaborates_on %}
-                                            <li><a href="{{ app.admin_url|append_auth_tokens:request }}">{{ app.project_name }}</a> </li>
-                                        {% endfor %}
-                                    </ul>
-                                </li>
-                            {% endif %}
+                            {% with collaborates_on=user.collaborates_on %}
+                                {% if collaborates_on|length == 1 %}
+                                    <li>
+                                        <a href="{{ collaborates_on.0.admin_url }}">{{ collaborates_on.0.project_name }}</a>
+                                    </li>
+                                {% elif collaborates_on|length > 1 %}
+                                    <li id="apps" class="dropdown">
+                                        <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Apps</a>
+                                        <ul class="dropdown-menu" aria-labelledby="apps">
+                                            {% for app in collaborates_on %}
+                                                <li><a href="{{ app.admin_url }}">{{ app.project_name }}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% endif %}
+                            {% endwith %}
                             <li id="user-menu" class="dropdown">
                                 <a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <img src="{% static 'ikwen/img/user-icon.png' %}" />

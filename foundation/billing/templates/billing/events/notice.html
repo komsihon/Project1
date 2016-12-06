@@ -3,7 +3,7 @@
     <img src="{% static 'ikwen/img/invoice-icon.png' %}" alt="Invoice" class="img-responsive" />
 </div>
 <div class="col-xs-8 col-sm-9">
-    <h4 class="text-primary">{{ title|safe }}</h4>
+    <h4 class="text-{% if danger %}danger{% else %}primary{% endif %}">{{ title|safe }}</h4>
     <p>
         <span class="text-primary" style="font-size: 21px">{{ currency_symbol }}</span>
         <strong class="text-primary" style="font-size: 21px">{{ amount|intcomma }}</strong>
@@ -12,7 +12,7 @@
 </div>
 {% if show_pay_now %}
     <div class="col-xs-8 col-xs-offset-2 col-sm-offset-3 col-sm-6" style="margin-top: 15px">
-        <a href="{{ pay_now_url|append_auth_tokens:request }}" class="btn btn-warning btn-sm btn-block">{% trans "Pay now" %}</a>
+        <a href="{{ pay_now_url }}" class="btn btn-warning btn-sm btn-block">{% trans "Pay now" %}</a>
     </div>
 {% endif %}
 <div class="clear"></div>

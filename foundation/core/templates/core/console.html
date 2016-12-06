@@ -44,15 +44,15 @@
             {% if request.user.collaborates_on|length > 0 %}
             <nav>
                 <ul>
-                    <li {% if not request.GET.target or request.GET.target == 'Business' %}class="current"{% endif %}>
+                    <li{% if not request.GET.target or request.GET.target == 'Business' %} class="current"{% endif %}>
                         {% url 'ikwen:console' as console_url %}
-                        <a href="{{ console_url|append_auth_tokens:request }}&target=Business">
+                        <a href="{{ console_url }}?target=Business">
                             {% trans "Business" %}
                             {% if member.business_notices > 0 %}<span class="label label-danger">{{ member.business_notices }}</span>{% endif %}
                         </a>
                     </li>
                     <li {% if request.GET.target == 'Personal' %}class="current"{% endif %}>
-                        <a href="{{ console_url|append_auth_tokens:request }}&target=Personal">
+                        <a href="{{ console_url }}?target=Personal">
                             {% trans "Personal" %}
                             {% if member.personal_notices > 0 %}<span class="label label-danger">{{ member.personal_notices }}</span>{% endif %}
                         </a>
@@ -69,7 +69,7 @@
                             {% if service.config.logo.name %}
                                 <img src="{{ service.config.logo.url }}" width="30" />
                             {% endif %}
-                            <a href="{{ service.url }}">{{ service.project_name }}</a>
+                            <a href="{{ service.url }}" style="cursor: pointer">{{ service.project_name }}</a>
                         </h3>
                         <div class="AccessRequest">
                             <h4>
@@ -151,7 +151,9 @@
                             $card.data('base-url', event.project_url);
                             $card.find('h3 span').text(event.project_name);
                             $card.find('time').text(event.created_on);
-                            $card.find('.content').html('');
+                            $card.find('.content').html('<div class="col-xs-12">...</div>');
+                            if (event.min_height) $card.find('.content').css('min-height', event.min_height + 'px');
+                            else $card.find('.content').css('min-height', '0');
                             colCycle[i%2].append($card);
                             loadCardContent(event.id);
                         }

@@ -227,6 +227,8 @@ class IkwenAuthTestCase(unittest.TestCase):
         """
         Correct parameters save user in default and foundation databases. Prior GET parameters remain
         """
+        import ikwen.conf.settings as ikwen_settings
+        ikwen_settings.IKWEN_SERVICE_ID = getattr(settings, 'IKWEN_SERVICE_ID')
         service = Service.objects.get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
         Config.objects.create(service=service, company_name='Project', contact_email='arch@ikwen.com',  signature='')
         contact_url = reverse('ikwen:contact')

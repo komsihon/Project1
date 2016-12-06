@@ -73,5 +73,3 @@ class BillingViewsTest(TestCase):
         response = self.client.get(reverse('billing:invoice_detail', args=(invoice.id, )))
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.context['invoice'])
-
-

@@ -9,9 +9,20 @@
         #navbar .search, #navbar .navbar-right {
             display: none
         }
-
         #content {
             margin-top: 5%
+        }
+
+        @media (min-width: 415px) {
+            #content {
+                margin-top: 2%
+            }
+        }
+
+        @media (min-width: 992px) {
+            #content {
+                margin-top: 7%
+            }
         }
 
         #content > div {
@@ -23,10 +34,6 @@
         }
 
         @media (max-width: 768px) {
-            #content {
-                margin-top: 120px
-            }
-
             #content div#login {
                 margin: auto;
                 width: 96%
@@ -57,13 +64,32 @@
             list-style-type: none
         }
 
-        form#register .country-code {
-            color: #888;
-            font-style: italic;
-            font-size: 1.1em;
-            font-weight: bold;
-            margin: 20px 0 0 3px;
-            position: absolute
+        #register .brand, #register .title {
+            text-align: center
+        }
+
+        #register .brand img {
+            height: 90px
+        }
+
+        @media (min-width: 415px) {
+            #register .brand {
+                margin-top: 10%
+            }
+
+            #register .brand img {
+                max-width: 142px
+            }
+
+            #register .title {
+                text-align: left
+            }
+        }
+
+        @media (min-width: 768px) {
+            #register .brand img {
+                height: auto
+            }
         }
     </style>
 {% endblock %}
@@ -74,91 +100,99 @@
             <p class="failure" style="font-size: 1em; padding: 9px">{{ request.GET.msg }}</p>
         {% endif %}
         <div id="register" class="row">
-            <h2 class="col-sm-9 col-md-8 col-sm-offset-3 col-md-offset-4">{% trans "Register" %}</h2>
-            <form action="{% url 'ikwen:register' %}?{{ request.META.QUERY_STRING }}" method="post"
-                  class="col-sm-9 col-md-8 col-sm-offset-3 col-md-offset-4 form-horizontal">{% csrf_token %}
-                <div class="form-group row">
-                    <label for="rg-username" class="col-sm-5 col-md-4">{% trans "Username or email" %}</label>
-                    <div class="col-sm-6 col-md-6">
-                        <input id="rg-username" class="form-control input-sm username" type="text" name="username"/>
-                        {{ register_form.username.errors }}
+            <div class="col-sm-3 col-md-4 brand">
+                {% if config.logo.name %}
+                    <img src="{{ config.logo.url }}" alt="Logo {{ service.project_name }}"/>{% endif %}
+                <p class="text-muted hidden-xs" style="margin-top: 1em">{{ config.slogan }}</p>
+            </div>
+            <div class="col-sm-9 col-md-8">
+                <h2 class="title">{% trans "Register" %}</h2>
+                <form action="{% url 'ikwen:register' %}?{{ request.META.QUERY_STRING }}" method="post"
+                      class="form-horizontal">
+                    {% csrf_token %}
+                    <div class="form-group row">
+                        <label for="rg-username" class="col-sm-5 col-md-4">{% trans "Username or email" %}</label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-username" class="form-control input-sm username" type="text" name="username"/>
+                            {{ register_form.username.errors }}
+                        </div>
                     </div>
-                </div>
-                <div class="form-group row">
-                    <label for="rg-password1" class="col-sm-5 col-md-4">{% trans "Choose a password" %}</label>
-                    <div class="col-sm-6 col-md-6">
-                        <input id="rg-password1" class="form-control input-sm password" type="password"
-                               name="password"/>
+                    <div class="form-group row">
+                        <label for="rg-password1" class="col-sm-5 col-md-4">{% trans "Choose a password" %}</label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-password1" class="form-control input-sm password" type="password"
+                                   name="password"/>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group row">
-                    <label for="rg-password2" class="col-sm-5 col-md-4">{% trans "Confirm password" %}</label>
-                    <div class="col-sm-6 col-md-6">
-                        <input id="rg-password2" class="form-control input-sm confirm-password" type="password"
-                               name="password2"/>
+                    <div class="form-group row">
+                        <label for="rg-password2" class="col-sm-5 col-md-4">{% trans "Confirm password" %}</label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-password2" class="form-control input-sm confirm-password" type="password"
+                                   name="password2"/>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group row email" style="height: 0; margin-bottom: 0; overflow: hidden">
-                    <label for="rg-email" class="col-sm-5 col-md-4">Email</label>
-                    <div class="col-sm-6 col-md-6">
-                        <input id="rg-email" class="form-control input-sm email" type="text" name="email"/>
-                        {{ register_form.email.errors }}
+                    <div class="form-group row email" style="height: 0; margin-bottom: 0; overflow: hidden">
+                        <label for="rg-email" class="col-sm-5 col-md-4">Email</label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-email" class="form-control input-sm email" type="text" name="email"/>
+                            {{ register_form.email.errors }}
+                        </div>
                     </div>
-                </div>
-                <div class="form-group row phone">
-                    <label for="rg-phone" class="col-sm-5 col-md-4">{% trans "Phone number" %} <span
-                            style="font-weight: normal">(Optional)</span></label>
-                    <div class="col-sm-6 col-md-6">
-                        <input id="rg-phone" class="form-control input-sm phone" type="text" name="phone"/>
-                        {{ register_form.phone.errors }}
+                    <div class="form-group row phone">
+                        <label for="rg-phone" class="col-sm-5 col-md-4">{% trans "Phone number" %} <span
+                                style="font-weight: normal">(Optional)</span></label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-phone" class="form-control input-sm phone" type="text" name="phone"/>
+                            {{ register_form.phone.errors }}
+                        </div>
                     </div>
-                </div>
-                <div class="form-group row">
-                    <label for="rg-first-name" class="col-sm-5 col-md-4">{% trans "First name" %} </label>
-                    <div class="col-sm-6 col-md-6">
-                        <input id="rg-first-name" class="form-control input-sm name" type="text" name="first_name"/>
-                        {{ register_form.name.errors }}
+                    <div class="form-group row">
+                        <label for="rg-first-name" class="col-sm-5 col-md-4">{% trans "First name" %} </label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-first-name" class="form-control input-sm name" type="text" name="first_name"/>
+                            {{ register_form.name.errors }}
+                        </div>
                     </div>
-                </div>
-                <div class="form-group row">
-                    <label for="rg-last-name" class="col-sm-5 col-md-4">{% trans "Last name" %} </label>
-                    <div class="col-sm-6 col-md-6">
-                        <input id="rg-last-name" class="form-control input-sm name" type="text" name="last_name"/>
-                        {{ register_form.name.errors }}
+                    <div class="form-group row">
+                        <label for="rg-last-name" class="col-sm-5 col-md-4">{% trans "Last name" %} </label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-last-name" class="form-control input-sm name" type="text" name="last_name"/>
+                            {{ register_form.name.errors }}
+                        </div>
                     </div>
-                </div>
-                <div class="form-group row">
-                    {% if settings.IS_IKWEN %}
-                        <p id="terms-warning" class="col-sm-11 col-md-10">
-                            {% trans "By creating an account you agree our " %} <a
-                                href="{% url 'ikwen:terms_and_conditions' %}">{% trans "Terms & Conditions" %}</a>
-                        </p>
-                    {% else %}
-                        <p id="terms-warning" class="col-sm-11 col-md-10">
-                            {% trans "You are about to create an account managed by" %} <a
-                                href="{{ settings.IKWEN_BASE_URL }}"
-                                style="color: #999; text-decoration: underline"><strong>ikwen</strong></a>,
-                            {% trans "on" %} {{ service.project_name }}.
-                            {% trans "By doing so you accept" %} <a
-                                href="{% url 'ikwen:terms_and_conditions' %}"><strong>ikwen</strong> {% trans "Terms & Conditions" %}
-                        </a>, {% trans "as well as" %}
-                            <a href="{{ settings.AGREEMENT_URL }}">{{ service.project_name }} {% trans "Terms & Conditions" %}.</a>
-                        </p>
-                    {% endif %}
-                </div>
-                <div class="form-group row">
-                    <div class="checkbox" style="padding-left: 15px">
-                        <label>
-                            <input type="checkbox" checked/> {% trans "Yes, I read and accept." %}
-                        </label>
+                    <div class="form-group row">
+                        {% if settings.IS_IKWEN %}
+                            <p id="terms-warning" class="col-sm-11 col-md-10">
+                                {% trans "By creating an account you agree our " %} <a
+                                    href="{% url 'ikwen:terms_and_conditions' %}">{% trans "Terms & Conditions" %}</a>
+                            </p>
+                        {% else %}
+                            <p id="terms-warning" class="col-sm-11 col-md-10">
+                                {% trans "You are about to create an account managed by" %} <a
+                                    href="{{ settings.IKWEN_BASE_URL }}"
+                                    style="color: #999; text-decoration: underline"><strong>ikwen</strong></a>,
+                                {% trans "on" %} {{ service.project_name }}.
+                                {% trans "By doing so you accept" %} <a
+                                    href="{% url 'ikwen:terms_and_conditions' %}"><strong>ikwen</strong> {% trans "Terms & Conditions" %}
+                            </a>, {% trans "as well as" %}
+                                <a href="{{ settings.AGREEMENT_URL }}">{{ service.project_name }} {% trans "Terms & Conditions" %}.</a>
+                            </p>
+                        {% endif %}
                     </div>
-                </div>
-                <div class="form-group row">
-                    <div class="col-sm-4 col-md-3 col-sm-offset-7 col-md-offset-7">
-                        <button class="btn btn-primary btn-block btn-sm"> {% trans "Submit" %} </button>
+                    <div class="form-group row">
+                        <div class="checkbox" style="padding-left: 15px">
+                            <label>
+                                <input type="checkbox" checked/> {% trans "Yes, I read and accept." %}
+                            </label>
+                        </div>
                     </div>
-                </div>
-            </form>
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-md-3 col-sm-offset-7 col-md-offset-7">
+                            <button class="btn btn-primary btn-block btn-sm"> {% trans "Submit" %} </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
         <div class="clear"></div>
     </div>

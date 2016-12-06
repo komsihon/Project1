@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
 import json
 from datetime import datetime, timedelta
+from threading import Thread
 
 import requests
 from ajaxuploader.views import AjaxFileUploader
 from django.conf import settings
-from django.contrib.admin import helpers
-from django.contrib.auth.decorators import login_required
+from django.core.mail import EmailMessage
+from django.utils.translation import gettext as _
+from django.contrib.auth.decorators import login_required, permission_required
 from django.core.cache import cache
 from django.core.files import File
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.db.models import get_model
 from django.http.response import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.template.defaultfilters import slugify
 from django.utils import translation
 from django.utils.decorators import method_decorator
@@ -22,6 +25,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
+from ikwen.foundation.core.models import CashOutRequest, CASH_OUT_REQUEST_EVENT, CashOutAddress
 
 from ikwen.foundation.accesscontrol.templatetags.auth_tokens import append_auth_tokens
 
@@ -32,11 +36,18 @@ from ikwen.foundation.billing.models import Invoice
 
 from ikwen.foundation.accesscontrol.backends import UMBRELLA
 from ikwen.foundation.accesscontrol.models import Member, ACCESS_REQUEST_EVENT
-from ikwen.foundation.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, AbstractConfig, Country
-from ikwen.foundation.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons
+from ikwen.foundation.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, AbstractConfig, Country, \
+    OperatorWallet
+from ikwen.foundation.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons, add_event, \
+    get_mail_content
 import ikwen.conf.settings
 
-IKWEN_BASE_URL = getattr(settings, 'IKWEN_BASE_URL') if getattr(settings, 'DEBUG', False) else ikwen.conf.settings.PROJECT_URL
+try:
+    ikwen_service = Service.objects.get(pk=ikwen.conf.settings.IKWEN_SERVICE_ID)
+    IKWEN_BASE_URL = ikwen_service.url
+except Service.DoesNotExist:
+    IKWEN_BASE_URL = getattr(settings, 'IKWEN_BASE_URL') if getattr(settings, 'DEBUG',
+                                                                    False) else ikwen.conf.settings.PROJECT_URL
 
 
 class BaseView(TemplateView):
@@ -175,8 +186,10 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
             with open(media_root + path, 'r') as f:
                 content = File(f)
                 if img_upload_context == Configuration.UPLOAD_CONTEXT:
-                    service = get_service_instance()
-                    config = get_service_instance().config
+                    service_id = request.GET['service_id']
+                    service = Service.objects.get(pk=service_id)
+                    # service = get_service_instance()
+                    config = service.config
                     if usage == 'profile':
                         current_image_path = config.logo.path if config.logo.name else None
                         destination = media_root + AbstractConfig.LOGO_UPLOAD_TO + "/" + filename
@@ -301,11 +314,18 @@ class Configuration(BaseView):
         context = super(Configuration, self).get_context_data(**kwargs)
         config_admin = self.get_config_admin()
         ModelForm = config_admin.get_form(self.request)
+        if getattr(settings, 'IS_IKWEN', False):
+            service_id = kwargs.get('service_id')
+            if service_id:
+                service = get_object_or_404(Service, pk=service_id)
+                context['service'] = service
+                context['config'] = service.config
         form = ModelForm(instance=context['config'])
         admin_form = helpers.AdminForm(form, list(config_admin.get_fieldsets(self.request)),
                                        config_admin.get_prepopulated_fields(self.request),
                                        config_admin.get_readonly_fields(self.request))
         context['model_admin_form'] = admin_form
+        context['is_company'] = True
         context['img_upload_context'] = self.UPLOAD_CONTEXT
         context['billing_cycles'] = Service.BILLING_CYCLES_CHOICES
         return context
@@ -313,7 +333,14 @@ class Configuration(BaseView):
     @method_decorator(sensitive_post_parameters())
     @method_decorator(csrf_protect)
     def post(self, request, *args, **kwargs):
-        service = get_service_instance()
+        if getattr(settings, 'IS_IKWEN', False):
+            service_id = kwargs.get('service_id')
+            if service_id:
+                service = get_object_or_404(Service, pk=service_id)
+            else:
+                service = get_service_instance()
+        else:
+            service = get_service_instance()
         config_admin = self.get_config_admin()
         ModelForm = config_admin.get_form(request)
         form = ModelForm(request.POST, instance=service.config)
@@ -368,11 +395,11 @@ class Console(BaseView):
         context['profile_name'] = member.full_name
         context['profile_photo_url'] = member.photo.small_url if member.photo.name else ''
         context['profile_cover_url'] = member.cover_image.url if member.cover_image.name else ''
-        target = ConsoleEventType.PERSONAL if len(self.request.user.collaborates_on) == 0\
+        target = ConsoleEventType.PERSONAL if len(self.request.user.collaborates_on_fk_list) == 0 \
             else self.request.GET.get('target', ConsoleEventType.BUSINESS)
 
         access_request_events = {}
-        for service in list(set(member.collaborates_on) | set(member.customer_on)):
+        for service in member.get_services():
             type_access_request = ConsoleEventType.objects.get(codename=ACCESS_REQUEST_EVENT)
             if target == ConsoleEventType.BUSINESS:
                 request_event_list = list(ConsoleEvent.objects
@@ -390,7 +417,7 @@ class Console(BaseView):
 
     def render_to_response(self, context, **response_kwargs):
         if self.request.GET.get('format') == 'json':
-            target = ConsoleEventType.PERSONAL if len(self.request.user.collaborates_on) == 0\
+            target = ConsoleEventType.PERSONAL if len(self.request.user.collaborates_on_fk_list) == 0 \
                 else self.request.GET.get('target', ConsoleEventType.BUSINESS)
             start = int(self.request.GET['start'])
             if self.request.user_agent.is_mobile:
@@ -415,7 +442,7 @@ class Console(BaseView):
 
 @login_required
 def reset_notices_counter(request, *args, **kwargs):
-    target = ConsoleEventType.PERSONAL if len(request.user.collaborates_on) == 0 else request.GET['target']
+    target = ConsoleEventType.PERSONAL if len(request.user.collaborates_on_fk_list) == 0 else request.GET['target']
     if target == '':
         target = ConsoleEventType.BUSINESS
     if target == ConsoleEventType.BUSINESS:
@@ -452,7 +479,7 @@ def list_projects(request, *args, **kwargs):
     projects = []
     for s in queryset.order_by('project_name')[:6]:
         p = s.to_dict()
-        p['url'] = IKWEN_BASE_URL + reverse('ikwen:company_profile', args=(s.app.slug, s.project_name_slug))
+        p['url'] = IKWEN_BASE_URL + reverse('ikwen:company_profile', args=(s.project_name_slug,))
         projects.append(p)
 
     response = {'object_list': projects}
@@ -492,6 +519,52 @@ def get_location_by_ip(request, *args, **kwargs):
     except:
         response = {'error': True}
     return HttpResponse(json.dumps(response))
+
+
+# TODO: Write test for this function. Create and call the right template in the sending of mail
+@permission_required('core.ik_manage_cash_out_request')
+def request_cash_out(request, *args, **kwargs):
+    address = CashOutAddress.get_instance()
+    if not address:
+        return HttpResponse(json.dumps({'error': "Cash-out address not set"}), 'content-type: text/json')
+    service = get_service_instance(using=UMBRELLA)
+    config = service.config
+    member = request.user
+    wallets = getattr(settings, 'WALLETS_DB_ALIAS')
+    wallet = OperatorWallet.objects.using(wallets).get(mongo_id=config.id)
+    if wallet.balance < config.cash_out_min:
+        response = {'error': 'Balance too low', 'cash_out_min': config.cash_out_min}
+        return HttpResponse(json.dumps(response), 'content-type: text/json')
+    response = {'success': True}
+    with transaction.atomic():
+        try:
+            CashOutRequest.objects.using(wallets).get(status=CashOutRequest.PENDING)
+        except CashOutRequest.DoesNotExist:
+            CashOutRequest.objects.using(wallets).create(service_id=service.id, member_id=member.id,
+                                                         amount=wallet.balance, method=address.method,
+                                                         country=address.country.name, city=address.city,
+                                                         account_number=address.account_number)
+            cor = CashOutRequest.objects.using(UMBRELLA).create(service_id=service.id, member_id=member.id,
+                                                                amount=wallet.balance, method=address.method,
+                                                                country=address.country.name, city=address.city,
+                                                                account_number=address.account_number)
+            iao = service.member
+            if member != iao:
+                add_event(service, iao, CASH_OUT_REQUEST_EVENT, cor.id)
+                subject = _("Cash-out request on %s" % service.project_name)
+                html_content = get_mail_content(subject, '', template_name='core/mails/cash_out_request_notice.html',
+                                                extra_context={'cash_out_request': cor, 'member': member})
+                sender = 'ikwen <no-reply@ikwen.com>'
+                msg = EmailMessage(subject, html_content, sender, [iao.email])
+                msg.content_subtype = "html"
+                Thread(target=lambda m: m.send(), args=(msg,)).start()
+        else:
+            response = {'error': 'You still have a pending Cash-out Request.'}
+    return HttpResponse(json.dumps(response), 'content-type: text/json')
+
+
+def render_cash_out_request_event(event):
+    pass
 
 
 class Contact(BaseView):

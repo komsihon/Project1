@@ -21,6 +21,7 @@ SECRET_KEY = 'zedpmxz&d(5swy9@8b2cb-k2wa(xg!%ow&2s5j_&_^wa*t5lgh'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+TESTING = True
 
 TEMPLATE_DEBUG = True
 
@@ -83,6 +84,8 @@ WSGI_APPLICATION = 'ikwen.conf.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
+WALLETS_DB_ALIAS = 'wallets'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -91,11 +94,7 @@ DATABASES = {
     'umbrella': {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'ikwen_umbrella',
-    },
-    # 'kakocase_rel': {  # kakocase app relational database used to store transactional objects among which CashOutRequest
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    # }
+    }
 }
 
 CACHES = {
@@ -150,7 +149,8 @@ IS_IKWEN = True
 
 SITE_ID = '54eb6d3379b531e09cb3704b'
 
-IKWEN_SERVICE_ID = '57b702ca4fc0c2139660d9f8'
+# IKWEN_SERVICE_ID = '57b702ca4fc0c2139660d9f8'
+IKWEN_SERVICE_ID = '584040984fc0c238ede98ef8'
 
 AUTH_USER_MODEL = 'accesscontrol.Member'
 
@@ -165,20 +165,6 @@ BILLING_SUBSCRIPTION_MODEL = 'core.Service'
 BILLING_SUBSCRIPTION_MODEL_ADMIN = 'ikwen.foundation.core.admin.ServiceAdmin'
 SERVICE_SUSPENSION_ACTION = 'ikwen.foundation.billing.utils.suspend_subscription'
 
-gettext = lambda s: s
-GROUPS = {
-    'Sudo': {
-        'alias': gettext('Sudo')
-    },
-    'Collabos': {
-        'alias': gettext('Executive'),
-        'permissions': ('kakocase.manage_products')
-    }
-}
-
-# Function that renders customer detail in the Admin Panel.
-# Must return the HTML code that will be inserted above the Block/Activate button
-CUSTOMER_DETAIL_RENDERER = 'ikwen.foundation.accesscontrol.views.render_customer_detail'
 
 LOGIN_URL = 'ikwen:sign_in'
 LOGIN_REDIRECT_URL = 'home'

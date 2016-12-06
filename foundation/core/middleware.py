@@ -4,10 +4,11 @@ This module groups utility middlewares that Ikwen uses.
 """
 from datetime import datetime
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
 
-from ikwen.foundation.core.urls import SERVICE_DETAIL, REGISTER, SIGN_IN, SERVICE_EXPIRED, LOAD_EVENT
+from ikwen.foundation.core.urls import SERVICE_DETAIL, SIGN_IN, SERVICE_EXPIRED, LOAD_EVENT, LOGOUT
 
 from ikwen.foundation.accesscontrol.backends import UMBRELLA
 from ikwen.foundation.core.models import Service
@@ -25,17 +26,25 @@ class ServiceStatusCheckMiddleware(object):
     """
 
     def process_view(self, request, view_func, view_args, view_kwargs):
+        if getattr(settings, 'IS_IKWEN', False):
+            return
         service = get_service_instance(using=UMBRELLA)
+        retailer = service.retailer
+        if retailer and retailer.status != Service.ACTIVE:
+            # If a retailer is suspended, so are all his customers
+            return HttpResponseRedirect(reverse('ikwen:' + SERVICE_EXPIRED))
         if service.expiry:
             now = datetime.now()
-            if now >= service.expiry or service.status != Service.ACTIVE:
+            if now.date() > service.expiry or service.status != Service.ACTIVE:
                 rm = request.resolver_match
-                if rm.namespace == 'ikwen':
-                    if rm.url_name in [SERVICE_EXPIRED, SERVICE_DETAIL, LOAD_EVENT]:
-                        return None
-                    if rm.url_name == REGISTER or rm.url_name == SIGN_IN:
-                        return HttpResponseRedirect(reverse('ikwen:' + SERVICE_EXPIRED))
+                if request.user.is_authenticated() and request.user == service.member:
+                    if rm.namespace == 'ikwen':
+                        if rm.url_name in [SERVICE_EXPIRED, SERVICE_DETAIL, LOAD_EVENT, SIGN_IN, LOGOUT]:
+                            return None
                     query_string = request.META['QUERY_STRING']
                     service_detail_url = reverse('ikwen:' + SERVICE_DETAIL, args=(service.id, )) + '?' + query_string
                     return HttpResponseRedirect(service_detail_url)
+                if rm.namespace == 'ikwen':
+                    if rm.url_name in [SERVICE_EXPIRED, SERVICE_DETAIL, LOAD_EVENT, SIGN_IN, LOGOUT]:
+                        return None
                 return HttpResponseRedirect(reverse('ikwen:' + SERVICE_EXPIRED))

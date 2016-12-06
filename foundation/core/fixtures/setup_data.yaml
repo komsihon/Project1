@@ -63,6 +63,16 @@
     logo: logos/some_logo.png
 
 - model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b370
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: WelcomeOnIkwen
+    title: Welcome on ikwen
+    target: Personal
+    target_url_name: ikwen:collaborators
+    renderer: ikwen.foundation.accesscontrol.views.render_welcome_event
+
+- model: core.consoleeventtype
   pk: 56eb6db3379b531a0104b371
   fields:
     app: 56eb6d04b37b3379b531a002
@@ -93,10 +103,11 @@
     renderer: ikwen.foundation.accesscontrol.views.render_access_request_event
 
 - model: core.consoleeventtype
-  pk: 56eb6db3379b531a0104b374
+  pk: 56eb6db3379b531a0104b375
   fields:
-    app: 56eb6d04b37b3379b531a002
-    codename: CustomerRegisteredEvent
-    title: ''
+    app: 56eb6d04b37b3379b531a001
+    codename: WelcomeEvent
+    title: Welcome
     target: Personal
-    renderer: ikwen.foundation.accesscontrol.views.render_access_granted_event
+    target_url_name: ikwen:collaborators
+    renderer: ikwen.foundation.accesscontrol.views.render_welcome_event

@@ -1,0 +1,133 @@
+{% extends "core/base_bs.html" %}
+{% load i18n admin_static %}
+
+{% block head_style %}
+    {{ block.super }}
+    <style type="text/css">
+        #navbar .search, #navbar .navbar-right {
+            display: none
+        }
+
+        #content {
+            margin-top: 5%
+        }
+
+        #content > div {
+            margin: auto
+        }
+
+        #content form {
+            margin-top: 25px
+        }
+
+        div#login {
+            width: 360px
+        }
+
+        div#login form {
+            border: 2px solid #dce4ec;
+            border-radius: 4px;
+            padding: 30px
+        }
+
+        @media (max-width: 768px) {
+            #content {
+                margin-top: 120px
+            }
+
+            #content div#login {
+                margin: auto;
+                width: 96%
+            }
+        }
+
+        label span {
+            font-weight: normal
+        }
+
+        #terms-warning {
+            color: #999;
+            font-size: 11px
+        }
+
+        {#        #terms-warning a {color: #999}#}
+        #content form .hint {
+            color: #8D96C5;
+            font-size: 14px
+        }
+
+        #content form ul.errorlist {
+            padding-left: 0
+        }
+
+        #content form ul.errorlist li {
+            color: #FF0808;
+            list-style-type: none
+        }
+
+        form#register .country-code {
+            color: #888;
+            font-style: italic;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin: 20px 0 0 3px;
+            position: absolute
+        }
+    </style>
+{% endblock %}
+
+{% block header_brand %}
+    <div class="navbar-header">
+        <a class="navbar-brand" href="http://www.ikwen.com">
+            <strong>ikwen</strong>
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    {% if form.errors and not form.non_field_errors and not form.this_is_the_login_form.errors %}
+        <p class="errornote">
+            {% if form.errors.items|length == 1 %}{% trans "Please correct the error below." %}{% else %}
+                {% trans "Please correct the errors below." %}{% endif %}
+        </p>
+    {% endif %}
+
+    {% if form.non_field_errors or form.this_is_the_login_form.errors %}
+        {% for error in form.non_field_errors|add:form.this_is_the_login_form.errors %}
+            <p class="errornote">
+                {{ error }}
+            </p>
+        {% endfor %}
+    {% endif %}
+
+    <div id="content" class="container">
+        <div id="login">
+            <h2>{% trans "Login" %}</h2>
+            <form action="{{ app_path }}" method="post">{% csrf_token %}
+                <input type="hidden" name="this_is_the_login_form" value="1"/>
+                <input type="hidden" name="next" value="{{ next }}"/>
+                <div style="height: 43px; padding: 0; width: 306px">
+                    {# TODO: Put login avatar above the form #}
+                </div>
+                <div class="form-group">
+                    <label for="id_username">{% trans "Username or email" %}</label>
+                    <input id="id_username" class="form-control input-sm username" type="text" name="username"/>
+                    {#Only username or phone will be output depending on what is available#}
+                </div>
+                <div class="form-group">
+                    <label for="lg-password">{% trans "Password" %}</label>
+                    <input id="lg-password" class="form-control input-sm password" type="password" name="password"/>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary btn-block btn-sm"> {% trans "Submit" %} </button>
+                </div>
+                <div style="float: left; clear: both"></div>
+                {# Clearer #}
+            </form>
+        </div>
+
+        <script type="text/javascript">
+            document.getElementById('id_username').focus()
+        </script>
+    </div>
+{% endblock %}

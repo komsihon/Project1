@@ -3,7 +3,7 @@
 
 import os
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from django.conf import settings
 from django.core import mail
 from django.core.mail import EmailMessage
@@ -50,56 +50,59 @@ def send_invoices():
     except:
         error_log.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
-    for subscription in Subscription.objects.filter(status=Subscription.ACTIVE, expiry__gte=now):
-        diff = subscription.expiry - now
-        if diff.days == invoicing_config.gap:
-            member = subscription.member
-            number = get_next_invoice_number()
-            if getattr(settings, 'SEPARATE_BILLING_CYCLE', True):
-                amount = subscription.monthly_cost * get_billing_cycle_months_count(service.billing_cycle)
-            else:
-                amount = subscription.product.cost
+    reminder_date_time = now + timedelta(days=invoicing_config.gap)
+    for subscription in Subscription.objects.filter(status=Subscription.ACTIVE, monthly_cost__gt=0,
+                                                    expiry=reminder_date_time.date()):
+        member = subscription.member
+        number = get_next_invoice_number()
+        if getattr(settings, 'SEPARATE_BILLING_CYCLE', True):
+            amount = subscription.monthly_cost * get_billing_cycle_months_count(subscription.billing_cycle)
+        else:
+            amount = subscription.product.cost
 
-            path_before = getattr(settings, 'BILLING_BEFORE_NEW_INVOICE', None)
-            if path_before:
-                before_new_invoice = import_by_path(path_before)
-                before_new_invoice(subscription)
+        path_before = getattr(settings, 'BILLING_BEFORE_NEW_INVOICE', None)
+        if path_before:
+            before_new_invoice = import_by_path(path_before)
+            val = before_new_invoice(subscription)
+            if val is not None:  # Returning a not None value cancels the generation of a new Invoice for this Service
+                continue
 
-            invoice = Invoice.objects.create(subscription=subscription, amount=amount,
-                                             number=number, due_date=subscription.expiry)
-            count += 1
-            total_amount += amount
-            add_event(service, member, NEW_INVOICE_EVENT, invoice.id)
-            subject, message, sms_text = get_invoice_generated_message(invoice)
-            if member.email.find(member.phone) < 0:
-                invoice_url = getattr(settings, 'PROJECT_URL') + reverse('billing:invoice_detail', args=(invoice.id, ))
-                html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
-                                                extra_context={'invoice_url': invoice_url})
-                # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
-                # to be delivered to Spams because of origin check.
-                sender = '%s <no-reply@%s.com>' % (config.company_name, config.company_name_slug)
-                msg = EmailMessage(subject, html_content, sender, [member.email])
-                msg.content_subtype = "html"
-                invoice.last_reminder = timezone.now()
-                try:
-                    if msg.send():
-                        invoice.reminders_sent = 1
-                    else:
-                        error_log.error(u"Invoice #%s generated but mail not sent to %s" % (number, member.email), exc_info=True)
-                except:
-                    error_log.error(u"Connexion error on Invoice #%s to %s" % (number, member.email), exc_info=True)
-                invoice.save()
-            if sms_text:
-                if member.phone:
-                    if config.sms_sending_method == Config.HTTP_API:
-                        send_sms(member.phone, sms_text)
-                    else:
-                        QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
+        invoice = Invoice.objects.create(subscription=subscription, amount=amount,
+                                         number=number, due_date=subscription.expiry)
+        count += 1
+        total_amount += amount
+        add_event(service, member, NEW_INVOICE_EVENT, invoice.id)
+        subject, message, sms_text = get_invoice_generated_message(invoice)
+        if member.email.find(member.phone) < 0:
+            invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
+            html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+                                            extra_context={'invoice_url': invoice_url})
+            # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
+            # to be delivered to Spams because of origin check.
+            sender = '%s <no-reply@%s.com>' % (config.company_name, config.company_name_slug)
+            msg = EmailMessage(subject, html_content, sender, [member.email])
+            msg.content_subtype = "html"
+            invoice.last_reminder = timezone.now()
+            try:
+                if msg.send():
+                    invoice.reminders_sent = 1
+                else:
+                    error_log.error(u"Invoice #%s generated but mail not sent to %s" % (number, member.email),
+                                    exc_info=True)
+            except:
+                error_log.error(u"Connexion error on Invoice #%s to %s" % (number, member.email), exc_info=True)
+            invoice.save()
+        if sms_text:
+            if member.phone:
+                if config.sms_sending_method == Config.HTTP_API:
+                    send_sms(member.phone, sms_text)
+                else:
+                    QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
 
-            path_after = getattr(settings, 'BILLING_AFTER_NEW_INVOICE', None)
-            if path_after:
-                after_new_invoice = import_by_path(path_after)
-                after_new_invoice(invoice)
+        path_after = getattr(settings, 'BILLING_AFTER_NEW_INVOICE', None)
+        if path_after:
+            after_new_invoice = import_by_path(path_after)
+            after_new_invoice(invoice)
 
     try:
         connection.close()
@@ -122,7 +125,8 @@ def send_invoice_reminders():
     except:
         error_log.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
-    for invoice in Invoice.objects.filter(status=Invoice.PENDING, due_date__gte=now, last_reminder__isnull=False):
+    for invoice in Invoice.objects.filter(status=Invoice.PENDING, due_date__gte=now.date(),
+                                          last_reminder__isnull=False):
         diff = now - invoice.last_reminder
         if diff.days == invoicing_config.reminder_delay:
             count += 1
@@ -131,7 +135,7 @@ def send_invoice_reminders():
             add_event(service, member, INVOICE_REMINDER_EVENT, invoice.id)
             subject, message, sms_text = get_invoice_reminder_message(invoice)
             if member.email.find(member.phone) < 0:
-                invoice_url = getattr(settings, 'PROJECT_URL') + reverse('billing:invoice_detail', args=(invoice.id, ))
+                invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'invoice_url': invoice_url})
                 # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
@@ -188,7 +192,7 @@ def send_invoice_overdue_notices():
             add_event(service, member, OVERDUE_NOTICE_EVENT, invoice.id)
             subject, message, sms_text = get_invoice_overdue_message(invoice)
             if member.email.find(member.phone) < 0:
-                invoice_url = getattr(settings, 'PROJECT_URL') + reverse('billing:invoice_detail', args=(invoice.id, ))
+                invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'invoice_url': invoice_url})
                 # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
@@ -247,7 +251,7 @@ def suspend_customers_services():
             add_event(service, member, SERVICE_SUSPENDED_EVENT, invoice.id)
             subject, message, sms_text = get_service_suspension_message(invoice)
             if member.email.find(member.phone) < 0:
-                invoice_url = getattr(settings, 'PROJECT_URL') + reverse('billing:invoice_detail', args=(invoice.id, ))
+                invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'invoice_url': invoice_url})
                 # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail

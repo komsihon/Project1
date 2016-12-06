@@ -27,7 +27,8 @@
             {% if config.cover_image and config.cover_image.name %}
             <header id="cover" class="subtle-shade" style="background-image: url({{ config.cover_image.url }});">
             {% else %}
-            <header id="cover" class="subtle-shade" style="background-image: url({% static 'ikwen/img/default-cover.jpg' %});">
+                <header id="cover" class="subtle-shade"
+                        style="background-image: url({% static 'ikwen/img/default-cover-company.jpg' %});">
             {% endif %}
                 <div id="banner">
                     <div class="frame">
@@ -39,10 +40,22 @@
                             {# TODO: Company logo placeholder for service configuration #}
                             <div class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})">
                                 <div class="upload-image"></div>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                                         aria-valuemax="100">
+                                        <span class="sr-only"></span>
+                                    </div>
+                                </div>
                             </div>
                         {% endif %}
                     </div>
                     <div class="upload-image"></div>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                             aria-valuemax="100">
+                            <span class="sr-only"></span>
+                        </div>
+                    </div>
                     <h2 class="text-has-shade">{{ config.full_name }}</h2>
                 </div>
             </header>

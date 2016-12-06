@@ -99,7 +99,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.assertEqual(len(response.context['event_list']), 1)
         self.client.logout()
         self.client.login(username='member3', password='admin')
-        response = self.client.get(reverse('ikwen:console'))
+        response = self.client.get(reverse('ikwen:console'), {'target': 'Personal'})
         s3 = Member.objects.get(username='member3').collaborates_on[-1]
         self.assertEqual(len(response.context['event_list']), 1)
         from pymongo import Connection
@@ -174,7 +174,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         Make sure the url is reachable
         """
         self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('ikwen:collaborators'))
+        response = self.client.get(reverse('ikwen:community'))
         self.assertEqual(response.status_code, 200)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
@@ -209,5 +209,5 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         """
         Make sure the url is reachable
         """
-        response = self.client.get(reverse('ikwen:company_profile', args=('ikwen-app2', 'ikwen-service-2', )))
+        response = self.client.get(reverse('ikwen:company_profile', args=('ikwen-service-2',)))
         self.assertEqual(response.status_code, 200)

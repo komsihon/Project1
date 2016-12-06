@@ -373,3 +373,21 @@ def get_payment_confirmation_message(payment):
 def suspend_subscription(subscription):
     subscription.status = AbstractSubscription.SUSPENDED
     subscription.save()
+
+
+def check_service_retailer(service):
+    """
+    This function checks whether the ikwen Service passed as
+    parameter is retailed by a partner. If so, the Invoice must
+    be generated from the partner billing platform. This function
+    will then return True to prevent the main ikwen billing crons
+    to issue the invoice to that customer.
+
+    :param service: ikwen Service
+    :return: True if the Service is retailed by ikwen. None otherwise
+             It is important that this function returns None rather
+             than None because the BILLING_BEFORE_NEW_INVOICE will pass
+             over if event the returned value is None
+    """
+    if service.retailer:
+        return True

@@ -3,7 +3,7 @@
 # import os
 # os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
 from django.contrib.auth.models import Group
-from ikwen.foundation.core.models import FlatPage
+from ikwen.foundation.flatpages.models import FlatPage
 from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_user_to_group
 
@@ -20,8 +20,8 @@ from ikwen.foundation.accesscontrol.models import Member
 from ikwen.foundation.core.models import Application, Service
 
 
-def setup_dev_env(app_name, username, database=None, project_name=None, base_monthly_cost=0):
-    app_name = app_name.capitalize()
+def setup_dev_env(app_name, username, database=None, project_name=None,
+                  project_url=None, admin_url=None, base_monthly_cost=0):
     try:
         app = Application.objects.using(UMBRELLA).get(name=app_name)
         app.save(using='default')
@@ -37,8 +37,12 @@ def setup_dev_env(app_name, username, database=None, project_name=None, base_mon
     project_name_slug = slugify(project_name)
     if not database:
         database = project_name_slug.replace('-', '_')
-    url = 'http://localhost/' + project_name_slug.replace('-', '')
-    admin_url = 'http://localhost/ikwen'
+    if project_url:
+        url = project_url
+    else:
+        url = 'http://localhost/' + project_name_slug.replace('-', '')
+    if not admin_url:
+        admin_url = 'http://localhost/ikwen'
     s = Service.objects.using(UMBRELLA).create(app=app, member=m, project_name=project_name, database=database, url=url,
                                                admin_url=admin_url, project_name_slug=project_name_slug,
                                                monthly_cost=base_monthly_cost, billing_cycle=Service.MONTHLY,
@@ -59,13 +63,14 @@ def setup_dev_env(app_name, username, database=None, project_name=None, base_mon
     UserPermissionList.objects.create(user=m)
     add_user_to_group(m,  sudo_group)
 
-    if s not in m.collaborates_on:
-        m.collaborates_on.append(s)
-    if s not in m.customer_on:
-        m.customer_on.append(s)
+    if s.id not in m.collaborates_on_fk_list:
+        m.collaborates_on_fk_list.append(s.id)
+    if s not in m.customer_on_fk_list:
+        m.customer_on.append(s.id)
     m.is_superuser = True
     m.is_staff = True
     m.is_iao = True
+    m.is_bao = True
     m.save()
     m.business_notices = 0
     m.personal_notices = 0

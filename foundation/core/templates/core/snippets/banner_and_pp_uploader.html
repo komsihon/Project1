@@ -4,11 +4,21 @@
     (function() {
         ikwen.initUploader = function(selector, title, usage, target) {
             var uploader = new qq.FileUploader({
-                action: "{% url 'ikwen:upload_customization_image' %}?img_upload_context={{ img_upload_context }}&member_id={{ request.user.id }}&usage=" + usage,
+                action: "{% url 'ikwen:upload_customization_image' %}?img_upload_context={{ img_upload_context }}&member_id={{ request.user.id }}&service_id={{ service.id }}&usage=" + usage,
                 element: $(selector)[0],
                 buttonText: title,
                 multiple: false,
+                onSubmit: function () {
+                    $(target + ' .progress-bar').width(0);
+                    $(target + ' .progress').css('visibility', 'visible');
+                },
+                onProgress: function (id, fileName, loaded, total) {
+                    var percent = (loaded / total) * 100;
+                    $(target + ' .progress-bar').animate({width: percent + '%'});
+                    {#                    if (ratio == 1) $('div#upload-container .image.loading.' + uploadId + ' .spinner').show()#}
+                },
                 onComplete: function(id, fileName, responseJSON) {
+                    $(target + ' .progress').css('visibility', 'hidden');
                     if(responseJSON.success) {
                         $(target).css('background-image', "url('" + responseJSON.url +"')");
                     } else {
@@ -22,7 +32,8 @@
                 }
             });
         };
-        ikwen.initUploader('#banner .photo .upload-image', "{% trans "Change photo" %}", 'profile', '#banner .photo');
+        var label = "{% if is_company %}{% trans "Change logo" %}{% else %}{% trans "Change photo" %}{% endif %}";
+        ikwen.initUploader('#banner .photo .upload-image', label, 'profile', '#banner .photo');
         ikwen.initUploader('#banner > .upload-image', "{% trans "Change cover" %}", 'cover', '#cover');
     })()
 </script>

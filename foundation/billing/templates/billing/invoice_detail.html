@@ -3,7 +3,7 @@
 {% load humanize %}
 {% load staticfiles %}
 {% block page_title %}
-<title>{{ config.company_name }} | {% trans "Invoice" %} #{{ invoice.number }}</title>
+    <title>{{ config.company_name }} - {% trans "Invoice" %} #{{ invoice.number }}</title>
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
@@ -17,7 +17,10 @@
         header#main .badge {background: #039B03; border-radius: 4px; color: #fff; float: right;
             font: bold 11px Arial; margin-right: 15px; padding: 3px 6px}
         header#main form div {line-height: 24px}
-        #summary {margin-bottom: 15px}
+
+        #summary {
+            margin-bottom: 2em
+        }
         #summary section header {font-size: 1.27em}
         #summary section div {color: #666; line-height: 21px}
         table tr td:last-child {text-align: right}
@@ -76,7 +79,8 @@
                             {% if customer_config %}
                                 <p>{{ customer_config.company_name }}</p>
                                 {% if customer_config.address %}<p>{{ customer_config.address }}</p>{% endif %}
-                                {% if customer_config.address %}<p>{{ customer_config.city }}{% if customer_config.address %}, {{ customer_config.country.name }}{% endif %}</p>{% endif %}
+                                <p>{% if customer_config.city %}{{ customer_config.city }},{% endif %}
+                                    {% if customer_config.country %}{{ customer_config.country.name }}{% endif %}</p>
                             {% else %}
                                 <p>{{ invoice.service.member.get_full_name }}</p>
                                 <p>{{ invoice.service.member.phone }}</p>
@@ -117,11 +121,14 @@
                                 </select>
                             {% endif %}
                         </td>
-                        <td id="subtotal">{{ invoice.amount|intcomma }} {{ currency_symbol }}</td>
+                        <td id="subtotal">{{ currency_symbol }} {{ invoice.amount|intcomma }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" style="padding: 2em"></td>
                     </tr>
                     <tr class="em1">
                         <td colspan="4">{% trans "Total" %}</td>
-                        <td id="total">{{ invoice.amount|intcomma }} {{ currency_symbol }}</td>
+                        <td id="total">{{ currency_symbol }} {{ invoice.amount|intcomma }}</td>
                     </tr>
                     {% if invoice.payment_set.all|length > 0 %}
                         <tr class="dashed-separator">
@@ -140,10 +147,10 @@
                         </tr>
                         {% for payment in invoice.payment_set.all %}
                             <tr class="payment">
-                                <td colspan="2">{{ payment.when }}</td>
+                                <td colspan="2">{{ payment.created_on }}</td>
                                 <td>{{ payment.method }}</td>
                                 <td>{{ payment.id }}</td>
-                                <td>{{ payment.amount|intcomma }} {{ currency_symbol }}</td>
+                                <td>{{ currency_symbol }} {{ payment.amount|intcomma }}</td>
                             </tr>
                         {% endfor %}
                     {% endif %}
@@ -167,8 +174,8 @@
                     invoiceAmount = $('#main').data('amount'),
                     monthlyCost = $('#main').data('monthly-cost'),
                     total = additionalMonth * monthlyCost + invoiceAmount;
-                $('#subtotal').text(total.formatMoney() + ' {{ currency_symbol }}');
-                $('#total').text(total.formatMoney() + ' {{ currency_symbol }}');
+                $('#subtotal').text('{{ currency_symbol }} ' + total.formatMoney());
+                $('#total').text('{{ currency_symbol }} ' + total.formatMoney());
             });
         })()
     </script>

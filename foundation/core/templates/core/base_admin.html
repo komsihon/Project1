@@ -38,81 +38,88 @@
 
 {% block content %}
     <div id="container" class="admin">
-        <div id="admin-nav">
-            <div style="padding: 20px 0 130px">
-{#                <div class="btn-group" style="width: 100%">#}
-{#                    <button class="btn btn-default btn-sm btn-block dropdown-toggle" data-toggle="dropdown"#}
-{#                            aria-haspopup="true" aria-expanded="false">{% trans "New" %}</button>#}
-{#                    {% block new_menu %}{% endblock %}#}
-{#                </div>#}
-{#                <div><div class="divider"></div></div>#}
-                <div class="stage" {% if filter and filter|length > 0 %}style="margin-left: -100%"{% endif %}>
-                    {% if filter and filter|length > 0 %}
-                        <nav id="filter-nav">
-                            <span style="text-align: right">
-{#                                {% trans "Menu" %}&nbsp;&nbsp;#}
-                                <img class="show-filter" src="{% static 'ikwen/img/arrow-right.png' %}" width="18" height="18">
-                            </span>
-                            <span>
-                                <img class="show-menu" src="{% static 'ikwen/img/arrow-left.png' %}" width="18" height="18">
-                                &nbsp;&nbsp;{% trans "Filter" %}
-                            </span>
-                        </nav>
-                    {% endif %}
-                    <div class="menu">
-                        {% block app_admin_nav %}{% endblock %}
-                        {% if perms.accesscontrol.sudo %}
-                            <div class="divider"></div>
-                            <ul class="nav nav-pills nav-stacked">
-                                <li role="presentation" class="flatpages">
-                                    {% url 'ikwen:flatpage_list' as flatpage_list_url %}
-                                    <a href="{{ flatpage_list_url|append_auth_tokens:request }}">{% trans "Pages" %}</a>
-                                </li>
-                                <li role="presentation" class="community">
-                                    {% url 'ikwen:community' as community_url %}
-                                    <a href="{{ community_url|append_auth_tokens:request }}">{% trans "Community" %}</a>
-                                </li>
-                            </ul>
-                            <div class="divider"></div>
-                            <ul class="nav nav-pills nav-stacked">
-                                <li role="presentation" class="configuration">
-                                    {% url 'ikwen:configuration' as configuration_url %}
-                                    <a href="{{ configuration_url|append_auth_tokens:request }}">{% trans "Configuration" %}</a>
-                                </li>
-{#                                <li role="presentation" class="invoices">#}
-{#                                    {% url 'billing:invoice_list' service.id as invoice_list_url %}#}
-{#                                    <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}" target="_blank">{% trans 'Invoices' %}</a>#}
-{#                                </li>#}
-{#                                <li role="presentation" class="service-info">#}
-{#                                    {% url 'ikwen:service_detail' service.id as service_detail_url%}#}
-{#                                    <a href="{{ service_detail_url|append_auth_tokens:request }}">{% trans "Info & Billing" %}</a>#}
-{#                                </li>#}
+        {% block admin_nav %}
+            <div id="admin-nav">
+                <div style="padding: 20px 0 130px">
+                    {#                <div class="btn-group" style="width: 100%">#}
+                    {#                    <button class="btn btn-default btn-sm btn-block dropdown-toggle" data-toggle="dropdown"#}
+                    {#                            aria-haspopup="true" aria-expanded="false">{% trans "New" %}</button>#}
+                    {#                    {% block new_menu %}{% endblock %}#}
+                    {#                </div>#}
+                    {#                <div><div class="divider"></div></div>#}
+                    <div class="stage" {% if filter and filter|length > 0 %}style="margin-left: -100%"{% endif %}>
+                        {% if filter and filter|length > 0 %}
+                            <nav id="filter-nav">
+                                <span style="text-align: right">
+    {#                                {% trans "Menu" %}&nbsp;&nbsp;#}
+                                    <img class="show-filter" src="{% static 'ikwen/img/arrow-right.png' %}" width="18"
+                                         height="18">
+                                </span>
+                                <span>
+                                    <img class="show-menu" src="{% static 'ikwen/img/arrow-left.png' %}" width="18"
+                                         height="18">
+                                    &nbsp;&nbsp;{% trans "Filter" %}
+                                </span>
+                            </nav>
+                        {% endif %}
+                        <div class="menu">
+                            {% block app_admin_nav %}{% endblock %}
+                            {% if perms.accesscontrol.sudo %}
+                                <div class="divider"></div>
+                                <ul class="nav nav-pills nav-stacked">
+                                    <li role="presentation" class="flatpages">
+                                        {% url 'ikwen:flatpage_list' as flatpage_list_url %}
+                                        <a href="{{ flatpage_list_url|append_auth_tokens:request }}">{% trans "Pages" %}</a>
+                                    </li>
+                                    <li role="presentation" class="community">
+                                        {% url 'ikwen:community' as community_url %}
+                                        <a href="{{ community_url|append_auth_tokens:request }}">{% trans "Community" %}</a>
+                                    </li>
+                                </ul>
+                                <div class="divider"></div>
+                                <ul class="nav nav-pills nav-stacked">
+                                    <li role="presentation" class="configuration">
+                                        {% url 'ikwen:configuration' as configuration_url %}
+                                        <a href="{{ configuration_url|append_auth_tokens:request }}">{% trans "Configuration" %}</a>
+                                    </li>
+                                    <li role="presentation" class="invoices">
+                                        {% url 'billing:invoice_list' service.id as invoice_list_url %}
+                                        <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}"
+                                           target="_blank">{% trans 'Invoices' %}</a>
+                                    </li>
+                                    <li role="presentation" class="service-info">
+                                        {% url 'ikwen:service_detail' service.id as service_detail_url %}
+                                        <a href="{{ service_detail_url|append_auth_tokens:request }}">{% trans "Info & Billing" %}</a>
+                                    </li>
+                                </ul>
+                            {% endif %}
+                        </div>
+                        {% if filter and filter|length > 0 %}
+                            <ul class="nav nav-pills nav-stacked filter">
+                                {% for elt in filter %}
+                                    <li>
+                                        <a href="javascript:;" data-toggle="collapse"
+                                           data-target="#{{ elt.parameter_name }}" aria-expanded="true">
+                                            {{ elt.title }} <i class="fa fa-fw fa-caret-down"></i>
+                                        </a>
+                                        <ul id="#{{ elt.parameter_name }}" data-param="{{ elt.parameter_name }}"
+                                            class="nav nav-pills nav-stacked collapse in choices" aria-expanded="true"
+                                            style="padding-left: 15px">
+                                            {% for choice in elt.choices %}
+                                                <li data-value="{{ choice.0 }}">
+                                                    <a href="javascript:;">{{ choice.1 }}</a>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% endfor %}
                             </ul>
                         {% endif %}
+                        <div class="clear"></div>
                     </div>
-                    {% if filter and filter|length > 0 %}
-                        <ul class="nav nav-pills nav-stacked filter">
-                            {% for elt in filter %}
-                                <li>
-                                    <a href="javascript:;" data-toggle="collapse" data-target="#{{ elt.parameter_name }}" aria-expanded="true">
-                                        {{ elt.title }} <i class="fa fa-fw fa-caret-down"></i>
-                                    </a>
-                                    <ul id="#{{ elt.parameter_name }}" data-param="{{ elt.parameter_name }}"
-                                        class="nav nav-pills nav-stacked collapse in choices" aria-expanded="true" style="padding-left: 15px">
-                                        {% for choice in elt.choices %}
-                                            <li data-value="{{ choice.0 }}">
-                                                <a href="javascript:;">{{ choice.1 }}</a>
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                    <div class="clear"></div>
                 </div>
             </div>
-        </div>
+        {% endblock %}
         {% block admin_content %}{% endblock %}
         <div class="clear"></div>
     </div>
