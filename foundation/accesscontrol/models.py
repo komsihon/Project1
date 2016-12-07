@@ -57,7 +57,7 @@ class Member(AbstractUser):
     FEMALE = 'Female'
     # TODO: Create and set field full_name in collection ikwen_member in database itself
     full_name = models.CharField(max_length=150, db_index=True)
-    phone = models.CharField(max_length=30, db_index=True, blank=True)
+    phone = models.CharField(max_length=30, db_index=True, blank=True, null=True)
     gender = models.CharField(max_length=15, blank=True)
     dob = models.DateField(blank=True, null=True)
     photo = MultiImageField(upload_to=PROFILE_UPLOAD_TO, blank=True, null=True)

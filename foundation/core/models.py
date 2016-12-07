@@ -193,7 +193,7 @@ class Service(models.Model):
 
     def get_profile_url(self):
         from ikwen.foundation.core.views import IKWEN_BASE_URL
-        return IKWEN_BASE_URL + reverse('ikwen:company_profile', args=(self.app.slug, self.project_name_slug))
+        return IKWEN_BASE_URL + reverse('ikwen:company_profile', args=(self.project_name_slug,))
 
     def save(self, *args, **kwargs):
         """

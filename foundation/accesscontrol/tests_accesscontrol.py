@@ -61,6 +61,9 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         s = Member.objects.get(username='member2').collaborates_on[0]
         et = ConsoleEventType.objects.get(pk='56eb6db3379b531a0104b371')
         self.assertEqual(len(response.context['access_request_events'][s]), 1)
+        response = self.client.get(reverse('ikwen:access_request_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['access_requests']), 1)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',

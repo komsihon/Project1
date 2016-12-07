@@ -35,12 +35,18 @@
                 }
             {% endif %}
         {% endif %}
+
+        {% if is_console %}#banner h2 {
+            margin-top: 210px
+        }
+
+        {% endif %}
     </style>
 {% endblock %}
 
 {% block header_brand %}
 <strong class="navbar-header">
-    <a class="navbar-brand" href="{{ settings.IKWEN_BASE_URL|append_auth_tokens:request }}">ikwen</a>
+    <a class="navbar-brand" href="{{ settings.IKWEN_BASE_URL }}">ikwen</a>
 </strong>
 {% endblock %}
 
@@ -51,78 +57,67 @@
                 <header id="cover" class="subtle-shade">
                     <div id="banner">
                         <div class="frame">
-                            <div class="photo" style="">
-                                {% if is_console %}<div class="upload-image"></div>{% endif %}
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
-                                         aria-valuemax="100">
-                                        <span class="sr-only"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% if is_console %}<div class="upload-image"></div>{% endif %}
-                        <div class="progress">
-                            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
-                                 aria-valuemax="100">
-                                <span class="sr-only"></span>
-                            </div>
+                            <div class="photo"></div>
                         </div>
                         <h2 class="text-has-shade">{{ profile_name }}</h2>
                     </div>
                 </header>
                 <div class="container-fluid" id="cards">
                     {% for elt in access_request_list %}
-                        {% with rq=elt.rq service=elt.rq.service %}
-                    <section id="{{ elt.rq.id }}" class="access-request subtle-shade">
-                        <div class="logo">
-                            {% if service.config.logo.name %}
-                                <img src="{{ service.config.logo.url }}"/>
-                            {% else %}
-                                <img src="{% static 'ikwen/img/no_photo.png' %}"/>
-                            {% endif %}
-                            <h4>{{ service.project_name }}</h4>
-                        </div>
-                        <div class="details row">
-                            <div class="about">
-                                <div class="col-sm-6 col-md-6">
-                                    <h3>{% trans "Request to join" %}</h3>
-                                    <p>{% trans "This person would like to join your community." %}</p>
+                        {% with rq=elt.rq srvc=elt.rq.service %}
+                            <section id="{{ elt.rq.id }}" class="access-request subtle-shade">
+                                <div class="logo">
+                                    {% if srvc.config.logo.name %}
+                                        <img src="{{ srvc.config.logo.url }}"/>
+                                    {% else %}
+                                        <img src="{% static 'ikwen/img/no_photo.png' %}"/>
+                                    {% endif %}
+                                    <h4>{{ srvc.project_name }}</h4>
                                 </div>
-                                <div class="col-sm-3 col-md-3">
-                                    <button class="btn btn-success btn-sm btn-block allow-access"
-                                            data-request-id="{{ rq.id }}"
-                                            data-access-type="{{ rq.type }}">{% trans "Grant access" %}</button>
-                                </div>
-                                <div class="col-sm-3 col-md-3" style="cursor: pointer; font-weight: 700; padding-top: 7px">
-                                    <span class="text-danger deny-access"
-                                          data-request-id="{{ rq.id }}">{% trans "No, Refuse" %}</span>
-                                </div>
-{#                                <div class="col-sm-3 col-md-3">#}
-{#                                    <button id="deny-access" class="btn btn-danger btn-sm btn-block" data-request-id="{{ elt.rq.id }}">{% trans "Refuse" %}</button>#}
-{#                                </div>#}
-                            </div>
-                            <div class="groups" style="display: none">
-                                <div class="group-choice">
-                                    <h3>{% trans "Grant access as:" %}</h3>
-                                    {% for group in elt.groups %}
-                                        <div class="form-group">
-                                            <div class="radio"> <label> <input type="radio" class="group" name="group" value="{{ group.id }}" /> {{ group.name }} </label> </div>
+                                <div class="details row">
+                                    <div class="about">
+                                        <div class="col-sm-6 col-md-6">
+                                            <h3>{% trans "Request to join" %}</h3>
+                                            <p>{% trans "This person would like to join your community." %}</p>
                                         </div>
-                                    {% endfor %}
+                                        <div class="col-sm-3 col-md-3">
+                                            <button class="btn btn-success btn-sm btn-block allow-access"
+                                                    data-request-id="{{ rq.id }}"
+                                                    data-access-type="{{ rq.type }}">{% trans "Grant access" %}</button>
+                                        </div>
+                                        <div class="col-sm-3 col-md-3"
+                                             style="cursor: pointer; font-weight: 700; padding-top: 7px">
+                                            <span class="text-danger deny-access"
+                                                  data-request-id="{{ rq.id }}">{% trans "No, Refuse" %}</span>
+                                        </div>
+                                        {#                                <div class="col-sm-3 col-md-3">#}
+                                        {#                                    <button id="deny-access" class="btn btn-danger btn-sm btn-block" data-request-id="{{ elt.rq.id }}">{% trans "Refuse" %}</button>#}
+                                        {#                                </div>#}
+                                    </div>
+                                    <div class="groups" style="display: none">
+                                        <div class="group-choice">
+                                            <h3>{% trans "Add to group ..." %}</h3>
+                                            {% for group in elt.groups %}
+                                                <div class="form-group">
+                                                    <div class="radio"><label> <input type="radio" class="group"
+                                                                                      name="group"
+                                                                                      value="{{ group.id }}"/> {{ group.name }}
+                                                    </label></div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        <p class="text-success"
+                                           style="display: none">{% trans "Access granted with success." %}</p>
+                                        <button data-request-id="{{ rq.id }}"
+                                                class="btn btn-success btn-sm btn-block confirm-group">{% trans "Confirm" %}</button>
+                                    </div>
                                 </div>
-                                <p class="text-success"
-                                   style="display: none">{% trans "Access granted with success." %}</p>
-                                <button data-request-id="{{ rq.id }}"
-                                        class="btn btn-success btn-sm btn-block confirm-group">{% trans "Confirm" %}</button>
-                            </div>
-                        </div>
-                    </section>
+                            </section>
                         {% endwith %}
                     {% endfor %}
                     <section id="about" class="subtle-shade">
-                        {% if is_company and config.short_description %}
-                            <p style="color: #666; font-size: 18px; margin-bottom: 20px">{{ config.short_description }}</p>
+                        {% if is_company and page_config.short_description %}
+                            <p style="color: #666; font-size: 18px; margin-bottom: 20px">{{ page_config.short_description }}</p>
                         {% else %}
                             <h3>{% trans "About" %}</h3>
                         {% endif %}
@@ -148,7 +143,8 @@
                             {% if is_company %}
                                 <li>
                                     <label>{% trans "Website" %}</label>
-                                    <span>{{ service.url }} - <a href="{{ service.url|append_auth_tokens:request }}">{% trans "Visit" %}</a></span>
+                                    <span>{{ page_service.url }} - <a
+                                            href="{{ page_service.url }}">{% trans "Visit" %}</a></span>
                                 </li>
                             {% endif %}
                         </ul>
@@ -157,11 +153,11 @@
                                 {% if request.user.is_authenticated %}
                                     {% if not is_member %}
                                         <button class="btn btn-success btn-sm request-access"
-                                                data-service-id="{{ service.id }}">{% trans "Join" %}</button>
+                                                data-service-id="{{ page_service.id }}">{% trans "Join" %}</button>
                                     {% endif %}
                                 {% else %}
                                     <a class="btn btn-success btn-sm"
-                                       href="{% url 'ikwen:request_access' %}?service_id={{ service.id }}">{% trans "Join" %}</a>
+                                       href="{% url 'ikwen:request_access' %}?service_id={{ page_service.id }}">{% trans "Join" %}</a>
                                 {% endif %}
                             </div>
                         {% endif %}

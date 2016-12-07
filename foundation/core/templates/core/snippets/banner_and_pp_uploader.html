@@ -9,16 +9,16 @@
                 buttonText: title,
                 multiple: false,
                 onSubmit: function () {
-                    $(target + ' .progress-bar').width(0);
-                    $(target + ' .progress').css('visibility', 'visible');
+                    $(selector + ' .progress-bar').width(0);
+                    $(selector + ' + .progress').css('visibility', 'visible');
                 },
                 onProgress: function (id, fileName, loaded, total) {
                     var percent = (loaded / total) * 100;
-                    $(target + ' .progress-bar').animate({width: percent + '%'});
+                    $(selector + ' + .progress .progress-bar').animate({width: percent + '%'});
                     {#                    if (ratio == 1) $('div#upload-container .image.loading.' + uploadId + ' .spinner').show()#}
                 },
                 onComplete: function(id, fileName, responseJSON) {
-                    $(target + ' .progress').css('visibility', 'hidden');
+                    $(selector + ' + .progress').css('visibility', 'hidden');
                     if(responseJSON.success) {
                         $(target).css('background-image', "url('" + responseJSON.url +"')");
                     } else {

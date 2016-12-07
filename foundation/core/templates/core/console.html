@@ -31,14 +31,32 @@
                     {% if member.photo and member.photo.name %}
                         <div class="photo" style="background-image: url({{ member.photo.small_url }})">
                             <div class="upload-image"></div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <span class="sr-only"></span>
+                                </div>
+                            </div>
                         </div>
                     {% else %}
                         <div class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})">
                             <div class="upload-image"></div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <span class="sr-only"></span>
+                                </div>
+                            </div>
                         </div>
                     {% endif %}
                 </div>
                 <div class="upload-image"></div>
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                         aria-valuemax="100">
+                        <span class="sr-only"></span>
+                    </div>
+                </div>
                 <h2 class="text-has-shade">{{ member.full_name }}</h2>
             </div>
             {% if request.user.collaborates_on|length > 0 %}
@@ -117,7 +135,7 @@
                 var _$card = $('#' + eventId),
                     baseUrl = _$card.data('base-url');
                 $.getJSON(baseUrl + '{% url 'ikwen:load_event_content' %}?callback=?',
-                        {event_id: eventId, key: '{{ request.GET.key }}', rand: '{{ request.GET.rand }}'},
+                        {event_id: eventId, member_id: '{{ user.id }}'},
                         function(res) {
                         _$card.find('.content').html(res.html);
                         ikwen.appendAuthTokens('#' + eventId)

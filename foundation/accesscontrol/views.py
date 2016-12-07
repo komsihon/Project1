@@ -28,9 +28,7 @@ from ikwen.foundation.accesscontrol.backends import UMBRELLA
 
 from ikwen.foundation.accesscontrol.templatetags.auth_tokens import append_auth_tokens, ikwenize
 
-from ikwen.foundation.accesscontrol.middleware import UID_B64, TOKEN, TOKEN_CHUNK
-
-from ikwen.foundation.core.models import Service, Application, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
+from ikwen.foundation.core.models import Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
 from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_group
 
@@ -360,8 +358,8 @@ class CompanyProfile(BaseView):
         config = service.config
         context = super(CompanyProfile, self).get_context_data(**kwargs)
         context['is_company'] = True
-        context['service'] = service  # Updates the service context defined in BaseView
-        context['config'] = config
+        context['page_service'] = service  # Updates the service context defined in BaseView
+        context['page_config'] = config
         context['profile_name'] = service.project_name
         context['profile_email'] = config.contact_email
         context['profile_phone'] = config.contact_phone
@@ -515,13 +513,13 @@ def grant_access(request, *args, **kwargs):
         response = {'error': "Maximum of %d collaborators reached" % Community.MAX}
         return HttpResponse(json.dumps(response), content_type='application/json')
     database = rq_service.database
+    add_database_to_settings(database)
     group = Group.objects.using(database).get(pk=group_id)
     rq.member.customer_on_fk_list.append(rq_service.id)
     if group.name != COMMUNITY:
         rq_member.collaborates_on_fk_list.append(rq_service.id)
         rq_member.is_staff = True
     rq_member.save()
-    add_database_to_settings(database)
     rq_member.is_iao = False
     rq_member.save(using=database)
     member = Member.objects.using(database).get(
@@ -532,7 +530,10 @@ def grant_access(request, *args, **kwargs):
     rq.status = AccessRequest.CONFIRMED
     rq.group_name = group.name
     rq.save()
-    ConsoleEvent.objects.get(member=rq_service.member, object_id=rq.id).delete()
+    try:
+        ConsoleEvent.objects.get(member=request.user, object_id=rq.id).delete()
+    except ConsoleEvent.DoesNotExist:
+        pass
     add_event(rq_service, rq_member, WELCOME_EVENT, rq.id)
     add_event(rq_service, rq_service.member, ACCESS_GRANTED_EVENT, rq.id)
     subject = _("You were added to %s community" % rq_service.project_name)

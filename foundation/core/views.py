@@ -488,11 +488,13 @@ def list_projects(request, *args, **kwargs):
     return HttpResponse(jsonp, content_type='application/json')
 
 
-@login_required
 def load_event_content(request, *args, **kwargs):
     event_id = request.GET['event_id']
+    member_id = request.GET['member_id']
     try:
         event = ConsoleEvent.objects.using(UMBRELLA).get(pk=event_id)
+        if member_id != event.member_id:
+            return None
         response = {'html': event.render()}
         callback = request.GET['callback']
         response = callback + '(' + json.dumps(response) + ')'

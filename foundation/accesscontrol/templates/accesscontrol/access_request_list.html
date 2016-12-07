@@ -45,7 +45,7 @@
                             <div class="about">
                                 <div class="col-sm-6 col-md-6">
                                     <h3>{{ elt.rq.get_title }}</h3>
-                                    <p>{{ elt.rq.get_description }} {% trans "on" %}
+                                    <p>{% trans "This person would like to join your community on" %}
                                         <span class="text-success">{{ elt.rq.service.project_name }}</span></p>
                                 </div>
                                 <div class="spacer"></div>
@@ -58,7 +58,7 @@
                             </div>
                             <div class="groups" style="display: none">
                                 <div class="group-choice">
-                                    <h3>{% trans "Grant access as:" %}</h3>
+                                    <h3>{% trans "Add to group ..." %}</h3>
                                     {% for group in elt.groups %}
                                         <div class="form-group">
                                             <div class="radio"> <label> <input type="radio" class="group" name="group" value="{{ group.id }}" /> {{ group.name }} </label> </div>
