@@ -56,7 +56,7 @@
 - model: auth.group
   pk: 5804b37b3379b531e01eb6d2
   fields:
-    name: Collaborator
+    name: Collabo
 
 - model: auth.group
   pk: 5804b37b3379b531e01eb6d3

@@ -55,7 +55,7 @@ urlpatterns = patterns(
     url(r'^load_member_detail$', load_member_detail, name='load_member_detail'),
 
     url(r'^console/$', login_required(Console.as_view()), name='console'),
-    url(r'^load_event_content$', load_event_content, name='load_event_content'),
+    url(r'^load_event_content/$', load_event_content, name='load_event_content'),
     url(r'^upload_image$', upload_image, name='upload_image'),
     url(r'^upload_customization_image$', upload_customization_image, name='upload_customization_image'),
     url(r'^reset_notices_counter$', reset_notices_counter, name='reset_notices_counter'),

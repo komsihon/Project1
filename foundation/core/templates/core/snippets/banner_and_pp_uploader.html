@@ -9,7 +9,7 @@
                 buttonText: title,
                 multiple: false,
                 onSubmit: function () {
-                    $(selector + ' .progress-bar').width(0);
+                    $(selector + ' + .progress .progress-bar').width(0);
                     $(selector + ' + .progress').css('visibility', 'visible');
                 },
                 onProgress: function (id, fileName, loaded, total) {

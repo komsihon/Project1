@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
-from django.contrib.auth.models import BaseUserManager, AbstractUser
+from django.contrib.auth.models import BaseUserManager, AbstractUser, Group
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.datetime_safe import strftime
 from django.utils.translation import gettext as _
 from django_mongodb_engine.contrib import RawQueryMixin
-from djangotoolbox.fields import ListField, EmbeddedModelField
+from djangotoolbox.fields import ListField
 from ikwen.foundation.accesscontrol.templatetags.auth_tokens import ikwenize
 from permission_backend_nonrel.models import UserPermissionList
 
@@ -24,14 +24,19 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         member = self.model(username=username, **extra_fields)
         member.full_name = u'%s %s' % (member.first_name.split(' ')[0], member.last_name.split(' ')[0])
         service_id = getattr(settings, 'IKWEN_SERVICE_ID')
-        debug = getattr(settings, 'DEBUG', False)
-        if not debug:
-            if service_id:
-                service = get_service_instance()
-                member.entry_service = service
-                member.customer_on.append(service)
+        if service_id:
+            service = get_service_instance()
+            member.entry_service = service
+            member.customer_on_fk_list.append(service.id)
         member.set_password(password)
-        member.save()
+        from ikwen.foundation.accesscontrol.backends import UMBRELLA
+        member.save(using=UMBRELLA)
+        member.save(using='default')
+        if not getattr(settings, 'IS_IKWEN', False):
+            group = Group.objects.get(name=COMMUNITY)
+            perm_list, created = UserPermissionList.objects.get_or_create(user=member)
+            perm_list.group_fk_list.append(group.id)
+            perm_list.save()
         return member
 
     def create_superuser(self, username, password, **extra_fields):
@@ -46,6 +51,11 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         member.is_iao = True
         member.is_bao = True
         member.save()
+        if not getattr(settings, 'IS_IKWEN', False):
+            group = Group.objects.get(name=SUDO)
+            perm_list = UserPermissionList.objects.get(user=member)
+            perm_list.group_fk_list = [group.id]
+            perm_list.save()
         return member
 
 
@@ -120,13 +130,11 @@ class Member(AbstractUser):
     def _get_customer_on(self):
         from ikwen.foundation.accesscontrol.backends import UMBRELLA
         return [Service.objects.using(UMBRELLA).get(pk=pk) for pk in self.customer_on_fk_list]
-
     customer_on = property(_get_customer_on)
 
     def _get_collaborates_on(self):
         from ikwen.foundation.accesscontrol.backends import UMBRELLA
         return [Service.objects.using(UMBRELLA).get(pk=pk) for pk in self.collaborates_on_fk_list]
-
     collaborates_on = property(_get_collaborates_on)
 
     def replicate_changes(self):

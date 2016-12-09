@@ -203,7 +203,7 @@
                 $tpl.addClass(member.status).data({"id": member.id, "status": member.status, "permissions": member.permissions});
                 $tpl.find('.full_name').text(member.full_name);
                 $tpl.find('.about').text(member.phone + ', ' + member.email);
-                $tpl.find('a').attr('href', member.profile_url);
+                $tpl.find('a').attr('href', member.url);
                 $tpl.find('.photo').css('background-image', 'url(' + member.photo + ')');
                 return $tpl;
             }

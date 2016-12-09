@@ -49,15 +49,16 @@
                             </div>
                         </div>
                     {% endif %}
+                    <h2 class="text-has-shade visible-xs">{{ member.full_name|truncatewords:"2" }}</h2>
                 </div>
-                <div class="upload-image"></div>
+                <div class="upload-image hidden-xs"></div>
                 <div class="progress">
                     <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
                          aria-valuemax="100">
                         <span class="sr-only"></span>
                     </div>
                 </div>
-                <h2 class="text-has-shade">{{ member.full_name }}</h2>
+                <h2 class="text-has-shade hidden-xs">{{ member.full_name }}</h2>
             </div>
             {% if request.user.collaborates_on|length > 0 %}
             <nav>
@@ -81,45 +82,50 @@
         </header>
         {% for service, event_list in access_request_events.items %}
             <div id="access-requests" class="container-fluid row">
-                <div style="padding: 0 15px">
-                    <div class="{{ service.project_name_slug }} card subtle-shade">
-                        <h3>
-                            {% if service.config.logo.name %}
-                                <img src="{{ service.config.logo.url }}" width="30" />
-                            {% endif %}
-                            <a href="{{ service.url }}" style="cursor: pointer">{{ service.project_name }}</a>
-                        </h3>
-                        <div class="AccessRequest">
-                            <h4>
-                                {% trans "Request to join" %}
-                                {% if event_list|length > 4 and event_list.0.event_type.target_url_name %}
-                                    {% url event_list.0.event_type.target_url_name as target_url %}
-                                    <a class="more" href="{{ target_url|append_auth_tokens:request }}">{% trans "See all" %}</a>
+                <div class="row">
+                    <div style="padding: 0 15px">
+                        <div class="{{ service.project_name_slug }} card subtle-shade">
+                            <h3>
+                                {% if service.config.logo.name %}
+                                    <img src="{{ service.config.logo.url }}" width="30"/>
                                 {% endif %}
-                            </h4>
-                            <div class="row" style="margin-top: 15px">
-                                {% for event in event_list %} {{ event.render|safe }} {% endfor %}
+                                <a href="{{ service.url }}" style="cursor: pointer">{{ service.project_name }}</a>
+                            </h3>
+                            <div class="AccessRequest">
+                                <h4>
+                                    {% trans "Request to join" %}
+                                    {% if event_list|length > 4 and event_list.0.event_type.target_url_name %}
+                                        {% url event_list.0.event_type.target_url_name as target_url %}
+                                        <a class="more"
+                                           href="{{ target_url|append_auth_tokens:request }}">{% trans "See all" %}</a>
+                                    {% endif %}
+                                </h4>
+                                <div class="row" style="margin-top: 15px">
+                                    {% for event in event_list %} {{ event.render|safe }} {% endfor %}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         {% endfor %}
-        <div id="events" class="container-fluid row">
-            {% if event_list|length == 0 %}
-                <div class="col-xs-12">
-                    <div class="card subtle-shade">
-                        <div>
-                            <h4>{% trans "No event" %}</h4>
+        <div id="events" class="container-fluid">
+            <div class="row">
+                {% if event_list|length == 0 %}
+                    <div class="col-xs-12">
+                        <div class="card subtle-shade">
+                            <div>
+                                <h4>{% trans "No event" %}</h4>
+                            </div>
                         </div>
                     </div>
-                </div>
-            {% endif %}
-            {% if request.user_agent.is_mobile %}
-                {% include 'core/snippets/console_event_list_mobile.html' %}
-            {% else %}
-                {% include 'core/snippets/console_event_list.html' %}
-            {% endif %}
+                {% endif %}
+                {% if request.user_agent.is_mobile %}
+                    {% include 'core/snippets/console_event_list_mobile.html' %}
+                {% else %}
+                    {% include 'core/snippets/console_event_list.html' %}
+                {% endif %}
+            </div>
         </div>
     </div>
 {% endblock %}
@@ -134,6 +140,9 @@
             function loadCardContent(eventId) {
                 var _$card = $('#' + eventId),
                     baseUrl = _$card.data('base-url');
+                {% if request.META.HTTP_HOST != 'localhost' %}
+                    if (baseUrl.substr(-9) != 'ikwen.com') baseUrl += '/ikwen';
+                {% endif %}
                 $.getJSON(baseUrl + '{% url 'ikwen:load_event_content' %}?callback=?',
                         {event_id: eventId, member_id: '{{ user.id }}'},
                         function(res) {

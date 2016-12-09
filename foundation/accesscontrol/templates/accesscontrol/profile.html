@@ -36,10 +36,12 @@
             {% endif %}
         {% endif %}
 
-        {% if is_console %}#banner h2 {
-            margin-top: 210px
-        }
-
+        {% if is_console %}
+            @media (min-width: 476px) {
+                #banner h2 {
+                    margin-top: 210px
+                }
+            }
         {% endif %}
     </style>
 {% endblock %}
@@ -58,8 +60,9 @@
                     <div id="banner">
                         <div class="frame">
                             <div class="photo"></div>
+                            <h2 class="text-has-shade visible-xs">{{ profile_name|truncatewords:"2" }}</h2>
                         </div>
-                        <h2 class="text-has-shade">{{ profile_name }}</h2>
+                        <h2 class="text-has-shade hidden-xs">{{ profile_name }}</h2>
                     </div>
                 </header>
                 <div class="container-fluid" id="cards">
@@ -117,7 +120,11 @@
                     {% endfor %}
                     <section id="about" class="subtle-shade">
                         {% if is_company and page_config.short_description %}
-                            <p style="color: #666; font-size: 18px; margin-bottom: 20px">{{ page_config.short_description }}</p>
+                            {% if page_config.description %}
+                                <p style="color: #666; font-size: 18px; margin-bottom: 20px">{{ page_config.description }}</p>
+                            {% else %}
+                                <p style="color: #666; font-size: 18px; margin-bottom: 20px">{{ page_config.short_description }}</p>
+                            {% endif %}
                         {% else %}
                             <h3>{% trans "About" %}</h3>
                         {% endif %}

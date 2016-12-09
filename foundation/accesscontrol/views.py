@@ -95,6 +95,9 @@ class Register(BaseView):
                 import ikwen.conf.settings as ikwen_settings
                 ikwen_service = Service.objects.using(UMBRELLA).get(pk=ikwen_settings.IKWEN_SERVICE_ID)
                 add_event(ikwen_service, member, WELCOME_ON_IKWEN_EVENT)
+                if not getattr(settings, 'IS_IKWEN', False):
+                    service = get_service_instance()
+                    add_event(service, member, WELCOME_EVENT)
                 send_welcome_email(member)
                 next_url = request.REQUEST.get('next')
                 if next_url:

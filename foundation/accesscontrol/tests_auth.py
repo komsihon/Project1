@@ -9,6 +9,7 @@ from urllib import unquote
 from urlparse import urlparse
 
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import urlencode
@@ -18,10 +19,12 @@ from django.utils import unittest
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext as _
+from permission_backend_nonrel.models import UserPermissionList
+
 from ikwen.foundation.accesscontrol.middleware import TOKEN_CHUNK
 
 from foundation.accesscontrol.backends import UMBRELLA
-from ikwen.foundation.accesscontrol.models import Member
+from ikwen.foundation.accesscontrol.models import Member, COMMUNITY
 from ikwen.foundation.core.models import Service, Config
 
 
@@ -32,12 +35,16 @@ def wipe_test_data():
     """
     import ikwen.foundation.core.models
     import ikwen.foundation.accesscontrol.models
+    import permission_backend_nonrel.models
     for alias in getattr(settings, 'DATABASES').keys():
         for name in ('Application', 'Service', 'Config', 'ConsoleEventType', 'ConsoleEvent', 'Country', ):
             model = getattr(ikwen.foundation.core.models, name)
             model.objects.using(alias).all().delete()
         for name in ('Member', 'AccessRequest', ):
             model = getattr(ikwen.foundation.accesscontrol.models, name)
+            model.objects.using(alias).all().delete()
+        for name in ('UserPermissionList', 'GroupPermissionList',):
+            model = getattr(permission_backend_nonrel.models, name)
             model.objects.using(alias).all().delete()
 
 
@@ -106,7 +113,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.post(reverse('ikwen:sign_in'), {'username': 'member3', 'password': 'admin'}, follow=True)
         final = response.redirect_chain[-1]
-        location = final[0].strip('/').split('/')[-2]
+        location = final[0].strip('/').split('/')[-1]
         self.assertEqual(location, 'console')
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', LOGIN_REDIRECT_URL='ikwen:contact')
@@ -138,35 +145,12 @@ class IkwenAuthTestCase(unittest.TestCase):
         """
         Login in with next_url GET parameter should redirect to next_url with its GET parameters kept
         """
-        member = Member.objects.get(username='arch')
-        uid = urlsafe_base64_encode(force_bytes(member.pk))
-        token = member.password[-TOKEN_CHUNK:-1]
         response = self.client.get(reverse('ikwen:sign_in'))
         self.assertEqual(response.status_code, 200)
         contact_url = reverse('ikwen:contact')
         next_url = contact_url + '?p1=v1&p2=v2'
         origin = reverse('ikwen:sign_in') + '?next=' + urlencode(next_url)
         response = self.client.post(origin, {'username': 'arch', 'password': 'admin'}, follow=True)
-        final = response.redirect_chain[-1]
-        self.assertEqual(final[0], 'http://testserver' + next_url + '&key=' + uid + '&rand=' + token)
-
-    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
-    def test_middleware_hit_url_with_invalid_tokens(self):
-        """
-        Normally authenticated user is logged out redirected to the
-        requested URL without key and token when those last two are invalid
-        """
-        member = Member.objects.get(username='arch')
-        uid = urlsafe_base64_encode(force_bytes(member.pk))
-        token = member.password[-TOKEN_CHUNK:-1]
-        response = self.client.get(reverse('ikwen:sign_in'))
-        self.assertEqual(response.status_code, 200)
-        contact_url = reverse('ikwen:contact')
-        next_url = contact_url + '?p1=v1&p2=v2'
-        origin = reverse('ikwen:sign_in') + '?next=' + urlencode(next_url)
-        self.client.post(origin, {'username': 'arch', 'password': 'admin'}, follow=True)
-        origin_with_invalid_tokens = next_url + '&key=' + uid + '&rand=WrongToken'
-        response = self.client.get(origin_with_invalid_tokens, follow=True)
         final = response.redirect_chain[-1]
         self.assertEqual(final[0], 'http://testserver' + next_url)
 
@@ -248,8 +232,11 @@ class IkwenAuthTestCase(unittest.TestCase):
         self.assertGreaterEqual(params.index('p2=v2'), 0)
         response = self.client.post(reverse('ikwen:sign_in'), {'username': 'testuser1', 'password': 'secret'}, follow=True)
         final = response.redirect_chain[-1]
-        location = final[0].strip('/').split('/')[-2]
+        location = final[0].strip('/').split('/')[-1]
         self.assertEqual(location, 'console')
+        perm_list = UserPermissionList.objects.get(user=m2)
+        group = Group.objects.get(name=COMMUNITY)
+        self.assertIn(group.id, perm_list.group_fk_list)
         from pymongo import Connection
         cnx = Connection()
         cnx.drop_database('test_registered_member')

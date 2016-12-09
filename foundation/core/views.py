@@ -43,7 +43,7 @@ from ikwen.foundation.core.utils import get_service_instance, DefaultUploadBacke
 import ikwen.conf.settings
 
 try:
-    ikwen_service = Service.objects.get(pk=ikwen.conf.settings.IKWEN_SERVICE_ID)
+    ikwen_service = Service.objects.using(UMBRELLA).get(pk=ikwen.conf.settings.IKWEN_SERVICE_ID)
     IKWEN_BASE_URL = ikwen_service.url
 except Service.DoesNotExist:
     IKWEN_BASE_URL = getattr(settings, 'IKWEN_BASE_URL') if getattr(settings, 'DEBUG',
@@ -118,7 +118,12 @@ class HybridListView(ListView):
             limit = start + length
             queryset = self.get_search_results(queryset)
             queryset = queryset.order_by(*self.ajax_ordering)[start:limit]
-            response = [order.to_dict() for order in queryset]
+            response = []
+            for item in queryset:
+                try:
+                    response.append(item.to_dict())
+                except:
+                    continue
             return HttpResponse(
                 json.dumps(response),
                 'content-type: text/json',

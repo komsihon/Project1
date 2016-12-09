@@ -40,7 +40,7 @@ class ServiceAdmin(admin.ModelAdmin):
 
 
 class ConfigAdmin(admin.ModelAdmin):
-    list_display = ('company_name', 'short_description', 'contact_email', 'contact_phone')
+    list_display = ('service', 'company_name', 'short_description', 'contact_email', 'contact_phone')
     fieldsets = (
         (_('General'), {'fields': (
         'service', 'company_name', 'short_description', 'slogan', 'description', 'currency_code', 'currency_symbol',)}),
@@ -49,6 +49,7 @@ class ConfigAdmin(admin.ModelAdmin):
         (_('Mailing'), {'fields': ('welcome_message', 'signature', )}),
     )
     list_filter = ('company_name', 'contact_email', )
+    readonly_fields = ('service',)
     save_on_top = True
 
     def delete_model(self, request, obj):

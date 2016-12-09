@@ -37,14 +37,23 @@
 
 #banner h2 {
     color: #fff;
-    float: left;
-    font-size: 27px;
+    font-size: 21px;
     font-weight: 700;
-    margin: 240px 0 0 30px;
+    margin: -54px auto 0;
+}
+
+#banner h2.visible-xs {
+    text-align: center
 }
 #banner .frame {float: none; margin: auto; width: 90%}
 @media (min-width: 476px) {
     #banner .frame {float: left; overflow: hidden; width: 240px}
+
+    #banner h2 {
+        float: left;
+        font-size: 27px;
+        margin: 240px 0 0 30px;
+    }
 }
 #cover nav {}
 #stage {float: left; width: 100%}
