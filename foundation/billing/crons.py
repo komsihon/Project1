@@ -73,7 +73,7 @@ def send_invoices():
         total_amount += amount
         add_event(service, member, NEW_INVOICE_EVENT, invoice.id)
         subject, message, sms_text = get_invoice_generated_message(invoice)
-        if member.email.find(member.phone) < 0:
+        if member.email and member.email.find(member.phone) < 0:
             invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
             html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                             extra_context={'invoice_url': invoice_url})
@@ -134,7 +134,7 @@ def send_invoice_reminders():
             member = invoice.subscription.member
             add_event(service, member, INVOICE_REMINDER_EVENT, invoice.id)
             subject, message, sms_text = get_invoice_reminder_message(invoice)
-            if member.email.find(member.phone) < 0:
+            if member.email and member.email.find(member.phone) < 0:
                 invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'invoice_url': invoice_url})
@@ -191,7 +191,7 @@ def send_invoice_overdue_notices():
             member = invoice.subscription.member
             add_event(service, member, OVERDUE_NOTICE_EVENT, invoice.id)
             subject, message, sms_text = get_invoice_overdue_message(invoice)
-            if member.email.find(member.phone) < 0:
+            if member.email and member.email.find(member.phone) < 0:
                 invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'invoice_url': invoice_url})
@@ -250,7 +250,7 @@ def suspend_customers_services():
             member = invoice.subscription.member
             add_event(service, member, SERVICE_SUSPENDED_EVENT, invoice.id)
             subject, message, sms_text = get_service_suspension_message(invoice)
-            if member.email.find(member.phone) < 0:
+            if member.email and member.email.find(member.phone) < 0:
                 invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'invoice_url': invoice_url})

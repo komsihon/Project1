@@ -79,6 +79,18 @@ def setup_dev_env(app_name, username, database=None, project_name=None,
     print "Add this to your project settings: IKWEN_SERVICE_ID = '%s'\n\n" % s.pk
 
 
+def generate_random_key(length):
+    import random
+    import string
+    generated_key = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits + string.punctuation)
+                             for _ in range(length)])
+    return generated_key
+
+
+def generate_django_secret_key():
+    return generate_random_key(50)
+
+
 # if __name__ == "__main__":
 #     import sys
 #     if len(sys.argv) < 3:

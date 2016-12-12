@@ -70,7 +70,10 @@ class ChangeFlatPage(BaseView):
             content = form.cleaned_data['content']
             if page is None:
                 page = FlatPage()
-            page.url = slugify(title)
+                page.url = slugify(title)
+            else:
+                if page.url != FlatPage.AGREEMENT and page.url != FlatPage.LEGAL_MENTIONS:
+                    page.url = slugify(title)
             page.title = title
             page.content = content
             page.registration_required = True if request.POST.get('registration_required') else False

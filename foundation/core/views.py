@@ -284,9 +284,9 @@ class ServiceDetail(BaseView):
         else:
             now = datetime.now()
             service.next_invoice_on = service.expiry - timedelta(days=invoicing_config.gap)
-            if service.expiry < now:
+            if service.expiry < now.date():
                 service.expired = True
-            if now > service.next_invoice_on:
+            if now.date() > service.next_invoice_on:
                 days = get_billing_cycle_days_count(service.billing_cycle)
                 service.next_invoice_on = service.next_invoice_on + timedelta(days=days)
             service.next_invoice_amount = service.monthly_cost * get_billing_cycle_months_count(service.billing_cycle)

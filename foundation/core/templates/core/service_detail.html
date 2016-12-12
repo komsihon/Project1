@@ -103,7 +103,7 @@
                 <div class="detail row">
                     <label class="col-sm-3">{% trans "Expiry" %}</label>
                     {% if service.expiry %}
-                        <span>{{ service.expiry }} <em style="font-size: 11px">({{ service.expiry|naturaltime }})</em></span>
+                        <span>{{ service.expiry }} <em style="font-size: 11px">({{ service.expiry }})</em></span>
                     {% else %}
                         <span>N/A</span>
                     {% endif %}

@@ -240,7 +240,7 @@ def increment_history_field(watch_object, history_field, increment_value=1):
         if len(sequence) >= 1:
             sequence[-1] += increment_value
         else:
-            sequence[0] = increment_value
+            sequence.append(increment_value)
     else:
         value_list = [val.strip() for val in sequence.split(',')]
         value_list[-1] = float(value_list[-1]) + increment_value

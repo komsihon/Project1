@@ -9,6 +9,7 @@
         </div>
     </div>
 {% endblock %}
-{% block custom_js %}
-    {{ config.google_analytics|safe }}
+{% block js %}
+    {{ block.super }}
+    {{ config.scripts|safe }}
 {% endblock %}
