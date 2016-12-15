@@ -105,13 +105,26 @@ class IkwenAuthTestCase(unittest.TestCase):
         self.assertIsNotNone(response.context['login_form'])
 
     @override_settings(DATABASES=DATABASES, IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', LOGIN_REDIRECT_URL=None)
-    def test_login_with_correct_credentials_and_no_prior_get_parameters(self):
+    def test_login_with_correct_uname_and_password_and_no_prior_get_parameters(self):
         """
         Login in with no prior GET parameters should redirect to console page
         """
         response = self.client.get(reverse('ikwen:sign_in'))
         self.assertEqual(response.status_code, 200)
         response = self.client.post(reverse('ikwen:sign_in'), {'username': 'member3', 'password': 'admin'}, follow=True)
+        final = response.redirect_chain[-1]
+        location = final[0].strip('/').split('/')[-1]
+        self.assertEqual(location, 'console')
+
+    @override_settings(DATABASES=DATABASES, IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', LOGIN_REDIRECT_URL=None)
+    def test_login_with_correct_email_and_password_and_no_prior_get_parameters(self):
+        """
+        Login in with no prior GET parameters should redirect to console page
+        """
+        response = self.client.get(reverse('ikwen:sign_in'))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.post(reverse('ikwen:sign_in'), {'username': 'member3@ikwen.com', 'password': 'admin'},
+                                    follow=True)
         final = response.redirect_chain[-1]
         location = final[0].strip('/').split('/')[-1]
         self.assertEqual(location, 'console')
@@ -206,7 +219,7 @@ class IkwenAuthTestCase(unittest.TestCase):
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', LOGIN_REDIRECT_URL=None,
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-                       EMAIL_FILE_PATH='test_emails/ikwen/')
+                       EMAIL_FILE_PATH='test_emails/ikwen/', IS_IKWEN=False)
     def test_register_with_correct_values_next_url_and_other_get_parameters(self):
         """
         Correct parameters save user in default and foundation databases. Prior GET parameters remain

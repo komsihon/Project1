@@ -342,10 +342,13 @@ class Configuration(BaseView):
             service_id = kwargs.get('service_id')
             if service_id:
                 service = get_object_or_404(Service, pk=service_id)
+                next_url = reverse('ikwen:configuration', args=(service_id,))
             else:
                 service = get_service_instance()
+                next_url = reverse('ikwen:configuration')
         else:
             service = get_service_instance()
+            next_url = reverse('ikwen:configuration')
         config_admin = self.get_config_admin()
         ModelForm = config_admin.get_form(request)
         form = ModelForm(request.POST, instance=service.config)
@@ -356,8 +359,7 @@ class Configuration(BaseView):
             cache.delete(service.id + ':config:default')
             cache.delete(service.id + ':config:' + UMBRELLA)
             service.config.save(using=UMBRELLA)
-            next_url = reverse('ikwen:configuration') + '?success=yes'
-            next_url = append_auth_tokens(next_url, request)
+            next_url = append_auth_tokens(next_url + '?success=yes', request)
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)

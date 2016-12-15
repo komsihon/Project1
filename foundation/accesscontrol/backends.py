@@ -31,15 +31,20 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                 if not user.check_password(password):
                     return None
             except Member.DoesNotExist:
-                try:
-                    phone = kwargs.get('phone')
-                    if not phone:
+                for m in Member.objects.using(UMBRELLA).filter(email=username):
+                    if m.check_password(password):
+                        user = m
+                        break
+                else:
+                    try:
+                        phone = kwargs.get('phone')
+                        if not phone:
+                            return None
+                        user = Member.objects.using(UMBRELLA).get(phone=phone)
+                        if not user.check_password(password):
+                            return None
+                    except Member.DoesNotExist:
                         return None
-                    user = Member.objects.using(UMBRELLA).get(phone=phone)
-                    if not user.check_password(password):
-                        return None
-                except Member.DoesNotExist:
-                    return None
         try:
             Member.objects.using('default').get(username=username)
         except Member.DoesNotExist:

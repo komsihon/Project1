@@ -104,6 +104,10 @@ class Register(BaseView):
                     # Remove next_url from the original query_string
                     next_url = next_url.split('?')[0]
                     query_string = urlunquote(query_string).replace('next=%s' % next_url, '').strip('?').strip('&')
+                    if query_string:
+                        query_string += '&successfulRegistration=yes'
+                    else:
+                        query_string = 'successfulRegistration=yes'
                 else:
                     if getattr(settings, 'IS_IKWEN', False):
                         next_url = reverse('ikwen:console')
@@ -113,6 +117,7 @@ class Register(BaseView):
                             next_url = reverse(next_url_view)
                         else:
                             next_url = ikwenize(reverse('ikwen:console'))
+                    query_string = 'successfulRegistration=yes'
                 return HttpResponseRedirect(next_url + "?" + query_string)
             else:
                 msg = _("You already created an ikwen account with this username on %s. "

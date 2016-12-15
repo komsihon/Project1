@@ -74,7 +74,8 @@
             </form>
             <div style="clear: both; padding-top: 15px; text-align: center">
                 {% trans "No account yet ?" %}
-                <a id="show-register" href="{% url 'ikwen:register' %}">{% trans "Register" %}</a>
+                <a id="show-register"
+                   href="{% url 'ikwen:register' %}?{{ request.META.QUERY_STRING }}">{% trans "Register" %}</a>
             </div>
         </div>
         {% else %}
