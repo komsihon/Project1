@@ -82,6 +82,9 @@
 .ik-li .actions {display: none;float: right;}
 .ik-li:hover .select, .ik-li:not(.selected):hover .actions {display: block}
 time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;}
+.ik-li .glyphicon.check {background: #fff; border-radius: 20px;color: #999;cursor: pointer;float: left;margin-right: 24px;margin-top: 18px;border: 1px solid;}
+.ik-li .glyphicon.check.active {border-color: transparent; background: #40af00;color: #fff;font-size: 9px}
+.ik-li .glyphicon.check.active:hover {border-color: transparent;background: #59c51b;}
 
 .tiles .ik-li {border: 1px solid #eee;height: 150px;margin: 15px;width: 45%;}
 .tiles .ik-li.selected {border: 3px solid #9433ff}
@@ -92,6 +95,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 .tiles .ik-li:hover, .tiles .ik-li.active {background: #f6f6f6}
 .tiles .ik-li .image {height: 200px;width: 100%}
 .tiles .ik-li .info {margin: 7px 0 0 0}
+.ik-li.tile .glyphicon.check {margin: -208px 0 0 -88px}
 
 .tiles .sortable-placeholder {
     border: 3px dashed #777;
@@ -219,14 +223,44 @@ div#container.admin {padding-top: 92px;}
 @media (min-width: 1200px) {
     #admin-content.change-form {padding-left: 40px}
 }
+#results {clear: both}
+
 .checkbox-row input[type=checkbox] {float: left;width: 20px;}
 .checkbox-row label {margin: 10px 0 0 10px}
 #stage section {background: #fff;float: left;margin-top: 25px;overflow: hidden;padding: 15px;width: 100%;}
 #stage section h3 {font-size: 21px; font-weight: 700; margin-top: 0}
+footer {color: #999; font-size: 12px; margin-top: 45px; text-align: center; padding-bottom: 30px}
 footer a {color: #999}
-footer {padding-bottom: 30px}
 
 #object-detail {background: #fff; height: 100%; margin-top: -115px; padding: 0 15px; position: fixed; right: 0; width: 330px}
 #object-detail .stage {border-left: 1px solid #eee; float: left; height: 100%; overflow: auto; padding: 0 15px 120px; width: 100%}
 #object-detail form {margin: 25px 0}
 #object-detail form button {margin-top: 25px}
+
+.payment-mean {display: block; height: 45px}
+.payment-mean span {float: left; padding: 12px 15px; width: 35%}
+.payment-mean img {float: left; height: 100%; width: 65%}
+
+.show-results-filter {text-align: left; width: 120px}
+.results-filter {
+    display: none;
+    clear: both;
+    float: left;
+    width: 600px;
+    font-size: 12px;
+}
+.results-filter.active {display: block}
+
+.results-filter li a {
+    padding: 2px 15px;
+}
+
+.results-filter h3 {
+    border-bottom: 1px solid #ddd; font-size: 1.3em; padding-bottom: 5px; margin-bottom: 0
+}
+
+.results-filter h4 {
+    font-size: 1.2em; font-weight: 700
+}
+
+#object-detail.filter-revealed {margin-top: -360px}

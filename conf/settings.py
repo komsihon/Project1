@@ -21,7 +21,7 @@ SECRET_KEY = 'zedpmxz&d(5swy9@8b2cb-k2wa(xg!%ow&2s5j_&_^wa*t5lgh'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-TESTING = True
+TESTING = False
 
 TEMPLATE_DEBUG = True
 
@@ -46,10 +46,13 @@ INSTALLED_APPS = (
     # 'paypal.standard',
     # 'paypal.pro',
 
-    'ikwen.foundation.core',
-    'ikwen.foundation.accesscontrol',
-    'ikwen.foundation.billing',
-    'ikwen.foundation.flatpages',
+    'ikwen.core',
+    'ikwen.accesscontrol',
+    'ikwen.billing',
+    'ikwen.flatpages',
+    'ikwen.cashout',
+    'ikwen.partnership',
+    'ikwen.theming',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -71,7 +74,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.static",
     "django.contrib.messages.context_processors.messages",
     'django.core.context_processors.request',
-    'ikwen.foundation.core.context_processors.project_settings',
+    'ikwen.core.context_processors.project_settings',
 
 )
 
@@ -85,6 +88,19 @@ WSGI_APPLICATION = 'ikwen.conf.wsgi.application'
 
 WALLETS_DB_ALIAS = 'wallets'
 
+if DEBUG or TESTING:
+    WALLETS_DB = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+else:
+    WALLETS_DB = {  # ikwen_kakocase.ikwen_kakocase relational database used to store sensitive objects among which CashOutRequest
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ikwen_wallets',
+        'USERNAME': 'root',
+        'PASSWORD': 'admin'
+    }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -93,7 +109,8 @@ DATABASES = {
     'umbrella': {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'ikwen_umbrella',
-    }
+    },
+    WALLETS_DB_ALIAS: WALLETS_DB
 }
 
 CACHES = {
@@ -126,7 +143,7 @@ MEDIA_ROOT = '/home/komsihon/Dropbox/PycharmProjects/ikwen/media/'
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://example.com/media/", "http://media.example.com/"
-MEDIA_URL = '/ikwen/media/'
+MEDIA_URL = 'http://localhost/ikwen/media/'
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
@@ -137,7 +154,7 @@ STATIC_ROOT = os.path.join(BASE_DIR,  'static')
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
-STATIC_URL = '/ikwen/static/'
+STATIC_URL = 'http://localhost/ikwen/static/'
 
 TEMPLATE_DIRS = (os.path.join(BASE_DIR,  'templates'),)
 
@@ -155,16 +172,19 @@ AUTH_USER_MODEL = 'accesscontrol.Member'
 
 AUTHENTICATION_BACKENDS = (
     'permission_backend_nonrel.backends.NonrelPermissionBackend',
-    'ikwen.foundation.accesscontrol.backends.LocalDataStoreBackend',
+    'ikwen.accesscontrol.backends.LocalDataStoreBackend',
 )
 
 # Model to use to generate Invoice for.
 # Typically the Service which the Member subscribed to
 BILLING_SUBSCRIPTION_MODEL = 'core.Service'
-BILLING_SUBSCRIPTION_MODEL_ADMIN = 'ikwen.foundation.core.admin.ServiceAdmin'
-SERVICE_SUSPENSION_ACTION = 'ikwen.foundation.billing.utils.suspend_subscription'
+BILLING_SUBSCRIPTION_MODEL_ADMIN = 'ikwen.core.admin.ServiceAdmin'
+SERVICE_SUSPENSION_ACTION = 'ikwen.billing.utils.suspend_subscription'
 
+MOMO_BEFORE_CASH_OUT = 'ikwen.billing.views.set_invoice_checkout'
+MOMO_AFTER_CASH_OUT = 'ikwen.billing.views.confirm_invoice_payment'
 
+CHECKOUT_MIN = 500
 LOGIN_URL = 'ikwen:sign_in'
 LOGIN_REDIRECT_URL = 'home'
 MEMBER_AVATAR = 'ikwen/img/member-avatar.jpg'

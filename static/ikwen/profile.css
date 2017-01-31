@@ -1,0 +1,24 @@
+/*
+    Created on : Aug 26, 2015, 01:49:41 PM
+    Author     : Kom Sihon & Rodrigue MBOGNING
+*/
+#top {border-bottom: solid 1px #DDD; height: 59px; position: fixed; top: 0; width: 100%}
+#top .user-info {float: right; margin: 9px 9px 0 0}
+#top menu {float: left; height: 100%; margin: 0 0 0 45px; padding: 0}
+#top menu > ul {float: left; height: 100%}
+#top menu > ul li {display: inline; float: left; height: 100%; margin-right: 9px}
+#top menu > ul li a {color: #021579; float: left; font-size: 16px; height: 38px; text-decoration: none; padding: 18px 20px 0}
+#top menu > ul > li:hover > a {color: #E94B00}
+#top menu > ul > li > a.current {border-bottom: solid 3px #E94B00}
+#top menu > ul li .sub-menu {height: 72px; margin: -5px 0 0 -20px; padding: 5px 20px 15px 20px; position: absolute; width: 210px}
+#top menu > ul li ul {background: rgba(255, 255, 255, .72); border: 1px solid #ddd; height: 72px; width: 100%}
+#top menu > ul li ul li {display: block; width: 100%}
+#top menu > ul li ul li:not(:last-child) {border-bottom: 1px solid #eee}
+#top menu > ul li .sub-menu a {color: #22003D; float: left; font-size: 1em; padding: 9px; text-decoration: none; width: 192px}
+
+#customer-info {background: #FFF8F5; border: solid 1px #FCE5DD; clear: both; float: right; font-size: 1.1em; line-height: 24px; margin: 6px 15px 35px 0; padding: 6px 10px; width: 240px}
+#customer-info label {clear: both; float: left; width: 60px}
+#customer-info span {font-weight: bold}
+
+.badge-text {border: solid 1px #c30000; border-radius: 5px; background: #F30000; color: #FFF; font: bold 14px arial, sans-serif; margin: -34px 113px; padding: 2px 7px; position: absolute}
+#content .wrapper > header {font-size: 27px}

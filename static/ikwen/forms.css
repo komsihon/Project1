@@ -1,0 +1,97 @@
+/* 
+    Document   : forms
+    Created on : Apr 14, 2014, 12:18:12 AM
+    Author     : Kom Sihon
+    Description:
+        General display rules for forms
+*/
+form.confirm {padding: 14px}
+form>div {border: 1px solid transparent; float: left; padding-top: 9px}
+form>div:first-child {padding-top: 0}
+form label {float: left; font: bold 1em Helvetica, Arial, sans-serif; width: 180px}
+input[type=text], input[type=password], input[type=number], input[type=email], input[type=url] {background: #fff; border: 1px solid #580081; border-radius: 2px; color: #513F61;
+box-shadow: inset -2px 2px 3px rgba(0, 0, 0, .24); -moz-box-shadow: inset 0 1px 3px -moz-rgba(0, 0, 0, .15); -webkit-box-shadow: inset -2px 2px 3px rgba(0, 0, 0, .24);
+font: normal 1.1em Open sans, Helvetica, sans-serif; height: 26px; padding: 1px 0 1px 5px; width: 300px}
+input:disabled, select:disabled {background: #fff0fc; color: #B09BB8}
+input[type=checkbox] {margin: 0}
+select {box-shadow: inset -2px 2px 3px rgba(0, 0, 0, .24); -moz-box-shadow: inset 0 1px 3px -moz-rgba(0, 0, 0, .15); -webkit-box-shadow: inset -2px 2px 3px rgba(0, 0, 0, .24);
+    background: #fff; border: 1px solid #580081; color: #513F61; font-family: arial, sans-serif; height: 27px; width: 223px}
+select[name=year] {width: 72px}
+select[name=day] {width: 51px}
+select[name=month] {width: 141px}
+button, .button, .qq-upload-button {border-radius: 2px; box-shadow: 0 1px 1px -moz-rgba(0, 0, 0, .1); color: #FFF; cursor: default; float: left; font-family: "Open Sans", arial, sans-serif; height: 21px; padding: 5px 15px 2px; text-align: center; -moz-box-shadow: 0 1px 1px -moz-rgba(0, 0, 0, .1); -webkit-box-shadow: 0px 1px 1px rgba(0, 0, 0, .1); text-shadow: 1px 2px 2px rgba(0, 0, 0, .15)}
+button {height: 30px; margin: 0; padding: 2px 15px 5px}
+button:hover, .button:hover, .qq-upload-button-hover {box-shadow: 1px 1px 6px 3px rgba(0, 0, 0, .1); -moz-box-shadow: 1px 1px 6px 3px -moz-rgba(0, 0, 0, .1); -webkit-box-shadow: 1px 1px 6px 3px rgba(0, 0, 0, .1); text-shadow: 0 0 4px rgba(255, 255, 255, .3)}
+button:disabled, .disabled, .disabled:hover, .qq-upload-button.disabled, .qq-upload-button.disabled:hover {background: #fff0fc; border: 1px solid #F6DBFF; color: #B09BB8; cursor: default; font-weight: bold; text-align: center; text-shadow: none; box-shadow: none; -moz-box-shadow: none; -webkit-box-shadow: none}
+.ui-dialog-buttonset button, button.confirm, .button.confirm, .qq-upload-button {
+    background: #6d128e;
+    background: -moz-linear-gradient(top, #6d128e 0%, #3d0b56 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#6d128e), color-stop(100%,#3d0b56));
+    background: -webkit-linear-gradient(top, #6d128e 0%,#3d0b56 100%);
+    background: -o-linear-gradient(top, #6d128e 0%,#3d0b56 100%);
+    background: -ms-linear-gradient(top, #6d128e 0%,#3d0b56 100%);
+    background: linear-gradient(to bottom, #6d128e 0%,#3d0b56 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6d128e', endColorstr='#3d0b56',GradientType=0 );
+    border: 1px solid #500075
+}
+button.confirm:hover, .button.confirm:hover, .qq-upload-button-hover {
+    background: #732f8c;
+    background: -moz-linear-gradient(top, #732f8c 0%, #3d0b56 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#732f8c), color-stop(100%,#3d0b56));
+    background: -webkit-linear-gradient(top, #732f8c 0%,#3d0b56 100%);
+    background: -o-linear-gradient(top, #732f8c 0%,#3d0b56 100%);
+    background: -ms-linear-gradient(top, #732f8c 0%,#3d0b56 100%);
+    background: linear-gradient(to bottom, #732f8c 0%,#3d0b56 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#732f8c', endColorstr='#3d0b56',GradientType=0 );
+}
+button.default, .button.default {
+    background: #feffff;
+    background: -moz-linear-gradient(top,  #feffff 0%, #ede8ef 43%, #e5dae8 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#feffff), color-stop(43%,#ede8ef), color-stop(100%,#e5dae8));
+    background: -webkit-linear-gradient(top,  #feffff 0%,#ede8ef 43%,#e5dae8 100%);
+    background: -o-linear-gradient(top,  #feffff 0%,#ede8ef 43%,#e5dae8 100%);
+    background: -ms-linear-gradient(top,  #feffff 0%,#ede8ef 43%,#e5dae8 100%);
+    background: linear-gradient(to bottom,  #feffff 0%,#ede8ef 43%,#e5dae8 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#feffff', endColorstr='#e5dae8',GradientType=0 );
+    border: 1px solid #D2B5FF; color: #500075;
+}
+button.warning, .button.warning {background: #EA6553; background: -ms-linear-gradient(top, #EE8677, #C81A1E); background: -moz-linear-gradient(top, #EE8677, #C81A1E); background: -o-linear-gradient(top, #EE8677, #C81A1E); background: -webkit-gradient(linear, left top, left bottom, from(#EE8677), to(#C81A1E)); filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#FFEE8677, endColorstr=#FFC81A1E); border: 1px solid #D91A1F; color: #FFF
+}
+button.warning:hover, .button.warning:hover {background: #EA6553; background: -ms-linear-gradient(top, #EE8677, #C81A1E); background: -moz-linear-gradient(top, #EE8677, #C81A1E); background: -o-linear-gradient(top, #EE8677, #C81A1E); background: -webkit-gradient(linear, left top, left bottom, from(#EE8677), to(#C81A1E)); filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#FFEE8677, endColorstr=#FFC81A1E); box-shadow: 0 1px 3px rgba(0, 0, 0, .2); -moz-box-shadow: 0 1px 3px -moz-rgba(0, 0, 0, .15); -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, .15); color: #fff}
+button.default:active, .button.default:active, button.confirm:active, .button.confirm:active, button.warning:active, .button.warning:active {box-shadow: inset 0 1px 2px rgba(0, 0, 0, .15); -moz-box-shadow: inset 0 1px 2px -moz-rgba(0, 0, 0, .15); -webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, .15)}
+.submit-result {float: left; clear: both; height: 16px; padding: 5px}
+.working {cursor: wait}
+.success {background: #B6F1B6; border: 1px solid; color: #039B03}
+.failure {background: #FFB6C1; border: 1px solid; color:  #F00}
+
+.fancy-combo-box {float: left; padding: 0}
+.fancy-combo-box input {
+    background: #ffffff;
+    background: -moz-linear-gradient(top,  #ffffff 0%, #f6f6f6 47%, #ededed 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(47%,#f6f6f6), color-stop(100%,#ededed));
+    background: -webkit-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+    background: -o-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+    background: -ms-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+    background: linear-gradient(to bottom,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ededed',GradientType=0 );
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .1); cursor: default;
+    float: left; width: 147px
+}
+.fancy-combo-box span.arrow {
+    background: #ffffff;
+    background: -moz-linear-gradient(top,  #ffffff 0%, #f6f6f6 47%, #ededed 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(47%,#f6f6f6), color-stop(100%,#ededed));
+    background: -webkit-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+    background: -o-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+    background: -ms-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+    background: linear-gradient(to bottom,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ededed',GradientType=0 );
+    border-bottom: 1px solid #580081; border-right: 1px solid #580081; border-top: 1px solid #580081;
+    border-top-right-radius: 2px; border-bottom-right-radius: 2px;
+    float: right; height: 28px; margin-left: -6px; width: 30px
+}
+.fancy-combo-box span.arrow span {background: url("/static/media/images/sprite-bright.png") -161px -55px; float: left; height: 100%; width: 100%}
+.fancy-combo-box .entries-overlay {margin: -1px 0 0 -9px; max-height: 240px; overflow: hidden; padding: 10px; position: absolute; width: 150px}
+.fancy-combo-box .entries {background: #fff; border: 1px solid #F6DBFF; float: left; max-height: 240px; overflow: auto; width: 100%}
+.fancy-combo-box .entry {cursor: default; padding: 7px 5px}
+.fancy-combo-box .entry:hover {background: #fff0fc}

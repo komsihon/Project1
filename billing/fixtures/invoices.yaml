@@ -1,0 +1,44 @@
+- model: billing.invoice
+  pk: 56eb6d04b379d531e01237d1
+  fields:
+    subscription: 56eb6d04b37b3379c531e012
+    number: M1
+    amount: 5000
+    due_date: 2016-01-01T10:31:11.345Zd
+    reminders_sent: 1
+    months_count: 1
+    status: Paid
+
+- model: billing.payment
+  fields:
+    invoice: 56eb6d04b37b3379d531e012
+    method: Cash
+    amount: 5000
+
+- model: billing.invoice
+  pk: 56eb6d04b379d531e01237d2
+  fields:
+    subscription: 56eb6d04b37b3379c531e012
+    number: A2
+    amount: 5000
+    due_date: 2016-01-01T10:31:11.345Z
+    reminders_sent: 1
+    months_count: 1
+
+- model: billing.invoice
+  fields:
+    subscription: 56eb6d04b37b3379c531e013
+    number: A3
+    amount: 5000
+    due_date: 2016-01-01T10:31:11.345Z
+    reminders_sent: 1
+    months_count: 1
+
+- model: billing.invoice
+  fields:
+    subscription: 56eb6d04b37b3379c531e014
+    number: A4
+    amount: 5000
+    due_date: 2016-01-01T10:31:11.345Z
+    reminders_sent: 1
+    months_count: 1

@@ -1,0 +1,230 @@
+- model: core.application
+  pk: 56eb6d04b37b3379b531a001
+  fields:
+    name: Ikwen App
+    slug: ikwen-app
+    version: 1
+    logo: app_logos/ikwen-app-logo.png
+    url: http://www.ikwen-app-1.com
+    base_monthly_cost: 5000
+
+- model: core.application
+  pk: 56eb6d04b37b3379b531a002
+  fields:
+    name: Ikwen App2
+    slug: ikwen-app2
+    version: 1
+    logo: app_logos/ikwen-app2-logo.png
+    url: http://www.ikwen-app-2.com
+    base_monthly_cost: 5000
+
+- model: core.service
+  pk: 56eb6d04b37b3379b531b101
+  fields:
+    member: 56eb6d04b37b3379b531e012
+    app: 56eb6d04b37b3379b531a001
+    project_name: Ikwen Service
+    project_name_slug: ikwen-service
+    domain: ikwen-service.com
+    database: test_ikwen_service
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z
+
+- model: core.service
+  pk: 56eb6d04b37b3379b531b102
+  fields:
+    member: 56eb6d04b37b3379b531e012
+    app: 56eb6d04b37b3379b531a002
+    project_name: Ikwen Service 2
+    project_name_slug: ikwen-service-2
+    domain: ikwen-service2.com
+    database: test_ikwen_service_2
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z
+
+- model: core.config
+  fields:
+    service: 56eb6d04b37b3379b531b101
+    company_name: Ikwen
+    contact_email: contact@ikwen.com
+    logo: logos/some_logo.png
+
+- model: billing.invoicingconfig
+  fields:
+    name: Default
+
+- model: core.config
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    company_name: Ikwen
+    contact_email: contact@ikwen.com
+    logo: logos/some_logo.png
+
+- model: billing.paymentmean
+  pk: 5880870e4fc0c229da8da3d1
+  fields:
+    name: PayPal
+    slug: paypal
+    credentials: '{"username":"pp_user","password":"pp_pwd","signature":"pp_sgn","merchant_id":"pp_mid"}'
+    action_url_name: shopping:paypal_set_checkout
+    logo: logo.png
+    watermark: watermark.png
+
+- model: billing.paymentmean
+  pk: 5880870e4fc0c229da8da3d2
+  fields:
+    name: Mobile Money
+    slug: jumbopay-momo
+    credentials: '{"api_key":"jp-api-key"}'
+    action_url_name: billing:momo_set_checkout
+    logo: logo.png
+    watermark: watermark.png
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b370
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: WelcomeOnIkwen
+    title: Welcome on ikwen
+    target: Personal
+    target_url_name: ikwen:collaborators
+    renderer: ikwen.accesscontrol.views.render_welcome_event
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b371
+  fields:
+    app: 56eb6d04b37b3379b531a002
+    codename: AccessRequestEvent
+    title: Those people would like to collaborate with you
+    target: Business
+    target_url_name: ikwen:collaborators
+    renderer: ikwen.accesscontrol.views.render_access_request_event
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b372
+  fields:
+    app: 56eb6d04b37b3379b531a002
+    codename: AccessGrantedEvent
+    title: Collaboration request accepted
+    target: Business
+    target_url_name: ikwen:access_request_list
+    renderer: ikwen.accesscontrol.views.render_access_granted_event
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b373
+  fields:
+    app: 56eb6d04b37b3379b531a002
+    codename: ServiceRequestEvent
+    title: Those people would like to be registered as customers.
+    target: Business
+    target_url_name: ikwen:service_request_list
+    renderer: ikwen.accesscontrol.views.render_access_request_event
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b375
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: WelcomeEvent
+    title: Welcome
+    target: Personal
+    target_url_name: ikwen:collaborators
+    renderer: ikwen.accesscontrol.views.render_welcome_event
+
+- model: core.consoleeventtype
+  pk: 56eb6db3379b531a0104b376
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    codename: PaymentConfirmation
+    title: Payment Confirmation
+    target: Personal
+    target_url_name: ikwen:collaborators
+    renderer: ikwen.accesscontrol.views.render_welcome_event
+
+- model: core.consoleeventtype
+  pk: 56eb3379b531a0104b373bd1
+  fields:
+    app: 54eb6d04b37b9b531a003371
+    codename: InvoicesSentEvent
+    title: Invoices sent to customers
+    target: Business
+    target_url_name: admin:billing_invoice_changelist
+    renderer: ikwen.billing.views.render_invoices_sent_event
+
+- model: core.consoleeventtype
+  pk: 56eb3379b531a0104b373bd2
+  fields:
+    app: 54eb6d04b37b9b531a003371
+    codename: RemindersSentEvent
+    title: Reminders sent to customers
+    target: Business
+    target_url_name: admin:billing_invoice_changelist
+    renderer: ikwen.billing.views.render_reminders_sent_event
+
+- model: core.consoleeventtype
+  pk: 56eb3379b531a0104b373bd3
+  fields:
+    app: 54eb6d04b37b9b531a003371
+    codename: OverdueNoticesSentEvent
+    title: Overdue notices sent to customers
+    target: Business
+    target_url_name: admin:billing_invoice_changelist
+    renderer: ikwen.billing.views.render_overdue_notices_sent_event
+
+- model: core.consoleeventtype
+  pk: 56eb3379b531a0104b373bd4
+  fields:
+    app: 54eb6d04b37b9b531a003371
+    codename: SuspensionNoticesSentEvent
+    title: Notices of invoice sent to customers
+    target: Business
+    target_url_name: admin:billing_invoice_changelist
+    renderer: ikwen.billing.views.render_shutdown_notices_sent_event
+
+- model: core.consoleeventtype
+  pk: 56eb3379b531a0104b373bd5
+  fields:
+    app: 54eb6d04b37b9b531a003371
+    codename: SubscriptionEvent
+    title: Subscription activated
+    target: Personal
+    renderer: ikwen.billing.views.render_subscription_activated_event
+
+- model: core.consoleeventtype
+  pk: 56eb3379b531a0104b373bd6
+  fields:
+    app: 54eb6d04b37b9b531a003371
+    codename: NewInvoiceEvent
+    title: New invoice
+    target: Personal
+    renderer: ikwen.billing.views.render_new_invoice_event
+
+- model: core.consoleeventtype
+  pk: 56eb3379b531a0104b373bd7
+  fields:
+    app: 54eb6d04b37b9b531a003371
+    codename: InvoiceReminderEvent
+    title: New invoice reminder
+    target: Personal
+    renderer: ikwen.billing.views.render_invoice_reminder_event
+
+- model: core.consoleeventtype
+  pk: 56eb3379b531a0104b373bd8
+  fields:
+    app: 54eb6d04b37b9b531a003371
+    codename: OverdueNoticeEvent
+    title: Notice of invoice overdue
+    target: Personal
+    renderer: ikwen.billing.views.render_invoice_overdue_event
+
+- model: core.consoleeventtype
+  pk: 56eb3379b531a0104b373bd9
+  fields:
+    app: 54eb6d04b37b9b531a003371
+    codename: ServiceSuspendedEvent
+    title: Notice of service suspension
+    target: Personal
+    renderer: ikwen.billing.views.render_service_suspension_event

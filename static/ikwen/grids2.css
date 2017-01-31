@@ -1,0 +1,27 @@
+/* 
+    Document   : grids
+    Created on : Jul 17, 2012, 11:29:01 AM
+    Author     : Roddy MBOGNING
+    Description:
+        General display rules for data grid tables.
+*/
+.grid {float: left; width: 100%}
+.grid thead {font-size: 16px}
+.grid thead td {border-bottom: solid 1px #ccc; padding: 15px 6px}
+.grid thead td:last-child {border-right: none}
+/*.grid tr {background: #FBFFFE}*/
+.grid tr.failure {background: #FBFCFF; border: none}
+/*.grid tr:nth-child(2n) {background: #E9EEFF}*/
+.grid tbody td {border-bottom: 1px solid #dae3ff; color: #777; padding: 12px}
+.grid tbody tr.warning td, .grid tbody tr.pending td {background: #fffce4; border-bottom: 1px solid #FFFBC3; color: #B10095}
+.grid tbody tr.expired td, .grid tbody tr.overdue td {background: #FFF5F5; border-bottom: 1px solid #FFA9A9; color: #ff3030}
+.grid tbody tr td:first-child {font-weight: bold}
+.grid tbody td.status span:not(.icon) {padding: 5px 0}
+.grid tbody td.numeric {text-align: right}
+.grid td.blank, .grid tbody tr.expired td.blank, .grid tbody tr.pending td.blank {background: #FFE3BE; border-bottom: none; border-left: 1px solid #DDA67B}
+.grid tr.filter {font-size: 12px; font-weight: normal}
+.grid tr.filter form {border-bottom:solid 1px #DDA67B; float: left; width: 100%}
+tr.filter form > div {border: none; border-right: 1px solid #DDA67B; clear: none; float: left; height: 27px; padding: 0}
+.grid tr.filter td {background: transparent; border: none; padding: 0}
+table.grid tr.filter input[type=text] {border: none; box-shadow: none; -webkit-box-shadow: none;-moz-box-shadow: none; height: 25px; width: 100px}
+table.grid .fancy-combo-box span.arrow {height: 22px}

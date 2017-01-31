@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../FKCouture/.idea/FKCouture.iml" filepath="$PROJECT_DIR$/../FKCouture/.idea/FKCouture.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Kakocase/.idea/Kakocase.iml" filepath="$PROJECT_DIR$/../Kakocase/.idea/Kakocase.iml" />
+      <module fileurl="file://$USER_HOME$/PycharmProjects/KakocaseDelivery/.idea/KakocaseDelivery.iml" filepath="$USER_HOME$/PycharmProjects/KakocaseDelivery/.idea/KakocaseDelivery.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../KakocaseRetail/.idea/KakocaseRetail.iml" filepath="$PROJECT_DIR$/../KakocaseRetail/.idea/KakocaseRetail.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../MyJumboPay/.idea/MyJumboPay.iml" filepath="$PROJECT_DIR$/../MyJumboPay/.idea/MyJumboPay.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Shavida/.idea/Shavida.iml" filepath="$PROJECT_DIR$/../Shavida/.idea/Shavida.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../ShirtyBox/.idea/ShirtyBox.iml" filepath="$PROJECT_DIR$/../ShirtyBox/.idea/ShirtyBox.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ikwen.iml" filepath="$PROJECT_DIR$/.idea/ikwen.iml" />
+    </modules>
+  </component>
+</project>

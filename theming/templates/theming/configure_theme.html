@@ -1,0 +1,108 @@
+{% extends 'core/app_base_admin.html' %}
+{% load i18n humanize staticfiles auth_tokens %}
+
+{% block page_title %}
+<title> {% trans "Configure theme" %} - {{ service.project_name }} </title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <style>
+        .verify {border: 1px solid #e74c3c}  {# Highlights form errors (Check performed by javascript) #}
+        div#upload-container { float: left; margin-top: 3px; width: 74% }
+        div#upload-container .image {background: url('{% static 'ikwen/img/no_photo.png' %}') no-repeat center; background-size: 100%; border: solid 1px #DBE6FF; height: 240px; float: left; margin: 5px; overflow: hidden; width: 300px}
+        div#upload-container .image .progress {float: left; background: #3C63FF; height: 10px; margin-top: 228px}
+        div#upload-container .image .spinner {margin-top: 90px}
+        div#upload-container .uploader {display: none; height: 240px; position: absolute; text-align: center; width: 300px}
+        div#upload-container .image:hover .uploader {display: block}
+        .qq-uploader {background: rgba(0, 0, 0, .7); height: 40px; padding-top: 8px}
+        .qq-upload-button {background: none; border: none; box-shadow: none; color: #fff; text-shadow: none; height: 100px; width: 100%}
+        .qq-upload-button-hover {box-shadow: none; color: #fff}
+        .qq-upload-list {display: none}
+    </style>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>
+        <a href="{% url 'theming:theme_list' %}">{% trans "Themes" %}</a>
+    </li>
+    <li>{{ theme.name }}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="container-fluid change-form">
+        {% url 'theming:configure_theme' as change_theme_url %}
+        {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
+        <form id="submit-theme" class="admin-form" method="post" action="{{ change_theme_url|append_auth_tokens:request }}">{% csrf_token %}
+            <input type="hidden" name="theme_id" value="{{ theme.id }}" />
+            <input type="hidden" name="image_url" id="image_url" value="" />
+            {% include 'core/snippets/model_admin_form.html' %}
+            <section class="photos" style="width: 100%">
+                <label class="required" style="float: left; width: 100%">{% trans "Logo" %}</label>
+                <div id="upload-container">
+                    {% if theme.logo and theme.logo.name %}
+                    <div class="image" style="background-image: url('{{ theme.logo.url }}')">
+                    {% else %}
+                    <div class="image">
+                    {% endif %}
+                        <span class="progress"></span>
+                        <div class="uploader"></div>
+                        {% include 'core/snippets/spinner.html' %}
+                    </div>
+                </div>
+                <p class="help clear">{% trans "Your logo" %}</p>
+            </section>
+            <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
+                <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .theming').addClass('active');
+            $('.form-row').addClass('form-group');
+            $('.form-row input, .form-row select, .form-row textarea').addClass('form-control input-sm');
+            $('.form-row textarea').addClass('form-control input-sm');
+            {% if request.GET.success %}
+                ikwen.showFloatingNotice("{% trans "Configuration successfully saved." %}", '', 6);
+            {% endif %}
+            var uploader = new qq.FileUploader({
+                action: "{% url 'ikwen:upload_image' %}",
+                element: $('div#upload-container .uploader')[0],
+                buttonText: "{% trans "Upload Logo" %}",
+                multiple: false,
+                onProgress: function(id, fileName, loaded, total) {
+                    var ratio = loaded / total,
+                        percent = ratio * 100;
+                    $('div#upload-container .image .progress').animate({width: percent + '%'});
+                    if (ratio == 1) $('div#upload-container .image .spinner').show()
+                },
+                onComplete: function(id, fileName, responseJSON) {
+                    if(responseJSON.success) {
+                        var imageUrl = responseJSON.path,
+                            img = new Image();
+                        img.onload = function() {
+                            $('div#upload-container .image').css('background-color', "#fff")  // Causes the placeholder image to disappear
+                                    .css('background-image', "url('" + imageUrl +"')")
+                                    .find('.progress, .spinner').hide();
+                        };
+                        img.src = imageUrl;
+                        $('#image_url').val(imageUrl);
+                    } else {
+                        alert("upload failed!");
+                    }
+                },
+                params: {
+                    'csrf_token': '{{ csrf_token }}',
+                    'csrf_name': 'csrfmiddlewaretoken',
+                    'csrf_xname': 'X-CSRFToken'
+                }
+            });
+        })()
+    </script>
+{% endblock %}

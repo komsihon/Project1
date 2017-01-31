@@ -1,0 +1,4 @@
+- model: billing.invoicingconfig
+  pk: 56cc6b423350d09453e3b37b
+  fields:
+    name: Default

@@ -1,0 +1,264 @@
+{% extends "core/base_bs.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block page_title %}<title>{{ service.project_name }} - {% trans "Register" %} </title>{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <style  type="text/css">
+        #navbar .search, #navbar .navbar-right {
+            display: none
+        }
+        #content {
+            margin-top: 5%
+        }
+
+        @media (min-width: 415px) {
+            #content {
+                margin-top: 2%
+            }
+        }
+
+        @media (min-width: 992px) {
+            #content {
+                margin-top: 7%
+            }
+        }
+
+        #content > div {
+            margin: auto
+        }
+
+        #content form {
+            margin-top: 25px
+        }
+
+        @media (max-width: 768px) {
+            #content div#login {
+                margin: auto;
+                width: 96%
+            }
+        }
+
+        label span {
+            font-weight: normal
+        }
+
+        #terms-warning {
+            color: #999;
+            font-size: 11px
+        }
+
+        {#        #terms-warning a {color: #999}#}
+        #content form .hint {
+            color: #8D96C5;
+            font-size: 14px
+        }
+
+        #content form ul.errorlist {
+            padding-left: 0
+        }
+
+        #content form ul.errorlist li {
+            color: #FF0808;
+            list-style-type: none
+        }
+
+        #register .brand, #register .title {
+            text-align: center
+        }
+
+        #register .brand img {
+            height: 90px
+        }
+
+        @media (min-width: 415px) {
+            #register .brand {
+                margin-top: 10%
+            }
+
+            #register .brand img {
+                max-width: 142px
+            }
+
+            #register .title {
+                text-align: left
+            }
+        }
+
+        @media (min-width: 768px) {
+            #register .brand img {
+                height: auto
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="content" class="container">
+        {% if request.GET.msg %}
+            <p class="failure" style="font-size: 1em; padding: 9px">{{ request.GET.msg }}</p>
+        {% endif %}
+        <div id="register" class="row">
+            <div class="col-sm-3 col-md-4 brand">
+                {% if config.logo.name %}
+                    <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}" alt="Logo {{ service.project_name }}"/>{% endif %}
+                <p class="text-muted hidden-xs" style="margin-top: 1em">{{ config.slogan }}</p>
+            </div>
+            <div class="col-sm-9 col-md-8">
+                <h2 class="title">{% trans "Register" %}</h2>
+                <form action="{% url 'ikwen:register' %}?{{ request.META.QUERY_STRING }}" method="post"
+                      class="form-horizontal">
+                    {% csrf_token %}
+                    <div class="form-group row">
+                        <label for="rg-username" class="col-sm-5 col-md-4">{% trans "Username or email" %}</label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-username" class="form-control input-sm username" type="text" name="username"/>
+                            {{ register_form.username.errors }}
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="rg-password1" class="col-sm-5 col-md-4">{% trans "Choose a password" %}</label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-password1" class="form-control input-sm password" type="password"
+                                   name="password"/>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="rg-password2" class="col-sm-5 col-md-4">{% trans "Confirm password" %}</label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-password2" class="form-control input-sm confirm-password" type="password"
+                                   name="password2"/>
+                        </div>
+                    </div>
+                    <div class="form-group row email" style="height: 0; margin-bottom: 0; overflow: hidden">
+                        <label for="rg-email" class="col-sm-5 col-md-4">Email</label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-email" class="form-control input-sm email" type="text" name="email"/>
+                            {{ register_form.email.errors }}
+                        </div>
+                    </div>
+                    <div class="form-group row phone">
+                        <label for="rg-phone" class="col-sm-5 col-md-4">{% trans "Phone number" %} <span
+                                style="font-weight: normal">({% trans "Optional" %})</span></label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-phone" class="form-control input-sm phone" type="text" name="phone" value=""/>
+                            {{ register_form.phone.errors }}
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="rg-first-name" class="col-sm-5 col-md-4">{% trans "First name" %} </label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-first-name" class="form-control input-sm name" type="text" name="first_name"/>
+                            {{ register_form.name.errors }}
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="rg-last-name" class="col-sm-5 col-md-4">{% trans "Last name" %} </label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="rg-last-name" class="form-control input-sm name" type="text" name="last_name"/>
+                            {{ register_form.name.errors }}
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        {% if settings.IS_IKWEN %}
+                            <p id="terms-warning" class="col-sm-11 col-md-10">
+                                {% trans "By creating an account you agree our " %} <a
+                                    href="{% url 'ikwen:terms_and_conditions' %}">{% trans "Terms & Conditions" %}</a>
+                            </p>
+                        {% else %}
+                            <p id="terms-warning" class="col-sm-11 col-md-10">
+                                {% trans "You are about to create an account managed by" %} <a
+                                    href="{{ settings.IKWEN_BASE_URL }}"
+                                    style="color: #999; text-decoration: underline"><strong>ikwen</strong></a>,
+                                {% trans "on" %} {{ service.project_name }}.
+                                {% trans "By doing so you accept" %} <a
+                                    href="{% url 'ikwen:terms_and_conditions' %}"><strong>ikwen</strong> {% trans "Terms & Conditions" %}
+                            </a>, {% trans "as well as" %}
+                                <a href="{{ settings.AGREEMENT_URL }}">{{ service.project_name }} {% trans "Terms & Conditions" %}.</a>
+                            </p>
+                        {% endif %}
+                    </div>
+                    <div class="form-group row">
+                        <div class="checkbox" style="padding-left: 15px">
+                            <label>
+                                <input type="checkbox" checked/> {% trans "Yes, I read and accept." %}
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-4 col-md-3 col-sm-offset-7 col-md-offset-7">
+                            <button class="btn btn-primary btn-block btn-sm"> {% trans "Submit" %} </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="clear"></div>
+    </div>
+{% endblock %}
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        {% get_current_language as LANGUAGE_CODE %}
+        (function () {
+            {% if request.GET.existingUsername %}
+                $('div#top-notice-ctnr span').html('{{ request.GET.msg }}').addClass('failure');
+                $('#top-notice-ctnr').fadeIn().delay(10000).fadeOut();
+            {% elif request.GET.existingPhone %}
+                $('div#top-notice-ctnr span').html('{{ request.GET.msg }}').addClass('failure');
+                $('#top-notice-ctnr').fadeIn().delay(10000).fadeOut();
+            {% endif %}
+            $('#rg-username').blur(function () {
+                var username = $(this).val(),
+                        $formGroup = $('.form-group.email'),
+                        $email = $('#rg-email');
+                if (username.isValidEmail()) {
+                    $email.removeClass('required').val(username);
+                    $formGroup.css('overflow', 'hidden').animate({height: 0, marginBottom: 0});
+                    return;
+                }
+                $email.addClass('required').val('');
+                $formGroup.animate({height: '35px', marginBottom: '15px'}, 'normal', 'linear', function () {
+                    $formGroup.css('overflow', 'unset')
+                })
+            }).focus();
+            $('#rg-email').blur(testEmail);
+            $('#rg-phone').blur(function () {
+                var phone = $(this).val();
+                if (phone && !/\d+/.test(phone)) {
+                    $('<ul class="errorlist"><li>' + "{% trans "Please use digits only and prepend country code." %}" + '</li><ul>')
+                            .insertAfter('#rg-phone');
+                } else {
+                    $('.form-group.phone .errorlist').hide();
+                }
+            });
+            function testEmail() {
+                var $email = $('#rg-email');
+                if ($email.val().isValidEmail()) return true;
+                $('.form-group.email .errorlist').remove();
+                $('<ul class="errorlist"><li>' + "{% trans "Please, enter valid email" %}" + '</li><ul>')
+                        .insertAfter('#rg-email');
+                $email.focus();
+                return false;
+            }
+
+            $('div#register form').submit(function () {
+                if ($('#rg-email').hasClass('required')) return testEmail()
+            });
+            {#            var p = $('form#register .country-code').width() + 3,#}
+            {#                w = $('form#register .phone').width() - p + 5;#}
+            {#            $('form#register .phone').css({paddingLeft: p, width: w});#}
+            {#            $('form#register').submit(function() {#}
+            {#                var phone = $(this).find('.phone').val();#}
+            {#                if (!/\d{9,}/.test(phone)) {#}
+            {#                    $('div#top-notice-ctnr span').html({% trans "Invalid phone number. Use digits only." %}).addClass('failure');#}
+            {#                    $('#top-notice-ctnr').fadeIn().delay(10000).fadeOut();#}
+            {#                    return false;#}
+            {#                }#}
+            {#                if (phone.charAt(0) == 6 && phone.length == 9) $(this).find('.phone').val('237' + phone)#}
+            {#            })#}
+        })()
+    </script>
+    {{ config.scripts|safe }}
+{% endblock %}

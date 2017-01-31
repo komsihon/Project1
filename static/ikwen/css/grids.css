@@ -5,10 +5,10 @@
     Description:
         General display rules for data grid tables.
 */
-.grid thead td, .grid thead th {color: #2c3e50; font-size: 18px; font-weight: 700; padding: 7px 5px}
+.grid thead td, .grid thead th {color: #2c3e50;font-size: 15px;font-weight: 700;padding: 7px 5px;}
 .grid.fish-eye tr {background: none}
 .grid.fish-eye tr:nth-child(2n) {background: #FBFFFE}
-.grid tbody td, .grid tbody th {border-top: 1px solid #eee; height: 42px; padding: 0 0 0 6px}
+.grid tbody td, .grid tbody th {border-top: 1px solid #eee;height: 42px;padding: 0px 0 0 6px;vertical-align: middle;}
 .grid tbody tr.warning td {background: #FFFBCA; color: #B10095}
 .grid tbody tr.warning td a {color: #B10095}
 .grid tbody tr.danger td, .grid tbody tr.pending td {color: #ff5050}

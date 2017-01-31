@@ -1,0 +1,294 @@
+{% extends "core/app_base_admin.html" %}
+{% load i18n humanize staticfiles auth_tokens admin_list %}
+
+{% block page_title %}
+<title> {% trans "Payments" %} - ikwen </title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <style>
+        body {background: #f6f6f6}
+        #stage .subtle-shade {background: #fff; padding-bottom: 15px}
+        #stage h3 {font-size: 18px; font-weight: 700}
+        #stage .action {border-top: 1px solid #ddd; font-weight: 700;
+            margin-top: 2em; padding-top: 5px; text-align: right}
+        .listing {padding-left: 0; margin-top: 1.5em; min-height: 100px}
+        .listing li {list-style-type: none}
+        .payment-address {margin-top: 1em}
+        .payment-address .img {border: 1px solid #ddd; border-radius: 3px; float: left; height: 85px;
+            padding: 14px 0 15px; text-align: center; width: 30%}
+        .payment-address .img img {height: 55px}
+        .payment-address .details {float: left; font-size: .85em; margin: 2em 0 0 15px}
+        .payment-address .details p {margin-bottom: 0}
+        ul.actions {margin-left: -138px}
+    </style>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>{% trans "Payments" %}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="container-fluid change-form">
+        <div id="stage">
+            <div class="row subtle-shade" style="padding-bottom: 20px">
+                <div class="col-xs-12">
+                    <h3>
+                        <span>{% trans "Your balance" %}</span>
+                        <span style="float: right; font-size: 1.5em; font-weight: 400">{{ config.currency_symbol }} {{ config.balance|intcomma }}</span>
+                    </h3>
+                    <div class="row" style="margin-top: 4em">
+                        <div class="col-sm-8 text-muted" style="margin-top: 1em">
+                            {% if payments %}
+                                <i class="glyphicon glyphicon-calendar"></i>
+                                {% trans "Your last payment was on" %} {{ payments.0.created_on }}
+                            {% else %}
+                                {% trans "No payment yet" %}
+                            {% endif %}
+                        </div>
+                        <div class="col-sm-4">
+                            {% if config.balance >= config.cash_out_min %}
+                            <button class="btn btn-primary btn-sm pull-right"
+                                    data-toggle="modal" data-target="#confirm-cash-out">{% trans "REQUEST A PAYMENT" %}</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 2em">
+                <div class="col-sm-6 report subtle-shade" style="width: 49%">
+                    <h3>
+                        <span>{% trans "Payments" %}</span>
+{#                        <a class="pull-right" style="cursor: pointer; font-weight: 400; font-size: 13px">{% trans "View all" %}</a>#}
+                    </h3>
+                    <div>
+                        <ul class="listing">
+                            {% for tx in payments %}
+                                <li>
+                                    <span>{{ tx.created_on }}</span>
+                                    <span class="pull-right text-muted">{{ config.currency_symbol }} {{ tx.amount|intcomma }}</span>
+                                </li>
+                            {% endfor %}
+                            <li>
+                                <span>12/20/2016</span>
+                                <span class="pull-right text-muted">{{ config.currency_symbol }} {{ tx.amount|intcomma }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="addresses" class="col-sm-6 subtle-shade pull-right" style="width: 49%">
+                    <h3>{% trans "How you get paid" %}</h3>
+                    <div>
+                        <ul class="listing">
+                            {% for address in payment_addresses %}
+                                <li class="payment-address" id="{{ address.id }}">
+                                    <div class="img">
+                                        {% if address.method.image.name %}
+                                            <img src="{{ settings.IKWEN_MEDIA_URL }}{{ address.method.image.name }}" />
+                                        {% endif %}
+                                    </div>
+                                    <div class="details">
+                                        <p>{{ address.account_number|slice:"0:2" }} • • • {{ address.account_number|slice:"-3:" }}</p>
+                                        <p class="text-muted">{{ address.name }}</p>
+                                    </div>
+                                    <div class="dropdown" style="cursor: pointer; float: right">
+                                        <span class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                            <i class="glyphicon glyphicon-option-vertical text-muted"></i>
+                                        </span>
+                                        <ul class="actions dropdown-menu" aria-labelledby="period">
+                                            <li class="update-address" data-id="{{ address.id }}" data-method-id="{{ address.method.id }}"
+                                                data-account-number="{{ address.account_number }}" data-name="{{ address.name }}">
+                                                <a>{% trans "Update" %}</a>
+                                            </li>
+                                            <li class="delete-address" data-id="{{ address.id }}">
+                                                <a>{% trans "Delete" %}</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="clearfix"></div>
+                                </li>
+                            {% empty %}
+                                <li class="text-muted empty" style="margin-top: 2em">
+                                    <span style="padding-right: 15px">{% trans "No payment method set" %}</span>
+                                </li>
+                            {% endfor %}
+                            <li class="payment-address tpl">
+                                <div class="img">
+                                    <img />
+                                </div>
+                                <div class="details">
+                                    <p class="account-number"> • • • </p>
+                                    <p class="text-muted name"></p>
+                                </div>
+                                <div class="dropdown" style="cursor: pointer; float: right">
+                                    <span class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                        <i class="glyphicon glyphicon-option-vertical text-muted"></i>
+                                    </span>
+                                    <ul class="actions dropdown-menu" aria-labelledby="period">
+                                        <li class="update-address" data-id="{{ address.id }}" data-method-id="{{ address.method.id }}"
+                                            data-account-number="{{ address.account_number }}" data-name="{{ address.name }}">
+                                            <a>{% trans "Update" %}</a>
+                                        </li>
+                                        <li class="delete-address">
+                                            <a>{% trans "Delete" %}</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="clearfix"></div>
+                            </li>
+                        </ul>
+                        <button class="btn btn-sm btn-primary new-address pull-right"
+                                data-toggle="modal" data-target="#update-payment-address">{% trans "ADD NEW" %}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="update-payment-address" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-info">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <form onclick="return false" class="form-horizontal">
+                        <input type="hidden" id="address-id" />
+                        <div class="form-group row">
+                            <label for="payment-method" class="col-sm-5 col-md-4">{% trans "Method" %} </label>
+                            <div class="col-sm-7 col-md-8">
+                                <select id="payment-method" class="form-control input-sm">
+                                    {% for method in payment_methods %}
+                                        <option value="{{ method.id }}"
+                                                {% if method.image.name %}data-img="{{ settings.IKWEN_MEDIA_URL }}{{ method.image.name }}"{% endif %}>{{ method.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="account-number" class="col-sm-5 col-md-4">{% trans "Account number" %}</label>
+                            <div class="col-sm-7 col-md-8">
+                                <input id="account-number" class="form-control input-sm" type="text" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="recipient-name" class="col-sm-5 col-md-4">{% trans "Recipient name" %}</label>
+                            <div class="col-sm-7 col-md-8">
+                                <input id="recipient-name" class="form-control input-sm" type="text" />
+                            </div>
+                        </div>
+                    </form>
+                    <div style="clear: both; padding-top: 2em">
+                        <div class="col-xs-12 col-sm-4 col-md-3 pull-right">
+                            <button class="btn btn-success btn-block btn-sm ok"
+                                    data-dismiss="modal" aria-label="OK">OK</button>
+                        </div>
+                        <div class="col-xs-12 col-sm-4 col-md-3 pull-right">
+                            <button class="btn btn-default btn-block btn-sm"
+                                    data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="confirm-cash-out" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-info">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{% trans "Choose payment address" %}</h4>
+                </div>
+                <div class="modal-body">
+                    <form onclick="return false" class="form-horizontal">
+                        <input type="hidden" id="address-id" />
+                        <div class="form-group row">
+                            <label for="pay-to" class="col-sm-5 col-md-4">{% trans "Pay to" %} </label>
+                            <div class="col-sm-7 col-md-8">
+                                <select id="pay-to" class="form-control input-sm">
+                                    {% for address in payment_addresses %}
+                                        <option value="{{ address.id }}">{{ address.method.name }} ({{ address.account_number }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                    <div style="clear: both; padding-top: 2em">
+                        <div class="col-xs-12 col-sm-4 col-md-3 pull-right">
+                            <button class="btn btn-success btn-block btn-sm ok"
+                                    data-dismiss="modal" aria-label="OK">OK</button>
+                        </div>
+                        <div class="col-xs-12 col-sm-4 col-md-3 pull-right">
+                            <button class="btn btn-default btn-block btn-sm"
+                                    data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .configuration').addClass('active');
+            $('#addresses').on('click', '.new-address', function() {
+                $('#update-payment-address .modal-title').text("{% trans 'New payment address' %}");
+                $('#address-id').val('');
+                $('#account-number').val('');
+                $('#recipient-name').val('');
+            }).on('click', '.update-address', function() {
+                var addressId = $(this).data('id'),
+                    methodId = $(this).data('method-id'),
+                    accountNumber = $(this).data('account-number'),
+                    name = $(this).data('name');
+                $('#update-payment-address .modal-title').text("{% trans 'Update address' %}");
+                $('#address-id').val(addressId);
+                $('#payment-method').val(methodId);
+                $('#account-number').val(accountNumber);
+                $('#recipient-name').val(name);
+                $('#update-payment-address').modal("show");
+            }).on('click', '.delete-address', function() {
+                var addressId = $(this).data('id');
+                $.getJSON('{% url 'ikwen:manage_payment_address' %}', {action: 'delete', address_id: addressId}, function(resp) {
+                    if (resp.success) {
+                        $('#' + addressId).remove();
+                    }
+                })
+            });
+            $('#update-payment-address').on('click', 'button.ok', function() {
+                var action = 'update',
+                    addressId = $('#address-id').val(),
+                    methodId = $('#payment-method').val(),
+                    accountNumber = $('#account-number').val(),
+                    name = $('#recipient-name').val();
+                var params = {action: action, address_id: addressId,
+                    method_id: methodId, account_number: accountNumber, name: name};
+                $.getJSON('{% url 'ikwen:manage_payment_address' %}', params, function(resp) {
+                    if (resp.address_id) {
+                        $('#addresses .empty').hide();
+                        var methodImg = $('#payment-method option:selected').data('img'),
+                            $tplAddress;
+                        if (addressId) $tplAddress = $('#' + resp.address_id);
+                        else $tplAddress = $('.payment-address.tpl').clone().removeClass('tpl');
+                        $tplAddress.attr('id', resp.address_id);
+                        $tplAddress.find('.name').text(name);
+                        $tplAddress.find('.account-number').text(accountNumber.substr(0, 2) + ' • • • ' + accountNumber.substr(-3));
+                        $tplAddress.find('img').attr('src', methodImg);
+                        if (!addressId) {
+                            $tplAddress.find('.update-address')
+                                    .data({"id": resp.address_id, "method-id": methodId, "account-number": accountNumber, "name": name});
+                            $tplAddress.find('.delete-address').data({"id": resp.address_id});
+                            $tplAddress.insertBefore('.payment-address.tpl').show()
+                        }
+                    }
+                })
+            })
+        })()
+    </script>
+{% endblock %}

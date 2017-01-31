@@ -1,0 +1,113 @@
+/*
+    Created on : Feb 18, 2014, 12:25:49 PM
+    Author     : rodrigue MBOGNING
+*/
+html {height: 100%; padding-bottom: 1px} /* Forces right side scrollbar */
+body {background: #FFF; color: #545454; font-size: 78%; font-family: Open Sans; margin: 0;zoom: 100%}
+h1, h2, h3, h4, h5, h6, p, ul {margin: 0; padding: 0}
+a {text-decoration: none}
+header {color: #22003D}
+strong {font-family: Arial, Helvetica, sans-serif}
+
+.clear {clear: both}
+.has-shade {box-shadow: 1px 1px 9px 4px rgba(0, 0, 0, .1); -moz-box-shadow: 1px 1px 9px 4px -moz-rgba(0, 0, 0, .1); -webkit-box-shadow: 1px 1px 9px 4px rgba(0, 0, 0, .1)}
+.subtle-shade {box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .15); -moz-box-shadow: 0 1px 2px 0 -moz-rgba(0, 0, 0, .15); -webkit-box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .15)}
+.text-has-shade {text-shadow: 1px 2px 2px rgba(0, 0, 0, .15)}
+.inner-shade {box-shadow: inset 0 1px 3px rgba(0, 0, 0, .15); -moz-box-shadow: inset 0 1px 3px -moz-rgba(0, 0, 0, .15); -webkit-box-shadow: inset 0 1px 3px rgba(0, 0, 0, .15)}
+.subtle-gradient {
+    background: #ffffff;
+    background: -moz-linear-gradient(top,  #ffffff 0%, #f6f6f6 47%, #ededed 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(47%,#f6f6f6), color-stop(100%,#ededed));
+    background: -webkit-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+    background: -o-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+    background: -ms-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+    background: linear-gradient(to bottom,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ededed',GradientType=0 );
+}
+.tpl, .hidden {display: none}
+.wrapper {margin: auto; width: 990px}
+.spinner-container {-webkit-animation: rotate 2s linear infinite; animation: rotate 2s linear infinite; z-index: 2}
+.spinner-container .path {stroke-dasharray: 1,150; stroke-dashoffset: 0; stroke: rgba(98, 0, 255, 0.70); stroke-linecap: round;
+  -webkit-animation: dash 1.5s ease-in-out infinite; animation: dash 1.5s ease-in-out infinite;
+}
+@keyframes rotate {
+    100% { transform: rotate(360deg); }
+}
+@-webkit-keyframes rotate {
+    100% { -webkit-transform: rotate(360deg); }
+}
+@keyframes dash {
+    0% {stroke-dasharray: 1,150; stroke-dashoffset: 0}
+    50% {stroke-dasharray: 90,150; stroke-dashoffset: -35}
+    100% {stroke-dasharray: 90,150; stroke-dashoffset: -124}
+}
+@-webkit-keyframes dash {
+    0% {stroke-dasharray: 1, 150; stroke-dashoffset: 0}
+    50% {stroke-dasharray: 90, 150; stroke-dashoffset: -35}
+    100% {stroke-dasharray: 90, 150; stroke-dashoffset: -124}
+}
+
+.floating-notice {background: #F6FF8C; border: 1px solid #CDD570; border-radius: 2px; color: #484B2B; padding: 9px 24px; position: absolute}
+.floating-notice.failure {border: 1px solid; color:  #F00}
+.floating-notice .action {cursor: pointer; text-decoration: underline}
+#top-notice-ctnr {left: 0; position: fixed; text-align: center; top: 66px; width: 100%; z-index: 100}
+
+#top {background: #fff; box-sizing: content-box; height: 72px; min-width: 320px; max-width: 100%; -moz-box-sizing: content-box; width: 100%; z-index: 99}
+#top>div {float: left; text-align: center}
+#top .logo {float: left; margin-left: 24px}
+#top nav {float: left; padding: 20px 20px 20px 0}
+#top nav ul {}
+#top nav ul li {background: #fbfbfb; display: inline}
+#top nav ul li a {border-right: solid 1px #e1e4e6; padding: 25px; text-decoration: none}
+#top .actions {float: right; margin:20px 15px}
+#top .actions .button {float: left; margin-left: 10px}
+
+section.sub-menu {background:#003366; height: 250px; width: 100%}
+section.sub-menu .send {clear: both}
+section.sub-menu .send input {border: solid 1px #DDD; border-radius: 5px; height: 35px}
+
+
+.btn-try a:hover {
+    border-color: #6a6e71; text-shadow: 1px 1px 1px rgba(0,0,0,0.75);
+    background: #6A6E71;
+    background-image: -webkit-linear-gradient(top,#6a6e71,#5e6367);
+    background-image: -moz-linear-gradient(top,#6a6e71,#5e6367);
+    background-image: -ms-linear-gradient(top,#6a6e71,#5e6367);
+    background-image: -o-linear-gradient(top,#6a6e71,#5e6367);
+    background-image: linear-gradient(top,#6a6e71,#5e6367);
+}
+
+#content {margin-top: 72px; min-height: 450px}
+#content .wrapper {margin: auto; width: 980px}
+footer {float: left; width: 100%}
+footer li {list-style: none; display: inline}
+footer nav li {font-family: Helvetica, Arial, sans-serif; font-weight: bold; margin-left: 35px}
+footer  li a {color: #513F61}
+footer nav li:first-child {margin-left: 0}
+form#lang {float: right}
+form#lang li {margin-right: 20px}
+form#lang li:last-child {margin-right: 0}
+
+#lightbox {background: rgba(255, 255, 255, .3); height: 100%; position: fixed; left: 0; top: 0; width: 100%; z-index: 100}
+#lightbox .wrapper {height: 100%; position: fixed; width: 100%}
+#lightbox .dialog {background: rgba(41, 0, 78, 0.36); border-radius: 2px; margin: 12% auto; padding: 7px; width: 610px}
+#lightbox .dialog .stage {background: #fff; border: 1px solid #EEDDFC; border-radius: 2px; padding: 15px 10px 0}
+#lightbox .dialog .stage header {float: left; font: normal 18px Helvetica, Arial, sans-serif; width: 100%}
+#lightbox .dialog .stage header .text {font-size: 1.8em}
+#lightbox .dialog .stage header .close {float: right; font-size: 18px; padding: 0}
+#lightbox .dialog .stage form {float: left; margin: 18px 0 6px 18px}
+#lightbox .dialog .stage .button-group {border-top: 1px solid #EEDDFC; float: right; margin-top: 18px; padding: 5px 0 10px; width: 100%}
+#lightbox .dialog .stage .button-group button {float: right; width: 90px}
+#lightbox .dialog .stage .button-group button:first-child {margin-left: 15px}
+
+#login-panel {background:#fff; height:320px; width: 810px}
+#login-panel header {font-weight: bold; text-transform: uppercase}
+#login-panel .stage > header {border-bottom: 1px dotted #580081; font-size: 1.5em; margin-bottom: 12px; padding-bottom: 12px}
+#login-panel section {width: 280px}
+#login-panel section header {width: 360px}
+#login-panel section p {line-height: 18px; margin: 12px 0 0}
+#login-panel section form {width: 330px}
+#login-panel section form label {font-weight: bold; padding: 0}
+#login-panel section form input {font-size: 15px; margin-top: 6px; width: 240px}
+#login-panel section form button {padding: 4px 15px 7px; text-transform: uppercase; width: 180px}
+

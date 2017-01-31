@@ -1,0 +1,137 @@
+{% extends 'core/app_base_admin.html' %}
+{% load i18n humanize staticfiles auth_tokens %}
+
+{% block page_title %}
+<title>{% trans "Products" %} - {{ service.project_name }}</title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <style>
+        #results {clear: both}
+    </style>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>{% trans "Payment means" %}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="container-fluid">
+        <div id="results">
+            <ul class="object-list" style="padding: 20px 0 0 0">
+            {% for mean in payment_mean_list %}
+                <li class="ik-li mean" id="{{ mean.id }}" data-id="{{ mean.id }}"
+                        {% for key, value in mean.credentials.items  %}data-{{ key }}="{{ value }}"{% endfor %}>
+                    <i class="glyphicon glyphicon-ok check{% if mean.is_active %} active{% endif %}"
+                       title="{% if mean.is_active %}{% trans "Cancel" %}{% else %}{% trans "Activate" %}{% endif %}"></i>
+                    <div class="image" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ mean.logo.name }})"></div>
+                    <div class="info">
+                        <span class="name" style="float: left; margin-top: 18px">{{ mean.name }}</span>
+                    </div>
+                    <div class="actions">
+                        <i class="glyphicon glyphicon-cog conf-{{ mean.slug }}" data-toggle="modal" data-target="#conf-{{ mean.slug }}" title="{% trans "Configure" %}"></i>
+                    </div>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="modal fade" id="conf-paypal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-info">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{% trans "Configure" %} Paypal</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group row">
+                            <label for="pp-username" class="col-sm-5 col-md-4">{% trans "Paypal Username" %}</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="pp-username" name="username" class="form-control input-sm" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="pp-password" class="col-sm-5 col-md-4">{% trans "Paypal Password" %}</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="pp-password" name="password" class="form-control input-sm" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="pp-signature" class="col-sm-5 col-md-4">{% trans "Paypal API Signature" %}</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="pp-signature" name="signature" class="form-control input-sm" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="pp-merchant-id" class="col-sm-5 col-md-4">{% trans "Paypal Merchant ID" %}</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="pp-merchant-id" name="merchant_id" class="form-control input-sm" />
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="row" style="clear: both; padding-top: 1em">
+                        <div class="col-xs-12 col-sm-4 col-md-3">
+                            <button class="btn btn-success btn-block btn-sm"
+                                    data-dismiss="modal" aria-label="Close">{% trans "OK" %}</button>
+                        </div>
+                        <div class="col-xs-12 col-sm-4 col-md-3">
+                            <button class="btn btn-default btn-block btn-sm"
+                                    data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .payment-means').addClass('active');
+            $('#admin-content').on('click', '.conf-paypal', function() {
+                var meanId = $(this).parents('.ik-li').data('id'),
+                    username = $(this).parents('.ik-li').data('username'),
+                    password = $(this).parents('.ik-li').data('password'),
+                    signature = $(this).parents('.ik-li').data('signature'),
+                    merchantId = $(this).parents('.ik-li').data('merchant_id');
+                $('#pp-username').val(username);
+                $('#pp-password').val(password);
+                $('#pp-signature').val(signature);
+                $('#pp-merchant-id').val(merchantId);
+                $('div#conf-paypal button.btn-success').data('mean-id', meanId);
+            }).on('click', '.ik-li.mean .check', function() {
+                var meanId = $(this).parents('.ik-li').data('id'),
+                    _$check = $(this);
+                $.getJSON('{% url 'billing:toggle_payment_mean' %}', {mean_id: meanId}, function(resp) {
+                    if (resp.error) {
+                        ikwen.showFloatingNotice(resp.error, '', 5);
+                        return
+                    }
+                    _$check.toggleClass('active');
+                })
+            });
+            $('div#conf-paypal button.btn-success').click(function() {
+                var credentials = JSON.stringify({
+                        username: $('#pp-username').val(),
+                        password: $('#pp-password').val(),
+                        signature: $('#pp-signature').val(),
+                        merchant_id: $('#pp-merchant-id').val()
+                    }),
+                    meanId = $(this).data('mean-id');
+                $.getJSON('{% url 'billing:set_credentials' %}', {mean_id: meanId, credentials: credentials}, function(resp) {
+                    if (resp.error) {
+                        ikwen.showFloatingNotice(resp.error, '', 5);
+                        return
+                    }
+                    ikwen.showFloatingNotice("{% trans "PayPal successfully configured" %}", '', 5);
+                })
+            });
+        })()
+    </script>
+{% endblock %}
