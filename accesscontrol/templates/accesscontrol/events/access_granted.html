@@ -2,9 +2,9 @@
 {% if is_iao %}
     <div style="padding: 0 15px">
         {% if rq.group_name != 'Community' %}
-            <h4>{% trans "New collaborator" %}</h4>
+            <h4 class="text-primary">{% trans "New collaborator" %}</h4>
         {% else %}
-            <h4>{% trans "New member" %}</h4>
+            <h4 class="text-primary">{% trans "New member" %}</h4>
         {% endif %}
         {% with service_url=rq.service.url group_name=rq.group_name %}
         <div class="member" style="border-bottom: none; padding: 15px 0">

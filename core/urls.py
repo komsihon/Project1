@@ -2,8 +2,6 @@ from django.conf import settings
 from django.conf.urls import patterns, url
 
 from django.contrib.auth.decorators import login_required, permission_required
-
-from ikwen.cashout.views import Payments, manage_payment_address
 from ikwen.flatpages.views import ChangeFlatPage
 
 from ikwen.flatpages.views import FlatPageList
@@ -53,7 +51,7 @@ urlpatterns = patterns(
     url(r'^flatPage/(?P<page_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(ChangeFlatPage.as_view()), name='change_flatpage'),
     url(r'^list_collaborators$', list_collaborators, name='list_collaborators'),
 
-    url(r'^customers/$', permission_required('accesscontrol.ik_manage_member')(MemberList.as_view()), name='member_list'),
+    url(r'^customers/$', MemberList.as_view(), name='member_list'),
     url(r'^load_member_detail$', load_member_detail, name='load_member_detail'),
 
     url(r'^console/$', login_required(Console.as_view()), name='console'),
@@ -64,9 +62,6 @@ urlpatterns = patterns(
     url(r'^configuration/$', permission_required('accesscontrol.sudo')(Configuration.as_view()), name='configuration'),
     url(r'^configuration/(?P<service_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(Configuration.as_view()), name='configuration'),
     url(r'^serviceDetail/(?P<service_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(ServiceDetail.as_view()), name=SERVICE_DETAIL),
-    url(r'^payments/$', permission_required('accesscontrol.sudo')(Payments.as_view()), name='payments'),
-    url(r'^manage_payment_address/$', manage_payment_address, name='manage_payment_address'),
-    url(r'^payments/$', permission_required('accesscontrol.sudo')(Payments.as_view()), name='payments'),
     url(r'^list_projects$', list_projects, name='list_projects'),
     url(r'^get_location_by_ip$', get_location_by_ip, name='get_location_by_ip'),
 

@@ -143,6 +143,8 @@ class SignIn(BaseView):
             next_url = request.REQUEST.get('next')
             if next_url:
                 return HttpResponseRedirect(next_url)
+            elif not getattr(settings, 'IS_IKWEN', False) and request.user.is_iao:
+                next_url = reverse('admin_home')
             else:
                 next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', None)
                 if next_url_view:
@@ -433,8 +435,8 @@ class MemberList(HybridListView):
     context_object_name = 'customer_list'
     model = Member
     search_field = 'full_name'
-    ordering = ('-id', )
-    ajax_ordering = ('-id', )
+    ordering = ('first_name', '-id', )
+    ajax_ordering = ('first_name', '-id', )
     page_size = 2
 
 
@@ -697,25 +699,3 @@ def render_access_granted_event(event):
     member = Member.objects.using(database).get(pk=event.member.id)
     c = Context({'rq': access_request, 'is_iao': member.is_iao})
     return html_template.render(c)
-
-
-# def render_access_request_event(request, event_id, *args, **kwargs):
-#     try:
-#         event = ConsoleEvent.objects.get(pk=event_id)
-#         access_request = AccessRequest.objects.get(pk=event.object_id)
-#         return render(request, 'accesscontrol/events/access_request.html', {'rq': access_request})
-#     except ObjectDoesNotExist:
-#         return None
-
-
-# def render_access_granted_event(request, event_id, *args, **kwargs):
-#     try:
-#         event = ConsoleEvent.objects.get(pk=event_id)
-#         access_request = AccessRequest.objects.get(pk=event.object_id)
-#         database = event.service.database
-#         add_database_to_settings(database)
-#         member = Member.objects.using(database).get(pk=event.member.id)
-#         return render(request, 'accesscontrol/events/access_request.html',
-#                       {'rq': access_request, 'is_iao': member.is_iao})
-#     except ObjectDoesNotExist:
-#         return None

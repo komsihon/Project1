@@ -3,10 +3,11 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from ikwen.core.fields import MultiImageField
+from djangotoolbox.fields import ListField, EmbeddedModelField
 
 from ikwen.accesscontrol.models import Member
-from ikwen.core.models import Model, Service
+from ikwen.core.fields import MultiImageField
+from ikwen.core.models import Model, Service, Application
 from ikwen.core.utils import add_database_to_settings
 
 # Business events aimed and the Billing IAO
@@ -161,9 +162,9 @@ class Subscription(AbstractSubscription):
     """
 
     def __unicode__(self):
-        from ikwen.billing.utils import get_invoicing_config_instance
-        invoicing_config = get_invoicing_config_instance()
-        return u'%s: %s %.2f/month' % (self.member.full_name, invoicing_config.currency, self.monthly_cost)
+        from ikwen.core.utils import get_service_instance
+        config = get_service_instance().config
+        return u'%s: %s %.2f/month' % (self.member.full_name, config.currency_symbol, self.monthly_cost)
 
 
 class AbstractInvoice(Model):
@@ -196,6 +197,8 @@ class AbstractInvoice(Model):
     last_overdue_notice = models.DateTimeField(blank=True, null=True,
                                                help_text=_("Last time the overdue notice was sent to client."))
     status = models.CharField(choices=INVOICE_STATUS_CHOICES, max_length=30, default=PENDING)
+    is_one_off = models.BooleanField(default=False)
+    entries = ListField(EmbeddedModelField('InvoiceEntry'))
 
     class Meta:
         abstract = True
@@ -242,6 +245,29 @@ class Invoice(AbstractInvoice):
                 add_database_to_settings(db)
                 super(Invoice, self).save(using=db, *args, **kwargs)
         super(Invoice, self).save(using=using, *args, **kwargs)
+
+
+class AbstractInvoiceItem(Model):
+    label = models.CharField(max_length=100, unique=True)
+    amount = models.FloatField(default=0)
+
+    class Meta:
+        abstract = True
+
+
+class InvoiceItem(AbstractInvoiceItem):
+    pass
+
+
+class IkwenInvoiceItem(AbstractInvoiceItem):
+    price = models.FloatField(default=0)
+
+
+class InvoiceEntry(Model):
+    item = EmbeddedModelField(getattr(settings, 'BILLING_INVOICE_ITEM_MODEL', 'InvoiceItem'))
+    short_description = models.CharField(max_length=100, blank=True)
+    quantity = models.FloatField(default=1)
+    total = models.FloatField(default=0)
 
 
 class SendingReport(Model):
@@ -334,6 +360,7 @@ class MoMoTransaction(Model):
     REQUEST_EXCEPTION = 'RequestException'
     TIMEOUT = 'Timeout'
     API_ERROR = 'APIError'
+    SSL_ERROR = 'SSLError'
     SERVER_ERROR = 'ServerError'
 
     CASH_IN = 'CashIn'
@@ -354,3 +381,26 @@ class MoMoTransaction(Model):
 
     class Meta:
         db_table = 'ikwen_momo_transaction'
+        verbose_name_plural = 'MoMo Transactions'
+
+
+class CloudBillingPlan(models.Model):
+    app = models.ForeignKey(Application)
+    partner = models.ForeignKey(Service, related_name='+', blank=True, null=True,
+                                help_text="Retailer this billing plan applies to.")
+    name = models.CharField(max_length=60)
+    is_pro_version = models.BooleanField(default=False)
+    max_products = models.IntegerField()
+    tx_share_fixed = models.FloatField(help_text="Fixed amount ikwen collects per transaction "
+                                                 "on websites with this billing plan.")
+    tx_share_rate = models.FloatField(help_text="Rate ikwen collects per transaction "
+                                                "on websites with this billing plan.")
+    setup_cost = models.IntegerField(help_text="Setup cost at which ikwen sells the service. "
+                                               "Retailer may charge additional fees.")
+    setup_months_count = models.IntegerField(help_text="Number of months covered by the payment "
+                                                       "of the setup Invoice.")
+    monthly_cost = models.IntegerField(help_text="Monthly cost at which ikwen sells the service. "
+                                                 "Retailer may charge additional fees.")
+
+    def __unicode__(self):
+        return self.app.name + ': ' + self.name

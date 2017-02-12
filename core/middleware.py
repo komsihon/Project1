@@ -35,16 +35,18 @@ class ServiceStatusCheckMiddleware(object):
             return HttpResponseRedirect(reverse('ikwen:' + SERVICE_EXPIRED))
         if service.expiry:
             now = datetime.now()
-            if now.date() > service.expiry or service.status != Service.ACTIVE:
-                rm = request.resolver_match
+            rm = request.resolver_match
+            if now.date() > service.expiry or service.status != Service.PENDING or service.status != Service.ACTIVE:
                 if request.user.is_authenticated() and request.user == service.member:
                     if rm.namespace == 'ikwen':
                         if rm.url_name in [SERVICE_EXPIRED, SERVICE_DETAIL, LOAD_EVENT, SIGN_IN, LOGOUT]:
-                            return None
+                            return
                     query_string = request.META['QUERY_STRING']
                     service_detail_url = reverse('ikwen:' + SERVICE_DETAIL, args=(service.id, )) + '?' + query_string
                     return HttpResponseRedirect(service_detail_url)
                 if rm.namespace == 'ikwen':
                     if rm.url_name in [SERVICE_EXPIRED, SERVICE_DETAIL, LOAD_EVENT, SIGN_IN, LOGOUT]:
-                        return None
+                        return
                 return HttpResponseRedirect(reverse('ikwen:' + SERVICE_EXPIRED))
+            elif rm.namespace == 'ikwen' and rm.url_name == SERVICE_EXPIRED:
+                return HttpResponseRedirect(reverse('home'))

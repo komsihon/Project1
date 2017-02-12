@@ -26,7 +26,9 @@ class Theme(Model):
     slug = models.SlugField()
     preview = models.ImageField(upload_to='ikwen/theme_previews',
                                 blank=getattr(settings, 'DEBUG', False), null=getattr(settings, 'DEBUG', False))
-    logo = models.ImageField(upload_to=UPLOAD_TO, editable=False, blank=True, null=True)
+    logo = models.ImageField(upload_to=UPLOAD_TO, editable=False, blank=True, null=True,
+                             help_text="This is not the logo of the theme actually, but the logo of the website "
+                                       "when using this theme. User may want different logos for different themes.")
 
     class Meta:
         db_table = 'ikwen_theme'

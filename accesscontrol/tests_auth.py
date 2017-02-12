@@ -23,7 +23,7 @@ from permission_backend_nonrel.models import UserPermissionList
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, COMMUNITY
-from ikwen.core.models import Service, Config
+from ikwen.core.models import Service, Config, OperatorWallet
 
 
 def wipe_test_data():
@@ -34,7 +34,9 @@ def wipe_test_data():
     import ikwen.core.models
     import ikwen.billing.models
     import ikwen.accesscontrol.models
+    import ikwen.partnership.models
     import permission_backend_nonrel.models
+    OperatorWallet.objects.using('wallets').all().delete()
     for alias in getattr(settings, 'DATABASES').keys():
         if alias == 'wallets':
             continue
@@ -50,6 +52,9 @@ def wipe_test_data():
         for name in ('Product', 'Payment', 'Invoice', 'Subscription',
                      'InvoicingConfig', 'PaymentMean', 'MoMoTransaction'):
             model = getattr(ikwen.billing.models, name)
+            model.objects.using(alias).all().delete()
+        for name in ('PartnerProfile', 'ApplicationRetailConfig'):
+            model = getattr(ikwen.partnership.models, name)
             model.objects.using(alias).all().delete()
 
 

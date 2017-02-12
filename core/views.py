@@ -117,11 +117,12 @@ class HybridListView(ListView):
                     response.append(item.to_dict())
                 except:
                     continue
-            return HttpResponse(
-                json.dumps(response),
-                'content-type: text/json',
-                **response_kwargs
-            )
+            callback = self.request.GET.get('callback')
+            if callback:
+                response = {'object_list': response}
+                jsonp = callback + '(' + json.dumps(response) + ')'
+                return HttpResponse(jsonp, content_type='application/json', **response_kwargs)
+            return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
         else:
             return super(HybridListView, self).render_to_response(context, **response_kwargs)
 
@@ -424,11 +425,7 @@ class Console(BaseView):
             queryset = ConsoleEvent.objects \
                            .filter(event_type__in=targeted_type, member=self.request.user).order_by('-id')[start:limit]
             response = [event.to_dict() for event in queryset]
-            return HttpResponse(
-                json.dumps(response),
-                'content-type: text/json',
-                **response_kwargs
-            )
+            return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
         else:
             return super(Console, self).render_to_response(context, **response_kwargs)
 

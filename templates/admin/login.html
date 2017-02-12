@@ -103,7 +103,7 @@
     <div id="content" class="container">
         <div id="login">
             <h2>{% trans "Login" %}</h2>
-            <form action="{{ app_path }}" method="post">{% csrf_token %}
+            <form action="{% url 'admin:index' %}" method="post">{% csrf_token %}
                 <input type="hidden" name="this_is_the_login_form" value="1"/>
                 <input type="hidden" name="next" value="{{ next }}"/>
                 <div style="height: 43px; padding: 0; width: 306px">

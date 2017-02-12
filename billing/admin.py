@@ -19,7 +19,7 @@ from import_export.admin import ImportExportMixin, ExportMixin
 from django.utils.translation import gettext_lazy as _
 
 from ikwen.billing.models import Payment, AbstractInvoice, InvoicingConfig, Invoice, NEW_INVOICE_EVENT, \
-    SUBSCRIPTION_EVENT, PaymentMean, MoMoTransaction
+    SUBSCRIPTION_EVENT, PaymentMean, MoMoTransaction, CloudBillingPlan
 from ikwen.billing.utils import get_payment_confirmation_message, get_invoice_generated_message, \
     get_next_invoice_number, get_subscription_registered_message, get_subscription_model, get_product_model
 
@@ -322,9 +322,17 @@ class PaymentMeanAdmin(admin.ModelAdmin):
 
 
 class MoMoTransactionAdmin(admin.ModelAdmin):
-    list_display = ('service', 'phone', 'amount', 'model',)
+    list_display = ('service', 'phone', 'amount', 'model', 'object_id',)
     search_fields = ('phone',)
     list_filter = ('service',)
+
+
+class CloudBillingPlanAdmin(admin.ModelAdmin):
+    list_display = ('app', 'name', 'setup_cost', 'setup_months_cost', 'monthly_cost',
+                    'tx_share_fixed', 'tx_share_rate', 'is_pro_version')
+    search_fields = ('app', 'name', )
+    list_filter = ('app',)
+
 
 # Override ProductAdmin class if there's another defined in settings
 product_model_admin = getattr(settings, 'BILLING_PRODUCT_MODEL_ADMIN', None)
@@ -352,4 +360,5 @@ admin.site.register(Payment, PaymentAdmin)
 if getattr(settings, 'IS_IKWEN', False):
     admin.site.register(PaymentMean, PaymentMeanAdmin)
     admin.site.register(MoMoTransaction, MoMoTransactionAdmin)
+    admin.site.register(CloudBillingPlan, CloudBillingPlanAdmin)
 

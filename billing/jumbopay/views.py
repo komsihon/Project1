@@ -12,6 +12,8 @@ from django.utils.module_loading import import_by_path
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
+from requests.exceptions import SSLError
+
 from ikwen.core.views import IKWEN_BASE_URL
 from requests import RequestException
 from requests import Timeout
@@ -23,12 +25,6 @@ from ikwen.core.utils import get_service_instance
 from ikwen.billing.models import PaymentMean, MoMoTransaction
 
 from ikwen.core.views import BaseView
-
-if getattr(settings, 'DEBUG', False):
-    JUMBOPAY_API_URL = 'https://154.70.100.194/api/sandbox/v2/'
-    API_KEY = 'c18c884c0a3fcc756f81e0b28d636208'
-else:
-    JUMBOPAY_API_URL = 'https://154.70.100.194/api/live/v2/'
 
 
 class MoMoCheckout(BaseView):
@@ -47,6 +43,7 @@ class MoMoCheckout(BaseView):
         path = getattr(settings, 'MOMO_BEFORE_CASH_OUT')
         momo_before_checkout = import_by_path(path)
         momo_before_checkout(request, *args, **kwargs)
+        context['amount'] = request.session['amount']
         return render(request, self.template_name, context)
 
 
@@ -70,14 +67,14 @@ def call_cashout(transaction):
     Calls the HTTP JumboPay API and updates the MoMoTransaction
     status in the database upon completion of the request.
     """
-    if getattr(settings, 'TESTING', False):
-        JUMBOPAY_API_URL = 'http://localhost/ikwen' + reverse('billing:jumbopay_local_api')
+    JUMBOPAY_API_URL = getattr(settings, 'JUMBOPAY_API_URL', 'https://154.70.100.194/api/live/v2/')
     label = '%s:%s' % (transaction.model, transaction.object_id)
     data = {'amount': transaction.amount, 'libelle': label, 'phonenumber': transaction.phone, 'lang': 'en'}
     cashout_url = JUMBOPAY_API_URL + 'cashout'
     if getattr(settings, 'DEBUG', False):
         jumbopay = json.loads(PaymentMean.objects.get(slug='jumbopay-momo').credentials)
-        r = requests.post(cashout_url, data=data, timeout=130)
+        headers = {'Authorization': jumbopay['api_key'], 'Content-Type': 'application/x-www-form-urlencoded'}
+        r = requests.post(cashout_url, headers=headers, data=data, verify=False, timeout=130)
         resp = r.json()
         message = resp['message'][0]
         transaction.processor_tx_id = message['transactionid']
@@ -93,8 +90,9 @@ def call_cashout(transaction):
         except:
             return HttpResponse("Error, Could not parse JumboPay parameters.")
         try:
-            key = jumbopay['api_key']
-            r = requests.post(cashout_url, data=data, timeout=130)
+            headers = {'Authorization': jumbopay['api_key'], 'Content-Type': 'application/x-www-form-urlencoded'}
+            cert = (jumbopay['ssl_certificate'], jumbopay['ssl_key'])
+            r = requests.post(cashout_url, cert=cert, headers=headers, data=data, timeout=130)
             resp = r.json()
             message = resp['message'][0]
             transaction.processor_tx_id = message['transactionid']
@@ -104,6 +102,8 @@ def call_cashout(transaction):
                 transaction.status = MoMoTransaction.API_ERROR
             else:
                 transaction.status = MoMoTransaction.SUCCESS
+        except SSLError:
+            transaction.status = MoMoTransaction.SSL_ERROR
         except Timeout:
             transaction.status = MoMoTransaction.TIMEOUT
         except RequestException:
@@ -126,8 +126,15 @@ def check_momo_transaction_status(request, *args, **kwargs):
         if tx.status == MoMoTransaction.SUCCESS:
             path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
             momo_after_checkout = import_by_path(path)
-            resp_dict = momo_after_checkout(request, *args, **kwargs)
-            return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
+            if getattr(settings, 'DEBUG', False):
+                resp_dict = momo_after_checkout(request, *args, **kwargs)
+                return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
+            else:
+                try:
+                    resp_dict = momo_after_checkout(request, *args, **kwargs)
+                    return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
+                except:
+                    return HttpResponse(json.dumps({'error': 'Unknown server error in AFTER_CASH_OUT'}))
         return HttpResponse(json.dumps({'error': tx.status}), 'content-type: text/json')
     return HttpResponse(json.dumps({'running': True}), 'content-type: text/json')
 
@@ -136,8 +143,7 @@ def do_cashin(phone, amount, model_name, object_id):
     """
     Calls the *Cashin* HTTP JumboPay API to pay an IAO.
     """
-    if getattr(settings, 'TESTING', False):
-        JUMBOPAY_API_URL = 'http://localhost/ikwen' + reverse('billing:jumbopay_local_api')
+    JUMBOPAY_API_URL = getattr(settings, 'JUMBOPAY_API_URL', 'https://154.70.100.194/api/live/v2/')
     service = get_service_instance()
     tx = MoMoTransaction.objects.using(UMBRELLA).create(service=service, type=MoMoTransaction.CASH_IN, phone=phone,
                                                         amount=amount, model=model_name, object_id=object_id)
@@ -145,8 +151,10 @@ def do_cashin(phone, amount, model_name, object_id):
     data = {'amount': tx.amount, 'libelle': label, 'phonenumber': phone, 'lang': 'en'}
     cashin_url = JUMBOPAY_API_URL + 'cashin'
     if getattr(settings, 'DEBUG', False):
-        jumbopay = json.loads(PaymentMean.objects.get(slug='jumbopay-momo').credentials)
-        r = requests.post(cashin_url, data=data, timeout=130)
+        jumbopay = json.loads(PaymentMean.objects.using(UMBRELLA).get(slug='jumbopay-momo').credentials)
+        headers = {'Authorization': jumbopay['api_key'],
+                   'Content-Type': 'application/x-www-form-urlencoded'}
+        r = requests.post(cashin_url, headers=headers, data=data, verify=False, timeout=130)
         resp = r.json()
         message = resp['message'][0]
         tx.processor_tx_id = message['transactionid']
@@ -162,8 +170,10 @@ def do_cashin(phone, amount, model_name, object_id):
         except:
             return HttpResponse("Error, Could not parse JumboPay parameters.")
         try:
-            key = jumbopay['api_key']
-            r = requests.post(cashin_url, data=data, timeout=130)
+            headers = {'Authorization': jumbopay['api_key'],
+                       'Content-Type': 'application/x-www-form-urlencoded'}
+            cert = (jumbopay['ssl_certificate'], jumbopay['ssl_key'])
+            r = requests.post(cashin_url, cert=cert, headers=headers, data=data, timeout=130)
             resp = r.json()
             message = resp['message'][0]
             tx.processor_tx_id = message['transactionid']
@@ -173,6 +183,8 @@ def do_cashin(phone, amount, model_name, object_id):
                 tx.status = MoMoTransaction.API_ERROR
             else:
                 tx.status = MoMoTransaction.SUCCESS
+        except SSLError:
+            tx.status = MoMoTransaction.SSL_ERROR
         except Timeout:
             tx.status = MoMoTransaction.TIMEOUT
         except RequestException:

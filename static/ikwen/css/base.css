@@ -20,8 +20,7 @@
 .icon {background: no-repeat center; border: 1px solid transparent; cursor: pointer; display: block; float: left;height: 30px;
     margin-left: 6px; width: 30px}
 .icon:hover {border: 1px solid #ddd; border-radius: 3px}
-.icon.trash {background-image: url('../img/trash.png')}
-.icon.link {background-image: url('../img/link-24.png')}
+.stretched {height: 100%; width: 100%}
 
 .spinner-container {-webkit-animation: rotate 2s linear infinite; animation: rotate 2s linear infinite; z-index: 2}
 .spinner-container .path {

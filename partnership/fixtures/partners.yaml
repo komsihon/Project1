@@ -1,0 +1,40 @@
+- model: accesscontrol.member
+  pk: 56b37b3379b531e017eb6d01
+  fields:
+    username: partner1
+    email: partner1@ikwen.com
+    password: pbkdf2_sha256$12000$nNK3SeCKYSvl$CuoviZNeie9YzaWhukVCi9iQtNmpu3QBbK2yHGHEUxc=  # admin
+    phone: 699000001
+    first_name: Ngangue
+
+- model: core.application
+  pk: 57eb6b3379b531a002d04a11
+  fields:
+    name: ikwen Retail
+    slug: ikwen-retail
+    base_monthly_cost: 5000
+
+- model: core.service  # Partner retailer
+  pk: 56eb6d04b9b531b10537b331
+  fields:
+    member: 56b37b3379b531e017eb6d01
+    app: 57eb6b3379b531a002d04a11
+    project_name: jumbo apps
+    project_name_slug: jumbo-apps
+    domain: jumbopay.cm
+    url: http://apps.jumbopay.cm
+    database: test_kc_partner_jumbo
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z
+
+- model: partnership.partnerprofile
+  pk: 56922a3bb37b33da18d02fb1
+  fields:
+    service: 56eb6d04b9b531b10537b331
+    api_signature: api-signature-partner1
+    company_name: JumboPay
+    company_name_slug: jumbopay
+    city: Douala
+    return_url: http://localhost/kakocase/test_return_url

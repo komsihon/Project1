@@ -25,6 +25,7 @@
     app: 56eb6d04b37b3379b531a001
     project_name: Ikwen Service
     project_name_slug: ikwen-service
+    url: http://ikwen-service.com
     domain: ikwen-service.com
     database: test_ikwen_service
     monthly_cost: 6000
@@ -39,6 +40,7 @@
     app: 56eb6d04b37b3379b531a002
     project_name: Ikwen Service 2
     project_name_slug: ikwen-service-2
+    url: http://ikwen-service2.com
     domain: ikwen-service2.com
     database: test_ikwen_service_2
     monthly_cost: 6000
@@ -49,7 +51,7 @@
 - model: core.config
   fields:
     service: 56eb6d04b37b3379b531b101
-    company_name: Ikwen
+    company_name: ikwen
     contact_email: contact@ikwen.com
     logo: logos/some_logo.png
 
@@ -60,8 +62,8 @@
 - model: core.config
   fields:
     service: 56eb6d04b37b3379b531b102
-    company_name: Ikwen
-    contact_email: contact@ikwen.com
+    company_name: Zulander
+    contact_email: contact@zulander.com
     logo: logos/some_logo.png
 
 - model: billing.paymentmean
@@ -79,7 +81,7 @@
   fields:
     name: Mobile Money
     slug: jumbopay-momo
-    credentials: '{"api_key":"jp-api-key"}'
+    credentials: '{"api_key":"c18c884c0a3fcc756f81e0b28d636208"}'
     action_url_name: billing:momo_set_checkout
     logo: logo.png
     watermark: watermark.png
@@ -228,3 +230,27 @@
     title: Notice of service suspension
     target: Personal
     renderer: ikwen.billing.views.render_service_suspension_event
+
+- model: core.consoleeventtype
+  pk: 56eb3379b531a0104b373bda
+  fields:
+    app: 54eb6d04b37b9b531a003371
+    codename: CashOutRequest
+    title: Cash-out request
+    target: Business
+    renderer: ikwen.billing.views.render_service_suspension_event
+
+- model: cashout.cashoutmethod
+  pk: 56b38781b37b33199e17dab1
+  fields:
+    name: Mobile Money
+    slug: mobile-money
+    type: MobileMoney
+
+- model: cashout.cashoutaddress
+  pk: 5637b33199e17dab1b38781a
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    method: 56b38781b37b33199e17dab1
+    account_number: 677422485
+    name: Kom Sihon

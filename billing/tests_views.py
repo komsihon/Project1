@@ -10,6 +10,7 @@ from django.core.urlresolvers import reverse
 from django.test.utils import override_settings
 from django.utils.unittest import TestCase
 from django.test.client import Client
+from ikwen.core.models import OperatorWallet
 
 # Override BILLING_SUBSCRIPTION_MODEL before ikwen.billing.models is loaded
 setattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
@@ -29,6 +30,7 @@ def wipe_test_data():
     import ikwen.core.models
     import ikwen.billing.models
     import ikwen.accesscontrol.models
+    OperatorWallet.objects.using('wallets').all().delete()
     for alias in getattr(settings, 'DATABASES').keys():
         if alias == 'wallets':
             continue

@@ -149,7 +149,7 @@ MEDIA_URL = 'http://localhost/ikwen/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = os.path.join(BASE_DIR,  'static')
+STATIC_ROOT = '/home/komsihon/Dropbox/PycharmProjects/ikwen/static/'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
@@ -179,8 +179,10 @@ AUTHENTICATION_BACKENDS = (
 # Typically the Service which the Member subscribed to
 BILLING_SUBSCRIPTION_MODEL = 'core.Service'
 BILLING_SUBSCRIPTION_MODEL_ADMIN = 'ikwen.core.admin.ServiceAdmin'
+BILLING_INVOICE_ITEM_MODEL = 'billing.IkwenInvoiceItem'
 SERVICE_SUSPENSION_ACTION = 'ikwen.billing.utils.suspend_subscription'
 
+JUMBOPAY_API_URL = 'https://154.70.100.194/api/sandbox/v2/' if DEBUG else 'https://154.70.100.194/api/live/v2/'
 MOMO_BEFORE_CASH_OUT = 'ikwen.billing.views.set_invoice_checkout'
 MOMO_AFTER_CASH_OUT = 'ikwen.billing.views.confirm_invoice_payment'
 

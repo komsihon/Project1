@@ -1,0 +1,16 @@
+- model: partnership.applicationretailconfig
+  pk: 56922a3db37b3302fbda1a01
+  fields:
+    partner: 56eb6d04b9b531b10537b331
+    app: 56eb6d04b37b3379b531a001
+    ikwen_monthly_cost: 4000
+    ikwen_tx_share_rate: 40
+
+- model: partnership.applicationretailconfig
+  pk: 56922a3db37b3302fbda1a02
+  fields:
+    partner: 56eb6d04b9b531b10537b331
+    app: 56eb6d04b37b3379b531a002
+    ikwen_monthly_cost: 4000
+    ikwen_tx_share_rate: 40
+

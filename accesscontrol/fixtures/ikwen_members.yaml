@@ -6,6 +6,10 @@
     password: pbkdf2_sha256$12000$nNK3SeCKYSvl$CuoviZNeie9YzaWhukVCi9iQtNmpu3QBbK2yHGHEUxc=  # admin
     phone: 677000001
     is_iao: Yes
+    is_superuser: Yes
+    first_name: Arch
+    last_name: Soft
+    full_name: Soft Arch
     gender: Male
     collaborates_on_fk_list: [56eb6d04b37b3379b531b101]
 

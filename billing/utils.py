@@ -131,7 +131,7 @@ def get_subscription_registered_message(subscription):
         message = _("Dear %(member_name)s,<br><br>"
                     "Your subscription to <strong>%(product_name)s</strong> (%(short_description)s) is confirmed. "
                     "See details below:<br><br>"
-                    "<span style='color: #444'>%(details)s</span><br>"
+                    "<span>%(details)s</span><br>"
                     "Monthly cost: <strong>%(currency)s</strong> %(amount).2f<br>"
                     "Billing cycle: %(billing_cyle)s<br><br>"
                     "Thank you for your business with "
@@ -187,7 +187,7 @@ def get_invoice_generated_message(invoice):
                     "Amount: %(currency)s %(amount).2f<br>"
                     "Due Date:  %(due_date)s<br><br>"
                     "<strong>Invoice items:</strong><br>"
-                    "<span style='color: #444'>%(invoice_description)s</span><br><br>"
+                    "<span>%(invoice_description)s</span><br><br>"
                     "Thank you for your business with "
                     "%(company_name)s." % {'member_name': member.first_name,
                                            'company_name': config.company_name,
@@ -242,7 +242,7 @@ def get_invoice_reminder_message(invoice):
                     "Amount: %(currency)s %(amount).2f<br>"
                     "Due Date:  %(due_date)s<br><br>"
                     "<strong>Invoice items:</strong><br>"
-                    "<span style='color: #444'>%(invoice_description)s</span><br><br>"
+                    "<span>%(invoice_description)s</span><br><br>"
                     "Thank you for your business with "
                     "%(company_name)s." % {'member_name': member.first_name,
                                            'company_name': config.company_name,
@@ -304,7 +304,7 @@ def get_invoice_overdue_message(invoice):
                     "Amount: %(currency)s %(amount).2f<br>"
                     "Due Date:  %(due_date)s<br><br>"
                     "<strong>Invoice items:</strong><br>"
-                    "<span style='color: #444'>%(invoice_description)s</span><br><br>"
+                    "<span>%(invoice_description)s</span><br><br>"
                     "Thank you for your business with "
                     "%(company_name)s." % {'member_name': member.first_name,
                                            'company_name': config.company_name,
@@ -357,7 +357,7 @@ def get_service_suspension_message(invoice):
                     "<strong>No. %(invoice_number)s</strong> generated on %(date_issued)s and due on %(due_date)s. <br>"
                     "Amount due is %(currency)s %(amount).2f.<br><br>"
                     "<strong>Invoice items:</strong><br>"
-                    "<span style='color: #444'>%(invoice_description)s</span><br><br>"
+                    "<span>%(invoice_description)s</span><br><br>"
                     "Thank you for your business with "
                     "%(company_name)s." % {'member_name': member.first_name,
                                            'invoice_number': invoice.number,
@@ -406,10 +406,10 @@ def get_payment_confirmation_message(payment, member):
             .replace('$invoice_description', details)
     else:
         message = _("Dear %(member_name)s,<br><br>"
-                    "This is a payment receipt of %(currency)s %(amount).2f"
+                    "This is a payment receipt of %(currency)s %(amount).2f "
                     "for Invoice <strong>No. %(invoice_number)s</strong> generated on %(date_issued)s "
-                    "towards the services provided by us. Below is a summary of your invoice.<br>"
-                    "<span style='color: #444'>%(invoice_description)s</span><br><br>"
+                    "towards the services provided by us. Below is a summary of your service.<br><br>"
+                    "<span style='color: #666'>%(invoice_description)s</span><br><br>"
                     "Thank you for your business with "
                     "%(company_name)s." % {'member_name': member.first_name,
                                            'company_name': config.company_name,
@@ -454,14 +454,31 @@ def check_service_retailer(service):
 
 
 def share_payment_and_set_stats(invoice, total_months):
+    if getattr(settings, 'IS_IKWEN', False):
+        # This is ikwen collecting payment for Invoice of its Cloud apps
+        _share_payment_and_set_stats_ikwen(invoice, total_months)
+    else:
+        _share_payment_and_set_stats_other(invoice)
+
+
+def _share_payment_and_set_stats_ikwen(invoice, total_months):
     service_umbrella = Service.objects.get(pk=invoice.service.id)
     app_umbrella = service_umbrella.app
     ikwen_earnings = invoice.amount
 
     partner = service_umbrella.retailer
     if partner:
-        retail_config = ApplicationRetailConfig.objects.get(partner=partner, app=app_umbrella)
-        ikwen_earnings = retail_config.ikwen_monthly_cost * total_months
+        if invoice.is_one_off:
+            ikwen_earnings = 0
+            for entry in invoice.entries:
+                ikwen_earnings += entry.item.price * entry.quantity
+        else:
+            billing_plan = service_umbrella.billing_plan
+            if billing_plan:
+                ikwen_earnings = billing_plan.monthly_cost * total_months
+            else:
+                retail_config = ApplicationRetailConfig.objects.get(partner=partner, app=app_umbrella)
+                ikwen_earnings = retail_config.ikwen_monthly_cost * total_months
         partner_earnings = invoice.amount - ikwen_earnings
         partner_profile_original = PartnerProfile.objects.using(partner.database).get(service=partner)
 
@@ -509,3 +526,76 @@ def share_payment_and_set_stats(invoice, total_months):
     increment_history_field(app_umbrella, 'invoice_earnings_history', ikwen_earnings)
     increment_history_field(app_umbrella, 'earnings_history', ikwen_earnings)
     increment_history_field(app_umbrella, 'invoice_count_history')
+
+
+def _share_payment_and_set_stats_other(invoice):
+    service = get_service_instance()
+    service_umbrella = get_service_instance(UMBRELLA)
+    config = service_umbrella.config
+    ikwen_earnings = invoice.amount * config.ikwen_share_rate / 100
+    ikwen_earnings += config.ikwen_share_fixed
+    service_earnings = invoice.amount - ikwen_earnings  # Earnings of IAO of this website
+
+    config.raise_balance(service_earnings)
+
+    set_counters(service, 'turnover_history', 'earnings_history', 'invoice_count_history')
+    increment_history_field(service, 'turnover_history', invoice.amount)
+    increment_history_field(service, 'earnings_history', service_earnings)
+    increment_history_field(service, 'invoice_count_history')
+
+    partner = service.retailer
+    if partner:
+        partner_umbrella = Service.objects.using(UMBRELLA).get(pk=partner.id)
+        partner_profile_umbrella = PartnerProfile.objects.using(partner.database).get(service=partner.id)
+        partner_original = Service.objects.using(UMBRELLA).get(pk=partner.id)
+        service_partner = Service.objects.using(partner.database).get(service=partner.id)
+        retail_config = ApplicationRetailConfig.objects.get(partner=partner, app=service.app)
+        partner_earnings = ikwen_earnings * (100 - retail_config.ikwen_tx_share_rate) / 100
+        ikwen_earnings -= partner_earnings
+
+        partner_profile_umbrella.raise_balance(partner_earnings)
+
+        set_counters(service_partner, 'turnover_history', 'transaction_earnings_history',
+                     'earnings_history', 'transaction_count_history')
+        increment_history_field(service_partner, 'turnover_history', invoice.amount)
+        increment_history_field(service_partner, 'earnings_history', partner_earnings)
+        increment_history_field(service_partner, 'transaction_earnings_history', partner_earnings)
+        increment_history_field(service_partner, 'transaction_count_history')
+
+        app_partner = service_partner.app
+        set_counters(app_partner, 'turnover_history', 'transaction_earnings_history',
+                     'earnings_history', 'transaction_count_history')
+        increment_history_field(app_partner, 'turnover_history', invoice.amount)
+        increment_history_field(app_partner, 'earnings_history', partner_earnings)
+        increment_history_field(app_partner, 'transaction_earnings_history', partner_earnings)
+        increment_history_field(app_partner, 'transaction_count_history')
+
+        set_counters(partner_umbrella, 'turnover_history', 'transaction_earnings_history',
+                     'earnings_history', 'transaction_count_history')
+        increment_history_field(partner_umbrella, 'turnover_history', invoice.amount)
+        increment_history_field(partner_umbrella, 'earnings_history', ikwen_earnings)
+        increment_history_field(partner_umbrella, 'transaction_earnings_history', ikwen_earnings)
+        increment_history_field(partner_umbrella, 'transaction_count_history')
+
+        partner_app_umbrella = partner_umbrella.app
+        set_counters(partner_app_umbrella, 'turnover_history', 'transaction_earnings_history',
+                     'earnings_history', 'transaction_count_history')
+        increment_history_field(partner_app_umbrella, 'turnover_history', invoice.amount)
+        increment_history_field(partner_app_umbrella, 'earnings_history', ikwen_earnings)
+        increment_history_field(partner_app_umbrella, 'transaction_earnings_history', ikwen_earnings)
+        increment_history_field(partner_app_umbrella, 'transaction_count_history')
+
+    set_counters(service_umbrella, 'turnover_history', 'transaction_earnings_history',
+                 'earnings_history', 'transaction_count_history')
+    increment_history_field(service_umbrella, 'turnover_history', invoice.amount)
+    increment_history_field(service_umbrella, 'earnings_history', ikwen_earnings)
+    increment_history_field(service_umbrella, 'transaction_earnings_history', ikwen_earnings)
+    increment_history_field(service_umbrella, 'transaction_count_history')
+
+    app_umbrella = service_umbrella.app
+    set_counters(app_umbrella, 'turnover_history', 'transaction_earnings_history',
+                 'earnings_history', 'transaction_count_history')
+    increment_history_field(app_umbrella, 'turnover_history', invoice.amount)
+    increment_history_field(app_umbrella, 'earnings_history', ikwen_earnings)
+    increment_history_field(app_umbrella, 'transaction_earnings_history', ikwen_earnings)
+    increment_history_field(app_umbrella, 'transaction_count_history')

@@ -83,7 +83,8 @@ def setup_dev_env(app_name, username, database=None, project_name=None,
 def generate_random_key(length):
     import random
     import string
-    generated_key = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits + string.punctuation)
+    special_chars = string.punctuation.replace("\\", '').replace("'", '').replace('"', '')
+    generated_key = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits + special_chars)
                              for _ in range(length)])
     return generated_key
 

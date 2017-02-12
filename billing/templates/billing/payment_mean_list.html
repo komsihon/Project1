@@ -87,6 +87,44 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="conf-jumbopay-momo" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-info">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{% trans "Configure" %} JumboPay Mobile Money</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group row">
+                            <label for="jp-api-key" class="col-sm-5 col-md-4">{% trans "JumboPay API Key" %}</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="jp-api-key" name="api_key" class="form-control input-sm" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="jp-cert" class="col-sm-5 col-md-4">{% trans "Certificate" %}</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="jp-cert" name="certificate" class="form-control input-sm" />
+                                <p class="text-muted">{% trans "Path to the certificate file" %}</p>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="row" style="clear: both; padding-top: 1em">
+                        <div class="col-xs-12 col-sm-4 col-md-3">
+                            <button class="btn btn-success btn-block btn-sm"
+                                    data-dismiss="modal" aria-label="Close">{% trans "OK" %}</button>
+                        </div>
+                        <div class="col-xs-12 col-sm-4 col-md-3">
+                            <button class="btn btn-default btn-block btn-sm"
+                                    data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block js %}
@@ -105,6 +143,13 @@
                 $('#pp-signature').val(signature);
                 $('#pp-merchant-id').val(merchantId);
                 $('div#conf-paypal button.btn-success').data('mean-id', meanId);
+            }).on('click', '.conf-jumbopay-momo', function() {
+                var meanId = $(this).parents('.ik-li').data('id'),
+                    APIKey = $(this).parents('.ik-li').data('api_key'),
+                    certificate = $(this).parents('.ik-li').data('certificate');
+                $('#jp-api-key').val(APIKey);
+                $('#jp-cert').val(certificate);
+                $('div#conf-jumbopay-momo button.btn-success').data('mean-id', meanId);
             }).on('click', '.ik-li.mean .check', function() {
                 var meanId = $(this).parents('.ik-li').data('id'),
                     _$check = $(this);
@@ -118,18 +163,32 @@
             });
             $('div#conf-paypal button.btn-success').click(function() {
                 var credentials = JSON.stringify({
-                        username: $('#pp-username').val(),
-                        password: $('#pp-password').val(),
-                        signature: $('#pp-signature').val(),
-                        merchant_id: $('#pp-merchant-id').val()
-                    }),
-                    meanId = $(this).data('mean-id');
+                    username: $('#pp-username').val(),
+                    password: $('#pp-password').val(),
+                    signature: $('#pp-signature').val(),
+                    merchant_id: $('#pp-merchant-id').val()
+                }),
+                meanId = $(this).data('mean-id');
                 $.getJSON('{% url 'billing:set_credentials' %}', {mean_id: meanId, credentials: credentials}, function(resp) {
                     if (resp.error) {
                         ikwen.showFloatingNotice(resp.error, '', 5);
                         return
                     }
                     ikwen.showFloatingNotice("{% trans "PayPal successfully configured" %}", '', 5);
+                })
+            });
+            $('div#conf-jumbopay-momo button.btn-success').click(function() {
+                var credentials = JSON.stringify({
+                    api_key: $('#jp-api-key').val(),
+                    certificate: $('#jp-cert').val()
+                }),
+                meanId = $(this).data('mean-id');
+                $.getJSON('{% url 'billing:set_credentials' %}', {mean_id: meanId, credentials: credentials}, function(resp) {
+                    if (resp.error) {
+                        ikwen.showFloatingNotice(resp.error, '', 5);
+                        return
+                    }
+                    ikwen.showFloatingNotice("{% trans "JumboPay Mobile Money successfully configured" %}", '', 5);
                 })
             });
         })()

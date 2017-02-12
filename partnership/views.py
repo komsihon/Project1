@@ -1,3 +1,22 @@
 from django.shortcuts import render
+from ikwen.core.views import BaseView, HybridListView
 
-# Create your views here.
+
+class Dashboard(BaseView):
+    pass
+
+
+class ApplicationList(HybridListView):
+    pass
+
+
+class ApplicationDetail(BaseView):
+    pass
+
+
+class ServiceList(HybridListView):
+    pass
+
+
+class ChangeService(BaseView):
+    pass

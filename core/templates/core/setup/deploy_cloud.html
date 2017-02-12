@@ -1,0 +1,291 @@
+{% extends "core/base_bs.html" %}
+{% load i18n staticfiles auth_tokens %}
+
+{% block page_title %}<title>{{ app.name }} - {% trans "Deploy Cloud" %}</title>{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <style type="text/css">
+        #navbar {background: none}
+        #navbar .navbar-brand {color: #888; display: none; font-weight: 700}
+        #navbar form.search {
+            display: none
+        }
+        .section-title {color: #666; margin: 2em 0 1em}
+        .btn-icon {border: 1px solid; border-radius: 3px; cursor: pointer; font-size: 30px; font-weight: 700; padding: 0 6px}
+        .results.customers {background: #fff; position: absolute; z-index: 10}
+        #content form ul.errorlist {
+            padding-left: 0
+        }
+
+        #content form ul.errorlist li {
+            color: #FF0808;
+            list-style-type: none
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="content">
+        <div class="container">
+            {% if request.GET.msg %}
+                <p class="failure" style="font-size: 1em; padding: 9px">{{ request.GET.msg }}</p>
+            {% endif %}
+        </div>
+        <h2 class="container text-muted"><strong>ikwen</strong></h2>
+        <form action="{% url 'kakocase:deploy_cloud' %}?{{ request.META.QUERY_STRING }}" method="post"
+              class="form-horizontal">
+            {% csrf_token %}
+            <input type="hidden" name="app_id" value="{{ app.id }}" />
+            {% if not settings.IS_IKWEN %}
+                <input type="hidden" name="partner_id" value="{{ service.id }}" />
+            {% endif %}
+            <input type="hidden" id="theme-id" name="theme_id" value="{{ theme_list.0.id }}" />
+            <input type="hidden" id="member-id" name="member_id" />
+            <input type="hidden" name="business_type" />
+            <div class="container">
+                <p class="text-muted" style="margin-bottom: 2em; text-align: center">
+                    {% blocktrans with app_name=app.name %}Create {{ app_name }} website{% endblocktrans %}
+                </p>
+                <div class="col-sm-9 col-md-8">
+                    <h4 class="section-title">{% trans "Customer" %}</h4>
+                    {% if is_company %}
+                        <div class="form-group row" style="height: 35px">
+                            <label for="customer-name" class="col-sm-4 col-md-3">{% trans "Customer name" %}</label>
+                            <div class="col-sm-6 col-md-6">
+                                <input id="customer-name" class="form-control input-sm" type="text" />
+                                <div class="results customers has-shade" style="display: none" data-min-search-chars="2">
+                                    {% include 'core/snippets/spinner.html' %}
+                                    <ul style="padding-left: 0">
+                                        <li class="member tpl" style="display: none">
+                                            <div style="display: block">
+                                                <span class="photo logo bg-img" style="background-image: url({% static 'ikwen/img/no_photo.png' %})"></span>
+                                                <div style="float: left; margin-left: 30px">
+                                                    <span class="full_name project_name"></span>
+                                                    <p class="about short_description"></p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                    <div class="clearfix"></div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <h4 class="section-title" style="clear: both">{% trans "Website info" %}</h4>
+                    <div class="form-group row">
+                        <label for="project-name" class="col-sm-4 col-md-3">{% trans "Project name" %}</label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="project-name" class="form-control input-sm" type="text" name="project_name"/>
+                            {{ form.project_name.errors }}
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="domain" class="col-sm-4 col-md-3">{% trans "Domain" %}</label>
+                        <div class="col-sm-6 col-md-6">
+                            <input id="domain" class="form-control input-sm" type="text" name="domain"/>
+                            {{ form.domain.errors }}
+                        </div>
+                    </div>
+                    {% block config_info %}{% endblock %}
+                </div>
+            </div>
+            {% if can_choose_themes %}
+            <div style="background: #222; margin-top: 1em; padding-bottom: 2em">
+                <div class="container">
+                    <h4 style="color: #ddd">{% trans "Choose template" %}</h4>
+                    <div class="col-sm-10 col-md-9">
+                        {% for theme in theme_list %}
+                            <div class="col-sm-4 theme{% if forloop.counter == 1 %} active{% endif %}" data-id="{{ theme.id }}">
+                                <img src="{{ settings.IKWEN_MEDIA_URL }}{{ theme.preview.name }}" class="img-responsive"/>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="container">
+                <div class="col-sm-9 col-md-8">
+                    <h4 class="section-title">{% trans "Billing" %}</h4>
+                    {% if is_company %}
+                        <div class="form-group row">
+                            <label for="billing-cycle" class="col-sm-4 col-md-3">{% trans "Billing cycle" %} </label>
+                            <div class="col-sm-6 col-md-6">
+                                <select id="billing-cycle" name="billing_cycle" class="form-control input-sm">
+                                    {% for bc in billing_cycles %}
+                                        <option value="{{ bc.0 }}">{% trans bc.1 %}</option>
+                                    {% endfor %}
+                                </select>
+                                {{ form.name.errors }}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            {% if billing_plan_list %}
+                            <label for="billing-plan" class="col-sm-4 col-md-3">{% trans "Billing plan" %} </label>
+                            <div class="col-sm-6 col-md-6">
+                                <select id="billing-plan" name="billing_plan_id" class="form-control input-sm">
+                                    {% for plan in billing_plan_list %}
+                                        <option value="{{ plan.id }}"
+                                                data-setup-cost="{{ plan.setup_cost }}"
+                                                data-monthly-cost="{{ plan.monthly_cost }}"
+                                                data-months-count="{{ plan.setup_months_count }}">{{ plan.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                {{ form.name.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% if not settings.IS_IKWEN %}
+                            <div class="form-group row" style="padding-top: 10px">
+                                <div class="col-sm-offset-4 col-md-offset-3 col-sm-3 col-md-3 text-muted">{% trans "ikwen charges" %}</div>
+                                <div class="col-sm-3 col-md-3 text-muted">{% trans "your charges" %}</div>
+                            </div>
+                        {% endif %}
+                        <div class="form-group row">
+                            <label for="setup-cost" class="col-sm-4 col-md-3">{% trans "Setup Cost" %} </label>
+                            {% if settings.IS_IKWEN %}
+                                <div class="col-sm-6 col-md-6">
+                                    {% if billing_plan_list %}
+                                        <input id="setup-cost" class="form-control input-sm" type="number" name="setup_cost" value="{{ billing_plan_list.0.setup_cost }}"/>
+                                    {% else %}
+                                        <input id="setup-cost" class="form-control input-sm" type="number" name="setup_cost" value="{{ ikwen_setup_cost }}"/>
+                                    {% endif %}
+                                    {{ form.setup_cost.errors }}
+                                </div>
+                            {% else %}
+                                <div class="col-sm-3 col-md-3 text-muted">
+                                    {% if billing_plan_list %}
+                                        {{ config.currency_symbol }} <span class="ikwen-setup-cost">{{ billing_plan_list.0.setup_cost }}</span>
+                                    {% else %}
+                                        {{ config.currency_symbol }} <span class="ikwen-setup-cost">{{ ikwen_setup_cost }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="col-sm-3 col-md-3">
+                                    <input id="setup-cost" class="form-control input-sm" type="number" name="setup_cost"/>
+                                    {{ form.name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <p class="text-muted" style="font-size: 12px">
+                            {% blocktrans with count=billing_plan.0.setup_months_count %}
+                                Including <span class="setup-months-count">{{ setup_months_count }}</span> months.{% endblocktrans %}
+                        </p>
+                        <div class="form-group row">
+                            <label for="monthly-cost" class="col-sm-4 col-md-3">{% trans "Monthly Cost" %} </label>
+                            {% if settings.IS_IKWEN %}
+                                <div class="col-sm-6 col-md-6">
+                                    {% if billing_plan_list %}
+                                        <input id="monthly-cost" class="form-control input-sm" type="number" name="monthly_cost" value="{{ billing_plan_list.0.monthly_cost }}"/>
+                                    {% else %}
+                                        <input id="monthly-cost" class="form-control input-sm" type="number" name="monthly_cost" value="{{ ikwen_monthly_cost }}"/>
+                                    {% endif %}
+                                    {{ form.setup_cost.errors }}
+                                </div>
+                            {% else %}
+                                {% if billing_plan_list %}
+                                    <div class="col-sm-3 col-md-3 text-muted">
+                                        {{ config.currency_symbol }} <span class="ikwen-monthly-cost">{{ billing_plan_list.0.monthly_cost }}</span>
+                                    </div>
+                                {% else %}
+                                    <div class="col-sm-3 col-md-3 text-muted">
+                                        {{ config.currency_symbol }} <span class="ikwen-monthly-cost">{{ ikwen_monthly_cost }}</span>
+                                    </div>
+                                {% endif %}
+                                <div class="col-sm-3 col-md-3">
+                                    <input id="monthly-cost" class="form-control input-sm" type="number" name="monthly_cost"/>
+                                    {{ form.name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <h4 class="section-title" style="margin: 2.5em 0 3px">{% trans "Additional services" %}</h4>
+                    <p class="text-muted" style="margin-bottom: 2em">
+                        {% trans "Custom services you charge your customer for. Those will be part of the setup invoice." %}
+                    </p>
+                    <div class="form-group row tpl custom-service">
+                        <div class="col-sm-6 col-md-6">
+                            <input class="form-control input-sm title" type="text" placeholder="Title" />
+                        </div>
+                        <div class="col-sm-4 col-md-3">
+                            <input class="form-control input-sm amount" type="text" placeholder="Amount" />
+                        </div>
+                        <div class="pull-left">
+                            <i class="btn-icon remove-service glyphicon glyphicon-minus text-danger"></i>
+                        </div>
+                    </div>
+                    <div class="form-group row custom-service">
+                        <div class="col-sm-6 col-md-6">
+                            <input class="form-control input-sm title" type="text" name="item0" placeholder="Title" />
+                        </div>
+                        <div class="col-sm-4 col-md-3">
+                            <input class="form-control input-sm amount" type="text" name="amount0" placeholder="Amount" />
+                        </div>
+                        <div class="pull-left">
+                            <i class="btn-icon add-service glyphicon glyphicon-plus text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container" style="margin-top: 2em">
+                <div class="col-sm-4 col-md-3">
+                    <button class="btn btn-primary btn-block"> {% trans "Submit" %} </button>
+                </div>
+            </div>
+        </form>
+        <div class="clear"></div>
+    </div>
+{% endblock %}
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function () {
+            $('#billing-plan').change(function() {
+                var setupCost = $('#billing-plan option:selected').data('setup-cost'),
+                    monthlyCost = $('#billing-plan option:selected').data('monthly-cost'),
+                    monthsCount = $('#billing-plan option:selected').data('months-count');
+                {% if settings.IS_IKWEN %}
+                    $('#setup-cost').val(setupCost);
+                    $('#monthly-cost').text(monthlyCost);
+                {% else %}
+                    $('.ikwen-setup-cost').text(parseInt(setupCost).formatMoney());
+                    $('.ikwen-monthly-cost').text(parseInt(monthlyCost).formatMoney());
+                {% endif %}
+                $('.setup-months-count').text(monthsCount)
+            });
+            $('.theme').click(function() {
+                $('.theme').removeClass('active');
+                var themeId = $(this).addClass('active').data('id');
+                $('#theme-id').val(themeId);
+            });
+            $('#content').on('click', 'li.member', function() {
+                var memberId = $(this).data('id');
+                $('#member-id').val(memberId)
+            }).on('click', '.btn-icon.add-service', function () {
+                var i = $('.custom-service').length,
+                    $customService = $('.custom-service.tpl').clone().removeClass('tpl').addClass('cs' + i);
+                $customService.find('.btn-icon.remove-service').data('i', i);
+                $customService.insertBefore('.custom-service.tpl');
+                $('.custom-service:not(.tpl)').each(function(i) {
+                    $(this).find('input.title').attr('name', 'item' + i);
+                    $(this).find('input.amount').attr('name', 'amount' + i);
+                });
+            }).on('click', '.btn-icon.remove-service', function() {
+                var i = $(this).data('i');
+                $('.cs' + i).remove();
+                $('.custom-service:not(.tpl)').each(function(i) {
+                    $(this).find('input.title').attr('name', 'item' + i);
+                    $(this).find('input.amount').attr('name', 'amount' + i);
+                });
+            });
+            $('.results.customers').width($('#customer-name').width());
+            {% url 'ikwen:member_list' as list_members_url %}
+            var searchDescriptor = [{
+                endpoint: '{{ list_members_url|ikwenize }}',
+                resultTplSelector: '.results.customers li.member',
+                jsonp: true
+            }];
+            $('#customer-name').focusout(function() {$('.results.customers').fadeOut()});
+            ikwen.setupSearch('#customer-name', '.results.customers', searchDescriptor);
+        })()
+    </script>
+    {{ config.scripts|safe }}
+{% endblock %}

@@ -42,3 +42,7 @@ Collaborators.
     about page navigation in collaborators admin page that is tabbed. Page navigation with tabs would cause
     the need to inject the current tab when querying the datasource and replacing page navigation counters.
     That is simply useless for a platform that is mainly aimed at small and medium size companies.
+
+
+DJANGO HACKS
+    add **kwargs in django.views.generic.list.BaseListView get_context_data()

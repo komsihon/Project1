@@ -97,6 +97,14 @@
     font-size: 60px;
     text-align: center;
 }
+
+.card-tile {background: no-repeat center; background-size: auto 100%; border: 1px solid #fff; float: left; overflow: hidden}
+.card-tile .more {background: rgba(0, 0, 0, .6);color: #fff;text-align: center;float: left;}
+.card-tile .more .main {font-size: 2em;margin: 1.3em 0 0;}
+.card-tile .more .sub {font-size: .8em}
+.tile-2 {height: 100%; width: 50%}
+.tile-3-1 {height: 100%;width: 66%;}
+.tile-3-2 {height: 50%; width: 34%}
 #about ul {margin: 0; padding: 0}
 #about ul li {list-style-type: none; line-height: 25px}
 #about ul li label {width: 90px}

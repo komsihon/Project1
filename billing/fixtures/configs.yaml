@@ -2,3 +2,15 @@
   pk: 56cc6b423350d09453e3b37b
   fields:
     name: Default
+
+- model: billing.cloudbillingplan
+  pk: 55e7b9b531a003371b6d0cb1
+  fields:
+    app: 54eb6d04b37b9b531a003371
+    name: cbp1
+    max_products: 100
+    tx_share_fixed: 100
+    tx_share_rate: 2
+    setup_cost: 39000
+    setup_months_count: 3
+    monthly_cost: 6000

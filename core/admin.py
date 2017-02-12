@@ -42,8 +42,8 @@ class ServiceAdmin(admin.ModelAdmin):
 class ConfigAdmin(admin.ModelAdmin):
     list_display = ('service', 'company_name', 'short_description', 'contact_email', 'contact_phone')
     fieldsets = (
-        (_('General'), {'fields': (
-        'service', 'company_name', 'short_description', 'slogan', 'description', 'currency_code', 'currency_symbol',)}),
+        (_('General'), {'fields': ('service', 'company_name', 'short_description', 'slogan',
+                                   'description', 'currency_code', 'currency_symbol',)}),
         (_('Address & Contact'), {'fields': ('contact_email', 'contact_phone', 'address', 'country', 'city')}),
         (_('Social'), {'fields': ('facebook_link', 'twitter_link', 'google_plus_link', 'instagram_link', 'linkedin_link', )}),
         (_('Mailing'), {'fields': ('welcome_message', 'signature', )}),

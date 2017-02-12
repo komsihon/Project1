@@ -1,0 +1,15 @@
+- model: theming.template
+  pk: 5884fc2b4fc23d63b80c2241
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    name: template1
+    slug: template1
+    preview: ikwen/template_previews/template1.png
+
+- model: theming.theme
+  pk: 588fc0c224123d63bb4fc4e1
+  fields:
+    template: 5884fc2b4fc23d63b80c2241
+    name: theme1
+    slug: theme1
+    preview: ikwen/theme_previews/theme1.png

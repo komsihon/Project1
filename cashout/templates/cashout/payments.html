@@ -1,5 +1,5 @@
 {% extends "core/app_base_admin.html" %}
-{% load i18n humanize staticfiles auth_tokens admin_list %}
+{% load i18n humanize staticfiles auth_tokens admin_list  %}
 
 {% block page_title %}
 <title> {% trans "Payments" %} - ikwen </title>
@@ -22,6 +22,7 @@
         .payment-address .details {float: left; font-size: .85em; margin: 2em 0 0 15px}
         .payment-address .details p {margin-bottom: 0}
         ul.actions {margin-left: -138px}
+        #confirm-cash-out .spinner {height: 35px; margin-top: -30px}
     </style>
 {% endblock %}
 
@@ -36,21 +37,26 @@
                 <div class="col-xs-12">
                     <h3>
                         <span>{% trans "Your balance" %}</span>
-                        <span style="float: right; font-size: 1.5em; font-weight: 400">{{ config.currency_symbol }} {{ config.balance|intcomma }}</span>
+                        <span style="float: right; font-size: 1.5em; font-weight: 400">{{ config.currency_symbol }} <span class="wallet-balance">{{ wallet.balance|intcomma|floatformat:"2" }}</span></span>
                     </h3>
                     <div class="row" style="margin-top: 4em">
                         <div class="col-sm-8 text-muted" style="margin-top: 1em">
                             {% if payments %}
                                 <i class="glyphicon glyphicon-calendar"></i>
-                                {% trans "Your last payment was on" %} {{ payments.0.created_on }}
+                                {% trans "Your last payment was on" %} {{ payments.0.created_on|time:"TIME_FORMAT" }}
                             {% else %}
                                 {% trans "No payment yet" %}
                             {% endif %}
                         </div>
                         <div class="col-sm-4">
-                            {% if config.balance >= config.cash_out_min %}
-                            <button class="btn btn-primary btn-sm pull-right"
+                            {% if wallet.balance >= config.cash_out_min %}
+                            <button id="show-addresses" class="btn btn-primary btn-sm pull-right"
                                     data-toggle="modal" data-target="#confirm-cash-out">{% trans "REQUEST A PAYMENT" %}</button>
+                                <p class="request-result alert alert-success" style="display: none">{% trans "Request successful" %}</p>
+                            {% else %}
+                                <div class="text-muted" style="margin-top: 1em">
+                                    {% trans "You can cash out as from" %} {{ config.currency_symbol }} {{ config.cash_out_min|intcomma }}
+                                </div>
                             {% endif %}
                         </div>
                     </div>
@@ -65,15 +71,15 @@
                     <div>
                         <ul class="listing">
                             {% for tx in payments %}
-                                <li>
-                                    <span>{{ tx.created_on }}</span>
+                                <li style="padding-bottom: 5px">
+                                    <span>{{ tx.created_on|time:"TIME_FORMAT" }}</span>
                                     <span class="pull-right text-muted">{{ config.currency_symbol }} {{ tx.amount|intcomma }}</span>
                                 </li>
+                            {% empty %}
+                                <li>
+                                    <p class="text-muted">{% trans "No payment yet" %}</p>
+                                </li>
                             {% endfor %}
-                            <li>
-                                <span>12/20/2016</span>
-                                <span class="pull-right text-muted">{{ config.currency_symbol }} {{ tx.amount|intcomma }}</span>
-                            </li>
                         </ul>
                     </div>
                 </div>
@@ -217,8 +223,8 @@
                     </form>
                     <div style="clear: both; padding-top: 2em">
                         <div class="col-xs-12 col-sm-4 col-md-3 pull-right">
-                            <button class="btn btn-success btn-block btn-sm ok"
-                                    data-dismiss="modal" aria-label="OK">OK</button>
+                            <button class="btn btn-success btn-block btn-sm ok" aria-label="OK">OK</button>
+                            {% include 'core/snippets/spinner.html' %}
                         </div>
                         <div class="col-xs-12 col-sm-4 col-md-3 pull-right">
                             <button class="btn btn-default btn-block btn-sm"
@@ -255,7 +261,7 @@
                 $('#update-payment-address').modal("show");
             }).on('click', '.delete-address', function() {
                 var addressId = $(this).data('id');
-                $.getJSON('{% url 'ikwen:manage_payment_address' %}', {action: 'delete', address_id: addressId}, function(resp) {
+                $.getJSON('{% url 'cashout:manage_payment_address' %}', {action: 'delete', address_id: addressId}, function(resp) {
                     if (resp.success) {
                         $('#' + addressId).remove();
                     }
@@ -269,7 +275,7 @@
                     name = $('#recipient-name').val();
                 var params = {action: action, address_id: addressId,
                     method_id: methodId, account_number: accountNumber, name: name};
-                $.getJSON('{% url 'ikwen:manage_payment_address' %}', params, function(resp) {
+                $.getJSON('{% url 'cashout:manage_payment_address' %}', params, function(resp) {
                     if (resp.address_id) {
                         $('#addresses .empty').hide();
                         var methodImg = $('#payment-method option:selected').data('img'),
@@ -286,6 +292,19 @@
                             $tplAddress.find('.delete-address').data({"id": resp.address_id});
                             $tplAddress.insertBefore('.payment-address.tpl').show()
                         }
+                    }
+                });
+            });
+            $('#confirm-cash-out').on('click', 'button.ok', function() {
+                var addressId = $('#pay-to').val();
+                $(this).hide();
+                $('#confirm-cash-out .spinner').show();
+                $.getJSON('{% url 'cashout:request_cash_out' %}', {'address_id': addressId}, function(resp) {
+                    if (resp.success) {
+                        $('#show-addresses, #confirm-cash-out .spinner').hide();
+                        $('#confirm-cash-out').modal('hide');
+                        $('.wallet-balance').text(0);
+                        $('.request-result').show();
                     }
                 })
             })

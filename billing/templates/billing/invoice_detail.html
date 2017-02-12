@@ -107,25 +107,38 @@
                         <td style="width: 270px"></td>
                         <td style="width: 150px">{% trans "Amount" %}</td>
                     </tr>
-                    <tr>
-                        <td colspan="3">
-                            {{ invoice.service.details|safe }}
-                        </td>
-                        <td>
-                            {% if invoice.status != 'Paid' and extensions %}
-                                <label for="extensions">{% trans "Extend payment until" %}</label>
-                                <select id="extensions" class="form-control input-sm">
-                                    <option value="0">N/A</option>
-                                    {% for extension in extensions %}
-                                    <option value="{{ extension.months }}">
-                                        {{ extension.expiry }}: {{ extension.months }} {% trans 'Month(s)' %}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            {% endif %}
-                        </td>
-                        <td id="subtotal">{{ currency_symbol }} {{ invoice.amount|intcomma }}</td>
-                    </tr>
+                    {% if invoice.is_one_off %}
+                        {% for entry in invoice.entries %}
+                            <tr>
+                                <td colspan="3">
+                                    {{ entry.item.label }}
+                                    {% if entry.short_description %}: <em>{{ entry.short_description }}</em>{% endif %}
+                                </td>
+                                <td class="numeric"> <em class="text-muted">x{{ entry.quantity }}</em> </td>
+                                <td>{{ currency_symbol }} {{ entry.total|intcomma }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3">
+                                {{ invoice.service.details|safe }}
+                            </td>
+                            <td>
+                                {% if invoice.status != 'Paid' and extensions %}
+                                    <label for="extensions">{% trans "Extend payment until" %}</label>
+                                    <select id="extensions" class="form-control input-sm">
+                                        <option value="0">N/A</option>
+                                        {% for extension in extensions %}
+                                        <option value="{{ extension.months }}">
+                                            {{ extension.expiry }}: {{ extension.months }} {% trans 'Month(s)' %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
+                            </td>
+                            <td id="subtotal">{{ currency_symbol }} {{ invoice.amount|intcomma }}</td>
+                        </tr>
+                    {% endif %}
                     <tr>
                         <td colspan="4" style="padding: 2em"></td>
                     </tr>

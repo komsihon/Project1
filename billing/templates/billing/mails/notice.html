@@ -6,6 +6,6 @@
         {{ message|safe }}
     </p> {# END MESSAGE #}
     {% if invoice_url %}
-        <a href="{{ invoice_url }}" target="_blank" style="background: #16991D; color: #fff; display: block; font-size: 1.35em; font-weight: bold; margin: auto; padding: 9px 0; text-align: center; text-decoration: none; width: 240px">{% trans "Pay Now" %}</a>
+        <a href="{{ invoice_url }}" target="_blank" style="background: #16991D; color: #fff; display: block; font-size: 1.35em; font-weight: bold; margin: 15px auto 0; padding: 9px 0; text-align: center; text-decoration: none; width: 240px">{% trans "Pay Now" %}</a>
     {% endif %}
 {% endblock %}

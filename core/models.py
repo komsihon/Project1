@@ -132,10 +132,10 @@ class Service(models.Model):
     BI_ANNUALLY = 'Bi-Annually'
     YEARLY = 'Yearly'
     BILLING_CYCLES_CHOICES = (
-        (MONTHLY, _('Monthly')),
-        (QUARTERLY, _('Quarterly')),
+        (YEARLY, _('Yearly')),
         (BI_ANNUALLY, _('Bi-Annually')),
-        (YEARLY, _('Yearly'))
+        (QUARTERLY, _('Quarterly')),
+        (MONTHLY, _('Monthly'))
     )
 
     MAIN = 'Main'
@@ -162,11 +162,12 @@ class Service(models.Model):
     project_name_slug = models.SlugField(unique=True)
     database = models.CharField(max_length=150, blank=True)
     domain_type = models.CharField(max_length=15, blank=True, choices=DOMAIN_TYPE_CHOICES)
-    domain = models.CharField(max_length=100, blank=True, null=True)
+    domain = models.CharField(max_length=100, unique=True, blank=True, null=True)
     url = models.CharField(max_length=100, blank=True,
                            help_text="URL of the service. WRITE IT WITHOUT A TRAILING SLASH")
     admin_url = models.CharField(max_length=150, blank=True,
                                  help_text=_("URL of the service's admin panel. WRITE IT WITHOUT A TRAILING SLASH"))
+    billing_plan = models.ForeignKey('billing.CloudBillingPlan', blank=True, null=True)
     billing_cycle = models.CharField(max_length=30, choices=BILLING_CYCLES_CHOICES, blank=True)
     monthly_cost = models.PositiveIntegerField()
     version = models.CharField(max_length=15, blank=True, choices=VERSION_CHOICES)  # Free, Trial, Full
@@ -271,6 +272,11 @@ class Service(models.Model):
         The replication is made by adding the actual Service database to DATABASES in settings and calling
         save(using=database).
         """
+        using = kwargs.get('using')
+        if using:
+            del(kwargs['using'])
+        else:
+            using = 'default'
         if getattr(settings, 'IS_IKWEN', False):
             # If we are on Ikwen itself, replicate save or update on the current Service database
             add_database_to_settings(self.database)
@@ -280,7 +286,7 @@ class Service(models.Model):
                 self.app.operators_count += 1
                 self.app.save()
             super(Service, self).save(using=self.database)
-        super(Service, self).save(*args, **kwargs)
+        super(Service, self).save(using=using, *args, **kwargs)
 
 
 class AbstractConfig(Model):
@@ -421,6 +427,9 @@ class AbstractConfig(Model):
         config.signature = self.signature
         config.contact_email = self.contact_email
         config.contact_phone = self.contact_phone
+        config.cash_out_min = self.cash_out_min
+        config.currency_code = self.currency_code
+        config.currency_symbol = self.currency_symbol
         return config
 
     def save(self, *args, **kwargs):
@@ -432,9 +441,9 @@ class AbstractConfig(Model):
 
     def _get_wallet(self):
         try:
-            wallet = OperatorWallet.objects.using(WALLETS_DB_ALIAS).get(nonrel_id=self.id)
+            wallet = OperatorWallet.objects.using(WALLETS_DB_ALIAS).get(nonrel_id=self.service.id)
         except OperatorWallet.DoesNotExist:
-            wallet = OperatorWallet.objects.using(WALLETS_DB_ALIAS).create(nonrel_id=self.id)
+            wallet = OperatorWallet.objects.using(WALLETS_DB_ALIAS).create(nonrel_id=self.service.id)
         return wallet
 
     def raise_balance(self, amount):

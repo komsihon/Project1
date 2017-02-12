@@ -4,14 +4,14 @@
     subscription: 56eb6d04b37b3379c531e012
     number: M1
     amount: 5000
-    due_date: 2016-01-01T10:31:11.345Zd
+    due_date: 2016-01-01T10:31:11.345Z
     reminders_sent: 1
     months_count: 1
     status: Paid
 
 - model: billing.payment
   fields:
-    invoice: 56eb6d04b37b3379d531e012
+    invoice: 56eb6d04b379d531e01237d1
     method: Cash
     amount: 5000
 

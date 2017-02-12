@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from django.conf import settings
+from ikwen.billing.models import Payment
+
 from ikwen.accesscontrol.models import Member
 
 from ikwen.accesscontrol.backends import UMBRELLA
@@ -14,8 +17,12 @@ class CashOutMethod(Model):
     """
     name = models.CharField(max_length=60, unique=True)
     slug = models.SlugField()
-    type = models.CharField(max_length=30)
-    image = models.ImageField(upload_to='ikwen/cashout_methods')
+    # The type of method helps determine the algorithm to call to actually
+    # perform the operation in the cashout.views.request_cash_out method
+    type = models.CharField(max_length=30, blank=True, choices=Payment.METHODS_CHOICES)
+    image = models.ImageField(upload_to='ikwen/cashout_methods',
+                              blank=getattr(settings, 'DEBUG', False),
+                              null=getattr(settings, 'DEBUG', False))
     is_active = models.BooleanField("active", default=True)
 
     class Meta:

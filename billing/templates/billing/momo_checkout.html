@@ -9,23 +9,23 @@
         #navbar form.search input {display: none}
         #navbar .search, #navbar .navbar-right {display: none}
         #content > div {margin: auto}
-        div#login {background: rgba(255, 255, 255, .9); border-radius: 3px; padding: 1px 20px 30px; width: 300px}
+        div#checkout {background: rgba(255, 255, 255, .9); border-radius: 3px; padding: 1px 20px 30px; width: 300px}
         #navbar .navbar-brand, #navbar .navbar-brand:hover {display: none}
-        
+
         @media (max-width: 767px) {
             #navbar .navbar-header {float: none; text-align: center}
         }
 
         @media (min-width: 768px) {
-            div#login {width: 380px}
+            div#checkout {width: 380px}
         }
 
         @media (min-width: 992px) {
             #content {margin-top: 6%}
         }
 
-        div#login input {border: 1px solid #bbb;}
-        div#login form {padding: 30px}
+        div#checkout input {border: 1px solid #bbb;}
+        div#checkout form {padding: 30px}
         label span {font-weight: normal}
         #content form .hint {color: #8D96C5; font-size: 14px}
         #content form ul.errorlist {padding-left: 0}
@@ -35,7 +35,8 @@
 
 {% block content %}
     <div id="content" class="container">
-        <div id="login">
+        <span class="text-primary">{{ user.full_name }}</span>
+        <div id="checkout">
             <div style="margin-bottom: 45px">
                 <span class="pull-left" style="width: 60%">
                     <img src="{{ settings.IKWEN_MEDIA_URL }}{{ payment_mean.logo.name }}" alt="{{ payment_mean.name }}" class="img-responsive" />
@@ -48,14 +49,16 @@
             </div>
             <h3 style="text-align: center"> {% trans "Pay with" %} {{ payment_mean.name }} </h3>
             <p class="text-muted" style="text-align: center"> {% trans "Type your phone number and confirm" %} </p>
-            <form action="{% url 'billing:init_momo_cashout' %}">{% csrf_token %}
+            <form onsubmit="return false">{% csrf_token %}
                 <div class="form-group" style="margin-top: .4em">
                     <label for="phone" class="sr-only">{% trans "Phone number" %}</label>
                     <input id="phone" class="form-control input-sm" type="text" name="phone" />
                 </div>
                 <div class="form-group">
-                    <button class="btn btn-primary btn-block btn-sm"> {% trans "Submit" %} </button>
+                    <button id="do-pay" class="btn btn-primary btn-block btn-sm"> {% trans "Submit" %} </button>
+                    {% include 'core/snippets/spinner.html' %}
                 </div>
+                <div id="transaction-result" class="text-info"></div>
             </form>
         </div>
         <div></div>
@@ -66,7 +69,58 @@
     {{ block.super }}
     <script type="text/javascript">
         (function() {
+            var txId, checkerId;
+            $('#do-pay.btn-primary').click(function () {
+                $(this).removeClass('btn-primary').addClass('btn-default');
+                $('#checkout .spinner').show();
+                var phone = $('#phone').val();
+                $.getJSON('{% url 'billing:init_momo_cashout' %}', {phone: phone}, function(data) {
+                    $('#transaction-result').removeClass('text-danger').addClass('text-info')
+                            .text("{% trans "Good! Please confirm transaction on your phone." %}");
+                    txId = data.tx_id;
+                    {# Keep the transaction locally so that we can keep on cheking it even if page reloads #}
+                    {# This is particularly useful for smartphones. They tend to reload pages when we reopen #}
+                    {# the browser. #}
+                    localStorage.setItem('txId', txId);
+                    setTimeout(startTransactionStatusChecker, 10000)
+                })
+            });
+            function startTransactionStatusChecker() {
+                checkerId = setInterval(function() {
+                    $.getJSON('{% url 'billing:check_momo_transaction_status' %}', {tx_id: txId}, function(data) {
+                        if (data.running) return;
+                        $('#checkout .spinner').hide();
+                        localStorage.removeItem('txId');
+                        clearInterval(checkerId);
+                        if (data.error) {
+                            $('#transaction-result').removeClass('text-info').addClass('text-danger')
+                                    .text("{% trans "Transaction failed. Message: " %}" + data.error);
+                            $(this).removeClass('btn-primary').addClass('btn-default');
+                            return;
+                        }
+                        if (data.success) {
+                            $('#transaction-result').removeClass('text-info text-danger').addClass('alert alert-success')
+                                    .text("{% trans "Transaction successful, you will be redirected." %}");
+                            window.location = data.next_url
+                        }
+                    })
+                }, 2000)
+            }
 
+            {% comment %}
+            Smartphones tend to reload page when returning to the browser after
+            confirming the transaction by running some USSD commands with.
+            This block ensures that we will resume the checking of the transaction
+            started before we left the browser.
+            {% endcomment %}
+            if (localStorage.getItem('txId')) {
+                txId = localStorage.getItem('txId');
+                startTransactionStatusChecker();
+                $(this).removeClass('btn-primary').addClass('btn-default');
+                $('#checkout .spinner').show();
+                $('#transaction-result').removeClass('text-danger').addClass('text-info')
+                        .text("{% trans "Good! Please confirm transaction on your phone." %}");
+            }
         })()
     </script>
     {{ config.scripts|safe }}

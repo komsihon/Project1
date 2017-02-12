@@ -20,7 +20,7 @@ urlpatterns = patterns(
     url(r'^list_members$', list_members, name='list_members'),
     url(r'^list_subscriptions$', list_subscriptions, name='list_subscriptions'),
 
-    url(r'^MoMoCheckout/$', MoMoCheckout.as_view(), name='momo_set_checkout'),
+    url(r'^MoMoCheckout/$', login_required(MoMoCheckout.as_view()), name='momo_set_checkout'),
     url(r'^MoMo/initCashout/$', init_momo_cashout, name='init_momo_cashout'),
     url(r'^MoMo/checkTransaction/$', check_momo_transaction_status, name='check_momo_transaction_status'),
 

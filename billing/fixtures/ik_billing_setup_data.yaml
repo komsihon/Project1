@@ -15,7 +15,7 @@
     project_name: ikwen
     database: test_ikwen_umbrella
     domain: ikwen.com
-    url: ''
+    url: http://www.ikwen.com
     admin_url: ''
     billing_cycle: ''
     monthly_cost: 15000
@@ -25,8 +25,8 @@
 - model: core.config
   fields:
     service: 54ad2bd9b37b335a18fe5801
-    company_name: Ikwen
-    contact_email: contact@core.com
+    company_name: ikwen
+    contact_email: contact@ikwen.com
     logo: logos/some_logo.png
 
 - model: core.consoleeventtype

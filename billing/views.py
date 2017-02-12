@@ -325,7 +325,7 @@ def set_invoice_checkout(request, *args, **kwargs):
     """
     invoice_id = request.POST['invoice_id']
     try:
-        extra_months = int(request.POST['extra_months'])
+        extra_months = int(request.POST.get('extra_months', ''))
     except ValueError:
         extra_months = 0
     invoice = Invoice.objects.get(pk=invoice_id)
@@ -342,6 +342,8 @@ def confirm_invoice_payment(request):
     """
     invoice_id = request.session['object_id']
     invoice = Invoice.objects.get(pk=invoice_id)
+    invoice.status = Invoice.PAID
+    invoice.save()
     service = get_service_instance()
     config = service.config
     amount = request.session['amount']
@@ -361,18 +363,22 @@ def confirm_invoice_payment(request):
         expiry = datetime.now() + timedelta(days=days)
         expiry = expiry.date()
     s.expiry = expiry
+    s.status = Service.ACTIVE
+    if invoice.is_one_off:
+        s.version = Service.FULL
     s.save()
     share_payment_and_set_stats(invoice, total_months)
     member = request.user
     add_event(service, member, PAYMENT_CONFIRMATION, invoice.id)
     if member.email:
-        subject, message, sms_text = get_payment_confirmation_message(payment, request.user)
+        subject, message, sms_text = get_payment_confirmation_message(payment, member)
         html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html')
         sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
         msg = EmailMessage(subject, html_content, sender, [member.email])
         msg.content_subtype = "html"
         Thread(target=lambda m: m.send(), args=(msg,)).start()
-    return {'success': True}
+    next_url = service.url + reverse('billing:invoice_detail', args=(invoice.id, ))
+    return {'success': True, 'next_url': next_url}
 
 
 class NoticeMail(BillingBaseView):

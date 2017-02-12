@@ -23,7 +23,10 @@
                     {% if cash_out_request.account_number %}
                         <ins>Account number:</ins> {{ cash_out_request.account_number }}<br>
                     {% endif %}
-                    <strong style="color: #666">{{ cash_out_request.city }}, {{ cash_out_request.country }}.</strong><br>
+                    <strong style="color: #666">
+                        {% if cash_out_request.city %} {{ cash_out_request.city }}, {% endif %}
+                        {% if cash_out_request.country %} {{ cash_out_request.country }}. {% endif %}
+                    </strong><br>
                 </p>
             </div>
         </div>
