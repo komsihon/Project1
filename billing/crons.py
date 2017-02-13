@@ -5,12 +5,14 @@ import os
 
 from datetime import datetime, timedelta, date
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.core import mail
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.db.models import get_model
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
+from ikwen.accesscontrol.models import SUDO
 
 from ikwen.core.models import Config, QueuedSMS
 from ikwen.core.utils import get_service_instance, send_sms, add_event
@@ -56,7 +58,7 @@ def send_invoices():
         member = subscription.member
         number = get_next_invoice_number()
         months_count = None
-        if getattr(settings, 'SEPARATE_BILLING_CYCLE', True):
+        if config.__dict__.get('separate_billing_cycle', True):
             months_count = get_billing_cycle_months_count(subscription.billing_cycle)
             amount = subscription.monthly_cost * months_count
         else:
@@ -73,7 +75,7 @@ def send_invoices():
                                          number=number, due_date=subscription.expiry, months_count=months_count)
         count += 1
         total_amount += amount
-        add_event(service, member, NEW_INVOICE_EVENT, invoice.id)
+        add_event(service, NEW_INVOICE_EVENT, member=member, object_id=invoice.id)
         subject, message, sms_text = get_invoice_generated_message(invoice)
         if member.email and member.email.find(member.phone) < 0:
             invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
@@ -110,7 +112,8 @@ def send_invoices():
         connection.close()
     finally:
         report = SendingReport.objects.create(count=count, total_amount=total_amount)
-        add_event(service, service.member, INVOICES_SENT_EVENT, report.id)
+        sudo_group = Group.objects.get(name=SUDO)
+        add_event(service, INVOICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
 
 
 def send_invoice_reminders():
@@ -134,7 +137,7 @@ def send_invoice_reminders():
             count += 1
             total_amount += invoice.amount
             member = invoice.subscription.member
-            add_event(service, member, INVOICE_REMINDER_EVENT, invoice.id)
+            add_event(service, INVOICE_REMINDER_EVENT, member=member, object_id=invoice.id)
             subject, message, sms_text = get_invoice_reminder_message(invoice)
             if member.email and member.email.find(member.phone) < 0:
                 invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
@@ -164,7 +167,8 @@ def send_invoice_reminders():
         connection.close()
     finally:
         report = SendingReport.objects.create(count=count, total_amount=total_amount)
-        add_event(service, service.member, REMINDERS_SENT_EVENT, report.id)
+        sudo_group = Group.objects.get(name=SUDO)
+        add_event(service, REMINDERS_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
 
 
 def send_invoice_overdue_notices():
@@ -191,7 +195,7 @@ def send_invoice_overdue_notices():
             count += 1
             total_amount += invoice.amount
             member = invoice.subscription.member
-            add_event(service, member, OVERDUE_NOTICE_EVENT, invoice.id)
+            add_event(service, OVERDUE_NOTICE_EVENT, member=member, object_id=invoice.id)
             subject, message, sms_text = get_invoice_overdue_message(invoice)
             if member.email and member.email.find(member.phone) < 0:
                 invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
@@ -221,7 +225,8 @@ def send_invoice_overdue_notices():
         connection.close()
     finally:
         report = SendingReport.objects.create(count=count, total_amount=total_amount)
-        add_event(service, service.member, OVERDUE_NOTICES_SENT_EVENT, report.id)
+        sudo_group = Group.objects.get(name=SUDO)
+        add_event(service, OVERDUE_NOTICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
 
 
 def suspend_customers_services():
@@ -250,7 +255,7 @@ def suspend_customers_services():
             action = import_by_path(action)
             action(invoice.subscription)
             member = invoice.subscription.member
-            add_event(service, member, SERVICE_SUSPENDED_EVENT, invoice.id)
+            add_event(service, SERVICE_SUSPENDED_EVENT, member=member, object_id=invoice.id)
             subject, message, sms_text = get_service_suspension_message(invoice)
             if member.email and member.email.find(member.phone) < 0:
                 invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
@@ -276,7 +281,8 @@ def suspend_customers_services():
         connection.close()
     finally:
         report = SendingReport.objects.create(count=count, total_amount=total_amount)
-        add_event(service, service.member, SUSPENSION_NOTICES_SENT_EVENT, report.id)
+        sudo_group = Group.objects.get(name=SUDO)
+        add_event(service, SUSPENSION_NOTICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
 
 
 if __name__ == "__main__":

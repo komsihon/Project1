@@ -98,10 +98,10 @@ class Register(BaseView):
                     event(request, *args, **kwargs)
                 import ikwen.conf.settings as ikwen_settings
                 ikwen_service = Service.objects.using(UMBRELLA).get(pk=ikwen_settings.IKWEN_SERVICE_ID)
-                add_event(ikwen_service, member, WELCOME_ON_IKWEN_EVENT)
+                add_event(ikwen_service, WELCOME_ON_IKWEN_EVENT, member)
                 if not getattr(settings, 'IS_IKWEN', False):
                     service = get_service_instance()
-                    add_event(service, member, WELCOME_EVENT)
+                    add_event(service, WELCOME_EVENT, member)
                 send_welcome_email(member)
                 next_url = request.REQUEST.get('next')
                 if next_url:
@@ -504,7 +504,7 @@ def request_access(request, *args, **kwargs):
                     "<b>%(project_name)s</b>.<br><br>" % {'iao_name': service.member.first_name,
                                                           'member_name': member.full_name,
                                                           'project_name': service.project_name})
-        add_event(service, service.member, ACCESS_REQUEST_EVENT, rq.id)
+        add_event(service, ACCESS_REQUEST_EVENT, member=service.member, object_id=rq.id)
         html_content = get_mail_content(subject, message, template_name='core/mails/notice.html',
                                         extra_context={'cta_text': _("View"),
                                                        'cta_url': IKWEN_BASE_URL + reverse('ikwen:profile', args=(member.id, ))})
@@ -540,12 +540,14 @@ def grant_access(request, *args, **kwargs):
     rq.member.customer_on_fk_list.append(rq_service.id)
     if group.name != COMMUNITY:
         rq_member.collaborates_on_fk_list.append(rq_service.id)
-        rq_member.is_staff = True
+    rq_member.group_fk_list.append(group.id)
     rq_member.save()
+
+    if group.name != COMMUNITY:
+        rq_member.is_staff = True
     rq_member.is_iao = False
     rq_member.save(using=database)
-    member = Member.objects.using(database).get(
-        pk=rq_member.id)  # Reload from local database to avoid database router error
+    member = Member.objects.using(database).get(pk=rq_member.id)  # Reload from local database to avoid database router error
     obj_list, created = UserPermissionList.objects.using(database).get_or_create(user=member)
     obj_list.group_fk_list.append(group.id)
     obj_list.save(using=database)
@@ -556,8 +558,8 @@ def grant_access(request, *args, **kwargs):
         ConsoleEvent.objects.get(member=request.user, object_id=rq.id).delete()
     except ConsoleEvent.DoesNotExist:
         pass
-    add_event(rq_service, rq_member, WELCOME_EVENT, rq.id)
-    add_event(rq_service, rq_service.member, ACCESS_GRANTED_EVENT, rq.id)
+    add_event(rq_service, WELCOME_EVENT, member=rq_member, object_id=rq.id)
+    add_event(rq_service, ACCESS_GRANTED_EVENT, member=rq_service.member, object_id=rq.id)
     subject = _("You were added to %s community" % rq_service.project_name)
     message = _("Hi %(member_name)s,<br><br>You were added to <b>%(project_name)s</b> community.<br><br>"
                 "Thanks for joining us." % {'member_name': rq_member.first_name,
@@ -619,13 +621,23 @@ def move_member_to_group(request, *args, **kwargs):
         return HttpResponse(json.dumps({'error': "BAO can only be transferred."}), content_type='application/json')
     if group.name == SUDO:
         member.is_superuser = True
-        member.save()
+    else:
+        member.is_superuser = False
+    member.save()
     obj = UserPermissionList.objects.get(user=member)
     obj.permission_list = []
     obj.permission_fk_list = []
     obj.group_fk_list = []
     obj.save()
     add_user_to_group(member,  group)
+    member_umbrella = Member.objects.using(UMBRELLA).get(pk=member_id)
+    for grp in Group.objects.exclude(name__in=[COMMUNITY, SUDO]):
+        try:
+            member_umbrella.group_fk_list.remove(grp.id)
+        except ValueError:
+            pass
+    member_umbrella.group_fk_list.append(group.id)
+    member_umbrella.save(using=UMBRELLA)
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
 

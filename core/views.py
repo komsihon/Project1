@@ -10,6 +10,7 @@ from django.core.cache import cache
 from django.core.files import File
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.db.models import get_model
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -411,8 +412,6 @@ class Console(BaseView):
 
     def render_to_response(self, context, **response_kwargs):
         if self.request.GET.get('format') == 'json':
-            target = ConsoleEventType.PERSONAL if len(self.request.user.collaborates_on_fk_list) == 0 \
-                else self.request.GET.get('target', ConsoleEventType.BUSINESS)
             start = int(self.request.GET['start'])
             if self.request.user_agent.is_mobile:
                 length = 10
@@ -421,9 +420,11 @@ class Console(BaseView):
             else:
                 length = 30
             limit = start + length
-            targeted_type = list(ConsoleEventType.objects.filter(target=target).exclude(codename=ACCESS_REQUEST_EVENT))
-            queryset = ConsoleEvent.objects \
-                           .filter(event_type__in=targeted_type, member=self.request.user).order_by('-id')[start:limit]
+            targeted_type = list(ConsoleEventType.objects.exclude(codename=ACCESS_REQUEST_EVENT))
+            member = self.request.user
+            queryset = ConsoleEvent.objects.filter(
+                Q(member=member) | Q(group_id__in=member.group_fk_list) | Q(member__isnull=True),
+                event_type__in=targeted_type, service__in=member.get_services()).order_by('-id')[start:limit]
             response = [event.to_dict() for event in queryset]
             return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
         else:
@@ -432,14 +433,7 @@ class Console(BaseView):
 
 @login_required
 def reset_notices_counter(request, *args, **kwargs):
-    target = ConsoleEventType.PERSONAL if len(request.user.collaborates_on_fk_list) == 0 else request.GET['target']
-    if target == '':
-        target = ConsoleEventType.BUSINESS
-    if target == ConsoleEventType.BUSINESS:
-        request.user.business_notices = 0
-    else:
-        request.user.personal_notices = 0
-
+    request.user.personal_notices = 0
     request.user.save()
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 

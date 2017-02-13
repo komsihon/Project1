@@ -54,7 +54,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         json_response = json.loads(response.content)
         self.assertTrue(json_response['success'])
         self.assertEqual(AccessRequest.objects.filter(status=AccessRequest.PENDING).count(), 1)
-        self.assertEqual(Member.objects.get(username='member2').business_notices, 1)
+        self.assertEqual(Member.objects.get(username='member2').personal_notices, 1)
         self.client.logout()
         self.client.login(username='member2', password='admin')
         response = self.client.get(reverse('ikwen:console'))
@@ -92,6 +92,8 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.assertTrue(json_response['success'])
         rq = AccessRequest.objects.get(member=member3)
         self.assertEqual(rq.status, AccessRequest.CONFIRMED)
+        member3 = Member.objects.get(pk='56eb6d04b37b3379b531e013')
+        self.assertIn(group_id, member3.group_fk_list)
         self.assertEqual(ConsoleEvent.objects.filter(member=service.member, event_type=et).count(), 0)
         perm_obj = UserPermissionList.objects.using(service.database).get(user=member3)
         self.assertListEqual(perm_obj.group_fk_list, [group_id])
@@ -157,6 +159,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         """
         Make sure the url is reachable
         """
+        call_command('loaddata', 'ikwen_members.yaml', database='umbrella')
         ct = ContentType.objects.all()[0]
         Permission.objects.all().delete()
         perm1 = Permission.objects.create(codename='ik_action1', name="Can do action 1", content_type=ct)
@@ -170,6 +173,8 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.assertListEqual(obj.permission_list, [])
         self.assertListEqual(obj.permission_fk_list, [])
         self.assertListEqual(obj.group_fk_list, ['5804b37b3379b531e01eb6d1'])
+        m3_umbrella = Member.objects.using('umbrella').get(username='member3')
+        self.assertIn('5804b37b3379b531e01eb6d1', m3_umbrella.group_fk_list)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
     def test_Collaborators(self):

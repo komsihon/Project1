@@ -14,7 +14,7 @@
 .grid tbody tr.danger td, .grid tbody tr.pending td {color: #ff5050}
 .grid tbody tr td:first-child {font-weight: 700}
 .grid tbody td.status span:not(.icon) {padding: 5px 0}
-.grid tbody td.numeric {text-align: right}
+.grid tbody td.numeric {text-align: right;padding-right: 6px;}
 .grid td.blank, .grid tbody tr.expired td.blank, .grid tbody tr.pending td.blank {background: #FFE3BE; border-bottom: none; border-left: 1px solid #DDA67B}
 .grid tr.filter {font-size: 12px; font-weight: normal}
 .grid tr.filter form {border-bottom:solid 1px #DDA67B; float: left; width: 100%}

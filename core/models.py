@@ -560,6 +560,9 @@ class ConsoleEvent(Model):
 
     :attr:`service` :class:`Service` from which event was fired. It helps retrieve Application and IA0.
     :attr:`member` :class:`Member` to which the event is aimed at.
+    :attr:`group_id` Id of group targeted by this event. Note that this group is defined
+                     in the service's database and not on ikwen's database. ikwen keeps
+                     track of groups of members in their different *Services*.
     :attr:`event_type` :class:`ConsoleEventType` for this event.
     Events of the same type will be grouped under a same :attr:`ConsoleEventType.title`
 
@@ -568,7 +571,8 @@ class ConsoleEvent(Model):
     PENDING = 'Pending'
     PROCESSED = 'Processed'
     service = models.ForeignKey(Service, related_name='+', default=get_service_instance, db_index=True)
-    member = models.ForeignKey('accesscontrol.Member', db_index=True)
+    member = models.ForeignKey('accesscontrol.Member', db_index=True, blank=True, null=True)
+    group_id = models.CharField(max_length=24, blank=True, null=True)
     event_type = models.ForeignKey(ConsoleEventType, related_name='+')
     model = models.CharField(max_length=100, blank=True, null=True)
     object_id = models.CharField(max_length=24, blank=True, null=True, db_index=True)
@@ -590,6 +594,7 @@ class ConsoleEvent(Model):
         del(var['object_id'])
         del(var['service_id'])
         del(var['member_id'])
+        del(var['group_id'])
         del(var['event_type_id'])
         return var
 

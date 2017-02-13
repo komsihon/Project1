@@ -56,7 +56,7 @@ def request_cash_out(request, *args, **kwargs):
         if not success:
             return HttpResponse(json.dumps({'error': message}), 'content-type: text/json')
         iao_profile.lower_balance(amount)
-        add_event(service, member, CASH_OUT_REQUEST_EVENT, cor.id)
+        add_event(service, CASH_OUT_REQUEST_EVENT, member=member, object_id=cor.id)
         iao = service.member
         if getattr(settings, 'TESTING', False):
             IKWEN_SERVICE_ID = getattr(settings, 'IKWEN_ID')
@@ -74,7 +74,7 @@ def request_cash_out(request, *args, **kwargs):
                 sender = 'ikwen <no-reply@ikwen.com>'
                 event_originator = ikwen_service
 
-            add_event(event_originator, iao, CASH_OUT_REQUEST_EVENT, cor.id)
+            add_event(event_originator, CASH_OUT_REQUEST_EVENT, member=iao, object_id=cor.id)
 
             subject = _("Cash-out request on %s" % service.project_name)
             html_content = get_mail_content(subject, '', template_name='cashout/mails/request_notice.html',

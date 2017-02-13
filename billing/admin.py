@@ -40,7 +40,7 @@ class InvoicingConfigAdmin(CustomBaseAdmin):
 
 
 class ProductAdmin(CustomBaseAdmin, ImportExportMixin):
-    list_display = ('name', 'short_description', 'monthly_cost', )
+    list_display = ('name', 'short_description', 'cost', )
     search_fields = ('name', )
     readonly_fields = ('created_on', 'updated_on', )
 
@@ -93,7 +93,7 @@ class SubscriptionAdmin(CustomBaseAdmin, ImportExportMixin):
 
         # This helps differentiates from fake email accounts created as phone@provider.com
         if member.email.find(member.phone) < 0:
-            add_event(service, member, SUBSCRIPTION_EVENT, obj.id, subscription_model_name)
+            add_event(service, SUBSCRIPTION_EVENT, member=member, object_id=obj.id, model=subscription_model_name)
             html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html')
             # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
             # to be delivered to Spams because of origin check.
@@ -150,7 +150,7 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
 
         # This helps differentiates from fake email accounts created as phone@provider.com
         if member.email.find(member.phone) < 0:
-            add_event(service, member, NEW_INVOICE_EVENT, obj.id)
+            add_event(service, NEW_INVOICE_EVENT, member=member, object_id=obj.id)
             invoice_url = service.url + reverse('billing:invoice_detail', args=(obj.id,))
             html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                             extra_context={'invoice_url': invoice_url})
@@ -328,7 +328,7 @@ class MoMoTransactionAdmin(admin.ModelAdmin):
 
 
 class CloudBillingPlanAdmin(admin.ModelAdmin):
-    list_display = ('app', 'name', 'setup_cost', 'setup_months_cost', 'monthly_cost',
+    list_display = ('app', 'name', 'setup_cost', 'setup_months_count', 'monthly_cost',
                     'tx_share_fixed', 'tx_share_rate', 'is_pro_version')
     search_fields = ('app', 'name', )
     list_filter = ('app',)

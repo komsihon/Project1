@@ -260,6 +260,8 @@ class IkwenAuthTestCase(unittest.TestCase):
         perm_list = UserPermissionList.objects.get(user=m2)
         group = Group.objects.get(name=COMMUNITY)
         self.assertIn(group.id, perm_list.group_fk_list)
+        self.assertIn(group.id, m1.group_fk_list)
+        self.assertIn(group.id, m2.group_fk_list)
         from pymongo import Connection
         cnx = Connection()
         cnx.drop_database('test_registered_member')

@@ -24,19 +24,19 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         member = self.model(username=username, **extra_fields)
         member.full_name = u'%s %s' % (member.first_name.split(' ')[0], member.last_name.split(' ')[0])
         service_id = getattr(settings, 'IKWEN_SERVICE_ID')
+        group = Group.objects.get(name=COMMUNITY)
         if service_id:
             service = get_service_instance()
             member.entry_service = service
             member.customer_on_fk_list.append(service.id)
+            member.group_fk_list.append(group.id)
         member.set_password(password)
         from ikwen.accesscontrol.backends import UMBRELLA
         member.save(using=UMBRELLA)
         member.save(using='default')
-        if not getattr(settings, 'IS_IKWEN', False):
-            group = Group.objects.get(name=COMMUNITY)
-            perm_list, created = UserPermissionList.objects.get_or_create(user=member)
-            perm_list.group_fk_list.append(group.id)
-            perm_list.save()
+        perm_list, created = UserPermissionList.objects.get_or_create(user=member)
+        perm_list.group_fk_list.append(group.id)
+        perm_list.save()
         return member
 
     def create_superuser(self, username, password, **extra_fields):
@@ -85,6 +85,8 @@ class Member(AbstractUser):
                                         help_text="Services on which member collaborates being the IAO or no.")
     customer_on_fk_list = ListField(editable=False,
                                     help_text="Services on which member was granted mere member access.")
+    group_fk_list = ListField(editable=False,
+                              help_text="Groups' ids of the member across different Services.")
     phone_verified = models.BooleanField(_('Phone verification status'), default=False,
                                          help_text=_('Designates whether this phone number has been '
                                                      'verified by sending a confirmation code by SMS.'))

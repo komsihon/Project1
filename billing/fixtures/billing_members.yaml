@@ -38,3 +38,7 @@
     phone: 677000004
     first_name: Simo
     last_name: Tchuente
+
+- model: auth.group
+  fields:
+    name: Sudo

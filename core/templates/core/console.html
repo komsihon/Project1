@@ -60,25 +60,6 @@
                 </div>
                 <h2 class="text-has-shade hidden-xs">{{ member.full_name }}</h2>
             </div>
-            {% if request.user.collaborates_on|length > 0 %}
-            <nav>
-                <ul>
-                    <li{% if not request.GET.target or request.GET.target == 'Business' %} class="current"{% endif %}>
-                        {% url 'ikwen:console' as console_url %}
-                        <a href="{{ console_url }}?target=Business">
-                            {% trans "Business" %}
-                            {% if member.business_notices > 0 %}<span class="label label-danger">{{ member.business_notices }}</span>{% endif %}
-                        </a>
-                    </li>
-                    <li {% if request.GET.target == 'Personal' %}class="current"{% endif %}>
-                        <a href="{{ console_url }}?target=Personal">
-                            {% trans "Personal" %}
-                            {% if member.personal_notices > 0 %}<span class="label label-danger">{{ member.personal_notices }}</span>{% endif %}
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            {% endif %}
         </header>
         {% for service, event_list in access_request_events.items %}
             <div id="access-requests" class="container-fluid row">

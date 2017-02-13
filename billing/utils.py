@@ -532,9 +532,13 @@ def _share_payment_and_set_stats_other(invoice):
     service = get_service_instance()
     service_umbrella = get_service_instance(UMBRELLA)
     config = service_umbrella.config
-    ikwen_earnings = invoice.amount * config.ikwen_share_rate / 100
-    ikwen_earnings += config.ikwen_share_fixed
-    service_earnings = invoice.amount - ikwen_earnings  # Earnings of IAO of this website
+    if config.__dict__.get('processing_fees_on_customer'):
+        ikwen_earnings = config.ikwen_share_fixed
+        service_earnings = invoice.amount
+    else:
+        ikwen_earnings = invoice.amount * config.ikwen_share_rate / 100
+        ikwen_earnings += config.ikwen_share_fixed
+        service_earnings = invoice.amount - ikwen_earnings  # Earnings of IAO of this website
 
     config.raise_balance(service_earnings)
 
@@ -547,9 +551,8 @@ def _share_payment_and_set_stats_other(invoice):
     if partner:
         partner_umbrella = Service.objects.using(UMBRELLA).get(pk=partner.id)
         partner_profile_umbrella = PartnerProfile.objects.using(partner.database).get(service=partner.id)
-        partner_original = Service.objects.using(UMBRELLA).get(pk=partner.id)
         service_partner = Service.objects.using(partner.database).get(service=partner.id)
-        retail_config = ApplicationRetailConfig.objects.get(partner=partner, app=service.app)
+        retail_config = ApplicationRetailConfig.objects.using(UMBRELLA).get(partner=partner, app=service.app)
         partner_earnings = ikwen_earnings * (100 - retail_config.ikwen_tx_share_rate) / 100
         ikwen_earnings -= partner_earnings
 

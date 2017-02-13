@@ -2,7 +2,8 @@
   pk: 55eb63379c531e012d04b37a
   fields:
     name: Cool product
-    monthly_cost: 5000
+    duration: 30
+    cost: 5000
     short_description: Cool product for you
 
 - model: billing.subscription

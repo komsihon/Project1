@@ -91,8 +91,11 @@ def call_cashout(transaction):
             return HttpResponse("Error, Could not parse JumboPay parameters.")
         try:
             headers = {'Authorization': jumbopay['api_key'], 'Content-Type': 'application/x-www-form-urlencoded'}
-            cert = (jumbopay['ssl_certificate'], jumbopay['ssl_key'])
-            r = requests.post(cashout_url, cert=cert, headers=headers, data=data, timeout=130)
+            cert = getattr(settings, 'JUMBOPAY_SSL_CERTIFICATE', None)
+            if cert:
+                r = requests.post(cashout_url, cert=cert, headers=headers, data=data, timeout=130)
+            else:
+                r = requests.post(cashout_url, headers=headers, data=data, verify=False, timeout=130)
             resp = r.json()
             message = resp['message'][0]
             transaction.processor_tx_id = message['transactionid']
@@ -172,8 +175,11 @@ def do_cashin(phone, amount, model_name, object_id):
         try:
             headers = {'Authorization': jumbopay['api_key'],
                        'Content-Type': 'application/x-www-form-urlencoded'}
-            cert = (jumbopay['ssl_certificate'], jumbopay['ssl_key'])
-            r = requests.post(cashin_url, cert=cert, headers=headers, data=data, timeout=130)
+            cert = getattr(settings, 'JUMBOPAY_SSL_CERTIFICATE', None)
+            if cert:
+                r = requests.post(cashin_url, cert=cert, headers=headers, data=data, timeout=130)
+            else:
+                r = requests.post(cashin_url, headers=headers, data=data, verify=False, timeout=130)
             resp = r.json()
             message = resp['message'][0]
             tx.processor_tx_id = message['transactionid']

@@ -36,7 +36,7 @@ class ServiceStatusCheckMiddleware(object):
         if service.expiry:
             now = datetime.now()
             rm = request.resolver_match
-            if now.date() > service.expiry or service.status != Service.PENDING or service.status != Service.ACTIVE:
+            if now.date() > service.expiry or (service.status != Service.PENDING and service.status != Service.ACTIVE):
                 if request.user.is_authenticated() and request.user == service.member:
                     if rm.namespace == 'ikwen':
                         if rm.url_name in [SERVICE_EXPIRED, SERVICE_DETAIL, LOAD_EVENT, SIGN_IN, LOGOUT]:

@@ -5,6 +5,7 @@ from threading import Thread
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.models import Group
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -22,7 +23,7 @@ from ikwen.core.models import Service
 
 from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content
 
-from ikwen.accesscontrol.models import Member
+from ikwen.accesscontrol.models import Member, SUDO
 
 from ikwen.accesscontrol.backends import UMBRELLA
 
@@ -323,13 +324,18 @@ def set_invoice_checkout(request, *args, **kwargs):
     This function has no URL associated with it.
      It serves as ikwen setting "MOMO_BEFORE_CHECKOUT"
     """
+    service = get_service_instance()
+    config = service.config
     invoice_id = request.POST['invoice_id']
     try:
         extra_months = int(request.POST.get('extra_months', ''))
     except ValueError:
         extra_months = 0
     invoice = Invoice.objects.get(pk=invoice_id)
-    request.session['amount'] = invoice.amount + invoice.service.monthly_cost * extra_months
+    amount = invoice.amount + invoice.service.monthly_cost * extra_months
+    if config.__dict__.get('processing_fees_on_customer'):
+        amount += config.ikwen_share_fixed
+    request.session['amount'] = amount
     request.session['model_name'] = 'billing.Invoice'
     request.session['object_id'] = invoice_id
     request.session['extra_months'] = extra_months
@@ -340,18 +346,24 @@ def confirm_invoice_payment(request):
     This function has no URL associated with it.
     It serves as ikwen setting "MOMO_AFTER_CHECKOUT"
     """
+    service = get_service_instance()
+    config = service.config
     invoice_id = request.session['object_id']
     invoice = Invoice.objects.get(pk=invoice_id)
     invoice.status = Invoice.PAID
+    if config.__dict__.get('processing_fees_on_customer'):
+        invoice.processing_fees = config.ikwen_share_fixed
     invoice.save()
-    service = get_service_instance()
-    config = service.config
     amount = request.session['amount']
     payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY, amount=amount)
     s = invoice.service
-    extra_months = request.session['extra_months']
-    total_months = invoice.months_count + extra_months
-    days = get_days_count(total_months)
+    if config.__dict__.get('separate_billing_cycle', True):
+        extra_months = request.session['extra_months']
+        total_months = invoice.months_count + extra_months
+        days = get_days_count(total_months)
+    else:
+        days = invoice.subscription.product.duration
+        total_months = None
     if s.status == Service.SUSPENDED:
         invoicing_config = get_invoicing_config_instance()
         days -= invoicing_config.tolerance  # Catch-up days that were offered before service suspension
@@ -369,7 +381,9 @@ def confirm_invoice_payment(request):
     s.save()
     share_payment_and_set_stats(invoice, total_months)
     member = request.user
-    add_event(service, member, PAYMENT_CONFIRMATION, invoice.id)
+    sudo_group = Group.objects.using(UMBRELLA).get(name=SUDO)
+    add_event(service, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
+    add_event(service, PAYMENT_CONFIRMATION, member=member, object_id=invoice.id)
     if member.email:
         subject, message, sms_text = get_payment_confirmation_message(payment, member)
         html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html')

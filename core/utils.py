@@ -404,31 +404,38 @@ def set_counters(watch_object, *args, **kwargs):
     watch_object.save(using=db)
 
 
-def add_event(service, member, codename, object_id=None, model=None):
+def add_event(service, codename, member=None, group_id=None, object_id=None, model=None):
     """
     Pushes an event to the ikwen Console and return the created ConsoleEvent object.
     :param service: Service targeted by this event
     :param member: Member to whom the event is aimed
+    :param group_id: Id of group to whom the event is aimed
     :param object_id: id of the model involved.
     :param model: full dotted path to the model involved in the event. *Eg: ikwen.billing.Invoice*
     """
-    # TODO: Handle the broadcasting of an event. That is an event for a list of Member
     from ikwen.accesscontrol.backends import UMBRELLA
     from ikwen.core.models import ConsoleEventType, ConsoleEvent, Service
     from ikwen.accesscontrol.models import Member
 
     service = Service.objects.using(UMBRELLA).get(pk=service.id)
-    member = Member.objects.using(UMBRELLA).get(pk=member.id)
+    if member:
+        member = Member.objects.using(UMBRELLA).get(pk=member.id)
+        Member.objects.using(UMBRELLA).filter(pk=member.id).update(personal_notices=F('personal_notices')+1)
+    elif group_id:
+        add_database_to_settings(service.database)
+        for m in Member.objects.using(service.database).all():
+            if group_id in m.group_fk_list:
+                Member.objects.using(UMBRELLA).filter(pk=m.id).update(personal_notices=F('personal_notices') + 1)
+    else:
+        add_database_to_settings(service.database)
+        for m in Member.objects.using(service.database).all():
+            Member.objects.using(UMBRELLA).filter(pk=m.id).update(personal_notices=F('personal_notices') + 1)
     try:
         event_type = ConsoleEventType.objects.using(UMBRELLA).get(app=service.app, codename=codename)
     except ConsoleEventType.DoesNotExist:
         event_type = ConsoleEventType.objects.using(UMBRELLA).get(codename=codename)
-    event = ConsoleEvent.objects.using(UMBRELLA).create(service=service, member=member,
+    event = ConsoleEvent.objects.using(UMBRELLA).create(service=service, member=member, group_id=group_id,
                                                         event_type=event_type, model=model, object_id=object_id)
-    if event_type.target == ConsoleEventType.BUSINESS:
-        Member.objects.using(UMBRELLA).filter(pk=member.id).update(business_notices=F('business_notices')+1)
-    else:
-        Member.objects.using(UMBRELLA).filter(pk=member.id).update(personal_notices=F('personal_notices')+1)
     return event
 
 

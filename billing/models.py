@@ -7,7 +7,7 @@ from djangotoolbox.fields import ListField, EmbeddedModelField
 
 from ikwen.accesscontrol.models import Member
 from ikwen.core.fields import MultiImageField
-from ikwen.core.models import Model, Service, Application
+from ikwen.core.models import Model, Service, Application, AbstractConfig
 from ikwen.core.utils import add_database_to_settings
 
 # Business events aimed and the Billing IAO
@@ -23,6 +23,15 @@ INVOICE_REMINDER_EVENT = 'InvoiceReminderEvent'
 OVERDUE_NOTICE_EVENT = 'OverdueNoticeEvent'
 SERVICE_SUSPENDED_EVENT = 'ServiceSuspendedEvent'
 PAYMENT_CONFIRMATION = 'PaymentConfirmation'
+
+
+class OperatorProfile(AbstractConfig):
+    ikwen_share_rate = models.FloatField(_("ikwen share rate"), default=0,
+                                         help_text=_("Percentage ikwen collects on the turnover made by this person."))
+    ikwen_share_fixed = models.FloatField(_("ikwen share fixed"), default=0,
+                                          help_text=_("Fixed amount ikwen collects on the turnover made by this person."))
+    processing_fees_on_customer = models.BooleanField(default=False)
+    separate_billing_cycle = models.BooleanField(default=True)
 
 
 class InvoicingConfig(models.Model):
@@ -70,7 +79,7 @@ class InvoicingConfig(models.Model):
                                                   help_text=_("Model of mail to send to client to notiy service suspension. "
                                                               "HTML is allowed."))
     service_suspension_sms = models.TextField(blank=True, verbose_name=_("Service suspension SMS"),
-                                              help_text=_("Model of SMS to send to client to notiy service suspension."))
+                                              help_text=_("Model of SMS to send to client to notify service suspension."))
 
     class Meta:
         verbose_name_plural = _("Configurations of the invoicing system")
@@ -97,11 +106,12 @@ class Product(Model):
                             help_text="Name of the product as advertised to the customer.")
     short_description = models.CharField(max_length=45, blank=True,
                                          help_text=_("Short description understandable by the customer."))
-    monthly_cost = models.FloatField(help_text=_("How much the client must pay per month for this product. "
-                                                 "You may override it when subscribing a customer.<br>"
-                                                 "<strong>WARNING:</strong> Modifying this will not affect previously "
-                                                 "created subscriptions. You must change that individually if you want "
-                                                 "your update to take effect on already created subscriptions."))
+    duration = models.IntegerField(default=30,
+                                   help_text="Number of days covered by the cost this product.")
+    duration_text = models.CharField(max_length=30, blank=True, null=True,
+                                     help_text=_("How you want the customer to see the duration.<br>"
+                                                 "Eg:<strong>1 month</strong>, <strong>3 months</strong>, etc."))
+    cost = models.FloatField(help_text=_("Cost of the product on the duration set previously."))
     image = MultiImageField(upload_to=IMAGE_UPLOAD_TO, blank=True, null=True)
     details = models.TextField(blank=True,
                                help_text=_("Detailed description of the product."))
@@ -183,6 +193,7 @@ class AbstractInvoice(Model):
     )
     number = models.CharField(max_length=10)
     amount = models.PositiveIntegerField()
+    processing_fees = models.PositiveIntegerField(default=0)
     months_count = models.IntegerField(blank=not getattr(settings, 'SEPARATE_BILLING_CYCLE', True),
                                        null=not getattr(settings, 'SEPARATE_BILLING_CYCLE', True),
                                        help_text="Number of months covered by the payment of this invoice.")
