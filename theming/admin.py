@@ -21,6 +21,6 @@ class ThemeAdmin(admin.ModelAdmin):
         readonly_fields = ('name', )
 
 
-if getattr(settings, 'IS_IKWEN', False):
+if getattr(settings, 'IS_UMBRELLA', False):
     admin.site.register(Template, TemplateAdmin)
     admin.site.register(Theme, ThemeAdmin)

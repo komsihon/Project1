@@ -57,7 +57,7 @@
                         data-permissions="{% for perm in obj.permission_fk_list %},{{ perm }}{% endfor %}">
                         {% url 'ikwen:profile' obj.user.id as member_url %}
                     {% if obj.user.photo and obj.user.photo.name %}
-                        <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({{ obj.user.photo.small_url }})"></a>
+                        <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ obj.user.photo.small_name }})"></a>
                     {% else %}
                         <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
                     {% endif %}

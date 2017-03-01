@@ -478,45 +478,45 @@ def as_matrix(object_list, col_length, strict=False):
     return matrix
 
 
-def generate_favicons(logo_path):
+def generate_favicons(logo_path, output_folder=None):
     """
     Generate favicon based on a logo image
     :param logo_path: Path to the logo image
+    :param output_folder: Folder where to deposit the generated favicons
     """
     media_root = getattr(settings, 'MEDIA_ROOT')
-    FAVICONS_FOLDER = 'favicons/'
+    if not output_folder:
+        FAVICONS_FOLDER = 'favicons/'
+    else:
+        FAVICONS_FOLDER = output_folder
 
-    try:
-        # WEB FAVICONS
-        for d in (16, 32, 96):
-            img = Image.open(logo_path)
-            img.thumbnail((d, d), Image.ANTIALIAS)
-            output = media_root + FAVICONS_FOLDER + 'favicon-%dx%d.png' % (d, d)
-            img.save(output, format="PNG", quality=100)
+    # WEB FAVICONS
+    for d in (16, 32, 96):
+        img = Image.open(logo_path)
+        img.thumbnail((d, d), Image.ANTIALIAS)
+        output = media_root + FAVICONS_FOLDER + 'favicon-%dx%d.png' % (d, d)
+        img.save(output, format="PNG", quality=100)
 
-        # iOS FAVICONS
-        for d in (57, 60, 72, 76, 114, 120, 144, 152, 180):
-            img = Image.open(logo_path)
-            img.thumbnail((d, d), Image.ANTIALIAS)
-            output = media_root + FAVICONS_FOLDER + 'apple-icon-%dx%d.png' % (d, d)
-            img.save(output, format="PNG", quality=100)
+    # iOS FAVICONS
+    for d in (57, 60, 72, 76, 114, 120, 144, 152, 180):
+        img = Image.open(logo_path)
+        img.thumbnail((d, d), Image.ANTIALIAS)
+        output = media_root + FAVICONS_FOLDER + 'apple-icon-%dx%d.png' % (d, d)
+        img.save(output, format="PNG", quality=100)
 
-        # Android FAVICONS
-        for d in (36, 48, 72, 96, 144, 192):
-            img = Image.open(logo_path)
-            img.thumbnail((d, d), Image.ANTIALIAS)
-            output = media_root + FAVICONS_FOLDER + 'android-icon-%dx%d.png' % (d, d)
-            img.save(output, format="PNG", quality=100)
+    # Android FAVICONS
+    for d in (36, 48, 72, 96, 144, 192):
+        img = Image.open(logo_path)
+        img.thumbnail((d, d), Image.ANTIALIAS)
+        output = media_root + FAVICONS_FOLDER + 'android-icon-%dx%d.png' % (d, d)
+        img.save(output, format="PNG", quality=100)
 
-        # MS FAVICONS
-        for d in (70, 144, 150, 310):
-            img = Image.open(logo_path)
-            img.thumbnail((d, d), Image.ANTIALIAS)
-            output = media_root + FAVICONS_FOLDER + 'ms-icon-%dx%d.png' % (d, d)
-            img.save(output, format="PNG", quality=100)
-    except Exception as e:
-        if getattr(settings, 'DEBUG', False):
-            raise e
+    # MS FAVICONS
+    for d in (70, 144, 150, 310):
+        img = Image.open(logo_path)
+        img.thumbnail((d, d), Image.ANTIALIAS)
+        output = media_root + FAVICONS_FOLDER + 'ms-icon-%dx%d.png' % (d, d)
+        img.save(output, format="PNG", quality=100)
 
 
 # *** PayPal Stuffs *** #

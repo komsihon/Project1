@@ -8,7 +8,6 @@
         {% block meta %}{% endblock %}
 		{% block page_title %}{% endblock %}
 		{% block head_style %}
-{#            <link rel="stylesheet" href="{% static 'ikwen/css/bootstrap.min.css' %}" />#}
             <link rel='stylesheet' href="{% static 'ikwen/font-awesome/css/font-awesome.min.css' %}" />
             <link rel='stylesheet' href="{% static 'ikwen/css/flatly.bootstrap.min.css' %}" />
             <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}" />
@@ -22,6 +21,7 @@
             <![endif]-->
         {% endblock %}
     </head>
+    {% block after_head %}{% endblock %}
     <body>
         <div id="top-notice-ctnr" style="display: none">
             <span class="floating-notice has-shade" style="float: none; position: static"> Error goes here </span>
@@ -39,8 +39,8 @@
                         <div class="results has-shade" style="display: none" data-min-search-chars="2">
                             {% include 'core/snippets/spinner.html' %}
                             <ul>
-                                <li class="member tpl" style="display: none">
-                                    <a class="target_url" style="display: block">
+                                <li class="member tpl" style="display: none; padding: 0">
+                                    <a class="target_url" style="float: left; padding: 15px; width: 100%">
                                         <span class="photo logo bg-img" style="background-image: url({% static 'ikwen/img/no_photo.png' %})"></span>
                                         <div style="float: left; margin-left: 30px">
                                             <span class="full_name project_name"></span>
@@ -62,14 +62,14 @@
                             {% with collaborates_on=user.collaborates_on %}
                                 {% if collaborates_on|length == 1 %}
                                     <li>
-                                        <a href="{{ collaborates_on.0.admin_url }}">{{ collaborates_on.0.project_name }}</a>
+                                        <a href="{{ collaborates_on.0.admin_url }}" target="_blank">{{ collaborates_on.0.project_name }}</a>
                                     </li>
                                 {% elif collaborates_on|length > 1 %}
                                     <li id="apps" class="dropdown">
                                         <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Apps</a>
                                         <ul class="dropdown-menu" aria-labelledby="apps">
                                             {% for app in collaborates_on %}
-                                                <li><a href="{{ app.admin_url }}">{{ app.project_name }}</a></li>
+                                                <li><a href="{{ app.admin_url }}" target="_blank">{{ app.project_name }}</a></li>
                                             {% endfor %}
                                         </ul>
                                     </li>

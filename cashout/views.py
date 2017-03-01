@@ -11,8 +11,6 @@ from ikwen.billing.jumbopay.views import do_cashin
 
 from ikwen.billing.models import Payment, MoMoTransaction
 
-from ikwen.conf.settings import WALLETS_DB_ALIAS
-
 from ikwen.accesscontrol.backends import UMBRELLA
 from django.core.mail import EmailMessage
 from django.utils.translation import gettext as _
@@ -37,7 +35,7 @@ def request_cash_out(request, *args, **kwargs):
     service = get_service_instance(using=UMBRELLA)
     iao_profile = get_config_model().objects.using(UMBRELLA).get(service=service)
     member = request.user
-    wallet = OperatorWallet.objects.using(WALLETS_DB_ALIAS).get(nonrel_id=service.id)
+    wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=service.id)
     if wallet.balance < iao_profile.cash_out_min:
         response = {'error': 'Balance too low', 'cash_out_min': iao_profile.cash_out_min}
         return HttpResponse(json.dumps(response), 'content-type: text/json')
@@ -52,18 +50,17 @@ def request_cash_out(request, *args, **kwargs):
             if tx.status == MoMoTransaction.SUCCESS:
                 success = True
                 message = tx.status  # Set message as status to have a short error message
-                cor.save(using=WALLETS_DB_ALIAS)
+                cor.save(using='wallets')
         if not success:
             return HttpResponse(json.dumps({'error': message}), 'content-type: text/json')
         iao_profile.lower_balance(amount)
-        add_event(service, CASH_OUT_REQUEST_EVENT, member=member, object_id=cor.id)
         iao = service.member
         if getattr(settings, 'TESTING', False):
             IKWEN_SERVICE_ID = getattr(settings, 'IKWEN_ID')
             ikwen_service = Service.objects.get(pk=IKWEN_SERVICE_ID)
         else:
             from ikwen.conf.settings import IKWEN_SERVICE_ID
-            ikwen_service = Service.objects.get(pk=IKWEN_SERVICE_ID)
+            ikwen_service = Service.objects.using(UMBRELLA).get(pk=IKWEN_SERVICE_ID)
         if member != iao:
             retailer = service.retailer
             if retailer:
@@ -114,9 +111,9 @@ def manage_payment_address(request, *args, **kwargs):
         return HttpResponse(json.dumps({'success': True}), 'content-type: text/json')
 
 
-def render_cash_out_request_event(event):
+def render_cash_out_request_event(event, request):
     try:
-        cor = CashOutRequest.objects.using(WALLETS_DB_ALIAS).get(pk=event.object_id)
+        cor = CashOutRequest.objects.using('wallets').get(pk=event.object_id)
     except CashOutRequest.DoesNotExist:
         return None
     html_template = get_template('cashout/events/request_notice.html')
@@ -125,7 +122,8 @@ def render_cash_out_request_event(event):
     member = Member.objects.get(pk=cor.member_id)
     from ikwen.conf import settings as ikwen_settings
     c = Context({'cor':  cor, 'service': service,  'currency_symbol': currency_symbol, 'member': member,
-                 'MEMBER_AVATAR': ikwen_settings.MEMBER_AVATAR, 'IKWEN_MEDIA_URL': ikwen_settings.MEDIA_URL})
+                 'MEMBER_AVATAR': ikwen_settings.MEMBER_AVATAR, 'IKWEN_MEDIA_URL': ikwen_settings.MEDIA_URL,
+                 'is_iao': service.member == member})
     return html_template.render(c)
 
 
@@ -137,12 +135,8 @@ class Payments(BaseView):
         context = super(Payments, self).get_context_data(**kwargs)
         from datetime import datetime
         context['now'] = datetime.now()
-        payments = []
-        for payment in CashOutRequest.objects.using(WALLETS_DB_ALIAS).filter(service_id=service.id).order_by('-id'):
-            payment.created_on = datetime.strptime(payment.created_on[:16], '%Y-%m-%d %H:%M')
-            payments.append(payment)
-        context['wallet'] = OperatorWallet.objects.using(WALLETS_DB_ALIAS).get(nonrel_id=service.id)
-        context['payments'] = payments
+        context['wallet'] = OperatorWallet.objects.using('wallets').get(nonrel_id=service.id)
+        context['payments'] = CashOutRequest.objects.using('wallets').filter(service_id=service.id).order_by('-id')
         context['payment_addresses'] = CashOutAddress.objects.using(UMBRELLA).filter(service=service)
         context['payment_methods'] = CashOutMethod.objects.using(UMBRELLA).all()
         return context

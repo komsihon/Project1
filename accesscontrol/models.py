@@ -7,11 +7,10 @@ from django.utils.datetime_safe import strftime
 from django.utils.translation import gettext as _
 from django_mongodb_engine.contrib import RawQueryMixin
 from djangotoolbox.fields import ListField
-from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from permission_backend_nonrel.models import UserPermissionList
 
+from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.fields import MultiImageField
-
 from ikwen.core.models import Service, Model
 from ikwen.core.utils import to_dict, get_service_instance, add_database_to_settings
 
@@ -131,12 +130,24 @@ class Member(AbstractUser):
 
     def _get_customer_on(self):
         from ikwen.accesscontrol.backends import UMBRELLA
-        return [Service.objects.using(UMBRELLA).get(pk=pk) for pk in self.customer_on_fk_list]
+        res = []
+        for pk in self.customer_on_fk_list:
+            try:
+                res.append(Service.objects.using(UMBRELLA).get(pk=pk))
+            except:
+                pass
+        return res
     customer_on = property(_get_customer_on)
 
     def _get_collaborates_on(self):
         from ikwen.accesscontrol.backends import UMBRELLA
-        return [Service.objects.using(UMBRELLA).get(pk=pk) for pk in self.collaborates_on_fk_list]
+        res = []
+        for pk in self.collaborates_on_fk_list:
+            try:
+                res.append(Service.objects.using(UMBRELLA).get(pk=pk))
+            except:
+                pass
+        return res
     collaborates_on = property(_get_collaborates_on)
 
     def propagate_changes(self):

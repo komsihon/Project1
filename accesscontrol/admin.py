@@ -92,4 +92,5 @@ class MemberAdmin(NonrelPermissionCustomUserAdmin):
         else:
             return super(MemberAdmin, self).get_queryset(request)
 
-admin.site.register(Member, MemberAdmin)
+if getattr(settings, 'IS_UMBRELLA', False):
+    admin.site.register(Member, MemberAdmin)

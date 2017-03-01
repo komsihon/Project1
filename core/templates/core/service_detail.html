@@ -31,12 +31,11 @@
                 </div>
                 <header>
                     <h3> {% trans "General" %} </h3>
-                    <span class="icon" style="background-position: -177px 0"></span>
+{#                    <span class="icon" style="background-position: -177px 0"></span>#}
                 </header>
                 <div class="detail row">
                     <label class="col-sm-3">{% trans "Application" %}</label>
                     <span>
-                        <span class="icon"></span>
                         <span> {{ service.app.name }} </span>
                     </span>
                 </div>
@@ -47,6 +46,10 @@
                 <div class="detail row">
                     <label class="col-sm-3">{% trans "Online since" %}</label>
                     <span> {{ service.since }} </span>
+                </div>
+                <div class="detail row">
+                    <label class="col-sm-3">{% trans "API Signature" %}</label>
+                    <span> {{ service.api_signature }} </span>
                 </div>
 {#                <div class="detail">#}
 {#                    <label class="name">{% trans "Admin" %}</label>#}
@@ -108,21 +111,21 @@
                         <span>N/A</span>
                     {% endif %}
                 </div>
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Next invoice" %}</label>
-                    {% if service.next_invoice_on %}
-                        <span>{{ service.next_invoice_on }} <em style="font-size: 11px">({{ currency_symbol }}{{ service.next_invoice_amount|intcomma }})</em></span>
-                    {% else %}
-                        <span>N/A</span>
-                    {% endif %}
-                </div>
+{#                <div class="detail row">#}
+{#                    <label class="col-sm-3">{% trans "Next invoice" %}</label>#}
+{#                    {% if service.next_invoice_on %}#}
+{#                        <span>{{ service.next_invoice_on }} <em style="font-size: 11px">({{ currency_symbol }}{{ service.next_invoice_amount|intcomma }})</em></span>#}
+{#                    {% else %}#}
+{#                        <span>N/A</span>#}
+{#                    {% endif %}#}
+{#                </div>#}
                 <div class="detail row">
                     <label class="col-sm-3">{% trans "Invoices" %}</label>
                     {% if service.pending_invoice_count > 0 %}
                         <span>
                             <strong>{{ service.pending_invoice_count }} {% trans "Pending" %}</strong>
-                            {% url 'billing:invoice_list' service.id as invoice_list_url %}
-                            - <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}" target="_blank"> {% trans 'See' %} </a>
+                            {% url 'billing:invoice_list' as invoice_list_url %}
+                            - <a href="{{ invoice_list_url|ikwenize }}" target="_blank"> {% trans 'See' %} </a>
                         </span>
                     {% else %}
                         <span>N/A</span>

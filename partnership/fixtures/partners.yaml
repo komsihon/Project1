@@ -24,6 +24,7 @@
     domain: jumbopay.cm
     url: http://apps.jumbopay.cm
     database: test_kc_partner_jumbo
+    api_signature: api-signature-partner1
     monthly_cost: 6000
     version: Full
     status: Active
@@ -33,7 +34,6 @@
   pk: 56922a3bb37b33da18d02fb1
   fields:
     service: 56eb6d04b9b531b10537b331
-    api_signature: api-signature-partner1
     company_name: JumboPay
     company_name_slug: jumbopay
     city: Douala

@@ -22,7 +22,15 @@
         }
     </style>
 {% endblock %}
-
+{% block after_head %}
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({
+        google_ad_client: "ca-pub-5027563976936898",
+        enable_page_level_ads: true
+      });
+    </script>
+{% endblock %}
 {% block stage %}
     <div id="stage">
         <header id="cover" class="subtle-shade">
@@ -62,7 +70,7 @@
             </div>
         </header>
         {% for service, event_list in access_request_events.items %}
-            <div id="access-requests" class="container-fluid row">
+            <div id="access-requests" class="container-fluid">
                 <div class="row">
                     <div style="padding: 0 15px">
                         <div class="{{ service.project_name_slug }} card subtle-shade">
@@ -92,9 +100,23 @@
         {% endfor %}
         <div id="events" class="container-fluid">
             <div class="row">
+                <div class="tpl card subtle-shade">
+                    <h3>
+                        <img width="30" />
+                        <a target="_blank" class="project-name" style="cursor: pointer"></a>
+                        <time></time>
+                    </h3>
+                    <div>
+                        <div class="content row">
+                            <div class="loading">
+                                <p class="dots">...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 {% if event_list|length == 0 %}
                     <div class="col-xs-12">
-                        <div class="card subtle-shade">
+                        <div class="card empty subtle-shade">
                             <div>
                                 <h4>{% trans "No event" %}</h4>
                             </div>
@@ -124,12 +146,14 @@
                 {% if request.META.HTTP_HOST != 'localhost' %}
                     if (baseUrl.substr(-9) != 'ikwen.com') baseUrl += '/ikwen';
                 {% endif %}
-                $.getJSON(baseUrl + '{% url 'ikwen:load_event_content' %}?callback=?',
-                        {event_id: eventId, member_id: '{{ user.id }}'},
-                        function(res) {
-                        _$card.find('.content').html(res.html);
-                        ikwen.appendAuthTokens('#' + eventId)
-                    });
+                $.getJSON(baseUrl + '{% url 'ikwen:load_event_content' %}?callback=?', {event_id: eventId, member_id: '{{ user.id }}'}, function(res) {
+                    if (!res.html) {
+                        _$card.remove();
+                        return
+                    }
+                    _$card.find('.content').html(res.html);
+                    ikwen.appendAuthTokens('#' + eventId)
+                });
                 _$card.addClass('loaded');
             }
             var dataSourceEmpty = false,
@@ -140,28 +164,25 @@
                 if ($(document).height() - $(this).height() - scrollTop <= $('footer').height()) {
                     loadingCards = true;
                     var start = $('div#events .card').length,
-                        $col1 = $('div#events > div:first'),
-                        $col2 = $('div#events > div:last'),
+                        $col1 = $('.events-col1'),
+                        $col2 = $('.events-col2'),
                         col1Height = $col1.height(),
                         col2Height = $col2.height();
                     var colCycle = col1Height > col2Height ? [$col2, $col1] : [$col1, $col2];
-                    $.getJSON('{% url 'ikwen:console' %}',
-                        {target: '{{ request.GET.target }}', start: start, key: '{{ request.GET.key }}', rand: '{{ request.GET.rand }}', format: 'json'},
-                        function(events) {
+                    $.getJSON('{% url 'ikwen:console' %}', {start: start, format: 'json'}, function(events) {
                         if (events.length == 0) {
                             dataSourceEmpty = true;
                             return;
                         }
                         for (var i=0; i<events.length; i++) {
                             var event = events[i],
-                                $card = $('div#events .card:first').clone();
+                                $card = $('div#events .card.tpl').clone().removeClass('tpl');
                             $card.attr('id', event.id);
                             $card.data('base-url', event.project_url);
-                            $card.find('h3 span').text(event.project_name);
+                            $card.find('.project-name').text(event.project_name).attr('href', event.project_url);
+                            $card.find('img').attr('src', event.project_logo_url);
                             $card.find('time').text(event.created_on);
-                            $card.find('.content').html('<div class="col-xs-12">...</div>');
-                            if (event.min_height) $card.find('.content').css('min-height', event.min_height + 'px');
-                            else $card.find('.content').css('min-height', '0');
+                            if (event.min_height) $card.find('.loading').css({minHeight: event.min_height + 'px', lineHeight: event.min_height + 'px'});
                             colCycle[i%2].append($card);
                             loadCardContent(event.id);
                         }
@@ -170,7 +191,7 @@
                     $(this).addClass('loaded');
                 }
             });
-            $('div#events .card:not(.loaded)').each(function() {
+            $('div#events .card:not(.tpl, .empty, .loaded)').each(function() {
                 var id = $(this).attr('id');
                 loadCardContent(id);
             });

@@ -1,6 +1,6 @@
 {% extends "core/base_bs.html" %}
 {% load i18n staticfiles %}
-{% block page_title %}<title>{{ service.project_name }} - {{ config.short_description  }} </title>{% endblock %}
+{% block page_title %}<title>Error 909 - {{ service.project_name }}</title>{% endblock %}
 {% block head_style %}
     {{ block.super }}
     <style type="text/css">
@@ -21,7 +21,4 @@
             </div>
         </div>
     </div>
-{% endblock %}
-{% block custom_js %}
-    {% include 'core/snippets/google_analytics.html' %}
 {% endblock %}

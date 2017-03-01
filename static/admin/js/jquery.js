@@ -2019,7 +2019,7 @@ jQuery.event = {
 
 	special: {
 		ready: {
-			// Make sure the ready event is setup
+			// Make sure the ready event is cloud_setup
 			setup: jQuery.bindReady,
 			teardown: jQuery.noop
 		},

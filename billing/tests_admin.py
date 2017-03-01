@@ -9,9 +9,9 @@ from django.utils.unittest import TestCase
 from django.test import Client
 
 # Override BILLING_SUBSCRIPTION_MODEL before ikwen.billing.models is loaded
-from ikwen.billing.admin import Product
-
 setattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
+
+from ikwen.billing.admin import Product
 
 from ikwen.core.models import ConsoleEvent
 

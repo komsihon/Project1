@@ -24,6 +24,8 @@ OVERDUE_NOTICE_EVENT = 'OverdueNoticeEvent'
 SERVICE_SUSPENDED_EVENT = 'ServiceSuspendedEvent'
 PAYMENT_CONFIRMATION = 'PaymentConfirmation'
 
+JUMBOPAY_MOMO = 'jumbopay-momo'
+
 
 class OperatorProfile(AbstractConfig):
     ikwen_share_rate = models.FloatField(_("ikwen share rate"), default=0,
@@ -32,6 +34,11 @@ class OperatorProfile(AbstractConfig):
                                           help_text=_("Fixed amount ikwen collects on the turnover made by this person."))
     processing_fees_on_customer = models.BooleanField(default=False)
     separate_billing_cycle = models.BooleanField(default=True)
+    max_customers = models.IntegerField(default=300)
+    return_url = models.URLField(blank=True,
+                                 help_text="Payment details are routed to this URL upon checkout confirmation. See "
+                                           "<a href='http://support.ikwen.com/billing/configuration-return-url'>"
+                                           "support.ikwen.com/billing/configuration-return-url</a> for more details.")
 
 
 class InvoicingConfig(models.Model):
@@ -401,7 +408,7 @@ class CloudBillingPlan(models.Model):
                                 help_text="Retailer this billing plan applies to.")
     name = models.CharField(max_length=60)
     is_pro_version = models.BooleanField(default=False)
-    max_products = models.IntegerField()
+    max_objects = models.IntegerField(default=100)
     tx_share_fixed = models.FloatField(help_text="Fixed amount ikwen collects per transaction "
                                                  "on websites with this billing plan.")
     tx_share_rate = models.FloatField(help_text="Rate ikwen collects per transaction "
@@ -409,7 +416,7 @@ class CloudBillingPlan(models.Model):
     setup_cost = models.IntegerField(help_text="Setup cost at which ikwen sells the service. "
                                                "Retailer may charge additional fees.")
     setup_months_count = models.IntegerField(help_text="Number of months covered by the payment "
-                                                       "of the setup Invoice.")
+                                                       "of the cloud_setup Invoice.")
     monthly_cost = models.IntegerField(help_text="Monthly cost at which ikwen sells the service. "
                                                  "Retailer may charge additional fees.")
 

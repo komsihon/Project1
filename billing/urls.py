@@ -7,11 +7,13 @@ from ikwen.billing.jumbopay.views import MoMoCheckout, init_momo_cashout, check_
     jumbopay_local_api
 
 from ikwen.billing.views import InvoiceList, InvoiceDetail, NoticeMail, change_billing_cycle, list_members, \
-    list_subscriptions, IframeAdmin, PaymentMeanList, set_credentials, toggle_payment_mean
+    list_subscriptions, IframeAdmin, PaymentMeanList, set_credentials, toggle_payment_mean, DeployCloud
 
 urlpatterns = patterns(
     '',
-    url(r'^invoices/(?P<subscription_id>[-\w]+)/$', login_required(InvoiceList.as_view()), name='invoice_list'),
+    url(r'^deployCloud/(?P<app_slug>[-\w]+)/$', permission_required('accesscontrol.sudo')(DeployCloud.as_view()), name='deploy_cloud'),
+
+    url(r'^invoices/$', login_required(InvoiceList.as_view()), name='invoice_list'),
     url(r'^invoiceDetail/(?P<invoice_id>[-\w]+)/$', login_required(InvoiceDetail.as_view()), name='invoice_detail'),
     url(r'^paymentMeans/$', permission_required('accesscontrol.sudo')(PaymentMeanList.as_view()), name='payment_mean_list'),
     url(r'^set_credentials$', set_credentials, name='set_credentials'),
@@ -20,7 +22,7 @@ urlpatterns = patterns(
     url(r'^list_members$', list_members, name='list_members'),
     url(r'^list_subscriptions$', list_subscriptions, name='list_subscriptions'),
 
-    url(r'^MoMoCheckout/$', login_required(MoMoCheckout.as_view()), name='momo_set_checkout'),
+    url(r'^MoMoCheckout/$', MoMoCheckout.as_view(), name='momo_set_checkout'),
     url(r'^MoMo/initCashout/$', init_momo_cashout, name='init_momo_cashout'),
     url(r'^MoMo/checkTransaction/$', check_momo_transaction_status, name='check_momo_transaction_status'),
 

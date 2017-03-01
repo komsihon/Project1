@@ -1,7 +1,8 @@
 {% extends "core/base_bs.html" %}
-{% load i18n staticfiles %}
+{% load i18n staticfiles humanize %}
+%}
 
-{% block page_title %}<title>{{ service.project_name }} - {% trans "Sign in" %} </title>{% endblock %}
+{% block page_title %}<title>{% trans "Mobile Money Checkout" %} - {{ service.project_name }} </title>{% endblock %}
 {% block head_style %}
     {{ block.super }}
     <style  type="text/css">
@@ -41,14 +42,14 @@
                 <span class="pull-left" style="width: 60%">
                     <img src="{{ settings.IKWEN_MEDIA_URL }}{{ payment_mean.logo.name }}" alt="{{ payment_mean.name }}" class="img-responsive" />
                 </span>
-                <span class="pull-right">
-                    <i class="glyphicon glyphicon-shopping-cart" style="margin-right: 5px"></i>
-                    <strong>{{ config.currency_symbol }} {{ amount }}</strong>
+                <span class="pull-right" style="color: #03A9F4">
+                    <i class="glyphicon glyphicon-shopping-cart" style="color: #3F51B5; font-size: 21px; margin-right: 5px"></i>
+                    {{ config.currency_symbol }} <strong>{{ amount|intcomma }}</strong>
                 </span>
                 <div class="clearfix"></div>
             </div>
             <h3 style="text-align: center"> {% trans "Pay with" %} {{ payment_mean.name }} </h3>
-            <p class="text-muted" style="text-align: center"> {% trans "Type your phone number and confirm" %} </p>
+            <p class="text-muted" style="text-align: center"> {% trans "Type your phone number and submit" %} </p>
             <form onsubmit="return false">{% csrf_token %}
                 <div class="form-group" style="margin-top: .4em">
                     <label for="phone" class="sr-only">{% trans "Phone number" %}</label>
@@ -70,7 +71,8 @@
     <script type="text/javascript">
         (function() {
             var txId, checkerId;
-            $('#do-pay.btn-primary').click(function () {
+            $('#do-pay').click(function () {
+                if (!$(this).hasClass('btn-primary')) return;
                 $(this).removeClass('btn-primary').addClass('btn-default');
                 $('#checkout .spinner').show();
                 var phone = $('#phone').val();
@@ -87,23 +89,35 @@
             });
             function startTransactionStatusChecker() {
                 checkerId = setInterval(function() {
-                    $.getJSON('{% url 'billing:check_momo_transaction_status' %}', {tx_id: txId}, function(data) {
-                        if (data.running) return;
-                        $('#checkout .spinner').hide();
-                        localStorage.removeItem('txId');
-                        clearInterval(checkerId);
-                        if (data.error) {
+                    $.ajax({
+                        url: '{% url 'billing:check_momo_transaction_status' %}',
+                        data: {tx_id: txId},
+                        error: function() {
+                            $('#checkout .spinner').hide();
+                            localStorage.removeItem('txId');
+                            clearInterval(checkerId);
                             $('#transaction-result').removeClass('text-info').addClass('text-danger')
-                                    .text("{% trans "Transaction failed. Message: " %}" + data.error);
+                                    .text("{% trans "Unknow server error" %}");
                             $(this).removeClass('btn-primary').addClass('btn-default');
-                            return;
+                        },
+                        success: function(data) {
+                            if (data.running) return;
+                            $('#checkout .spinner').hide();
+                            localStorage.removeItem('txId');
+                            clearInterval(checkerId);
+                            if (data.error) {
+                                $('#transaction-result').removeClass('text-info').addClass('text-danger')
+                                        .text("{% trans "Transaction failed. Message: " %}" + data.error);
+                                $(this).removeClass('btn-primary').addClass('btn-default');
+                                return;
+                            }
+                            if (data.success) {
+                                $('#transaction-result').removeClass('text-info text-danger').addClass('alert alert-success')
+                                        .text("{% trans "Transaction successful, you will be redirected." %}");
+                                window.location = data.next_url
+                            }
                         }
-                        if (data.success) {
-                            $('#transaction-result').removeClass('text-info text-danger').addClass('alert alert-success')
-                                    .text("{% trans "Transaction successful, you will be redirected." %}");
-                            window.location = data.next_url
-                        }
-                    })
+                    });
                 }, 2000)
             }
 

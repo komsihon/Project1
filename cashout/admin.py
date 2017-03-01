@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.conf import settings
 from djangotoolbox.admin import admin
 from ikwen.cashout.models import CashOutMethod, CashOutRequest
 
@@ -19,5 +20,6 @@ class CashOutRequestAdmin(admin.ModelAdmin):
     readonly_fields = ('service_id', 'member_id', 'amount', 'status', 'method', 'account_number', 'name', )
 
 
-admin.site.register(CashOutMethod, CashOutMethodAdmin)
-admin.site.register(CashOutRequest, CashOutRequestAdmin)
+if getattr(settings, 'IS_UMBRELLA', False):
+    admin.site.register(CashOutMethod, CashOutMethodAdmin)
+    admin.site.register(CashOutRequest, CashOutRequestAdmin)

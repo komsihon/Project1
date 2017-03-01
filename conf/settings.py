@@ -22,10 +22,13 @@ SECRET_KEY = 'zedpmxz&d(5swy9@8b2cb-k2wa(xg!%ow&2s5j_&_^wa*t5lgh'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 TESTING = False
+# LOCAL_DEV = True
 
 TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
+
+SESSION_COOKIE_NAME = 'ik_sessionid'
 
 
 # ApplicationList definition
@@ -43,8 +46,6 @@ INSTALLED_APPS = (
     #Third parties
     'django_user_agents',
     'ajaxuploader',
-    # 'paypal.standard',
-    # 'paypal.pro',
 
     'ikwen.core',
     'ikwen.accesscontrol',
@@ -53,6 +54,9 @@ INSTALLED_APPS = (
     'ikwen.cashout',
     'ikwen.partnership',
     'ikwen.theming',
+
+    'ikwen_kakocase.kakocase',
+    'ikwen_kakocase.kako',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -97,7 +101,7 @@ else:
     WALLETS_DB = {  # ikwen_kakocase.ikwen_kakocase relational database used to store sensitive objects among which CashOutRequest
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ikwen_wallets',
-        'USERNAME': 'root',
+        'USER': 'root',
         'PASSWORD': 'admin'
     }
 
@@ -158,10 +162,15 @@ STATIC_URL = 'http://localhost/ikwen/static/'
 
 TEMPLATE_DIRS = (os.path.join(BASE_DIR,  'templates'),)
 
+LOGIN_URL = 'ikwen:sign_in'
+LOGIN_REDIRECT_URL = 'ikwen:console'
+LOGOUT_REDIRECT_URL = 'home'
 
 #  *******       IKWEN CONFIGURATION       *******      #
 
 IS_IKWEN = True
+
+IS_UMBRELLA = True  # ikwen main site: www.ikwen.com itself
 
 SITE_ID = '54eb6d3379b531e09cb3704b'
 
@@ -175,8 +184,15 @@ AUTHENTICATION_BACKENDS = (
     'ikwen.accesscontrol.backends.LocalDataStoreBackend',
 )
 
-# Model to use to generate Invoice for.
-# Typically the Service which the Member subscribed to
+MEMBER_AVATAR = 'ikwen/img/member-avatar.jpg'
+
+PROJECT_URL = 'http://localhost' if DEBUG else 'http://www.ikwen.com'
+
+IKWEN_BASE_URL = 'http://localhost'  # Used only for dev purposes (DEBUG = False)
+
+WSGI_SCRIPT_ALIAS = 'ikwen'  # Used only for dev purposes (DEBUG = False)
+
+# BILLING SETTINGS
 BILLING_SUBSCRIPTION_MODEL = 'core.Service'
 BILLING_SUBSCRIPTION_MODEL_ADMIN = 'ikwen.core.admin.ServiceAdmin'
 BILLING_INVOICE_ITEM_MODEL = 'billing.IkwenInvoiceItem'
@@ -186,21 +202,12 @@ JUMBOPAY_API_URL = 'https://154.70.100.194/api/sandbox/v2/' if DEBUG else 'https
 MOMO_BEFORE_CASH_OUT = 'ikwen.billing.views.set_invoice_checkout'
 MOMO_AFTER_CASH_OUT = 'ikwen.billing.views.confirm_invoice_payment'
 
-CHECKOUT_MIN = 500
-LOGIN_URL = 'ikwen:sign_in'
-LOGIN_REDIRECT_URL = 'home'
-MEMBER_AVATAR = 'ikwen/img/member-avatar.jpg'
 
-PROJECT_URL = 'http://localhost' if DEBUG else 'http://www.ikwen.com'
 
-IKWEN_BASE_URL = 'http://localhost'  # Used only for dev purposes (DEBUG = False)
-
-WSGI_SCRIPT_ALIAS = 'ikwen'  # Used only for dev purposes (DEBUG = False)
-
+#  *******       E-mail CONFIGURATION       *******  #
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_HOST_USER = 'ksihon'
 EMAIL_HOST_PASSWORD = 'sendgr1d'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-LOGOUT_REDIRECT_URL = 'home'

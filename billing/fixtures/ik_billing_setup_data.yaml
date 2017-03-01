@@ -35,7 +35,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: InvoicesSentEvent
     title: Invoices sent to customers
-    target: Business
     target_url_name: admin:billing_invoice_changelist
     renderer: ikwen.foundation.billing.views.render_invoices_sent_event
 
@@ -45,7 +44,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: RemindersSentEvent
     title: Reminders sent to customers
-    target: Business
     target_url_name: admin:billing_invoice_changelist
     renderer: ikwen.foundation.billing.views.render_reminders_sent_event
 
@@ -55,7 +53,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: OverdueNoticesSentEvent
     title: Overdue notices sent to customers
-    target: Business
     target_url_name: admin:billing_invoice_changelist
     renderer: ikwen.foundation.billing.views.render_overdue_notices_sent_event
 
@@ -65,7 +62,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: SuspensionNoticesSentEvent
     title: Notices of invoice sent to customers
-    target: Business
     target_url_name: admin:billing_invoice_changelist
     renderer: ikwen.foundation.billing.views.render_shutdown_notices_sent_event
 
@@ -75,7 +71,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: SubscriptionEvent
     title: Subscription activated
-    target: Personal
     renderer: ikwen.foundation.billing.views.render_subscription_activated_event
 
 - model: core.consoleeventtype
@@ -84,7 +79,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: NewInvoiceEvent
     title: New invoice
-    target: Personal
     renderer: ikwen.foundation.billing.views.render_new_invoice_event
 
 - model: core.consoleeventtype
@@ -93,7 +87,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: InvoiceReminderEvent
     title: New invoice reminder
-    target: Personal
     renderer: ikwen.foundation.billing.views.render_invoice_reminder_event
 
 - model: core.consoleeventtype
@@ -102,7 +95,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: OverdueNoticeEvent
     title: Notice of invoice overdue
-    target: Personal
     renderer: ikwen.foundation.billing.views.render_invoice_overdue_event
 
 - model: core.consoleeventtype
@@ -111,7 +103,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: ServiceSuspendedEvent
     title: Notice of service suspension
-    target: Personal
     renderer: ikwen.foundation.billing.views.render_service_suspension_event
 
 - model: billing.paymentmean

@@ -139,8 +139,10 @@
                         </div>
                     </div>
                     <div class="form-group row phone">
-                        <label for="rg-phone" class="col-sm-5 col-md-4">{% trans "Phone number" %} <span
-                                style="font-weight: normal">({% trans "Optional" %})</span></label>
+                        <label for="rg-phone" class="col-sm-5 col-md-4">
+                            {% trans "Phone number" %}
+{#                            <span style="font-weight: normal">({% trans "Optional" %})</span>#}
+                        </label>
                         <div class="col-sm-6 col-md-6">
                             <input id="rg-phone" class="form-control input-sm phone" type="text" name="phone" value=""/>
                             {{ register_form.phone.errors }}

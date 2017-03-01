@@ -40,6 +40,7 @@ def wipe_test_data():
     for alias in getattr(settings, 'DATABASES').keys():
         if alias == 'wallets':
             continue
+        Group.objects.using(alias).all().delete()
         for name in ('Application', 'Service', 'Config', 'ConsoleEventType', 'ConsoleEvent', 'Country', ):
             model = getattr(ikwen.core.models, name)
             model.objects.using(alias).all().delete()
@@ -255,7 +256,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         self.assertGreaterEqual(params.index('p2=v2'), 0)
         response = self.client.post(reverse('ikwen:sign_in'), {'username': 'testuser1', 'password': 'secret'}, follow=True)
         final = response.redirect_chain[-1]
-        location = final[0].strip('/').strip('?').split('/')[-1]
+        location = final[0].strip('?').strip('/').split('/')[-1]
         self.assertEqual(location, 'console')
         perm_list = UserPermissionList.objects.get(user=m2)
         group = Group.objects.get(name=COMMUNITY)
@@ -297,7 +298,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         self.assertEqual(m.gender, Member.MALE)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', DATABASES=DATABASES)
-    def test_update_correct_parameters_and_gender_previously_unset(self):
+    def test_update_info_with_correct_parameters_and_gender_previously_unset(self):
         """
         All user information should be updated and correct information message returned
         """

@@ -8,12 +8,10 @@ from django.utils.unittest import TestCase
 from django.test.client import Client
 
 # Override BILLING_SUBSCRIPTION_MODEL before ikwen.billing.models is loaded
-from ikwen.accesscontrol.backends import UMBRELLA
+setattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
 
 from ikwen.billing.crons import send_invoices, send_invoice_reminders, send_invoice_overdue_notices, \
     suspend_customers_services
-
-setattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
 
 from ikwen.billing.models import Invoice, InvoicingConfig, Subscription
 from ikwen.billing.tests_views import wipe_test_data

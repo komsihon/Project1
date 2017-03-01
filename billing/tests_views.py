@@ -67,7 +67,7 @@ class BillingViewsTest(TestCase):
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
     def test_InvoiceList(self):
         self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('billing:invoice_list', args=('56eb6d04b37b3379c531e012', )))
+        response = self.client.get(reverse('billing:invoice_list'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['invoices']), 2)
 

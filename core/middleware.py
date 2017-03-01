@@ -28,14 +28,17 @@ class ServiceStatusCheckMiddleware(object):
     def process_view(self, request, view_func, view_args, view_kwargs):
         if getattr(settings, 'IS_IKWEN', False):
             return
+        rm = request.resolver_match
         service = get_service_instance(using=UMBRELLA)
         retailer = service.retailer
+
         if retailer and retailer.status != Service.ACTIVE:
             # If a retailer is suspended, so are all his customers
+            if rm.namespace == 'ikwen' and rm.url_name in [SERVICE_EXPIRED, LOAD_EVENT]:
+                return
             return HttpResponseRedirect(reverse('ikwen:' + SERVICE_EXPIRED))
         if service.expiry:
             now = datetime.now()
-            rm = request.resolver_match
             if now.date() > service.expiry or (service.status != Service.PENDING and service.status != Service.ACTIVE):
                 if request.user.is_authenticated() and request.user == service.member:
                     if rm.namespace == 'ikwen':
@@ -49,4 +52,4 @@ class ServiceStatusCheckMiddleware(object):
                         return
                 return HttpResponseRedirect(reverse('ikwen:' + SERVICE_EXPIRED))
             elif rm.namespace == 'ikwen' and rm.url_name == SERVICE_EXPIRED:
-                return HttpResponseRedirect(reverse('home'))
+                return

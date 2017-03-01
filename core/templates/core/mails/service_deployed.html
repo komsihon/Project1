@@ -1,0 +1,50 @@
+{% extends 'core/mails/base.html' %}
+{% load i18n humanize %}
+
+{% block content %}
+    <div style="color: #777; font: normal 1.35em 'Open Sans', 'Helvetica Neue', Lato, Verdana, Arial, sans-serif; line-height: 1.44em; margin-top: 45px; min-height: 180px; padding: 0 15px; text-align: justify">
+        {%trans "Congrats, you are online !" %}
+         <br><br>
+
+        {% trans "Your service details are as follow" %}:
+        <div style="clear: both">
+            <span>{{ service_activated.details|safe }}</span><br>
+            {% trans "Monthly cost" %}: <strong>{{ config.currency_symbol }}</strong> {{ service_activated.monthly_cost|intcomma }}<br>
+            <div style="font-size: .9em">
+                <h4 style="color: #555; margin-bottom: 0">{% trans "Invoiced to" %}:</h4>
+                {{ member.full_name }}
+                <p style="font-size: .8em; line-height: 1.4em; margin-top: .3em">
+                    {{ member.email }}
+                    {% if member.phone %}, <br><em>{{ member.phone }}</em>{% endif %}
+                </p>
+            </div>
+        </div>
+        <div style="border-top: 1px solid #eee; clear: both; margin-top: 1.5em; padding-top: 1em">{% blocktrans with due_date=invoice.due_date %}
+            The invoice for your service setup has been generated, and is due on {{ due_date }}, see details below{% endblocktrans%}:<br><br>
+            <h4 style="color: #555; margin-bottom: 0">{% trans "Invoice" %} No {{ invoice.number }}</h4>
+            <div style="border: 1px solid #ddd; border-bottom: none; margin-top: 1em">
+                <h4 style="background: #1B242F; color: #fff; margin: 0; padding: 10px">
+                    <span style="float: left; width: 70%">{% trans "Item" %}</span>
+                    <span style="float: right; text-align: right; width: 30%">{% trans "Amount" %}</span>
+					<div style="clear: both"></div>
+                </h4>
+                {% for entry in invoice.entries %}
+                    <div style="border-bottom: 1px solid #ddd; padding: 5px 10px">
+                        <span style="float: left; width: 68%">
+                            {{ entry.item.label }}
+                            {% if entry.short_description %}: <em>{{ entry.short_description }}</em>{% endif %}
+                        </span>
+                        <span style="float: right; text-align: right; width: 30%">{{ entry.item.amount|intcomma }}</span>
+					    <div style="clear: both"></div>
+                    </div>
+                {% endfor %}
+                <div style="border-bottom: 1px solid #ddd; font-size: 1.2em; padding: 7px 10px; text-align: right">
+                    <strong style="color: #666">{% trans "TOTAL" %}:</strong>
+                    <span>{{ config.currency_symbol }} {{ invoice.amount|intcomma }}</span>
+                </div>
+            </div>
+            <a href="{{ invoice_url }}" target="_blank" style="background: #16991D; color: #fff; display: block; font-size: 1.35em; font-weight: bold; margin: 15px auto 0; padding: 9px 0; text-align: center; text-decoration: none; width: 240px">{% trans "Pay Now" %}</a>
+        </div>
+        <p style="clear: both; padding-top: 2em">{% blocktrans with company_name=config.company_name %}Thank you for your business with {{ company_name }}.{% endblocktrans %}</p>
+    </div>
+{% endblock %}

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
+import random
+import string
 from threading import Thread
 
 from django.conf import settings
@@ -16,6 +18,7 @@ from django.core.validators import validate_email
 from django.http.response import HttpResponseRedirect, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404
 from django.template import Context
+from django.template.defaultfilters import slugify
 from django.template.loader import get_template
 from django.utils.decorators import method_decorator
 from django.utils.http import urlsafe_base64_decode, urlunquote
@@ -24,11 +27,13 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
+from ikwen.core.utils import send_sms
+
 from ikwen.accesscontrol.backends import UMBRELLA
 
-from ikwen.accesscontrol.templatetags.auth_tokens import append_auth_tokens, ikwenize
+from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 
-from ikwen.core.models import Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
+from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
 from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_group
 
@@ -311,7 +316,7 @@ def update_info(request, *args, **kwargs):
     if gender:
         if not member.gender:
             member.gender = gender  # Set gender only if previously not set
-    member.save()
+    member.save(update_fields=['first_name', 'last_name', 'email', 'phone', 'gender'])
     member.propagate_changes()
     response = {'message': _('Your information were successfully updated.')}
     return HttpResponse(json.dumps(response), content_type='application/json')
@@ -372,13 +377,21 @@ class Profile(BaseView):
 
 
 class CompanyProfile(BaseView):
+    """
+    Can either be a company profile or an ikwen App description page.
+    In the case of an ikwen App. The *Deploy* link will appear.
+    """
     template_name = 'accesscontrol/profile.html'
 
     def get_context_data(self, **kwargs):
-        project_name_slug = kwargs['project_name_slug']
-        service = Service.objects.get(project_name_slug=project_name_slug)
-        config = service.config
         context = super(CompanyProfile, self).get_context_data(**kwargs)
+        project_name_slug = kwargs['project_name_slug']
+        service = get_object_or_404(Service, project_name_slug=project_name_slug)
+        try:
+            context['app'] = Application.objects.get(slug=project_name_slug)
+        except Application.DoesNotExist:
+            pass
+        config = service.config
         context['is_company'] = True
         context['page_service'] = service  # Updates the service context defined in BaseView
         context['page_config'] = config
@@ -678,29 +691,30 @@ def toggle_member(request, *args, **kwargs):
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
 
-def render_access_request_event(event):
+def render_access_request_event(event, request):
     try:
         access_request = AccessRequest.objects.using(UMBRELLA).get(pk=event.object_id)
     except AccessRequest.DoesNotExist:
         return None
     html_template = get_template('accesscontrol/events/access_request.html')
-    c = Context({'rq': access_request})
+    from ikwen.conf.settings import MEDIA_URL
+    c = Context({'rq': access_request, 'IKWEN_MEDIA_URL': MEDIA_URL})
     return html_template.render(c)
 
 
-def render_welcome_event(event):
+def render_welcome_event(event, request):
     html_template = get_template('accesscontrol/events/welcome_event.html')
     c = Context({})
     return html_template.render(c)
 
 
-def render_welcome_on_ikwen_event(event):
+def render_welcome_on_ikwen_event(event, request):
     html_template = get_template('accesscontrol/events/welcome_on_ikwen.html')
     c = Context({})
     return html_template.render(c)
 
 
-def render_access_granted_event(event):
+def render_access_granted_event(event, request):
     try:
         access_request = AccessRequest.objects.using(UMBRELLA).get(pk=event.object_id)
     except AccessRequest.DoesNotExist:
@@ -709,5 +723,69 @@ def render_access_granted_event(event):
     database = event.service.database
     add_database_to_settings(database)
     member = Member.objects.using(database).get(pk=event.member.id)
-    c = Context({'rq': access_request, 'is_iao': member.is_iao})
+    from ikwen.conf.settings import MEDIA_URL
+    c = Context({'rq': access_request, 'is_iao': member.is_iao, 'IKWEN_MEDIA_URL': MEDIA_URL})
     return html_template.render(c)
+
+
+class PhoneConfirmation(BaseView):
+    template_name = 'accesscontrol/phone_confirmation.html'
+
+    def send_code(self, request, new_code=False):
+        service = get_service_instance()
+        member = request.user
+        code = ''.join([random.SystemRandom().choice(string.digits) for _ in range(4)])
+        do_send = False
+        try:
+            current = request.session['code']
+            if new_code:
+                request.session['code'] = code
+                do_send = True
+        except KeyError:
+            request.session['code'] = code
+            do_send = True
+
+        if do_send:
+            phone = slugify(member.phone).replace('-', '')
+            if len(phone) == 9:
+                phone = '237' + phone  # This works only for Cameroon
+            text = 'Your %s confirmation code is %s' % (service.project_name, code)
+            send_sms(phone, text)
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated() and request.user.phone_verified:
+            return HttpResponseRedirect(reverse('movies:home'))
+        context = self.get_context_data(**kwargs)
+        if getattr(settings, 'DEBUG', False):
+            self.send_code(request)
+        else:
+            try:
+                self.send_code(request)
+            except:
+                context['error_message'] = _('Could not send code. Please try again later')
+        return render(request, self.template_name, context)
+
+    def render_to_response(self, context, **response_kwargs):
+        response = {'success': True}
+        if self.request.GET.get('action') == 'new_code':
+            if getattr(settings, 'DEBUG', False):
+                self.send_code(self.request, new_code=True)
+            else:
+                try:
+                    self.send_code(self.request, new_code=True)
+                except:
+                    response = {'error': _('Could not send code. Please try again later')}
+            return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
+        else:
+            return super(PhoneConfirmation, self).render_to_response(context, **response_kwargs)
+
+    def post(self, request, *args, **kwargs):
+        member = request.user
+        code = request.session.get('code')
+        if code != request.POST['code']:
+            context = self.get_context_data(**kwargs)
+            context['error_message'] = _('Invalid code. Please try again')
+            return render(request, self.template_name, context)
+        member.phone_verified = True
+        member.save()
+        return HttpResponseRedirect(reverse('home'))

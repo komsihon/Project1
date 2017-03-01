@@ -1,21 +1,31 @@
 {% load i18n static staticfiles humanize %}
 <div style="padding: 0 15px">
     <h4 class="text-primary">{% trans "Cash-Out request" %}</h4>
-    <div class="member" style="border-bottom: none; padding: 15px 0">
-        {% if member.photo and member.photo.name %}
-            <a href="{% url 'ikwen:profile' member.id %}" class="photo"
-               style="background-image: url({{ IKWEN_MEDIA_URL }}{{ member.photo.thumb_name }}); cursor: pointer"></a>
-        {% else %}
-            <a href="{% url 'ikwen:profile' member.id %}" class="photo"
-               style="background-image: url({% static MEMBER_AVATAR %}); cursor: pointer"></a>
-        {% endif %}
-        <div style="margin-left: 80px">
-            <a href="{% url 'ikwen:profile' member.id %}" class="name" style="cursor: pointer; display: block; margin-bottom: 5px">{{ member.full_name }}</a>
-            <p class="about">{% blocktrans with amount=cor.amount account_number=cor.account_number project_name=service.project_name url=service.url%}
-                Made a request to cash out <ins style="color: #666">{{ currency_symbol }} {{ amount }}</ins>
-                from <a href="{{ url }}" target="_blank">{{ project_name }}</a> account.
+    {% if is_iao %}
+        <div>
+            <p class="about">{% blocktrans with amount=cor.amount|intcomma account_number=cor.account_number project_name=service.project_name url=service.url%}
+                Your request to cash out <ins style="color: #666">{{ currency_symbol }} {{ amount }}</ins>
+                from <a href="{{ url }}" target="_blank">{{ project_name }}</a> account was successfully processed.
                 Money was paid to <ins>{{ account_number }}</ins>.
             {% endblocktrans %}</p>
         </div>
-    </div>
+    {% else %}
+        <div class="member" style="border-bottom: none; padding: 15px 0">
+            {% if member.photo and member.photo.name %}
+                <a href="{% url 'ikwen:profile' member.id %}" class="photo"
+                   style="background-image: url({{ IKWEN_MEDIA_URL }}{{ member.photo.thumb_name }}); cursor: pointer"></a>
+            {% else %}
+                <a href="{% url 'ikwen:profile' member.id %}" class="photo"
+                   style="background-image: url({% static MEMBER_AVATAR %}); cursor: pointer"></a>
+            {% endif %}
+            <div style="margin-left: 80px">
+                <a href="{% url 'ikwen:profile' member.id %}" class="name" style="cursor: pointer; display: block; margin-bottom: 5px">{{ member.full_name }}</a>
+                <p class="about">{% blocktrans with amount=cor.amount|intcomma account_number=cor.account_number project_name=service.project_name url=service.url%}
+                    Made a request to cash out <ins style="color: #666">{{ currency_symbol }} {{ amount }}</ins>
+                    from <a href="{{ url }}" target="_blank">{{ project_name }}</a> account.
+                    Money was paid to <ins>{{ account_number }}</ins>.
+                {% endblocktrans %}</p>
+            </div>
+        </div>
+    {% endif %}
 </div>

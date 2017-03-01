@@ -1,5 +1,5 @@
 {% load humanize %}
-<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 events-col1">
     {% for event in event_list %}
         {% with service=event.service event_type=event.event_type %}
         {% if forloop.counter0|divisibleby:"2" %}
@@ -8,13 +8,15 @@
                     {% if service.config.logo.name %}
                         <img src="{{ service.config.logo.url }}" width="30" />
                     {% endif %}
-                    <a href="{{ service.url }}" style="cursor: pointer">{{ service.project_name }}</a>
+                    <a href="{{ service.url }}" target="_blank" class="project-name" style="cursor: pointer">{{ service.project_name }}</a>
                     <time>{{ event.created_on|naturaltime }}</time>
                 </h3>
                 <div class="{{ event_type.codename }}">
-                    <div class="content row"{% if event_type.min_height %}
-                         style="min-height: {{ event_type.min_height }}px"{% endif %}>
-                        <div class="col-xs-12">...</div>
+                    <div class="content row">
+                        <div class="loading"{% if event_type.min_height %}
+                         style="min-height: {{ event_type.min_height }}px; line-height: {{ event_type.min_height }}px"{% endif %}>
+                            <p class="dots">...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -22,7 +24,7 @@
         {% endwith %}
     {% endfor %}
 </div>
-<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 events-col2">
     {% for event in event_list %}
         {% with service=event.service event_type=event.event_type %}
         {% if forloop.counter|divisibleby:"2" %}
@@ -31,13 +33,15 @@
                     {% if service.config.logo.name %}
                         <img src="{{ service.config.logo.url }}" width="30" />
                     {% endif %}
-                    <a href="{{ service.url }}" style="cursor: pointer">{{ service.project_name }}</a>
+                    <a href="{{ service.url }}" target="_blank" style="cursor: pointer">{{ service.project_name }}</a>
                     <time>{{ event.created_on|naturaltime }}</time>
                 </h3>
                 <div class="{{ event_type.codename }}">
-                    <div class="content row"{% if event_type.min_height %}
-                         style="min-height: {{ event_type.min_height }}px"{% endif %}>
-                        <div class="col-xs-12">...</div>
+                    <div class="content row">
+                        <div class="loading"{% if event_type.min_height %}
+                         style="min-height: {{ event_type.min_height }}px; line-height: {{ event_type.min_height }}px"{% endif %}>
+                            <p class="dots">...</p>
+                        </div>
                     </div>
                 </div>
             </div>

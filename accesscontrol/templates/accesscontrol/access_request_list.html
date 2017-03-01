@@ -35,7 +35,7 @@
                     <section id="{{ elt.rq.id }}" class="access-request subtle-shade">
                         <div class="logo">
                             {% if elt.rq.member.photo and elt.rq.member.photo.name %}
-                                <a href="{% url 'ikwen:profile' elt.rq.member.id %}" class="photo" style="background-image: url({{ elt.rq.member.photo.small_url }})"></a>
+                                <a href="{% url 'ikwen:profile' elt.rq.member.id %}" class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ elt.rq.member.photo.small_name }})"></a>
                             {% else %}
                                 <a href="{% url 'ikwen:profile' elt.rq.member.id %}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
                             {% endif %}

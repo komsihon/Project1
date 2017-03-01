@@ -28,6 +28,7 @@
     url: http://ikwen-service.com
     domain: ikwen-service.com
     database: test_ikwen_service
+    api_signature: api-signature-1
     monthly_cost: 6000
     version: Full
     status: Active
@@ -43,6 +44,7 @@
     url: http://ikwen-service2.com
     domain: ikwen-service2.com
     database: test_ikwen_service_2
+    api_signature: api-signature-2
     monthly_cost: 6000
     version: Full
     status: Active
@@ -92,7 +94,6 @@
     app: 56eb6d04b37b3379b531a001
     codename: WelcomeOnIkwen
     title: Welcome on ikwen
-    target: Personal
     target_url_name: ikwen:collaborators
     renderer: ikwen.accesscontrol.views.render_welcome_event
 
@@ -102,7 +103,6 @@
     app: 56eb6d04b37b3379b531a002
     codename: AccessRequestEvent
     title: Those people would like to collaborate with you
-    target: Business
     target_url_name: ikwen:collaborators
     renderer: ikwen.accesscontrol.views.render_access_request_event
 
@@ -112,7 +112,6 @@
     app: 56eb6d04b37b3379b531a002
     codename: AccessGrantedEvent
     title: Collaboration request accepted
-    target: Business
     target_url_name: ikwen:access_request_list
     renderer: ikwen.accesscontrol.views.render_access_granted_event
 
@@ -122,7 +121,6 @@
     app: 56eb6d04b37b3379b531a002
     codename: ServiceRequestEvent
     title: Those people would like to be registered as customers.
-    target: Business
     target_url_name: ikwen:service_request_list
     renderer: ikwen.accesscontrol.views.render_access_request_event
 
@@ -132,7 +130,6 @@
     app: 56eb6d04b37b3379b531a001
     codename: WelcomeEvent
     title: Welcome
-    target: Personal
     target_url_name: ikwen:collaborators
     renderer: ikwen.accesscontrol.views.render_welcome_event
 
@@ -142,7 +139,6 @@
     app: 56eb6d04b37b3379b531a001
     codename: PaymentConfirmation
     title: Payment Confirmation
-    target: Personal
     target_url_name: ikwen:collaborators
     renderer: ikwen.accesscontrol.views.render_welcome_event
 
@@ -152,7 +148,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: InvoicesSentEvent
     title: Invoices sent to customers
-    target: Business
     target_url_name: admin:billing_invoice_changelist
     renderer: ikwen.billing.views.render_invoices_sent_event
 
@@ -162,7 +157,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: RemindersSentEvent
     title: Reminders sent to customers
-    target: Business
     target_url_name: admin:billing_invoice_changelist
     renderer: ikwen.billing.views.render_reminders_sent_event
 
@@ -172,7 +166,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: OverdueNoticesSentEvent
     title: Overdue notices sent to customers
-    target: Business
     target_url_name: admin:billing_invoice_changelist
     renderer: ikwen.billing.views.render_overdue_notices_sent_event
 
@@ -182,7 +175,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: SuspensionNoticesSentEvent
     title: Notices of invoice sent to customers
-    target: Business
     target_url_name: admin:billing_invoice_changelist
     renderer: ikwen.billing.views.render_shutdown_notices_sent_event
 
@@ -192,7 +184,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: SubscriptionEvent
     title: Subscription activated
-    target: Personal
     renderer: ikwen.billing.views.render_subscription_activated_event
 
 - model: core.consoleeventtype
@@ -201,7 +192,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: NewInvoiceEvent
     title: New invoice
-    target: Personal
     renderer: ikwen.billing.views.render_new_invoice_event
 
 - model: core.consoleeventtype
@@ -210,7 +200,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: InvoiceReminderEvent
     title: New invoice reminder
-    target: Personal
     renderer: ikwen.billing.views.render_invoice_reminder_event
 
 - model: core.consoleeventtype
@@ -219,7 +208,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: OverdueNoticeEvent
     title: Notice of invoice overdue
-    target: Personal
     renderer: ikwen.billing.views.render_invoice_overdue_event
 
 - model: core.consoleeventtype
@@ -228,7 +216,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: ServiceSuspendedEvent
     title: Notice of service suspension
-    target: Personal
     renderer: ikwen.billing.views.render_service_suspension_event
 
 - model: core.consoleeventtype
@@ -237,7 +224,6 @@
     app: 54eb6d04b37b9b531a003371
     codename: CashOutRequest
     title: Cash-out request
-    target: Business
     renderer: ikwen.billing.views.render_service_suspension_event
 
 - model: cashout.cashoutmethod
@@ -254,3 +240,4 @@
     method: 56b38781b37b33199e17dab1
     account_number: 677422485
     name: Kom Sihon
+

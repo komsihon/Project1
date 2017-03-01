@@ -10,11 +10,12 @@ from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
+from ikwen.partnership.models import ApplicationRetailConfig
 
 from ikwen.core.admin import CustomBaseAdmin
-from ikwen.core.models import QueuedSMS, Config
+from ikwen.core.models import QueuedSMS, Config, Application, Service
 from ikwen.accesscontrol.models import Member
-from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, add_event
+from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, add_event, add_database_to_settings
 from import_export.admin import ImportExportMixin, ExportMixin
 from django.utils.translation import gettext_lazy as _
 
@@ -328,10 +329,25 @@ class MoMoTransactionAdmin(admin.ModelAdmin):
 
 
 class CloudBillingPlanAdmin(admin.ModelAdmin):
-    list_display = ('app', 'name', 'setup_cost', 'setup_months_count', 'monthly_cost',
+    list_display = ('app', 'partner', 'name', 'setup_cost', 'setup_months_count', 'monthly_cost',
                     'tx_share_fixed', 'tx_share_rate', 'is_pro_version')
     search_fields = ('app', 'name', )
     list_filter = ('app',)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "partner":
+            app = Application.objects.get(slug='ikwen-retail')
+            kwargs["queryset"] = Service.objects.filter(app=app)
+        return super(CloudBillingPlanAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        if obj.partner:
+            try:
+                ApplicationRetailConfig.objects.get(app=obj.app)
+            except ApplicationRetailConfig.DoesNotExist:
+                self.message_user(request, "Cannot create a billing plan without a prior retail config for this app")
+                return
+        super(CloudBillingPlanAdmin, self).save_model(request, obj, form, change)
 
 
 # Override ProductAdmin class if there's another defined in settings
@@ -357,7 +373,7 @@ admin.site.register(Invoice, InvoiceAdmin)
 admin.site.register(Payment, PaymentAdmin)
 
 
-if getattr(settings, 'IS_IKWEN', False):
+if getattr(settings, 'IS_UMBRELLA', False):
     admin.site.register(PaymentMean, PaymentMeanAdmin)
     admin.site.register(MoMoTransaction, MoMoTransactionAdmin)
     admin.site.register(CloudBillingPlan, CloudBillingPlanAdmin)

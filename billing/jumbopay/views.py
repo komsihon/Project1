@@ -42,7 +42,9 @@ class MoMoCheckout(BaseView):
         context = self.get_context_data(**kwargs)
         path = getattr(settings, 'MOMO_BEFORE_CASH_OUT')
         momo_before_checkout = import_by_path(path)
-        momo_before_checkout(request, *args, **kwargs)
+        resp = momo_before_checkout(request, *args, **kwargs)
+        if resp:
+            return resp
         context['amount'] = request.session['amount']
         return render(request, self.template_name, context)
 

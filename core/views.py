@@ -14,7 +14,9 @@ from django.db.models import Q
 from django.db.models import get_model
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.template import Context
 from django.template.defaultfilters import slugify
+from django.template.loader import get_template
 from django.utils import translation
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_by_path
@@ -22,18 +24,20 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
+from django.contrib.admin import helpers
+from django.utils.translation import gettext as _
 
 from ikwen.accesscontrol.templatetags.auth_tokens import append_auth_tokens
 
 from ikwen.billing.utils import get_invoicing_config_instance, get_billing_cycle_days_count, \
-    get_billing_cycle_months_count
+    get_billing_cycle_months_count, get_subscription_model
 
 from ikwen.billing.models import Invoice
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT
 from ikwen.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, AbstractConfig, Country
-from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons
+from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons, add_database_to_settings
 import ikwen.conf.settings
 
 try:
@@ -174,6 +178,7 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
     """
     def upload_complete(self, request, filename, *args, **kwargs):
         import os
+        from ikwen.conf import settings as ikwen_settings
         path = self.UPLOAD_DIR + "/" + filename
         self._dest.close()
         img_upload_context = request.GET['img_upload_context']
@@ -191,20 +196,19 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
                         current_image_path = config.logo.path if config.logo.name else None
                         destination = media_root + AbstractConfig.LOGO_UPLOAD_TO + "/" + filename
                         config.logo.save(destination, content)
-                        url = config.logo.url
+                        url = ikwen_settings.MEDIA_URL + config.logo.name
                         src = config.logo.path
                         generate_favicons(src)
                     else:
                         current_image_path = config.cover_image.path if config.cover_image.name else None
                         destination = media_root + AbstractConfig.COVER_UPLOAD_TO + "/" + filename
                         config.cover_image.save(destination, content)
-                        url = config.cover_image.url
+                        url = ikwen_settings.MEDIA_URL + config.cover_image.name
                         src = config.cover_image.path
                     cache.delete(service.id + ':config:')
                     cache.delete(service.id + ':config:default')
                     cache.delete(service.id + ':config:' + UMBRELLA)
                     config.save(using=UMBRELLA)
-                    from ikwen.conf import settings as ikwen_settings
                     dst = src.replace(media_root, ikwen_settings.MEDIA_ROOT)
                     dst_folder = '/'.join(dst.split('/')[:-1])
                     if not os.path.exists(dst_folder):
@@ -221,20 +225,22 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
                         current_image_path = member.photo.path if member.photo.name else None
                         destination = media_root + Member.PROFILE_UPLOAD_TO + "/" + filename
                         member.photo.save(destination, content)
-                        url = member.photo.small_url
+                        url = ikwen_settings.MEDIA_URL + member.photo.small_name
                     else:
                         current_image_path = member.cover_image.path if member.cover_image.name else None
                         destination = media_root + Member.COVER_UPLOAD_TO + "/" + filename
                         member.cover_image.save(destination, content)
-                        url = member.cover_image.url
+                        url = ikwen_settings.MEDIA_URL + member.cover_image.name
             try:
-                os.unlink(media_root + path)
+                if os.path.exists(media_root + path):
+                    os.unlink(media_root + path)
             except Exception as e:
                 if getattr(settings, 'DEBUG', False):
                     raise e
             if current_image_path:
                 try:
-                    os.unlink(current_image_path)
+                    if os.path.exists(current_image_path):
+                        os.unlink(current_image_path)
                 except OSError as e:
                     if getattr(settings, 'DEBUG', False):
                         raise e
@@ -307,7 +313,6 @@ class Configuration(BaseView):
         return config_admin
 
     def get_context_data(self, **kwargs):
-        from django.contrib.admin import helpers
         context = super(Configuration, self).get_context_data(**kwargs)
         config_admin = self.get_config_admin()
         ModelForm = config_admin.get_form(self.request)
@@ -355,6 +360,10 @@ class Configuration(BaseView):
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)
+            admin_form = helpers.AdminForm(form, list(config_admin.get_fieldsets(self.request)),
+                                           config_admin.get_prepopulated_fields(self.request),
+                                           config_admin.get_readonly_fields(self.request))
+            context['model_admin_form'] = admin_form
             return render(request, self.template_name, context)
 
 
@@ -390,21 +399,19 @@ class Console(BaseView):
         context['profile_name'] = member.full_name
         context['profile_photo_url'] = member.photo.small_url if member.photo.name else ''
         context['profile_cover_url'] = member.cover_image.url if member.cover_image.name else ''
-        target = ConsoleEventType.PERSONAL if len(self.request.user.collaborates_on_fk_list) == 0 \
-            else self.request.GET.get('target', ConsoleEventType.BUSINESS)
 
+        type_access_request = ConsoleEventType.objects.get(codename=ACCESS_REQUEST_EVENT)
         access_request_events = {}
         for service in member.get_services():
-            type_access_request = ConsoleEventType.objects.get(codename=ACCESS_REQUEST_EVENT)
-            if target == ConsoleEventType.BUSINESS:
-                request_event_list = list(ConsoleEvent.objects
-                                          .filter(event_type=type_access_request, member=member, service=service)
-                                          .order_by('-id'))
-                if len(request_event_list) > 0:
-                    access_request_events[service] = request_event_list
+            request_event_list = list(ConsoleEvent.objects
+                                      .filter(event_type=type_access_request, member=member, service=service)
+                                      .order_by('-id'))
+            if len(request_event_list) > 0:
+                access_request_events[service] = request_event_list
 
-        targeted_type = list(ConsoleEventType.objects.filter(target=target).exclude(codename=ACCESS_REQUEST_EVENT))
-        event_list = ConsoleEvent.objects.filter(event_type__in=targeted_type, member=member).order_by('-id')[:length]
+        event_list = ConsoleEvent.objects.exclude(event_type=type_access_request) \
+                         .filter(Q(member=member) | Q(group_id__in=member.group_fk_list) | Q(group_id__isnull=True, member__isnull=True),
+                                 service__in=member.get_services()).order_by('-id')[:length]
         context['access_request_events'] = access_request_events
         context['event_list'] = event_list
         context['is_console'] = True  # console.html extends profile.html, so this helps differentiates in templates
@@ -420,12 +427,17 @@ class Console(BaseView):
             else:
                 length = 30
             limit = start + length
-            targeted_type = list(ConsoleEventType.objects.exclude(codename=ACCESS_REQUEST_EVENT))
+            type_access_request = ConsoleEventType.objects.get(codename=ACCESS_REQUEST_EVENT)
             member = self.request.user
-            queryset = ConsoleEvent.objects.filter(
-                Q(member=member) | Q(group_id__in=member.group_fk_list) | Q(member__isnull=True),
-                event_type__in=targeted_type, service__in=member.get_services()).order_by('-id')[start:limit]
-            response = [event.to_dict() for event in queryset]
+            queryset = ConsoleEvent.objects.exclude(event_type=type_access_request)\
+                           .filter(Q(member=member) | Q(group_id__in=member.group_fk_list) | Q(group_id__isnull=True, member__isnull=True),
+                                   service__in=member.get_services()).order_by('-id')[start:limit]
+            response = []
+            for event in queryset:
+                try:
+                    response.append(event.to_dict())
+                except:
+                    pass
             return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
         else:
             return super(Console, self).render_to_response(context, **response_kwargs)
@@ -459,9 +471,12 @@ def list_projects(request, *args, **kwargs):
 
     projects = []
     for s in queryset.order_by('project_name')[:6]:
-        p = s.to_dict()
-        p['url'] = IKWEN_BASE_URL + reverse('ikwen:company_profile', args=(s.project_name_slug,))
-        projects.append(p)
+        try:
+            p = s.to_dict()
+            p['url'] = IKWEN_BASE_URL + reverse('ikwen:company_profile', args=(s.project_name_slug,))
+            projects.append(p)
+        except:
+            pass
 
     response = {'object_list': projects}
     callback = request.GET['callback']
@@ -471,17 +486,45 @@ def list_projects(request, *args, **kwargs):
 
 def load_event_content(request, *args, **kwargs):
     event_id = request.GET['event_id']
-    member_id = request.GET['member_id']
+    callback = request.GET['callback']
     try:
         event = ConsoleEvent.objects.using(UMBRELLA).get(pk=event_id)
-        if member_id != event.member_id:
-            return None
-        response = {'html': event.render()}
-        callback = request.GET['callback']
-        response = callback + '(' + json.dumps(response) + ')'
-        return HttpResponse(response, content_type='application/json')
+        response = {'html': event.render(request)}
     except ConsoleEvent.DoesNotExist:
-        return None
+        response = {'html': ''}
+    response = callback + '(' + json.dumps(response) + ')'
+    return HttpResponse(response, content_type='application/json')
+
+
+def render_service_deployed_event(event, request):
+    service = event.service
+    database = service.database
+    add_database_to_settings(database)
+    currency_symbol = service.config.currency_symbol
+    invoice = Invoice.objects.using(database).get(pk=event.object_id)
+    service_deployed = invoice.service
+    member = service_deployed.member
+    if request.user != member:
+        data = {'title': 'New service deployed',
+                'details': service_deployed.details,
+                'member': member,
+                'service_deployed': True}
+        template_name = 'billing/events/notice.html'
+    else:
+        template_name = 'core/events/service_deployed.html'
+        data = {'obj': invoice,
+                'project_name': service_deployed.project_name,
+                'service_url': service_deployed.url,
+                'due_date': invoice.due_date,
+                'show_pay_now': invoice.status != Invoice.PAID}
+    from ikwen.conf import settings as ikwen_settings
+    data.update({'currency_symbol': currency_symbol,
+                 'details_url': service.url + reverse('billing:invoice_detail', args=(invoice.id,)),
+                 'amount': invoice.amount,
+                 'MEMBER_AVATAR': ikwen_settings.MEMBER_AVATAR, 'IKWEN_MEDIA_URL': ikwen_settings.MEDIA_URL})
+    c = Context(data)
+    html_template = get_template(template_name)
+    return html_template.render(c)
 
 
 def get_location_by_ip(request, *args, **kwargs):

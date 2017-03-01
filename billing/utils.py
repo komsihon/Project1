@@ -9,7 +9,7 @@ from ikwen.partnership.models import PartnerProfile
 
 from ikwen.partnership.models import ApplicationRetailConfig
 
-from ikwen.core.utils import set_counters, increment_history_field
+from ikwen.core.utils import set_counters, increment_history_field, add_database_to_settings
 
 from ikwen.accesscontrol.backends import UMBRELLA
 
@@ -480,6 +480,7 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months):
                 retail_config = ApplicationRetailConfig.objects.get(partner=partner, app=app_umbrella)
                 ikwen_earnings = retail_config.ikwen_monthly_cost * total_months
         partner_earnings = invoice.amount - ikwen_earnings
+        add_database_to_settings(partner.database)
         partner_profile_original = PartnerProfile.objects.using(partner.database).get(service=partner)
 
         partner_profile_original.raise_balance(partner_earnings)
@@ -504,7 +505,7 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months):
         increment_history_field(partner, 'earnings_history', ikwen_earnings)
         increment_history_field(partner, 'invoice_count_history')
 
-        partner_app = partner.app  # This is going to be the ikwen partnership/retail app
+        partner_app = partner.app  # This is going to be the ikwen core/retail app
         set_counters(partner_app, 'turnover_history', 'invoice_earnings_history',
                      'earnings_history', 'invoice_count_history')
         increment_history_field(partner_app, 'turnover_history', invoice.amount)

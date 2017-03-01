@@ -146,6 +146,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
         """
         call_command('loaddata', 'billing_invoices.yaml')
         call_command('loaddata', 'partners.yaml')
+        call_command('loaddata', 'ikwen_members.yaml', database='test_kc_partner_jumbo')
         call_command('loaddata', 'setup_data.yaml', database='test_kc_partner_jumbo')
         call_command('loaddata', 'partners.yaml', database='test_kc_partner_jumbo')
         call_command('loaddata', 'partner_app_retail_config.yaml')
@@ -220,6 +221,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
         """
         call_command('loaddata', 'billing_invoices.yaml')
         call_command('loaddata', 'partners.yaml')
+        call_command('loaddata', 'ikwen_members.yaml', database='test_kc_partner_jumbo')
         call_command('loaddata', 'setup_data.yaml', database='test_kc_partner_jumbo')
         call_command('loaddata', 'partners.yaml', database='test_kc_partner_jumbo')
         call_command('loaddata', 'partner_app_retail_config.yaml')

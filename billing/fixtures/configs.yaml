@@ -8,7 +8,7 @@
   fields:
     app: 54eb6d04b37b9b531a003371
     name: cbp1
-    max_products: 100
+    max_objects: 100
     tx_share_fixed: 100
     tx_share_rate: 2
     setup_cost: 39000

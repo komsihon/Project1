@@ -17,6 +17,7 @@ def project_settings(request):
             console_uri = console_uri.replace(getattr(settings, 'WSGI_SCRIPT_ALIAS'), '')
     return {
         'settings': {
+            'DEBUG': getattr(settings, 'DEBUG', False),
             'IS_IKWEN': getattr(settings, 'IS_IKWEN', False),
             'IKWEN_SERVICE_ID': getattr(settings, 'IKWEN_SERVICE_ID'),
             'IKWEN_BASE_URL': IKWEN_BASE_URL,

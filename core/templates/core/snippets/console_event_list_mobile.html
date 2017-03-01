@@ -1,5 +1,5 @@
 {% load humanize %}
-<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 events-col1 events-col2">
     {% for event in event_list %}
         {% with service=event.service event_type=event.event_type %}
         <div id="{{ event.id }}" class="{{ service.project_name_slug }} card subtle-shade" data-base-url="{{ service.url }}">
@@ -11,9 +11,11 @@
                 <time>{{ event.created_on|naturaltime }}</time>
             </h3>
             <div class="{{ event_type.codename }}">
-                <div class="content row"{% if event_type.min_height %}
-                     style="min-height: {{ event_type.min_height }}px"{% endif %}>
-                    <div class="col-xs-12">...</div>
+                <div class="content row">
+                    <div class="loading"{% if event_type.min_height %}
+                     style="min-height: {{ event_type.min_height }}px; line-height: {{ event_type.min_height }}px"{% endif %}>
+                        <p class="dots">...</p>
+                    </div>
                 </div>
             </div>
         </div>

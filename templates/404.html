@@ -5,8 +5,7 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Error 500 - ikwen</title>
-        <link rel="stylesheet" href="{% static 'ikwen/css/bootstrap.min.css' %}" />
+		<title>Error 404 - Page not found - ikwen</title>
         <link rel='stylesheet' href="{% static 'ikwen/font-awesome/css/font-awesome.min.css' %}" />
         <link rel='stylesheet' href="{% static 'ikwen/css/flatly.bootstrap.min.css' %}" />
         <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}" />
@@ -20,17 +19,16 @@
     <body>
         <div id="content" class="container">
             <div style="margin-top: 10%; text-align: center">
-                {# TODO: Create a custom 500 icon #}
+                {# TODO: Create a custom 404 icon #}
                 <img src="{% static 'ikwen/img/page-error.png' %}" height="250"/>
                 <div style="padding-top: 30px; text-align: center">
-                    <h2>Error 500. Server issue. Please try again later</h2>
+                    <h2>Error 404. Sorry the requested URL was not found on this server.</h2>
                 </div>
             </div>
         </div>
         <footer style="color: #999; font-size: 12px; margin-top: 45px; text-align: center">
-            &copy; {{ year }} <a href="{{ settings.IKWEN_BASE_URL|append_auth_tokens:request }}" style="color: #666; text-decoration: none"><strong>ikwen</strong></a>.
+            &copy; {{ year }} <a href="{{ settings.IKWEN_BASE_URL }}" style="color: #666; text-decoration: none"><strong>ikwen</strong></a>.
             {% trans "All rights reserved." %}
         </footer>
-        <script src="{% static 'ikwen/js/bootstrap.min.js' %}"></script>
     </body>
 </html>

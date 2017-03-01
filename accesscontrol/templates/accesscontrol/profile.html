@@ -43,6 +43,8 @@
                 }
             }
         {% endif %}
+        #deploy {background: #7a1e31; border-color:  #7a1e31; color: #fff; font-weight: 700; letter-spacing: 2px}
+        #deploy:hover {background: #982035; border-color:  #982035}
     </style>
 {% endblock %}
 
@@ -147,15 +149,17 @@
                                     <span>{{ profile_phone }}</span>
                                 </li>
                             {% endif %}
-                            {% if is_company %}
+                            {% if is_company and not app %}
                                 <li>
                                     <label>{% trans "Website" %}</label>
-                                    <span>{{ page_service.url }} - <a
-                                            href="{{ page_service.url }}">{% trans "Visit" %}</a></span>
+                                    <span>
+                                        {{ page_service.url }} -
+                                        <a href="{{ page_service.url }}" target="_blank">{% trans "Visit" %}</a>
+                                    </span>
                                 </li>
                             {% endif %}
                         </ul>
-                        {% if is_company %}
+                        {% if is_company and not app %}
                             <div class="actions">
                                 {% if request.user.is_authenticated %}
                                     {% if not is_member %}
@@ -166,6 +170,10 @@
                                     <a class="btn btn-success btn-sm"
                                        href="{% url 'ikwen:request_access' %}?service_id={{ page_service.id }}">{% trans "Join" %}</a>
                                 {% endif %}
+                            </div>
+                        {% elif app.deployment_url_name %}
+                            <div class="actions">
+                                <a id="deploy" class="btn btn-sm" href="{% url app.deployment_url_name app.slug %}">{% trans "DEPLOY" %}</a>
                             </div>
                         {% endif %}
                     </section>

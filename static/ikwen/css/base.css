@@ -6,6 +6,7 @@
         Additional basic display rules for Ikwen apps
 */
 
+body {color: #545454}
 .working {cursor: wait}
 .success {background: #B6F1B6; border: 1px solid; color: #039B03}
 .failure {background: #FFB6C1; border: 1px solid; color:  #F00}
@@ -21,6 +22,7 @@
     margin-left: 6px; width: 30px}
 .icon:hover {border: 1px solid #ddd; border-radius: 3px}
 .stretched {height: 100%; width: 100%}
+.errorlist {color: #e74c3c}
 
 .spinner-container {-webkit-animation: rotate 2s linear infinite; animation: rotate 2s linear infinite; z-index: 2}
 .spinner-container .path {
@@ -238,7 +240,7 @@ footer a {color: #999}
 
 .payment-mean {display: block; height: 45px}
 .payment-mean span {float: left; padding: 12px 15px; width: 35%}
-.payment-mean img {float: left; height: 100%; width: 65%}
+.payment-mean .img {background: center; background-size: auto 100%; float: left; height: 100%; width: 65%}
 
 .show-results-filter {text-align: left; width: 120px}
 .results-filter {

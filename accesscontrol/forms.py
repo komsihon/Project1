@@ -4,6 +4,8 @@ from django.contrib.sites.models import get_current_site
 from django.core.mail import EmailMessage
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from ikwen.accesscontrol.backends import UMBRELLA
+
 from ikwen.core.utils import get_mail_content, get_service_instance
 
 from ikwen.accesscontrol.models import Member
@@ -90,5 +92,5 @@ class SetPasswordForm(forms.Form):
     def save(self, commit=True):
         self.user.set_password(self.cleaned_data['new_password1'])
         if commit:
-            self.user.save()
+            self.user.save(using=UMBRELLA)
         return self.user

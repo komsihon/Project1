@@ -12,13 +12,16 @@ from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext_lazy as _
 from django_mongodb_engine.contrib import MongoDBManager
 from djangotoolbox.fields import ListField
-from ikwen.conf.settings import WALLETS_DB_ALIAS
+from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 
 from ikwen.core.utils import add_database_to_settings, to_dict, get_service_instance, get_config_model
 
 
 WELCOME_ON_IKWEN_EVENT = 'WelcomeOnIkwen'
 CASH_OUT_REQUEST_EVENT = 'CashOutRequest'
+SERVICE_DEPLOYED = 'ServiceDeployed'
+
+RETAIL_APP_SLUG = 'ikwen-retail'
 
 
 class Model(models.Model):
@@ -76,20 +79,23 @@ class Application(AbstractWatchModel):
     description = models.TextField(blank=True)
     base_monthly_cost = models.PositiveIntegerField(default=0)
     operators_count = models.PositiveIntegerField(default=0, blank=True)
+    deployment_url_name = models.CharField(max_length=100, blank=True, null=True,
+                                      help_text=_("Django URL name: <strong>[<em>namespace</em>:]view_name</strong> "
+                                                  "of the view that handles deployment of this application."))
 
-    turnover_history = ListField()
-    earnings_history = ListField()
-    deployment_earnings_history = ListField()
-    transaction_earnings_history = ListField()
-    invoice_earnings_history = ListField()
-    custom_service_earnings_history = ListField()
-    cash_out_history = ListField()
+    turnover_history = ListField(editable=False)
+    earnings_history = ListField(editable=False)
+    deployment_earnings_history = ListField(editable=False)
+    transaction_earnings_history = ListField(editable=False)
+    invoice_earnings_history = ListField(editable=False)
+    custom_service_earnings_history = ListField(editable=False)
+    cash_out_history = ListField(editable=False)
 
-    deployment_count_history = ListField()
-    transaction_count_history = ListField()
-    invoice_count_history = ListField()
-    custom_service_count_history = ListField()
-    cash_out_count_history = ListField()
+    deployment_count_history = ListField(editable=False)
+    transaction_count_history = ListField(editable=False)
+    invoice_count_history = ListField(editable=False)
+    custom_service_count_history = ListField(editable=False)
+    cash_out_count_history = ListField(editable=False)
 
     total_turnover = models.IntegerField(default=0)
     total_earnings = models.IntegerField(default=0)
@@ -167,6 +173,10 @@ class Service(models.Model):
                            help_text="URL of the service. WRITE IT WITHOUT A TRAILING SLASH")
     admin_url = models.CharField(max_length=150, blank=True,
                                  help_text=_("URL of the service's admin panel. WRITE IT WITHOUT A TRAILING SLASH"))
+    api_signature = models.CharField(_("API Signature"), max_length=60, unique=True,
+                                     help_text="Use it in your http API calls. More on "
+                                               "<a href='http://support.ikwen.com/generic/APISignature'>"
+                                               "support.ikwen.com/generic/APISignature</a>")
     billing_plan = models.ForeignKey('billing.CloudBillingPlan', blank=True, null=True)
     billing_cycle = models.CharField(max_length=30, choices=BILLING_CYCLES_CHOICES, blank=True)
     monthly_cost = models.PositiveIntegerField()
@@ -177,38 +187,35 @@ class Service(models.Model):
     # IkwenInvoice in this case is the invoice addressed to client for this Service
     expiry = models.DateField(blank=True, null=True,
                               help_text=_("Date of expiry of the service."))
-    invoice_tolerance = models.IntegerField(default=1,
-                                            help_text=_("Number of overdue days allowed. "
-                                                        "After that, severe action must be undertaken."))
     since = models.DateTimeField(default=timezone.now)
     updated_on = models.DateTimeField(default=timezone.now, auto_now_add=True)
     retailer = models.ForeignKey('self', blank=True, null=True, related_name='+')
 
-    turnover_history = ListField()
-    earnings_history = ListField()
-    transaction_earnings_history = ListField()
-    invoice_earnings_history = ListField()
-    custom_service_earnings_history = ListField()
-    cash_out_history = ListField()
+    turnover_history = ListField(editable=False)
+    earnings_history = ListField(editable=False)
+    transaction_earnings_history = ListField(editable=False)
+    invoice_earnings_history = ListField(editable=False)
+    custom_service_earnings_history = ListField(editable=False)
+    cash_out_history = ListField(editable=False)
 
-    transaction_count_history = ListField()
-    invoice_count_history = ListField()
-    customer_service_count_history = ListField()
-    cash_out_count_history = ListField()
+    transaction_count_history = ListField(editable=False)
+    invoice_count_history = ListField(editable=False)
+    customer_service_count_history = ListField(editable=False)
+    cash_out_count_history = ListField(editable=False)
 
     total_turnover = models.IntegerField(default=0)
     total_earnings = models.IntegerField(default=0)
     total_transaction_earnings = models.IntegerField(default=0)
     total_invoice_earnings = models.IntegerField(default=0)
     total_custom_service_earnings = models.IntegerField(default=0)
+    total_cash_out = models.IntegerField(default=0)
 
     total_transaction_count = models.IntegerField(default=0)
     total_invoice_count = models.IntegerField(default=0)
     total_custom_service_count = models.IntegerField(default=0)
-    total_cash_out = models.IntegerField(default=0)
     total_cash_out_count = models.IntegerField(default=0)
 
-    counters_reset_on = models.DateTimeField(blank=True, null=True)
+    counters_reset_on = models.DateTimeField(blank=True, null=True, editable=False)
 
     objects = MongoDBManager()
 
@@ -259,8 +266,8 @@ class Service(models.Model):
     details = property(_get_details)
 
     def get_profile_url(self):
-        from ikwen.core.views import IKWEN_BASE_URL
-        return IKWEN_BASE_URL + reverse('ikwen:company_profile', args=(self.project_name_slug,))
+        url = reverse('ikwen:company_profile', args=(self.project_name_slug,))
+        return ikwenize(url)
 
     def save(self, *args, **kwargs):
         """
@@ -377,6 +384,15 @@ class AbstractConfig(Model):
                                                       "&sender_param=<strong>$label</strong>&recipient_param=<strong>$recipient</strong>&text_param=<strong>$text</strong></em>"))
     sms_api_username = models.CharField(max_length=100, blank=True)
     sms_api_password = models.CharField(max_length=100, blank=True)
+    is_pro_version = models.BooleanField(_("pro version"), default=False,
+        help_text=_("Standard version uses <strong>ikwen</strong> payment accounts (PayPal, MobileMoney, "
+                    "BankCard, etc.) and collects user's money upon purchases. He can later request a Cash-out and "
+                    "his money will be sent to him by any mean."
+                    "Pro version users can access more advanced configuration options like:"
+                    "<ul><li>Personal Payment accounts (Personal PayPal, Personal Mobile Money, etc.)</li>"
+                    "<li>Set the Checkout minimum without restriction</li>"
+                    "<li>Technical tools like configuring their own Google Analytics scripts, etc.</li></ul>"))
+    decimal_precision = models.IntegerField(default=2)
 
     class Meta:
         verbose_name_plural = _("Configurations of the platform")
@@ -441,16 +457,16 @@ class AbstractConfig(Model):
 
     def _get_wallet(self):
         try:
-            wallet = OperatorWallet.objects.using(WALLETS_DB_ALIAS).get(nonrel_id=self.service.id)
+            wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=self.service.id)
         except OperatorWallet.DoesNotExist:
-            wallet = OperatorWallet.objects.using(WALLETS_DB_ALIAS).create(nonrel_id=self.service.id)
+            wallet = OperatorWallet.objects.using('wallets').create(nonrel_id=self.service.id)
         return wallet
 
     def raise_balance(self, amount):
         wallet = self._get_wallet()
         with transaction.atomic():
             wallet.balance += amount
-            wallet.save(using=WALLETS_DB_ALIAS)
+            wallet.save(using='wallets')
         from ikwen.accesscontrol.backends import UMBRELLA
         # Copy the value to ikwen Nonrel DataStore
         self._meta.model.objects.using(UMBRELLA).filter(pk=self.id).update(balance=wallet.balance)
@@ -464,7 +480,7 @@ class AbstractConfig(Model):
             raise ValueError("Amount larger than current balance.")
         with transaction.atomic():
             wallet.balance -= amount
-            wallet.save(using=WALLETS_DB_ALIAS)
+            wallet.save(using='wallets')
         from ikwen.accesscontrol.backends import UMBRELLA
         # Copy the value to ikwen Nonrel DataStore
         self._meta.model.objects.using(UMBRELLA).filter(pk=self.id).update(balance=wallet.balance)
@@ -512,7 +528,6 @@ class ConsoleEventType(Model):
     :attr:`codename`
     :attr:`title`
     :attr:`title_mobile` Title to use on mobile devices.
-    :attr:`target` Whether to appear as BUSINESS or PERSONAL notice.
     :attr:`target_url_name` Name of the url to hit to view the list of objects that triggered
                             this event. It is typically used to create the *View all* link
     :attr:`renderer` dotted name of the function to call to render an event of this type the :attr:`member` Console.
@@ -531,7 +546,6 @@ class ConsoleEventType(Model):
     codename = models.CharField(max_length=150)
     title = models.CharField(max_length=150, blank=True)
     title_mobile = models.CharField(max_length=100, blank=True)
-    target = models.CharField(max_length=15, choices=TARGET_CHOICES)  # BUSINESS or PERSONAL
     target_url_name = models.CharField(max_length=100, blank=True)
     renderer = models.CharField(max_length=255)
     min_height = models.IntegerField(max_length=255, blank=True, null=True)
@@ -542,7 +556,6 @@ class ConsoleEventType(Model):
         db_table = 'ikwen_console_event_type'
         unique_together = (
             ('app', 'codename'),
-            ('app', 'title'),
         )
 
     def __unicode__(self):
@@ -580,14 +593,16 @@ class ConsoleEvent(Model):
     class Meta:
         db_table = 'ikwen_console_event'
 
-    def render(self):
+    def render(self, request=None):
         renderer = import_by_path(self.event_type.renderer)
-        return renderer(self)
+        return renderer(self, request)
 
     def to_dict(self):
         var = to_dict(self)
-        var['project_url'] = self.service.url
-        var['project_name'] = self.service.project_name
+        service = self.service
+        var['project_url'] = service.url
+        var['project_name'] = service.project_name
+        var['project_logo_url'] = service.config.logo.url
         var['created_on'] = naturaltime(self.created_on)
         var['min_height'] = self.event_type.min_height
         del(var['model'])
