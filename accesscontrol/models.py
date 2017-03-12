@@ -24,6 +24,8 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         member.full_name = u'%s %s' % (member.first_name.split(' ')[0], member.last_name.split(' ')[0])
         service_id = getattr(settings, 'IKWEN_SERVICE_ID')
         group = Group.objects.get(name=COMMUNITY)
+        from ikwen.conf.settings import IKWEN_SERVICE_ID
+        member.customer_on_fk_list.append(IKWEN_SERVICE_ID)
         if service_id:
             service = get_service_instance()
             member.entry_service = service

@@ -22,7 +22,7 @@ SECRET_KEY = 'zedpmxz&d(5swy9@8b2cb-k2wa(xg!%ow&2s5j_&_^wa*t5lgh'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 TESTING = False
-# LOCAL_DEV = True
+LOCAL_DEV = True
 
 TEMPLATE_DEBUG = True
 
@@ -198,6 +198,7 @@ BILLING_SUBSCRIPTION_MODEL_ADMIN = 'ikwen.core.admin.ServiceAdmin'
 BILLING_INVOICE_ITEM_MODEL = 'billing.IkwenInvoiceItem'
 SERVICE_SUSPENSION_ACTION = 'ikwen.billing.utils.suspend_subscription'
 
+MOMO_SLUG = 'jumbopay-momo'
 JUMBOPAY_API_URL = 'https://154.70.100.194/api/sandbox/v2/' if DEBUG else 'https://154.70.100.194/api/live/v2/'
 MOMO_BEFORE_CASH_OUT = 'ikwen.billing.views.set_invoice_checkout'
 MOMO_AFTER_CASH_OUT = 'ikwen.billing.views.confirm_invoice_payment'

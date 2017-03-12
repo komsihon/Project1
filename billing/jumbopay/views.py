@@ -140,7 +140,12 @@ def check_momo_transaction_status(request, *args, **kwargs):
                     return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
                 except:
                     return HttpResponse(json.dumps({'error': 'Unknown server error in AFTER_CASH_OUT'}))
-        return HttpResponse(json.dumps({'error': tx.status}), 'content-type: text/json')
+        resp_dict = {'error': tx.status, 'message': ''}
+        if getattr(settings, 'DEBUG', False):
+            resp_dict['message'] = tx.message
+        elif tx.status == MoMoTransaction.API_ERROR:
+            resp_dict['message'] = tx.message  # Show only API Errors in production
+        return HttpResponse(resp_dict, 'content-type: text/json')
     return HttpResponse(json.dumps({'running': True}), 'content-type: text/json')
 
 

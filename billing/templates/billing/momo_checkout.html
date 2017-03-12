@@ -106,8 +106,9 @@
                             localStorage.removeItem('txId');
                             clearInterval(checkerId);
                             if (data.error) {
-                                $('#transaction-result').removeClass('text-info').addClass('text-danger')
-                                        .text("{% trans "Transaction failed. Message: " %}" + data.error);
+                                var notice = data.error;
+                                if (data.message) notice += ': ' + data.message;
+                                $('#transaction-result').removeClass('text-info').addClass('text-danger').text(notice);
                                 $(this).removeClass('btn-primary').addClass('btn-default');
                                 return;
                             }

@@ -191,9 +191,14 @@
                 $(this).parents('.edit').prev().toggleClass('hidden')
             });
             $('.identity .edit button.btn-primary').click(function() {
-                var _$button = $(this);
-                var field = $(this).data('field');
-                var value = $('.identity input.' + field).val();
+                var _$button = $(this),
+                    field = $(this).data('field'),
+                    inputType = $(this).data('input-type'),
+                    value;
+                if (inputType == 'select')
+                    value = $('.identity select.' + field).val();
+                else
+                    value = $('.identity input.' + field).val();
                 $('body, button, .button').css('cursor', 'wait');
                 $.getJSON('{% url 'ikwen:update_info' %}?' + field + '=' + value, null, function(response) {
                     $('body, button, .button').css('cursor', 'default');
