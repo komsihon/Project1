@@ -237,9 +237,12 @@
             });
             function testEmail() {
                 var $email = $('#rg-email');
-                if ($email.val().isValidEmail()) return true;
+                if ($email.val().isValidEmail()) {
+                    $('.errorlist.email').remove();
+                    return true;
+                }
                 $('.form-group.email .errorlist').remove();
-                $('<ul class="errorlist"><li>' + "{% trans "Please, enter valid email" %}" + '</li><ul>')
+                $('<ul class="errorlist email"><li>' + "{% trans "Please, enter valid email" %}" + '</li><ul>')
                         .insertAfter('#rg-email');
                 $email.focus();
                 return false;
