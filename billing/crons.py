@@ -3,13 +3,15 @@
 
 import os
 
-from datetime import datetime, timedelta, date
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
+
+from datetime import datetime, timedelta
 from django.conf import settings
+from django.db.models import Q
 from django.contrib.auth.models import Group
 from django.core import mail
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
-from django.db.models import get_model
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
 from ikwen.accesscontrol.models import SUDO
@@ -33,8 +35,6 @@ f = logging.Formatter('%(levelname)-10s %(asctime)-27s %(message)s')
 error_file_handler.setFormatter(f)
 error_log.addHandler(error_file_handler)
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
-
 Subscription = get_subscription_model()
 
 
@@ -53,8 +53,8 @@ def send_invoices():
         error_log.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
     reminder_date_time = now + timedelta(days=invoicing_config.gap)
-    for subscription in Subscription.objects.filter(status=Subscription.ACTIVE, monthly_cost__gt=0,
-                                                    expiry=reminder_date_time.date()):
+    for subscription in Subscription.objects.filter(Q(status=Subscription.ACTIVE) | Q(status=Subscription.PENDING),
+                                                    monthly_cost__gt=0, expiry=reminder_date_time.date()):
         member = subscription.member
         number = get_next_invoice_number()
         months_count = None
@@ -111,9 +111,10 @@ def send_invoices():
     try:
         connection.close()
     finally:
-        report = SendingReport.objects.create(count=count, total_amount=total_amount)
-        sudo_group = Group.objects.get(name=SUDO)
-        add_event(service, INVOICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
+        if count > 0:
+            report = SendingReport.objects.create(count=count, total_amount=total_amount)
+            sudo_group = Group.objects.get(name=SUDO)
+            add_event(service, INVOICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
 
 
 def send_invoice_reminders():
@@ -166,9 +167,10 @@ def send_invoice_reminders():
     try:
         connection.close()
     finally:
-        report = SendingReport.objects.create(count=count, total_amount=total_amount)
-        sudo_group = Group.objects.get(name=SUDO)
-        add_event(service, REMINDERS_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
+        if count > 0:
+            report = SendingReport.objects.create(count=count, total_amount=total_amount)
+            sudo_group = Group.objects.get(name=SUDO)
+            add_event(service, REMINDERS_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
 
 
 def send_invoice_overdue_notices():
@@ -224,9 +226,10 @@ def send_invoice_overdue_notices():
     try:
         connection.close()
     finally:
-        report = SendingReport.objects.create(count=count, total_amount=total_amount)
-        sudo_group = Group.objects.get(name=SUDO)
-        add_event(service, OVERDUE_NOTICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
+        if count > 0:
+            report = SendingReport.objects.create(count=count, total_amount=total_amount)
+            sudo_group = Group.objects.get(name=SUDO)
+            add_event(service, OVERDUE_NOTICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
 
 
 def suspend_customers_services():
@@ -280,9 +283,10 @@ def suspend_customers_services():
     try:
         connection.close()
     finally:
-        report = SendingReport.objects.create(count=count, total_amount=total_amount)
-        sudo_group = Group.objects.get(name=SUDO)
-        add_event(service, SUSPENSION_NOTICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
+        if count > 0:
+            report = SendingReport.objects.create(count=count, total_amount=total_amount)
+            sudo_group = Group.objects.get(name=SUDO)
+            add_event(service, SUSPENSION_NOTICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
 
 
 if __name__ == "__main__":
