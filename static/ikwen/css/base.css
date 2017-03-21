@@ -66,7 +66,7 @@ body {color: #545454}
 .member .photo, .ik-li .image {background: no-repeat center;background-size: 100% auto;float: left;height: 60px;width: 60px;}
 .member .photo {border-radius: 30px}
 .member .info, .ik-li .info {float: left; margin-left: 30px}
-.member .full_name, .ik-li .name, .ik-li .title {cursor: pointer; color: #333; font-size: 18px; margin: 10px 0 0}
+.member .full_name, .ik-li .name, .ik-li .title {cursor: pointer;color: #333;font-size: 18px;margin: 5px 0 0;}
 .member .about, .ik-li .about {color: #888; font-size: 14px}
 .ik-li .select {background: #fff url('../img/tick-15.png') no-repeat center;border-radius: 10px;display: none; height: 20px;position: absolute;width: 20px;margin: -25px}
 
@@ -201,6 +201,9 @@ div#container.admin {padding-top: 92px;}
 #filter-nav {padding: 0 10px;}
 #filter-nav span {cursor: pointer; float: left;width: 50%;padding-bottom: 6px;}
 #admin-nav .filter, #admin-nav .menu {float: left;width: 50%;padding: 0 10px;}
+.go-to-website, .go-to-website:hover, .go-to-website:active {color: #fff; font-weight: 400}
+.go-to-website .glyphicon {float: left; font-size: 24px}
+.go-to-website span {float: left; margin-left: 5px}
 
 #admin-content {margin-left: 270px;padding-top: 16px;min-height: 450px;}
 #context-search {float: left}

@@ -110,7 +110,7 @@
                 <form action="{% url 'ikwen:register' %}?{{ request.META.QUERY_STRING }}" method="post"
                       class="form-horizontal">
                     {% csrf_token %}
-                    <div class="form-group row">
+                    <div class="form-group row username">
                         <label for="rg-username" class="col-sm-5 col-md-4">{% trans "Username or email" %}</label>
                         <div class="col-sm-6 col-md-6">
                             <input id="rg-username" class="form-control input-sm username" type="text" name="username"/>
@@ -212,22 +212,23 @@
                 $('#top-notice-ctnr').fadeIn().delay(10000).fadeOut();
             {% endif %}
             $('#rg-username').blur(function () {
-                var username = $(this).val(),
-                        $formGroup = $('.form-group.email'),
-                        $email = $('#rg-email');
+                var username = $(this).val().trim(),
+                    $formGroup = $('.form-group.email'),
+                    $email = $('#rg-email');
                 if (username.isValidEmail()) {
                     $email.removeClass('required').val(username);
                     $formGroup.css('overflow', 'hidden').animate({height: 0, marginBottom: 0});
                     return;
                 }
                 $email.addClass('required').val('');
-                $formGroup.animate({height: '35px', marginBottom: '15px'}, 'normal', 'linear', function () {
+                var h = $('.form-group.username').height() + 5;
+                $formGroup.animate({height: h + 'px', marginBottom: '15px'}, 'normal', 'linear', function () {
                     $formGroup.css('overflow', 'unset')
                 })
             }).focus();
             $('#rg-email').blur(testEmail);
             $('#rg-phone').blur(function () {
-                var phone = $(this).val();
+                var phone = $(this).val().trim();
                 if (phone && !/\d+/.test(phone)) {
                     $('<ul class="errorlist"><li>' + "{% trans "Please use digits only and prepend country code." %}" + '</li><ul>')
                             .insertAfter('#rg-phone');
@@ -237,7 +238,7 @@
             });
             function testEmail() {
                 var $email = $('#rg-email');
-                if ($email.val().isValidEmail()) {
+                if ($email.val().trim().isValidEmail()) {
                     $('.errorlist.email').remove();
                     return true;
                 }

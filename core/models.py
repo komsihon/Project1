@@ -223,6 +223,14 @@ class Service(models.Model):
         db_table = 'ikwen_service'
         unique_together = ('app', 'project_name', )
 
+    def _get_ikwen_name(self):
+        return self.project_name_slug
+
+    def _set_ikwen_name(self, value):
+        self.__dict__['project_name_slug'] = value
+
+    ikwen_name = property(_get_ikwen_name, _set_ikwen_name)
+
     def __unicode__(self):
         return u'%s: %s' % (self.project_name, self.url)
 
@@ -348,7 +356,7 @@ class AbstractConfig(Model):
                                        help_text="Model of message to send to user upon registration.")
     contact_email = models.EmailField(verbose_name=_("Contact email"),
                                       help_text="Contact email of the company for customers to send inquiries.")
-    contact_phone = models.CharField(max_length=30, blank=True,
+    contact_phone = models.CharField(max_length=30, blank=True, null=True,
                                      help_text=_("Main phone number for your customers to contact you."))
     facebook_link = models.URLField(blank=True,
                                     help_text=_("Facebook link. Eg: https://www.facebook.com/mywebsite"))

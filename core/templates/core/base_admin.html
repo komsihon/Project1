@@ -35,6 +35,10 @@
             <li><a href="{{ admin_home_url|append_auth_tokens:request }}">{{ service.project_name }}</a></li>
             {% block breadcrumb_location %}{% endblock %}
         </ol>
+        <a href="{% url 'home' %}" class="go-to-website pull-right" title="{% trans "Go to public website" %}">
+            <i class="glyphicon glyphicon-globe"></i>
+            <span class="hidden-xs">{% trans "Go to website" %}</span>
+        </a>
     </div>
 {% endblock %}
 

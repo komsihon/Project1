@@ -24,8 +24,11 @@
             list-style-type: none
         }
 
-        .theme {transition: box-shadow .3s}
-        .theme:hover, .theme.active {box-shadow: 1px 1px 9px 4px rgba(255, 87, 0, 0.42); transition: box-shadow .3s}
+        .theme img {transition: box-shadow .3s}
+        .theme:hover img, .theme.active img {box-shadow: 1px 1px 9px 4px rgba(255, 87, 0, 0.42); transition: box-shadow .3s}
+        @media (max-width: 767px) {
+            .theme {margin-top: 1.5em}
+        }
     </style>
 {% endblock %}
 

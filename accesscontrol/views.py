@@ -64,11 +64,11 @@ class Register(BaseView):
     def post(self, request, *args, **kwargs):
         form = MemberForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
+            username = form.cleaned_data['username'].strip().lower()
             phone = form.cleaned_data.get('phone', '')
-            email = form.cleaned_data.get('email', '')
-            first_name = form.cleaned_data.get('first_name')
-            last_name = form.cleaned_data.get('last_name')
+            email = form.cleaned_data.get('email', '').strip().lower()
+            first_name = form.cleaned_data.get('first_name', '').strip()
+            last_name = form.cleaned_data.get('last_name', '').strip()
             query_string = request.META.get('QUERY_STRING')
             try:
                 validate_email(username)
@@ -84,7 +84,7 @@ class Register(BaseView):
                     except Member.DoesNotExist:
                         pass
                     else:
-                        msg = _("You already created an Ikwen account with this phone on %s. "
+                        msg = _("You already have an account on ikwen with this phone. It was created on %s. "
                                 "Use it to login." % member.entry_service.project_name)
                         existing_account_url = reverse('ikwen:sign_in') + "?existingPhone=yes&msg=%s&%s" % (
                         msg, query_string)
@@ -129,7 +129,7 @@ class Register(BaseView):
                     query_string = 'successfulRegistration=yes'
                 return HttpResponseRedirect(next_url + "?" + query_string)
             else:
-                msg = _("You already created an ikwen account with this username on %s. "
+                msg = _("You already have an account on ikwen with this username. It was created on %s. "
                         "Use it to login." % member.entry_service.project_name)
                 existing_account_url = reverse('ikwen:sign_in') + "?existingUsername=yes&msg=%s&%s" % (
                 msg, query_string)
@@ -328,7 +328,7 @@ def update_password(request, *args, **kwargs):
     View that changes the password of the user when he intentionally
     decides to do so from his account management panel.
     """
-    member = request.user
+    member = Member.objects.using(UMBRELLA).get(pk=request.user.id)
     password = request.GET.get('password')
     if check_password(password, member.password):
         password1 = request.GET.get('password1')
@@ -338,9 +338,7 @@ def update_password(request, *args, **kwargs):
             if password1 != password2:
                 response = {'error': _("Passwords don't match.")}
             else:
-                member.set_password(password1)
-                member.save()
-                member.propagate_changes()
+                member.propagate_password_change(password1)
                 response = {'message': _('Your password was successfully updated.')}
     else:
         response = {'error': _("The current password is incorrect!")}
@@ -633,8 +631,10 @@ def move_member_to_group(request, *args, **kwargs):
     if member.is_bao:
         return HttpResponse(json.dumps({'error': "BAO can only be transferred."}), content_type='application/json')
     if group.name == SUDO:
+        member.is_staff = True
         member.is_superuser = True
     else:
+        member.is_staff = False
         member.is_superuser = False
     member.save()
     obj = UserPermissionList.objects.get(user=member)

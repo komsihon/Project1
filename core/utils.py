@@ -433,7 +433,11 @@ def add_event(service, codename, member=None, group_id=None, object_id=None, mod
     try:
         event_type = ConsoleEventType.objects.using(UMBRELLA).get(app=service.app, codename=codename)
     except ConsoleEventType.DoesNotExist:
-        event_type = ConsoleEventType.objects.using(UMBRELLA).get(codename=codename)
+        try:
+            event_type = ConsoleEventType.objects.using(UMBRELLA).get(codename=codename)
+        except ConsoleEventType.DoesNotExist:
+            event_type = ConsoleEventType.objects.using(UMBRELLA).create(app=service.app, codename=codename,
+                                                                         renderer='ikwen.core.views.default_renderer')
     event = ConsoleEvent.objects.using(UMBRELLA).create(service=service, member=member, group_id=group_id,
                                                         event_type=event_type, model=model, object_id=object_id)
     return event

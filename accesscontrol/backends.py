@@ -29,6 +29,8 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                     return None
         else:
             try:
+                if username:
+                    username = username.strip().lower()
                 user = Member.objects.using(UMBRELLA).get(username=username)
                 if not user.check_password(password):
                     return None

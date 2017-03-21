@@ -45,6 +45,6 @@ class ApplicationRetailConfig(Model):
                                                        "with this application. Extra goes to the retailer. If this "
                                                        "application has <em>CloudBillingPlan</em>s, they will override "
                                                        "this value with the one defined in their monthly_cost field.")
-    ikwen_tx_share_rate = models.FloatField(default=50,
+    ikwen_tx_share_rate = models.FloatField(default=75,
                                             help_text="Share rate ikwen collects on transactions on "
                                                       "websites deployed by this partner with this application.")

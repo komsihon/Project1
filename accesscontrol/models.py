@@ -23,20 +23,23 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         member = self.model(username=username, **extra_fields)
         member.full_name = u'%s %s' % (member.first_name.split(' ')[0], member.last_name.split(' ')[0])
         service_id = getattr(settings, 'IKWEN_SERVICE_ID')
-        group = Group.objects.get(name=COMMUNITY)
-        from ikwen.conf.settings import IKWEN_SERVICE_ID
-        member.customer_on_fk_list.append(IKWEN_SERVICE_ID)
-        if service_id:
-            service = get_service_instance()
-            member.entry_service = service
-            member.customer_on_fk_list.append(service.id)
-            member.group_fk_list.append(group.id)
-        member.set_password(password)
         from ikwen.accesscontrol.backends import UMBRELLA
+        from ikwen.conf.settings import IKWEN_SERVICE_ID
+        ikwen_community = Group.objects.using(UMBRELLA).get(name=COMMUNITY)
+        member.customer_on_fk_list.append(IKWEN_SERVICE_ID)
+        member.group_fk_list.append(ikwen_community.id)
+        service = get_service_instance()
+        member.entry_service = service
+        if service_id != IKWEN_SERVICE_ID:
+            service_community = Group.objects.get(name=COMMUNITY)
+            member.customer_on_fk_list.append(service_id)
+            member.group_fk_list.append(service_community.id)
+
+        member.set_password(password)
         member.save(using=UMBRELLA)
         member.save(using='default')
         perm_list, created = UserPermissionList.objects.get_or_create(user=member)
-        perm_list.group_fk_list.append(group.id)
+        perm_list.group_fk_list.append(ikwen_community.id)
         perm_list.save()
         return member
 
@@ -159,6 +162,14 @@ class Member(AbstractUser):
             Member.objects.using(db).filter(pk=self.id)\
                 .update(email=self.email, phone=self.phone,
                         first_name=self.first_name, last_name=self.last_name, gender=self.gender)
+
+    def propagate_password_change(self, new_password):
+        for s in self.get_services():
+            db = s.database
+            add_database_to_settings(db)
+            m = Member.objects.using(db).get(pk=self.id)
+            m.set_password(new_password)
+            m.save(using=db)
 
     def to_dict(self):
         self.collaborate_on_fk_list = []  # Empty this as it is useless and may cause error

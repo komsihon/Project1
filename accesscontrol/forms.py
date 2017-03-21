@@ -90,7 +90,6 @@ class SetPasswordForm(forms.Form):
         return password2
 
     def save(self, commit=True):
-        self.user.set_password(self.cleaned_data['new_password1'])
         if commit:
-            self.user.save(using=UMBRELLA)
+            self.user.propagate_password_change(self.cleaned_data['new_password1'])
         return self.user
