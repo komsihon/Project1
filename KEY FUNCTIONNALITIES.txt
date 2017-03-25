@@ -46,3 +46,14 @@ Collaborators.
 
 DJANGO HACKS
     add **kwargs in django.views.generic.list.BaseListView get_context_data()
+
+DJANGO_TRACKING HACKS
+    1 - GEO_IP stuffs must be imported this way:
+
+        from django.contrib.gis.geoip import HAS_GEOIP
+        if HAS_GEOIP:
+            from django.contrib.gis.geoip import GeoIP, GeoIPException
+
+    2 - Replace django User import by this:
+
+        from ikwen.accesscontrol.models import Member as User

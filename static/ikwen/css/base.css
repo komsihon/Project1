@@ -18,9 +18,15 @@ body {color: #545454}
 .arrow.up div:first-child {border-right: 1px solid; transform: skewX(-30deg); transform-origin: 10px 0 0}
 .arrow.up div:last-child {border-left: 1px solid; margin-left: -1px; transform: skewX(30deg); transform-origin: 10px 0 0}
 .tpl, .hide {display: none}
-.icon {background: no-repeat center; border: 1px solid transparent; cursor: pointer; display: block; float: left;height: 30px;
-    margin-left: 6px; width: 30px}
-.icon:hover {border: 1px solid #ddd; border-radius: 3px}
+.actions .glyphicon, .glyphicon.action {
+    border: 1px solid transparent;
+    color: #888;
+    cursor: pointer;
+    margin-left: 6px;
+    text-decoration: none;
+    }
+.actions .glyphicon, .glyphicon.action {border: 1px solid #ddd; border-radius: 3px}
+.cta {font-weight: 700; letter-spacing: 1px; text-transform: uppercase}
 .stretched {height: 100%; width: 100%}
 .errorlist {color: #e74c3c}
 
@@ -72,9 +78,8 @@ body {color: #545454}
 
 .ik-li .glyphicon, #selection-control .glyphicon {
     box-sizing: content-box;
-    cursor: default;
     padding: 5px;
-    border: 1px solid transparent
+    border: 1px solid transparent;
 }
 .ik-li .glyphicon:hover, #selection-control .glyphicon:hover {border: 1px solid #ddd; border-radius: 3px}
 .ik-li.selected {border: 3px solid #9433ff; transition: border .1s}
@@ -241,7 +246,7 @@ footer a {color: #999}
 #object-detail form {margin: 25px 0}
 #object-detail form button {margin-top: 25px}
 
-.payment-mean {display: block; height: 45px}
+.payment-mean {display: block;height: 45px;background: #fff;}
 .payment-mean span {float: left; padding: 12px 15px; width: 35%}
 .payment-mean .img {background: center; background-size: auto 100%; float: left; height: 100%; width: 65%}
 

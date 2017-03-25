@@ -10,19 +10,18 @@ from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
-from ikwen.partnership.models import ApplicationRetailConfig
-
-from ikwen.core.admin import CustomBaseAdmin
-from ikwen.core.models import QueuedSMS, Config, Application, Service
-from ikwen.accesscontrol.models import Member
-from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, add_event, add_database_to_settings
-from import_export.admin import ImportExportMixin, ExportMixin
 from django.utils.translation import gettext_lazy as _
+from import_export.admin import ImportExportMixin, ExportMixin
 
+from ikwen.accesscontrol.models import Member
 from ikwen.billing.models import Payment, AbstractInvoice, InvoicingConfig, Invoice, NEW_INVOICE_EVENT, \
     SUBSCRIPTION_EVENT, PaymentMean, MoMoTransaction, CloudBillingPlan
 from ikwen.billing.utils import get_payment_confirmation_message, get_invoice_generated_message, \
     get_next_invoice_number, get_subscription_registered_message, get_subscription_model, get_product_model
+from ikwen.core.admin import CustomBaseAdmin
+from ikwen.core.models import QueuedSMS, Config, Application, Service, RETAIL_APP_SLUG
+from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, add_event
+from ikwen.partnership.models import ApplicationRetailConfig
 
 Product = get_product_model()
 subscription_model_name = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
@@ -328,15 +327,39 @@ class MoMoTransactionAdmin(admin.ModelAdmin):
     list_filter = ('service',)
 
 
+class PartnerListFilter(admin.SimpleListFilter):
+    title = _('partner')
+    parameter_name = 'partner_id'
+
+    def lookups(self, request, model_admin):
+        choices = []
+        retail_app = Application.objects.get(slug=RETAIL_APP_SLUG)
+        for partner in Service.objects.filter(app=retail_app):
+            choice = (partner.id, partner.project_name)
+            choices.append(choice)
+        return choices
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        if self.value():
+            partner = Service.objects.get(pk=self.value())
+            return queryset.filter(partner=partner)
+        return queryset
+
+
 class CloudBillingPlanAdmin(admin.ModelAdmin):
     list_display = ('app', 'partner', 'name', 'setup_cost', 'setup_months_count', 'monthly_cost',
                     'tx_share_fixed', 'tx_share_rate', 'is_pro_version')
     search_fields = ('app', 'name', )
-    list_filter = ('app',)
+    list_filter = ('app', PartnerListFilter, )
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "partner":
-            app = Application.objects.get(slug='ikwen-retail')
+            app = Application.objects.get(slug=RETAIL_APP_SLUG)
             kwargs["queryset"] = Service.objects.filter(app=app)
         return super(CloudBillingPlanAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 

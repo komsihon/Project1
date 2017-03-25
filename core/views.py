@@ -388,6 +388,7 @@ class Console(BaseView):
 
     def get_context_data(self, **kwargs):
         context = super(Console, self).get_context_data(**kwargs)
+        reset_notices_counter(self.request)
         member = self.request.user
         if self.request.user_agent.is_mobile:
             length = 10

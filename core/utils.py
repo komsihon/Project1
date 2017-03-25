@@ -113,6 +113,13 @@ def add_database_to_settings(alias, engine='django_mongodb_engine', name=None, u
     setattr(settings, 'DATABASES', DATABASES)
 
 
+def add_database(alias, engine='django_mongodb_engine', name=None, username=None, password=None):
+    """
+    Alias for add_database_to_settings()
+    """
+    add_database_to_settings(alias, engine=engine, name=name, username=username, password=password)
+
+
 def add_dumb_column(database, table, column):
     """
     Add a VARCHAR DEFAULT NULL column to a relational database. The purpose of this function is to

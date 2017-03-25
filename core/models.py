@@ -21,7 +21,7 @@ WELCOME_ON_IKWEN_EVENT = 'WelcomeOnIkwen'
 CASH_OUT_REQUEST_EVENT = 'CashOutRequest'
 SERVICE_DEPLOYED = 'ServiceDeployed'
 
-RETAIL_APP_SLUG = 'ikwen-retail'
+RETAIL_APP_SLUG = 'ikwen-retail'  # Slug of the 'ikwen App retail' Application
 
 
 class Model(models.Model):
@@ -356,7 +356,7 @@ class AbstractConfig(Model):
                                        help_text="Model of message to send to user upon registration.")
     contact_email = models.EmailField(verbose_name=_("Contact email"),
                                       help_text="Contact email of the company for customers to send inquiries.")
-    contact_phone = models.CharField(max_length=30, blank=True, null=True,
+    contact_phone = models.CharField(max_length=60, blank=True, null=True,
                                      help_text=_("Main phone number for your customers to contact you."))
     facebook_link = models.URLField(blank=True,
                                     help_text=_("Facebook link. Eg: https://www.facebook.com/mywebsite"))

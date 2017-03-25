@@ -27,7 +27,7 @@
     project_name_slug: ikwen-service
     url: http://ikwen-service.com
     domain: ikwen-service.com
-    database: test_ikwen_service
+    database: test_ikwen_umbrella
     api_signature: api-signature-1
     monthly_cost: 6000
     version: Full

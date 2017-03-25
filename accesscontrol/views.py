@@ -724,7 +724,21 @@ def render_access_granted_event(event, request):
     add_database_to_settings(database)
     member = Member.objects.using(database).get(pk=event.member.id)
     from ikwen.conf.settings import MEDIA_URL
-    c = Context({'rq': access_request, 'is_iao': member.is_iao, 'IKWEN_MEDIA_URL': MEDIA_URL})
+    c = Context({'service': access_request.service, 'member': access_request.member,
+                 'group_name': access_request.group_name, 'is_iao': member.is_iao, 'IKWEN_MEDIA_URL': MEDIA_URL})
+    return html_template.render(c)
+
+
+def render_member_joined_event(event, request):
+    request_user = Member.objects.get(pk=request.GET['member_id'])
+    try:
+        member = Member.objects.get(pk=event.object_id)
+    except AccessRequest.DoesNotExist:
+        return None
+    html_template = get_template('accesscontrol/events/access_granted.html')
+    from ikwen.conf.settings import MEDIA_URL
+    c = Context({'service': get_service_instance(), 'member': member,
+                 'group_name': COMMUNITY, 'IKWEN_MEDIA_URL': MEDIA_URL, 'is_iao': member != request_user})
     return html_template.render(c)
 
 

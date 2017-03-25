@@ -5,6 +5,7 @@
     <mapping directory="$PROJECT_DIR$/../FKCouture" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Kakocase" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Kakocase" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Laakam" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../MyJumboPay" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Shavida" vcs="Git" />
   </component>

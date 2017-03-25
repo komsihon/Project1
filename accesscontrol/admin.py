@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from django import forms
 from django.conf import settings
+from django.contrib.admin.sites import NotRegistered
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.contrib.auth.models import Permission, Group
 from djangotoolbox.admin import admin
 from permission_backend_nonrel.admin import NonrelPermissionCustomUserAdmin
 
@@ -94,3 +96,12 @@ class MemberAdmin(NonrelPermissionCustomUserAdmin):
 
 if getattr(settings, 'IS_UMBRELLA', False):
     admin.site.register(Member, MemberAdmin)
+elif not getattr(settings, 'IS_IKWEN', False):
+    try:
+        admin.site.unregister(Group)
+    except NotRegistered:
+        pass
+    try:
+        admin.site.unregister(Permission)
+    except NotRegistered:
+        pass

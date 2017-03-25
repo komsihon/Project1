@@ -57,6 +57,9 @@ INSTALLED_APPS = (
 
     'ikwen_kakocase.kakocase',
     'ikwen_kakocase.kako',
+
+    'ikwen_shavida.shavida',
+    'ikwen_shavida.movies',
 )
 
 MIDDLEWARE_CLASSES = (

@@ -7,12 +7,24 @@ from django.utils.datetime_safe import strftime
 from django.utils.translation import gettext as _
 from django_mongodb_engine.contrib import RawQueryMixin
 from djangotoolbox.fields import ListField
+from ikwen.core.utils import add_event
 from permission_backend_nonrel.models import UserPermissionList
 
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.fields import MultiImageField
 from ikwen.core.models import Service, Model
 from ikwen.core.utils import to_dict, get_service_instance, add_database_to_settings
+
+
+SUDO = 'Sudo'
+COMMUNITY = 'Community'
+# Business events
+ACCESS_REQUEST_EVENT = 'AccessRequestEvent'
+ACCESS_GRANTED_EVENT = 'AccessGrantedEvent'
+MEMBER_JOINED_IN = 'MemberJoinedIn'
+
+# Personal events
+WELCOME_EVENT = 'WelcomeEvent'
 
 
 class MemberManager(BaseUserManager, RawQueryMixin):
@@ -38,9 +50,21 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         member.set_password(password)
         member.save(using=UMBRELLA)
         member.save(using='default')
-        perm_list, created = UserPermissionList.objects.get_or_create(user=member)
+        perm_list, created = UserPermissionList.objects.using(UMBRELLA).get_or_create(user=member)
         perm_list.group_fk_list.append(ikwen_community.id)
-        perm_list.save()
+        perm_list.save(using=UMBRELLA)
+
+        if service_id != IKWEN_SERVICE_ID:
+            # This block is not added above because member must have
+            # already been created before we can add an event for that member
+            # So, DO NOT MOVE THIS ABOVE
+            perm_list, created = UserPermissionList.objects.get_or_create(user=member)
+            perm_list.group_fk_list.append(service_community.id)
+            perm_list.save()
+            sudo_group = Group.objects.get(name=SUDO)
+            add_event(service, MEMBER_JOINED_IN, group_id=sudo_group.id, object_id=member.id)
+            add_event(service, MEMBER_JOINED_IN, member=member, object_id=member.id)
+
         return member
 
     def create_superuser(self, username, password, **extra_fields):
@@ -167,9 +191,32 @@ class Member(AbstractUser):
         for s in self.get_services():
             db = s.database
             add_database_to_settings(db)
-            m = Member.objects.using(db).get(pk=self.id)
-            m.set_password(new_password)
-            m.save(using=db)
+            try:
+                m = Member.objects.using(db).get(pk=self.id)
+                m.set_password(new_password)
+                m.save(using=db)
+            except Member.DoesNotExist:
+                pass
+
+    def add_service(self, service_id):
+        """
+        Adds the service_id in the collaborates_on_fk_list
+        for this Member
+        """
+        from ikwen.accesscontrol.backends import UMBRELLA
+        m = Member.objects.using(UMBRELLA).get(pk=self.id)
+        m.customer_on_fk_list.append(service_id)
+        m.save(using=UMBRELLA)
+
+    def add_group(self, group_id):
+        """
+        Adds the service_id in the group_fk_list
+        for this Member
+        """
+        from ikwen.accesscontrol.backends import UMBRELLA
+        m = Member.objects.using(UMBRELLA).get(pk=self.id)
+        m.group_fk_list.append(group_id)
+        m.save(using=UMBRELLA)
 
     def to_dict(self):
         self.collaborate_on_fk_list = []  # Empty this as it is useless and may cause error
@@ -215,16 +262,6 @@ class Passport(OfficialIdentityDocument):
 
     class Meta:
         db_table = 'ikwen_passports'
-
-
-SUDO = 'Sudo'
-COMMUNITY = 'Community'
-# Business events
-ACCESS_REQUEST_EVENT = 'AccessRequestEvent'
-ACCESS_GRANTED_EVENT = 'AccessGrantedEvent'
-
-# Personal events
-WELCOME_EVENT = 'WelcomeEvent'
 
 
 class AccessRequest(Model):

@@ -4,9 +4,10 @@ import json
 import requests
 from django.conf import settings
 from django.contrib.auth.models import Group
+from ikwen.core.utils import add_event, get_service_instance
 from permission_backend_nonrel.models import UserPermissionList
 
-from ikwen.accesscontrol.models import Member, COMMUNITY
+from ikwen.accesscontrol.models import Member, COMMUNITY, MEMBER_JOINED_IN, SUDO
 from permission_backend_nonrel.backends import NonrelPermissionBackend
 
 __author__ = 'Kom Sihon'
@@ -56,17 +57,23 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
         try:
             user = Member.objects.using('default').get(username=username)
         except Member.DoesNotExist:
+            community = Group.objects.get(name=COMMUNITY)
             if user.email != ARCH_EMAIL:
                 user.is_iao = False
                 user.is_bao = False
                 user.is_superuser = False
                 user.is_staff = False
+                service = get_service_instance()
+                user.add_service(service.id)
+                user.add_group(community.id)
+                sudo_group = Group.objects.get(name=SUDO)
+                add_event(service, MEMBER_JOINED_IN, group_id=sudo_group.id, object_id=user.id)
+                add_event(service, MEMBER_JOINED_IN, member=user, object_id=user.id)
             user.save(using='default')  # Saves the user to the default application database if not exists there
 
             if user.email != ARCH_EMAIL:
-                group = Group.objects.get(name=COMMUNITY)
                 perm_list, created = UserPermissionList.objects.get_or_create(user=user)
-                perm_list.group_fk_list.append(group.id)
+                perm_list.group_fk_list.append(community.id)
                 perm_list.save()
         return user
 

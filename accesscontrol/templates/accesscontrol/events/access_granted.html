@@ -1,25 +1,25 @@
 {% load i18n staticfiles humanize %}
 {% if is_iao %}
     <div style="padding: 0 15px">
-        {% if rq.group_name != 'Community' %}
+        {% if group_name != 'Community' %}
             <h4 class="text-primary">{% trans "New collaborator" %}</h4>
         {% else %}
             <h4 class="text-primary">{% trans "New member" %}</h4>
         {% endif %}
-        {% with service_url=rq.service.url group_name=rq.group_name %}
+        {% with service_url=service.url  %}
         <div class="member" style="border-bottom: none; padding: 15px 0">
-            {% if rq.member.photo and rq.member.photo.name %}
-                <a href="{% url 'ikwen:profile' rq.member.id %}" class="photo"
-                   style="background-image: url({{ IKWEN_MEDIA_URL }}{{ rq.member.photo.small_name }}); cursor: pointer"></a>
+            {% if member.photo and member.photo.name %}
+                <a href="{% url 'ikwen:profile' member.id %}" class="photo"
+                   style="background-image: url({{ IKWEN_MEDIA_URL }}{{ member.photo.small_name }}); cursor: pointer"></a>
             {% else %}
-                <a href="{% url 'ikwen:profile' rq.member.id %}" class="photo"
+                <a href="{% url 'ikwen:profile' member.id %}" class="photo"
                    style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %}); cursor: pointer"></a>
             {% endif %}
             <div style="margin-left: 80px">
-                <a href="{% url 'ikwen:profile' rq.member.id %}" class="name"
-                   style="cursor: pointer; display: block; margin-bottom: 5px">{{ rq.member.full_name }}</a>
+                <a href="{% url 'ikwen:profile' member.id %}" class="name"
+                   style="cursor: pointer; display: block; margin-bottom: 5px">{{ member.full_name }}</a>
                 {% url 'ikwen:community' as community_url %}
-                {% if rq.group_name != 'Community' %}
+                {% if group_name != 'Community' %}
                     <p class="about">{% blocktrans %}
                         Was granted access and added to
                         <a href="{{ service_url }}{{ community_url }}?group_name={{ group_name }}"
