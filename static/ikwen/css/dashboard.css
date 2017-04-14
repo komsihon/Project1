@@ -1,0 +1,149 @@
+/**
+    Document   : forms
+    Created on : August 04, 2016, 13:40
+    Author     : Kom Sihon
+    Description:
+        Additional basic display rules for Ikwen apps
+*/
+
+#admin-content, #admin-content:not(.change-form) {padding-right: 0}
+#admin-content > .container-fluid {padding: 0 15px 150px;}
+#admin-content > h5 {
+    float: left;
+    margin-top: 45px;
+    padding-right: 15px;
+    width: 100%
+}
+#admin-content > h5 > span {
+    float: left;
+    margin-top: 0
+}
+
+#admin-content em {
+    font-style: normal;
+    font-size: 34px
+}
+
+.show-details {
+    float: right;
+    font-size: 13px
+}
+
+.watch h5 + div > * {
+    float: left;
+    font-size: 24px
+}
+
+.watch h5 {
+    margin-bottom: 0
+}
+
+.watch img {
+    height: 100%
+}
+
+.watch p.change {
+    clear: both;
+    font-size: 13px;
+    margin-bottom: 0
+}
+
+.watch p.change.up {
+    color: #2ab732;
+    font-size: 13px
+}
+
+.watch p.change.down {
+    color: #ee4032;
+    font-size: 13px
+}
+
+.watch p.vs {
+    clear: both;
+    color: #888;
+    font-size: 12px
+}
+
+.arrow {
+    background-size: 12px auto;
+    height: 12px;
+    margin: 13px 0 0 3px;
+    width: 12px
+}
+
+.arrow.up {
+    background-image: url('../img/Green_Arrow_Up.png')
+}
+
+.arrow.down {
+    background-image: url('../img/Red_Arrow_Down.png')
+}
+
+.payments > div h6, .payments > div a {
+    display: block;
+    font-size: 13px;
+    margin: 0;
+    width: 100%
+}
+
+.performances > div > div {
+    border: 1px solid #eee;
+    margin: 5px 0 15px;
+    padding: 10px 10px 20px
+}
+
+.performances header {
+    margin-bottom: 15px;
+    padding: 0 5px
+}
+
+.performances h5 {
+    float: left;
+    margin: 0
+}
+
+.performances .th {
+    color: #888;
+    float: left;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    padding: 0 5px;
+    width: 100%
+}
+
+.ranking {
+    clear: both;
+    padding-left: 0
+}
+
+.ranking li {
+    background: #f6f6f6;
+    display: block;
+    float: left;
+    height: 30px;
+    padding: 5px 5px 0;
+    width: 100%
+}
+
+.ranking li.empty {
+    background: #f8f9f9;
+    color: #888;
+    text-align: center
+}
+
+.ranking li:nth-child(2n) {
+    background: #fff
+}
+
+.ranking li span {
+    float: left
+}
+
+.ranking li span:last-child {
+    float: right
+}
+@media (min-width: 992px) {
+    #admin-content {padding-left: 240px;}
+    #admin-content > .container-fluid {padding-right: 15px}
+}

@@ -438,7 +438,7 @@ class Console(BaseView):
                 try:
                     response.append(event.to_dict())
                 except:
-                    pass
+                    continue
             return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
         else:
             return super(Console, self).render_to_response(context, **response_kwargs)

@@ -25,8 +25,8 @@
 {% endblock %}
 
 {% block admin_content %}
-    <div id="admin-content" class="container-fluid change-form">
-        <div id="stage">
+    <div id="admin-content" class="change-form no-edge-panel-right">
+        <div class="container-fluid">
             {% if config.cover_image and config.cover_image.name %}
             <header id="cover" class="subtle-shade" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ config.cover_image.name }});">
             {% else %}

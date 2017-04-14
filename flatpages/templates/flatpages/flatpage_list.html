@@ -8,7 +8,6 @@
 {% block head_style %}
     {{ block.super }}
     <style>
-        body {background: #f9f8f8}
         #page-list {margin-top: 2em}
         #page-list li {background: transparent; border-left: none; border-right: none; border-radius: 0}
         #page-list .actions {bottom: 12px; position: absolute; right: 20px}
@@ -20,21 +19,25 @@
 {% endblock %}
 
 {% block admin_content %}
-    <div id="admin-content" class="container-fluid change-form">
-        <div id="stage">
-            <a class="btn btn-sm btn-primary" href="{% url 'ikwen:change_flatpage' %}" style="width: 160px">{% trans "Add new" %}</a>
-            <ul id="page-list" class="list-group">
-                {% for page in flatpage_list %}
-                    {% url 'ikwen:change_flatpage' page.id as flatpage_url %}
-                    <li class="list-group-item ik-li" id="{{ page.id }}" data-id="{{ page.id }}">
-                        <div class="select subtle-shade"></div>
-                        <a href="{{ flatpage_url|append_auth_tokens:request }}">{{ page.title }}</a>
-                        <div class="actions">
-                            <i class="action icon trash" title="{% trans "Delete item" %}"></i>
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
+    <div id="admin-content" class="no-edge-panel-right">
+        <div class="container-fluid">
+            <div class="container-fluid">
+                <a class="btn btn-sm btn-primary" href="{% url 'ikwen:change_flatpage' %}" style="width: 160px">{% trans "Add new" %}</a>
+                <ul id="page-list" class="list-group">
+                    {% for page in flatpage_list %}
+                        {% url 'ikwen:change_flatpage' page.id as flatpage_url %}
+                        <li class="list-group-item ik-li" id="{{ page.id }}" data-id="{{ page.id }}">
+                            <div class="select subtle-shade">
+                                <i class="glyphicon glyphicon-ok"></i>
+                            </div>
+                            <a href="{{ flatpage_url|append_auth_tokens:request }}">{{ page.title }}</a>
+                            <div class="actions">
+                                <i class="action icon trash" title="{% trans "Delete item" %}"></i>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
 {% endblock %}

@@ -1,0 +1,221 @@
+/**
+    Document   : admin
+    Created on : April 09, 2017, 12:30
+    Author     : Kom Sihon
+    Description:
+        Rules for ikwen Admin pages
+*/
+
+body {font-size: 13px; overflow: hidden}
+
+#selection-control {
+    background: #fff;
+    color: #888;
+    min-height: 55px;
+    position: fixed;
+    width: 100%;
+    padding-top: 12px;
+    top: -65px;
+    z-index: 1000;
+    transition: top .3s;
+    }
+#selection-control.visible {top: 0;transition: top .3s;padding-top: 20px;}
+#selection-control .clear-selection {background: url('../img/arrow-left.png');background-size: 24px; cursor: pointer;
+    float: left;height: 24px;opacity: .5; width: 24px;}
+#selection-control .select-count {float: left; margin-left: 30px}
+#selection-control .actions {float: right}
+#app-nav {border-bottom: 1px solid #eee;border-top: 1px solid #eee;font-weight: 700;height: 45px;margin-top: 47px;padding-top: 10px;position: fixed;width: 100%;z-index: 10;}
+#app-nav .app-name {display: none}
+#app-nav .app-logo {float: left;height: 30px;width: 30px;margin: 5px 5px 0 0;}
+#app-nav .breadcrumb {background: none;float: left;padding-top: 5px;padding-left: 0;}
+#app-nav .breadcrumb li {color: #888}
+div#container.admin {padding-top: 92px;}
+
+#admin-nav > div > div {padding: 0 10px;}
+#admin-nav .wrapper {padding: 20px 0 90px;}
+#admin-nav .stage {width: 200%;padding: 0 0 90px;}
+#admin-nav {background: #fff;left: 0;max-width: 240px;overflow: auto;position: fixed;height: 100%;width: 80%;top: 0;z-index: 1;}
+#admin-nav .divider {border-top: 1px solid #eee;margin: 15px 0;}
+.nav-pills>li>a {padding: 5px 15px;cursor: pointer;}
+.nav-pills>li.active>a, .nav-pills>li.active>a:hover, .nav-pills>li.active>a:focus {background: #eee; color: #333}
+
+#admin-content {height: 100%;overflow: auto;position: absolute;width: 100%;}
+
+#filter-nav {padding: 0 10px;}
+#filter-nav span {cursor: pointer; float: left;width: 50%;padding-bottom: 6px;}
+#admin-nav .filter, #admin-nav .menu {float: left;width: 50%;padding: 0 10px;}
+.go-to-website, .go-to-website:hover, .go-to-website:active {color: #888;font-weight: 400;}
+.go-to-website .glyphicon {float: left; font-size: 24px}
+.go-to-website span {float: left;margin-left: 5px;margin-top: 3px;}
+
+#admin-content {padding-top: 15px;min-height: 450px;padding-bottom: 120px;}
+#admin-content > .container-fluid {padding: 0;padding-bottom: 30px;}
+#admin-content.change-form {padding-top: 0}
+#admin-content.change-form form {clear: both;padding: 15px 15px 90px;}
+#admin-content.change-form > form {clear: both;padding: 0 0 90px;}
+#admin-content.change-form h3 {font-size: 18px; font-weight: 700}
+#admin-content.change-form h3:first-of-type {margin-top: 0}
+
+#admin-tools {padding: 0 15px;clear: both;position: fixed;width: 100%;background: #fff;}
+#admin-tools input, #admin-tools select, #admin-tools .btn-sm {border: 1px solid #ddd;font-size: 13px;padding-left: 32px;}
+#context-search {float: left}
+#context-search .glyphicon-search {margin-right: -26px;margin-left: 10px;}
+.filter-trigger > .glyphicon-filter {float: left;margin: 8px -24px 0 12px;}
+#context-search .glyphicon-menu-left {display: none}
+
+#page-navigation {margin-right: 10px;float: right;}
+#page-navigation > div {float: left}
+#page-navigation i {background: #eee;border: 2px solid #ddd;cursor: default;display: block;float: left;font-weight: 700;height: 30px;padding-top: 2px;text-align: center;width: 30px;}
+#page-navigation i:hover {background: #e6e6e6}
+#page-navigation i.finished, #page-navigation i.finished:hover {background: #f8f8f8}
+.page-navigation {clear: both; float: left}
+.change-form label {font-weight: 400}
+.change-form label.required {font-weight: 700}
+
+.checkbox-row input[type=checkbox] {float: left;width: 20px;}
+.checkbox-row label {margin: 10px 0 0 10px}
+#stage section {background: #fff;float: left;margin-top: 25px;overflow: hidden;padding: 15px;width: 100%;}
+#stage section h3 {font-size: 21px; font-weight: 700; margin-top: 0}
+footer {text-align: left;padding: 10px;background: #fff;width: 225px;bottom: 0;position: fixed;}
+footer a {color: #999}
+
+#object-detail {background: #fff;height: 100%;max-width: 270px; position: fixed;right: 0;width: 80%;overflow: auto;}
+#object-detail .empty {color: #888; padding: 40px 15px 0}
+#object-detail .main-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 10px 15px;
+}
+#object-detail form {margin: 25px 0}
+#object-detail form button {margin-top: 25px}
+#object-detail .object-list {width: 100%; padding: 10px}
+#object-detail .ik-li {padding: 5px 0}
+#object-detail .ik-li .about {font-size: 13px; margin-top: 2px}
+#object-detail .container-fluid {padding: 0 10px}
+
+.payment-mean {display: block;height: 45px;background: #fff;}
+.payment-mean span {float: left; padding: 12px 15px; width: 35%}
+.payment-mean .img {background: center; background-size: auto 100%; float: left; height: 100%; width: 65%}
+
+.show-results-filter {text-align: left; width: 120px}
+.results-filter {
+    display: none;
+    border-bottom: 1px solid #eee;
+    clear: both;
+    font-size: 12px;
+    padding: 10px 10px 5px;
+}
+.results-filter.active {display: block}
+
+.results-filter li a {
+    padding: 2px 15px;
+}
+
+.results-filter h3 {
+    border-bottom: 1px solid #ddd; font-size: 1.3em; padding-bottom: 5px; margin-bottom: 0
+}
+
+.results-filter h4 {
+    font-size: 1.2em; font-weight: 700
+}
+
+.object-list {
+    padding: 0;
+}
+#results {clear: both}
+#admin-tools + #results {margin-top: 20px;}
+.content-tab-list {position: fixed; width: 100%}
+
+.images-uploader .frame {height: 200px;float: left;margin: 0 10px 10px 0;overflow: hidden;width: 100%;}
+.images-uploader .image {background: no-repeat center;border: solid 1px #DBE6FF;margin-right: 10px;}
+.images-uploader .image .delete {background: #FFF; border-bottom-left-radius: 10px; color: #ef0202; cursor: pointer; font-size: 15px; font-weight: bold; float: right; padding: 2px  9px}
+.images-uploader .image.loading .delete {display: none}
+.images-uploader .image .progress {background: #3C63FF; height: 100%}
+.images-uploader .uploader {background: url('../img/no_photo.png') center no-repeat; background-size: cover;
+    border: solid 1px #eee; font: bold 48px Arial; text-align: center}
+.images-uploader .qq-upload-button {background: none;border: none;box-shadow: none;color: #666;text-shadow: none;line-height: 200px;width: 100%;}
+.images-uploader .qq-upload-button-hover {box-shadow: none; color: #fff}
+
+@media (max-width: 767px) {
+    #selection-control.visible {padding-top: 15px}
+    #admin-content > .container-fluid {padding: 0}
+    #app-nav .breadcrumb li:not(:last-of-type) {display: none}
+    #admin-tools {margin-top: -20px;border-bottom: 1px solid #eee;height: 40px;padding-top: 10px;}
+    #admin-tools .glyphicon {float: left; font-size: 18px;color: #888;}
+    #admin-tools .glyphicon-menu-left {margin: 2px -24px 0 6px;}
+    #admin-tools .tool {display: none}
+    #admin-tools input, #admin-tools select, #admin-tools .btn {border: none;margin-top: -4px;width: 200px;background: none;}
+    #admin-tools .btn:active, #admin-tools .btn.active {background: none; color: #545454; box-shadow: none}
+    #context-search .glyphicon-search {
+        margin: 2px 0 0;
+    }
+    .filter-trigger > .glyphicon-filter {float: left;margin: 2px 0 0 10px;}
+    .content-tab-list {background: #f8f6f6}
+    #admin-tools + .content-tab-list {padding-top: 15px;}
+    .content-tab-list + .tab-content {margin-top: 35px;}
+    #admin-tools + .content-tab-list {margin-top: 20px;background: #fff;padding-top: 0;}
+    #admin-tools + .content-tab-list + .tab-content {margin-top: 57px;}
+}
+
+@media (min-width: 768px) {
+    #selection-control {height: 65px}
+    #navbar {background: #fff}
+    .navbar-header > .container-fluid {padding-left: 0}
+    .menu-button {
+        display: block;
+        margin: 23px 15px 0 0;
+    }
+    .icon-bar {background: #888;}
+    .navbar-default .navbar-nav>li>a, #navbar .glyphicon {color: #888;}
+    .navbar-default .navbar-brand {color: #888;font-size: 30px;padding-top: 15px;}
+    #navbar-search input {
+        background: #f1f1f1;
+        color: #545454;
+    }
+    .navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:hover, .navbar-default .navbar-nav>.open>a:focus {color: #666}
+    #app-nav {background: #fff; margin-top: 65px;}
+    div#container.admin {padding-top: 110px;}
+    .admin-form .form-group:last-child {padding-left: 0}
+    .navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:hover, .navbar-default .navbar-nav>.open>a:focus {background: #eee}
+    #admin-content.has-edge-panel-right, #admin-content.has-edge-panel-right #admin-tools {padding-right: 270px}
+    #admin-tools {height: 50px;margin-top: -15px;padding-top: 15px;}
+    #admin-tools.single input, #admin-tools.single select, #admin-tools.single .btn-sm {margin-top: -8px}
+    #admin-tools .filter-trigger {margin-left: 15px;}
+    .content-tab-list {background: #fff;padding-top: 15px;margin-top: -15px;}
+    .has-edge-panel-right .content-tab-list {padding-right: 270px}
+    .content-tab-list + .tab-content {margin-top: 40px;}
+    #admin-tools + .content-tab-list {margin-top: 35px;}
+    #admin-tools + .content-tab-list + .tab-content {margin-top: 90px}
+    #object-detail {border-left: 1px solid #eee;top: 110px;}
+    .images-uploader .frame {width: 235px;height: 190px;}
+    .images-uploader .qq-upload-button {line-height: 190px}
+    #admin-tools + #results {margin-top: 35px;}
+    .results-filter {padding-top: 30px;}
+    #admin-content .member .info, #admin-content .ik-li .info {max-width: 390px;}
+    #admin-content .has-edge-panel-right .member .info, #admin-content .has-edge-panel-right .ik-li .info {max-width: 225px;}
+}
+
+@media (min-width: 992px) {
+    .menu-button {display: none}
+    #app-nav .app-logo {margin-top: 0}
+    #app-nav .breadcrumb {padding-left: 15px; padding-top: 2px}
+    #app-nav .app-name {display: block;float: left;margin-top: 3px;width: 190px;}
+    #admin-nav {top: 110px;border-right: 1px solid #eee;}
+    #admin-content {padding-left: 255px}
+    #selection-control {height: 66px;min-height: 66px; padding-top: 20px; top: -70px}
+    #selection-control .actions {margin-top: -4px}
+    .admin-form .form-control:not([type=checkbox]) {width: 400px;}
+    .help {padding-top: 3px}
+    #admin-content > .container-fluid {padding-right: 15px;}
+    #admin-content.change-form {padding-top: 15px}
+    #admin-content.change-form form {padding-left: 0}
+    #admin-tools {padding-left: 0;}
+    .results-filter {padding: 30px 10px 5px 0;}
+    #admin-content .has-edge-panel-right .member .info, #admin-content .has-edge-panel-right .ik-li .info {max-width: 390px;}
+}
+@media (min-width: 1200px) {
+    .member .info, .ik-li .info {margin-left: 15px}
+}
+
+/* Object Details ik-li info width must be overriden */
+#object-detail .ik-li .info {width: auto}

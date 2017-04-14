@@ -608,9 +608,11 @@ class ConsoleEvent(Model):
     def to_dict(self):
         var = to_dict(self)
         service = self.service
+        config = service.config
         var['project_url'] = service.url
         var['project_name'] = service.project_name
-        var['project_logo_url'] = service.config.logo.url
+        # var['project_logo_url'] = config.logo.url if config.logo.name else getattr(settings, 'STATIC_URL') + 'ikwen/img/logo-placeholder.jpg'
+        var['project_logo_url'] = config.logo.url if config.logo.name else ''
         var['created_on'] = naturaltime(self.created_on)
         var['min_height'] = self.event_type.min_height
         del(var['model'])

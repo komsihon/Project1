@@ -57,7 +57,7 @@
                             </div>
                         </div>
                     {% endif %}
-                    <h2 class="text-has-shade visible-xs">{{ member.full_name|truncatewords:"2" }}</h2>
+                    <h2 class="text-has-shade name visible-xs">{{ member.full_name|truncatewords:"2" }}</h2>
                 </div>
                 <div class="upload-image hidden-xs"></div>
                 <div class="progress">
@@ -66,7 +66,7 @@
                         <span class="sr-only"></span>
                     </div>
                 </div>
-                <h2 class="text-has-shade hidden-xs">{{ member.full_name }}</h2>
+                <h2 class="text-has-shade name hidden-xs">{{ member.full_name }}</h2>
             </div>
         </header>
         {% for service, event_list in access_request_events.items %}
@@ -98,7 +98,7 @@
                 </div>
             </div>
         {% endfor %}
-        <div id="events" class="container-fluid">
+        <div id="cards">
             <div class="row">
                 <div class="tpl card subtle-shade">
                     <h3>
@@ -163,7 +163,7 @@
                 var scrollTop = $(this).scrollTop();
                 if ($(document).height() - $(this).height() - scrollTop <= $('footer').height()) {
                     loadingCards = true;
-                    var start = $('div#events .card').length,
+                    var start = $('div#cards .card').length,
                         $col1 = $('.events-col1'),
                         $col2 = $('.events-col2'),
                         col1Height = $col1.height(),
@@ -176,7 +176,7 @@
                         }
                         for (var i=0; i<events.length; i++) {
                             var event = events[i],
-                                $card = $('div#events .card.tpl').clone().removeClass('tpl');
+                                $card = $('div#cards .card.tpl').clone().removeClass('tpl');
                             $card.attr('id', event.id);
                             $card.data('base-url', event.project_url);
                             $card.find('.project-name').text(event.project_name).attr('href', event.project_url);
@@ -191,7 +191,7 @@
                     $(this).addClass('loaded');
                 }
             });
-            $('div#events .card:not(.tpl, .empty, .loaded)').each(function() {
+            $('div#cards .card:not(.tpl, .empty, .loaded)').each(function() {
                 var id = $(this).attr('id');
                 loadCardContent(id);
             });

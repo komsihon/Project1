@@ -119,7 +119,7 @@ class Product(Model):
                                      help_text=_("How you want the customer to see the duration.<br>"
                                                  "Eg:<strong>1 month</strong>, <strong>3 months</strong>, etc."))
     cost = models.FloatField(help_text=_("Cost of the product on the duration set previously."))
-    image = MultiImageField(upload_to=IMAGE_UPLOAD_TO, blank=True, null=True)
+    image = MultiImageField(upload_to=IMAGE_UPLOAD_TO, blank=True, null=True, max_size=800)
     details = models.TextField(blank=True,
                                help_text=_("Detailed description of the product."))
 

@@ -62,12 +62,12 @@
                     <div id="banner">
                         <div class="frame">
                             <div class="photo"></div>
-                            <h2 class="text-has-shade visible-xs">{{ profile_name|truncatewords:"2" }}</h2>
+                            <h2 class="text-has-shade name visible-xs">{{ profile_name|truncatewords:"2" }}</h2>
                         </div>
-                        <h2 class="text-has-shade hidden-xs">{{ profile_name }}</h2>
+                        <h2 class="text-has-shade name hidden-xs">{{ profile_name }}</h2>
                     </div>
                 </header>
-                <div class="container-fluid" id="cards">
+                <div id="cards">
                     {% for elt in access_request_list %}
                         {% with rq=elt.rq srvc=elt.rq.service %}
                             <section id="{{ elt.rq.id }}" class="access-request subtle-shade">
@@ -120,7 +120,7 @@
                             </section>
                         {% endwith %}
                     {% endfor %}
-                    <section id="about" class="subtle-shade">
+                    <section id="about" class="card subtle-shade">
                         {% if is_company and page_config.short_description %}
                             {% if page_config.description %}
                                 <p style="color: #666; font-size: 18px; margin-bottom: 20px; text-align: justify">{{ page_config.description }}</p>
@@ -128,7 +128,7 @@
                                 <p style="color: #666; font-size: 18px; margin-bottom: 20px">{{ page_config.short_description }}</p>
                             {% endif %}
                         {% else %}
-                            <h3>{% trans "About" %}</h3>
+                            <h3 style="font-size: 18px">{% trans "About" %}</h3>
                         {% endif %}
                         <ul>
                             {% if profile_gender %}

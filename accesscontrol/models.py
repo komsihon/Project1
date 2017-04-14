@@ -98,7 +98,7 @@ class Member(AbstractUser):
     phone = models.CharField(max_length=30, db_index=True, blank=True, null=True)
     gender = models.CharField(max_length=15, blank=True, null=True)
     dob = models.DateField(blank=True, null=True)
-    photo = MultiImageField(upload_to=PROFILE_UPLOAD_TO, blank=True, null=True)
+    photo = MultiImageField(upload_to=PROFILE_UPLOAD_TO, blank=True, null=True, max_size=600, small_size=200, thumb_size=100)
     cover_image = models.ImageField(upload_to=COVER_UPLOAD_TO, blank=True, null=True)
     entry_service = models.ForeignKey(Service, blank=True, null=True, related_name='+',
                                       help_text=_("Service where user registered for the first time on ikwen"))

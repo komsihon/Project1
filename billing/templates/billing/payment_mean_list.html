@@ -17,24 +17,26 @@
 {% endblock %}
 
 {% block admin_content %}
-    <div id="admin-content" class="container-fluid">
-        <div id="results">
-            <ul class="object-list" style="padding: 20px 0 0 0">
-            {% for mean in payment_mean_list %}
-                <li class="ik-li mean" id="{{ mean.id }}" data-id="{{ mean.id }}"
-                        {% for key, value in mean.credentials.items  %}data-{{ key }}="{{ value }}"{% endfor %}>
-                    <i class="glyphicon glyphicon-ok check{% if mean.is_active %} active{% endif %}"
-                       title="{% if mean.is_active %}{% trans "Cancel" %}{% else %}{% trans "Activate" %}{% endif %}"></i>
-                    <div class="image" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ mean.logo.name }})"></div>
-                    <div class="info">
-                        <span class="name" style="float: left; margin-top: 18px">{{ mean.name }}</span>
-                    </div>
-                    <div class="actions">
-                        <i class="glyphicon glyphicon-cog conf-{{ mean.slug }}" data-toggle="modal" data-target="#conf-{{ mean.slug }}" title="{% trans "Configure" %}"></i>
-                    </div>
-                </li>
-            {% endfor %}
-            </ul>
+    <div id="admin-content">
+        <div class="container-fluid">
+            <div id="results">
+                <ul class="object-list" style="padding: 20px 0 0 0">
+                {% for mean in payment_mean_list %}
+                    <li class="ik-li mean" id="{{ mean.id }}" data-id="{{ mean.id }}"
+                            {% for key, value in mean.credentials.items  %}data-{{ key }}="{{ value }}"{% endfor %}>
+                        <i class="glyphicon glyphicon-ok check{% if mean.is_active %} active{% endif %}"
+                           title="{% if mean.is_active %}{% trans "Cancel" %}{% else %}{% trans "Activate" %}{% endif %}"></i>
+                        <div class="image" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ mean.logo.name }})"></div>
+                        <div class="info">
+                            <span class="name" style="float: left; margin-top: 18px">{{ mean.name }}</span>
+                        </div>
+                        <div class="actions">
+                            <i class="glyphicon glyphicon-cog conf-{{ mean.slug }}" data-toggle="modal" data-target="#conf-{{ mean.slug }}" title="{% trans "Configure" %}"></i>
+                        </div>
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
     <div class="modal fade" id="conf-paypal" tabindex="-1" role="dialog">

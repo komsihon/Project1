@@ -204,6 +204,11 @@
         return $tpl
     };
 
+    $('body').on('click', '.nav-tabs .tab', function() {
+        $('.nav-tabs .tab').removeClass('active');
+        $(this).addClass('active')
+    });
+
     /**
      * Appends authentication tokens to "href" of all A elements
      * contained in the element with the given selector
@@ -219,6 +224,59 @@
             })
         }
     };
+
+    c.debouncer = function(func, timeout) { // Trick to capture window resize ended event
+       var timeoutID , timeout = timeout || 200;
+       return function () {
+          var scope = this , args = arguments;
+          clearTimeout( timeoutID );
+          timeoutID = setTimeout( function () {
+              func.apply( scope , Array.prototype.slice.call( args ) );
+          } , timeout );
+       }
+    };
+
+    c.swipeInRightPanel = function() {
+        $('.edge-swipe-overlay').fadeIn('fast');
+        $('.edge-panel-right').show().addClass('has-shade').appendTo('.edge-swipe-overlay').animate({marginRight: 0}, 'fast');
+    };
+
+    var contentTabListSwiper;
+
+    function initContentTabListSwiper() {
+        if ($('.content-tab-list').length == 0) return;
+        $('.content-tab-list').addClass('bottom-shade');
+        $('.content-tab-list .nav-tabs').addClass('swiper-wrapper');
+        $('.content-tab-list .tab').addClass('swiper-slide');
+        contentTabListSwiper = new Swiper('.content-tab-list .swiper-container', {
+             slidesPerView: 5,
+             breakpoints: {
+                 479: {
+                     slidesPerView: 4
+                 },
+                 369: {
+                     slidesPerView: 3
+                 }
+             }
+        });
+    }
+
+    if ($(window).width() < 768) {
+        initContentTabListSwiper()
+    }
+
+    $( window ).resize(c.debouncer(function (e) {
+        var winWidth = $(window).width();
+        if (winWidth < 768) {
+            initContentTabListSwiper()
+        } else if (winWidth >= 768) {
+            if (!contentTabListSwiper) return;
+            contentTabListSwiper.destroy();
+            $('.content-tab-list').removeClass('bottom-shade');
+            $('.content-tab-list .nav-tabs').removeClass('swiper-wrapper').css('transform', 'none');
+            $('.content-tab-list .tab').removeClass('swiper-slide').css({width: 'auto', marginRight: 0});
+        }
+    }));
 
     w.ikwen = c; /*Creating the namespace ikwen for all this*/
 })(window);

@@ -59,29 +59,40 @@ class MultiImageFieldFile(ImageFieldFile):
 
     def save(self, name, content, save=True):
         super(MultiImageFieldFile, self).save(name, content, save)
-        img = Image.open(self.path)
-        #Save the low quality version of the image with the original dimensions
-        parts = self.path.split(".")
 
-        if self.field.lowqual > 0: #Create the Low Quality version only if lowqual is set
-            IMAGE_WIDTH_LIMIT = 1600 #Too big img are of no use on this web site
-            lowqual_size = img.size if img.size[0] <= IMAGE_WIDTH_LIMIT else IMAGE_WIDTH_LIMIT, IMAGE_WIDTH_LIMIT
-            img.thumbnail(lowqual_size, Image.NEAREST)
-            img.save(self.lowqual_path, quality=self.field.lowqual)
-        #Save the .small version of the image
+        # Save the .small version of the image
         img = Image.open(self.path)
         img.thumbnail(
-            (self.field.small_side, self.field.small_side),
+            (self.field.small_size, self.field.small_size),
             Image.ANTIALIAS
         )
         img.save(self.small_path, quality=96)
-        #Save the .thumb version of the image
+
+        # Save the .thumb version of the image
         img = Image.open(self.path)
         img.thumbnail(
-            (self.field.thumb_side, self.field.thumb_side),
+            (self.field.thumb_size, self.field.thumb_size),
             Image.ANTIALIAS
         )
         img.save(self.thumb_path, quality=96)
+
+        # Save the low quality version of the image with the original dimensions
+        if self.field.lowqual > 0:  # Create the Low Quality version only if lowqual is set
+            img = Image.open(self.path)
+            IMAGE_WIDTH_LIMIT = 1600  # Too big img are of no use on this web site
+            lowqual_size = img.size if img.size[0] <= IMAGE_WIDTH_LIMIT else IMAGE_WIDTH_LIMIT, IMAGE_WIDTH_LIMIT
+            img.thumbnail(lowqual_size, Image.NEAREST)
+            img.save(self.lowqual_path, quality=self.field.lowqual)
+
+        max_size = self.field.max_size
+        if max_size > 0:  # Create a new version of image if too large
+            img = Image.open(self.path)
+            if img.size[0] > max_size or img.size[1] > max_size:
+                new_size = (max_size, max_size)
+            else:
+                new_size = img.size
+            img.thumbnail(new_size, Image.ANTIALIAS)
+            img.save(self.path, quality=96)
 
     def delete(self, save=True):
         if os.path.exists(self.lowqual_path):
@@ -97,13 +108,14 @@ class MultiImageField(ImageField):
     """
     Behaves like a regular ImageField, but stores extra (JPEG) img providing get_FIELD_lowqual_url(), get_FIELD_small_url(),
     get_FIELD_thumb_url(), get_FIELD_small_filename(), get_FIELD_lowqual_filename() and get_FIELD_thumb_filename().
-    Accepts three additional, optional arguments: lowqual, small_side and thumb_side,
+    Accepts three additional, optional arguments: lowqual, small_size and thumb_size,
     respectively defaulting to 15(%), 250 and 60 (pixels).
     """
     attr_class = MultiImageFieldFile
 
-    def __init__(self, lowqual=0, small_side=480, thumb_side=150, *args, **kwargs):
+    def __init__(self, small_size=480, thumb_size=150, max_size=0, lowqual=0, *args, **kwargs):
+        self.small_size = small_size
+        self.thumb_size = thumb_size
+        self.max_size = max_size
         self.lowqual = lowqual
-        self.small_side = small_side
-        self.thumb_side = thumb_side
         super(MultiImageField, self).__init__(*args, **kwargs)

@@ -1,5 +1,5 @@
 {% extends "core/base_bs.html" %}
-{% load i18n humanize staticfiles auth_tokens %}
+{% load i18n humanize static auth_tokens %}
 {% block meta %}
     <link rel="apple-touch-icon" sizes="180x180" href="{{ settings.IKWEN_MEDIA_URL }}ikwen/favicons/{{ service.app.slug }}/apple-icon-180x180.png">
     <link rel="shortcut icon" type="image/png" sizes="192x192" href="{{ settings.IKWEN_MEDIA_URL }}ikwen/favicons/{{ service.app.slug }}/android-icon-192x192.png">
@@ -13,6 +13,7 @@
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
+    <link href="{% static 'ikwen/css/admin.css' %}" media="screen" rel="stylesheet" type="text/css" />
     <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
 {% endblock %}
 
@@ -29,7 +30,10 @@
 {% block header %}
     {{ block.super }}
     <div id="app-nav" class="container-fluid">
-        <span class="app-name">{{ service.app.name }}</span>
+        <span class="cta app-logo">
+            <img src="{% get_media_prefix %}{{ service.app.logo.name }}" class="img-responsive" />
+        </span>
+        <span class="cta app-name">{{ service.app.name }}</span>
         <ol class="breadcrumb">
             {% url 'admin_home' as admin_home_url %}
             <li><a href="{{ admin_home_url|append_auth_tokens:request }}">{{ service.project_name }}</a></li>
@@ -43,22 +47,14 @@
 {% endblock %}
 
 {% block header_brand %}
-<div class="navbar-header">
-    <a class="navbar-brand" href="{{ settings.IKWEN_BASE_URL|append_auth_tokens:request }}"><strong>ikwen</strong></a>
-</div>
+<a class="navbar-brand" href="{{ settings.IKWEN_BASE_URL|append_auth_tokens:request }}"><strong>ikwen</strong></a>
 {% endblock %}
 
 {% block content %}
-    <div id="container" class="admin">
+    <div id="container" class="admin edge-panel-left-container">
         {% block admin_nav %}
-            <div id="admin-nav">
-                <div style="padding: 20px 0 130px">
-                    {#                <div class="btn-group" style="width: 100%">#}
-                    {#                    <button class="btn btn-default btn-sm btn-block dropdown-toggle" data-toggle="dropdown"#}
-                    {#                            aria-haspopup="true" aria-expanded="false">{% trans "New" %}</button>#}
-                    {#                    {% block new_menu %}{% endblock %}#}
-                    {#                </div>#}
-                    {#                <div><div class="divider"></div></div>#}
+            <div id="admin-nav" class="edge-panel-left">
+                <div class="wrapper">
                     <div class="stage" {% if filter and filter|length > 0 %}style="margin-left: -100%"{% endif %}>
                         {% if filter and filter|length > 0 %}
                             <nav id="filter-nav">
@@ -143,7 +139,7 @@
 {% endblock %}
 
 {% block footer %}
-    <footer style="color: #999; font-size: 12px; margin-top: 45px; text-align: center">
+    <footer>
         &copy; {{ year }} <a href="http://www.ikwen.com"><strong>ikwen</strong></a>. {% trans "All rights reserved." %} -
         <a href="http://www.ikwen.com/legalMentions" style="text-decoration: underline">{% trans "Legal mentions" %}</a>
     </footer>
@@ -159,8 +155,16 @@
             $('nav#filter-nav .show-filter').click(function() {
                 $('div#admin-nav .stage').animate({marginLeft: '-100%'})
             });
+            $('#admin-nav, #admin-content, #object-detail').scroll(function() {
+                if ($(this).scrollTop() > 0) {
+                    if ($(this).find('.ceil').length > 0) return;
+                    $('#app-nav').addClass('has-shade')
+                } else {
+                    $('#app-nav').removeClass('has-shade')
+                }
+            });
             $('body').on('click', '.ik-li .select', function() {
-                $(this).parent().toggleClass('selected');
+                $(this).parents('.ik-li').toggleClass('selected');
                 var id = $(this).data('id'),
                     count = $('.ik-li.selected').length;
                 if (count > 0) {
@@ -175,7 +179,40 @@
             }).on('click', '.ik-li .trash', function() {
                 var selection = $(this).parents('.ik-li').data('id');
                 deleteSelection(selection);
+            }).on('click', '.menu-button', function() {
+                $('.edge-swipe-overlay').fadeIn('fast');
+                $('.edge-panel-left').show().animate({marginLeft: 0}, 'fast');
+            }).on('click', '.edge-swipe-overlay', function(e) {
+                var elt = e.target.className;
+                if (elt.indexOf('edge-swipe-overlay') >= 0 || elt.indexOf('close') >= 0) {
+                    $('.edge-panel-left').animate({marginLeft: '-300px'}, 'fast');
+                    if ($(window).width() < 768) {
+                        $('.edge-panel-right').animate({marginRight: '-300px'}, 'fast');
+                    }
+                    $('.edge-swipe-overlay').fadeOut('fast');
+                }
             });
+
+            $('#admin-tools').on('click', '.glyphicon-search', function() {
+                if ($(window).width() < 768) {
+                    $(this).hide();
+                    $('div#admin-tools .tool, div#admin-tools .glyphicon').hide();
+                    $('.tool.search').show().focus();
+                    $('.hide-search').show();
+                }
+            }).on('click', '.glyphicon-filter', function() {
+                if ($(window).width() < 768) {
+                    $(this).hide();
+                    $('div#admin-tools .tool, div#admin-tools .glyphicon').hide();
+                    $('.tool.filter').show().find('.widget').click();
+                    $('.hide-filter').show()
+                }
+            }).on('click', '.back', function() {
+                $('div#admin-tools .glyphicon:not(.back)').show();
+                $(this).hide();
+                $('div#admin-tools .tool').hide();
+            });
+
             $('div#selection-control .clear-selection').click(function() {
                 $('.ik-li').removeClass('selected');
                 $('#selection-control').removeClass('visible');
@@ -199,7 +236,8 @@
                 endpoint: '{{ request.META.get_full_path }}',
                 resultTplSelector: '#results li.ik-li'
             };
-            ikwen.setupFilter('#results', filterDescriptor)
+            ikwen.setupFilter('#results', filterDescriptor);
+            $('footer').appendTo('#admin-nav .wrapper')
         })()
     </script>
 {% endblock %}

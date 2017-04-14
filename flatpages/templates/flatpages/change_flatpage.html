@@ -28,17 +28,19 @@
 {% endblock %}
 
 {% block admin_content %}
-    <div id="admin-content" class="container-fluid change-form">
-        {% url 'ikwen:change_flatpage' as change_flatpage_url %}
-        {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
-        <form id="submit-page" class="admin-form" method="post" action="{{ change_flatpage_url|append_auth_tokens:request }}">{% csrf_token %}
-            <input type="hidden" name="page_id" value="{{ page.id }}" />
-            <input type="hidden" name="image_url" id="image_url" value="" />
-            {% include 'core/snippets/model_admin_form.html' %}
-            <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
-                <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
-            </div>
-        </form>
+    <div id="admin-content" class="change-form">
+        <div class="container-fluid">
+            {% url 'ikwen:change_flatpage' as change_flatpage_url %}
+            {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
+            <form id="submit-page" class="admin-form" method="post" action="{{ change_flatpage_url|append_auth_tokens:request }}">{% csrf_token %}
+                <input type="hidden" name="page_id" value="{{ page.id }}" />
+                <input type="hidden" name="image_url" id="image_url" value="" />
+                {% include 'core/snippets/model_admin_form.html' %}
+                <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
+                    <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
+                </div>
+            </form>
+        </div>
     </div>
 {% endblock %}
 

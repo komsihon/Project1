@@ -7,22 +7,25 @@
 
 {% block head_style %}
     {{ block.super }}
+    <link rel='stylesheet' href="{% static 'ikwen/swiper/css/swiper.min.css' %}" />
     <style>
-        body > footer {display: none}
-        #admin-content {height: 100%; overflow: auto; position: fixed; width: 100%}
-        ul#groups {clear: both; margin-top: 45px}
-        ul#groups li.results a {color: #333}
-        ul#groups li.results span {color: #888}
+        #groups {clear: both}
+        #groups .results a {color: #333}
+        #groups .results span {color: #888}
         .tab-content .spinner {background: rgba(255, 255, 255, .6); height: 100%; margin-left: -255px; position: fixed; width: 100%}
-        ul.people {padding-left: 0}
-        #access-control {background: #fff; height: 100%; margin-top: -115px; padding: 0 15px; position: fixed; right: 0; width: 330px}
-        #access-control .stage {border-left: 1px solid #eee; float: left; height: 100%; padding: 0 15px; width: 100%}
-        #access-control form {margin: 25px 0}
-        #access-control form button {margin-top: 25px}
+        ul.people {margin: 0; padding-left: 0}
         .member.Blocked  {opacity: .72; filter:Alpha(opacity=72)}
         #group-update, #blocking {border-top: 1px solid #eee}
         #group-update h5 em {color: #888}
+        @media (min-width: 768px) {
+            #groups {clear: both; margin-top: 15px}
+        }
     </style>
+{% endblock %}
+
+{% block head_js %}
+    {{ block.super }}
+    <script src="{% static 'ikwen/swiper/js/swiper.jquery.min.js' %}"></script>
 {% endblock %}
 
 {% block breadcrumb_location %}
@@ -30,137 +33,153 @@
 {% endblock %}
 
 {% block admin_content %}
-    <div id="admin-content" class="container-fluid">
-        {% include 'core/snippets/admin_tools.html' %}
-        <ul id="groups" class="nav nav-tabs" role="tablist">
-            <li role="presentation" class="group {{ groups.0.name }} active" data-id="{{ groups.0.id }}" data-name="{{ groups.0.name }}">
-                <a href="#{{ groups.0.id }}" aria-controls="{{ groups.0.id }}" role="tab" data-toggle="tab">{% trans groups.0.name %}</a>
-            </li>
-            {% for group in groups|slice:"1:" %}
-                <li role="presentation" class="group {{ group.name }}" data-id="{{ group.id }}" data-name="{{ group.name }}">
-                    <a href="#{{ group.id }}" aria-controls="{{ group.id }}" role="tab" data-toggle="tab">{% trans group.name %}</a>
-                </li>
-            {% endfor %}
-            <li role="presentation" class="group {{ sudo_group.name }}" data-id="{{ sudo_group.id }}" data-name="{{ sudo_group.name }}">
-                <a href="#{{ sudo_group.id }}" aria-controls="{{ sudo_group.id }}" role="tab" data-toggle="tab">{{ sudo_group.name }}</a>
-            </li>
-            <li role="presentation" class="group results" data-id="results" style="display: none">
-                <a href="#results" aria-controls="results" role="tab" data-toggle="tab">{% trans "Search: " %} <span></span></a>
-            </li>
-        </ul>
-        <div class="tab-content">
-            <div role="tabpanel" class="tab-pane active" id="{{ groups.0.id }}">
-                {% include 'core/snippets/spinner.html' %}
-                <ul class="people object-list">
-                {% for obj in nonrel_perm_list %}
-                    <li id="{{ obj.user.id }}" class="member {{ obj.user.get_status }}" data-id="{{ obj.user.id }}" data-status="{{ obj.user.get_status }}"
-                        data-permissions="{% for perm in obj.permission_fk_list %},{{ perm }}{% endfor %}">
-                        {% url 'ikwen:profile' obj.user.id as member_url %}
-                    {% if obj.user.photo and obj.user.photo.name %}
-                        <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ obj.user.photo.small_name }})"></a>
-                    {% else %}
-                        <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
-                    {% endif %}
-                        <div style="float: left; margin-left: 30px">
-                            <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="full_name">{{ obj.user.full_name }}</a>
-                            <p class="about">{{ obj.user.phone }}, {{ obj.user.email }}</p>
+    <div id="admin-content" class="has-edge-panel-right">
+        <div class="container-fluid">
+            {% include 'core/snippets/admin_tools.html' %}
+            <div id="groups" class="content-tab-list ceil">
+                <div class="swiper-container">
+                    <div class="nav nav-tabs" role="tablist">
+                        <div role="presentation" class="tab group {{ groups.0.name }} active" data-id="{{ groups.0.id }}" data-name="{{ groups.0.name }}">
+                            <a href="#{{ groups.0.id }}" aria-controls="{{ groups.0.id }}" role="tab" data-toggle="tab">{% trans groups.0.name %}</a>
                         </div>
-                    </li>
-                {% endfor %}
-                    <li class="member tpl" style="display: none">
-                        <a class="photo bg-img target_url"></a>
-                        <div style="float: left; margin-left: 30px">
-                            <a class="full_name target_url"></a>
-                            <p class="about">
-                                <span class="phone"></span>, <span class="email"></span>
-                            </p>
+                        {% for group in groups|slice:"1:" %}
+                            <div role="presentation" class="tab group {{ group.name }}" data-id="{{ group.id }}" data-name="{{ group.name }}">
+                                <a href="#{{ group.id }}" aria-controls="{{ group.id }}" role="tab" data-toggle="tab">{% trans group.name %}</a>
+                            </div>
+                        {% endfor %}
+                        <div role="presentation" class="tab group {{ sudo_group.name }}" data-id="{{ sudo_group.id }}" data-name="{{ sudo_group.name }}">
+                            <a href="#{{ sudo_group.id }}" aria-controls="{{ sudo_group.id }}" role="tab" data-toggle="tab">{{ sudo_group.name }}</a>
                         </div>
-                    </li>
-                </ul>
+    {#                    <div role="presentation" class="tab group {{ sudo_group.name }}" data-id="{{ sudo_group.id }}" data-name="{{ sudo_group.name }}">#}
+    {#                        <a href="#{{ sudo_group.id }}" aria-controls="{{ sudo_group.id }}" role="tab" data-toggle="tab">{{ sudo_group.name }}</a>#}
+    {#                    </div>#}
+    {#                    <div role="presentation" class="tab group {{ sudo_group.name }}" data-id="{{ sudo_group.id }}" data-name="{{ sudo_group.name }}">#}
+    {#                        <a href="#{{ sudo_group.id }}" aria-controls="{{ sudo_group.id }}" role="tab" data-toggle="tab">{{ sudo_group.name }}</a>#}
+    {#                    </div>#}
+                        <div role="presentation" class="tab group results" data-id="results" style="display: none">
+                            <a href="#results" aria-controls="results" role="tab" data-toggle="tab">{% trans "Search: " %} <span></span></a>
+                        </div>
+                    </div>
+                </div>
             </div>
-            {% for group in groups|slice:'1:' %}
-                <div role="tabpanel" class="tab-pane" id="{{ group.id }}">
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="{{ groups.0.id }}">
+                    {% include 'core/snippets/spinner.html' %}
+                    <ul class="people object-list">
+                    {% for obj in nonrel_perm_list %}
+                        <li id="{{ obj.user.id }}" class="member {{ obj.user.get_status }}" data-id="{{ obj.user.id }}" data-status="{{ obj.user.get_status }}"
+                            data-permissions="{% for perm in obj.permission_fk_list %},{{ perm }}{% endfor %}">
+                            {% url 'ikwen:profile' obj.user.id as member_url %}
+                        {% if obj.user.photo and obj.user.photo.name %}
+                            <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ obj.user.photo.small_name }})"></a>
+                        {% else %}
+                            <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
+                        {% endif %}
+                            <div class="info">
+                                <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="full_name">{{ obj.user.full_name }}</a>
+                                <p class="about">{{ obj.user.phone }}, {{ obj.user.email }}</p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                        <li class="member tpl" style="display: none">
+                            <a class="photo bg-img target_url"></a>
+                            <div class="info">
+                                <a class="full_name target_url"></a>
+                                <p class="about">
+                                    <span class="phone"></span>, <span class="email"></span>
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                {% for group in groups|slice:'1:' %}
+                    <div role="tabpanel" class="tab-pane" id="{{ group.id }}">
+                        <ul class="people">
+                            <li class="member tpl" style="display: none">
+                                <a class="photo"></a>
+                                <div class="info">
+                                    <a class="full_name"></a>
+                                    <p class="about"></p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                {% endfor %}
+                <div role="tabpanel" class="tab-pane" id="{{ sudo_group.id }}">
+                    {% include 'core/snippets/spinner.html' %}
                     <ul class="people">
                         <li class="member tpl" style="display: none">
                             <a class="photo"></a>
-                            <div style="float: left; margin-left: 30px">
+                            <div class="info">
                                 <a class="full_name"></a>
                                 <p class="about"></p>
                             </div>
                         </li>
                     </ul>
                 </div>
-            {% endfor %}
-            <div role="tabpanel" class="tab-pane" id="{{ sudo_group.id }}">
-                {% include 'core/snippets/spinner.html' %}
-                <ul class="people">
-                    <li class="member tpl" style="display: none">
-                        <a class="photo"></a>
-                        <div style="float: left; margin-left: 30px">
-                            <a class="full_name"></a>
-                            <p class="about"></p>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-            <div role="tabpanel" class="tab-pane" id="results">
-                {% include 'core/snippets/spinner.html' %}
-                <div class="empty" style="color: #888; font-size: 18px; padding: 30px 0">{% trans "No result" %}</div>
-                <ul class="people">
-                    <li class="member tpl" style="display: none">
-                        <a class="photo bg-img target_url"></a>
-                        <div style="float: left; margin-left: 30px">
-                            <a class="full_name target_url"></a>
-                            <p class="about">
-                                <span class="phone"></span>, <span class="email"></span>
-                            </p>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div id="access-control">
-            <div class="stage">
-                <div class="empty" style="color: #888; padding-top: 30px">
-                    {% trans "Click on a member in the list to view and manage." %}
+                <div role="tabpanel" class="tab-pane" id="results">
+                    {% include 'core/snippets/spinner.html' %}
+                    <div class="empty" style="color: #888; font-size: 18px; padding: 30px 0">{% trans "No result" %}</div>
+                    <ul class="people">
+                        <li class="member tpl" style="display: none">
+                            <a class="photo bg-img target_url"></a>
+                            <div class="info">
+                                <a class="full_name target_url"></a>
+                                <p class="about">
+                                    <span class="phone"></span>, <span class="email"></span>
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
-                <div class="actions" style="display: none">
-                    <div id="permissions">
-                        <h3>{% trans "Permissions" %}</h3>
-                        <form name="permissions" onsubmit="return false">
-                            {% for perm in permissions %}
-                                <div class="form-group">
-                                    <div class="checkbox">
-                                        <label>
-                                            <input type="checkbox" id="{{ perm.id }}" value="{{ perm.id }}" /> {{ perm.name }}
-                                        </label>
-                                    </div>
+            </div>
+
+            <div class="edge-panel-right-container">
+                <div id="object-detail" class="edge-panel edge-panel-right">
+                    <div class="empty">
+                        {% trans "Click on a member in the list to view and manage." %}
+                    </div>
+                    <div class="actions" style="display: none">
+                        <h3 class="main-title">{% trans "Permissions" %}</h3>
+                        <div class="container-fluid">
+                            <div id="permissions">
+                                <form name="permissions" onsubmit="return false">
+                                    {% for perm in permissions %}
+                                        <div class="form-group">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" id="{{ perm.id }}" value="{{ perm.id }}" /> {{ perm.name }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                    <button id="set-permissions" class="btn btn-primary btn-sm btn-block">{% trans "Confirm" %}</button>
+                                </form>
+                            </div>
+                            <div id="group-update">
+                                <h5>{% trans "Group" %}: <em>{{ groups.0.name }}</em></h5>
+                                <div class="btn-group" style="width: 100%">
+                                    <button class="btn btn-warning btn-sm btn-block dropdown-toggle" style="text-align: left"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        {% trans "Move to group" %}&nbsp;&nbsp;&nbsp;...
+                                        <span class="caret pull-right" style="margin-top: 8px"></span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        {% for group in groups %}
+                                            <li role="presentation" class="group {{ group.name }}" data-id="{{ group.id }}" data-name="{{ group.name }}">
+                                                <a href="#">{{ group.name }}</a></li>
+                                        {% endfor %}
+                                    </ul>
                                 </div>
-                            {% endfor %}
-                            <button id="set-permissions" class="btn btn-primary btn-sm btn-block">{% trans "Confirm" %}</button>
-                        </form>
-                    </div>
-                    <div id="group-update">
-                        <h5>{% trans "Group" %}: <em>{{ groups.0.name }}</em></h5>
-                        <div class="btn-group">
-                            <button class="btn btn-warning btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                {% trans "Move to group" %}&nbsp;&nbsp;&nbsp;...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                <span class="caret"></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                {% for group in groups %}
-                                    <li role="presentation" class="group {{ group.name }}" data-id="{{ group.id }}" data-name="{{ group.name }}">
-                                        <a href="#">{{ group.name }}</a></li>
-                                {% endfor %}
-                            </ul>
+                            </div>
+                            <div id="blocking" style="margin-top: 45px">
+                                <h5>{% trans "Block/Activate" %}</h5>
+                                <button class="btn btn-danger btn-sm btn-block">{% trans "Block" %}</button>
+                            </div>
                         </div>
                     </div>
-                    <div id="blocking" style="margin-top: 45px">
-                        <h5>{% trans "Block/Activate" %}</h5>
-                        <button class="btn btn-danger btn-sm btn-block">{% trans "Block" %}</button>
-                    </div>
+                    <div class="clear"></div>
                 </div>
-                <div class="clear"></div>
             </div>
         </div>
     </div>
@@ -171,7 +190,7 @@
     <script type="text/javascript">
         (function() {
             $('div#admin-nav .community').addClass('active');
-            $('ul#groups').on('click', 'li', function (e) {
+            $('#groups').on('click', '.group', function (e) {
                 var groupId = $(this).data('id'),
                     groupName = $(this).data('name'),
                     count = $('div#' + groupId + ' li.member:not(.tpl)').length;
@@ -182,8 +201,8 @@
                     $('div#' + groupId + ' li.member.active').click();
                     return;
                 }
-                $('div#access-control .empty').show();
-                $('div#access-control .actions').hide();
+                $('div#object-detail .empty').show();
+                $('div#object-detail .actions').hide();
                 if (groupId == 'results') return;
                 $('body').css('cursor', 'wait');
                 $.getJSON('{% url 'ikwen:community' %}',
@@ -213,15 +232,15 @@
                     permissions = $(this).data('permissions');
                 if (permissions) permissions = permissions.split(',');
                 else permissions = [];
-                $('div#access-control form input').prop('checked', false);
+                $('div#object-detail form input').prop('checked', false);
                 for (var i=0; i<permissions.length; i++) {
                     $('#' + permissions[i]).prop('checked', true)
                 }
-                $('div#access-control button').data({"member-id": memberId, "status": status});
+                $('div#object-detail button').data({"member-id": memberId, "status": status});
                 $('div#group-update .group').data("member-id", memberId);
                 $('ul li.member').removeClass('active');
                 $(this).addClass('active');
-                $('div#access-control .empty').hide();
+                $('div#object-detail .empty').hide();
                 if (status == 'Blocked') {
                     $('div#blocking button').text("{% trans 'Activate' %}");
                     $('#permissions, #group-update').hide()
@@ -229,12 +248,15 @@
                     $('div#blocking button').text("{% trans 'Block' %}");
                     $('#permissions, #group-update').show()
                 }
-                $('div#access-control .actions').show();
+                $('div#object-detail .actions').show();
+                if ($(window).width() < 768) {
+                    ikwen.swipeInRightPanel()
+                }
             });
             $('button#set-permissions').click(function() {
                 var memberId = $(this).data('member-id'),
                     permissionIds = [];
-                $('div#access-control form input:checked').each(function() {
+                $('div#object-detail form input:checked').each(function() {
                     permissionIds.push($(this).val())
                 });
                 $.getJSON('{% url 'ikwen:set_collaborator_permissions' %}',
@@ -251,7 +273,7 @@
                     memberId = $(this).data('member-id');
                 $.getJSON('{% url 'ikwen:move_member_to_group' %}', {group_id: groupId, member_id: memberId}, function(data) {
                     if (data.success) {
-                        var activeGroupId = $('ul#groups li.active').data('id');
+                        var activeGroupId = $('div#groups .group.active').data('id');
                         if (groupId != activeGroupId) {
                             $('.member.active').remove().appendTo('#' + groupId + ' .people').click();
                         }
@@ -283,12 +305,12 @@
             }];
             function beforeSearch() {
                 var q = $('form#context-search input').val();
-                $('ul#groups li').removeClass('active');
-                $('ul#groups li.results').show().addClass('active').find('span').text(q);
+                $('div#groups .group').removeClass('active');
+                $('div#groups .group.results').show().addClass('active').find('span').text(q);
                 $('div.tab-pane').hide();
                 $('#results').show();
-                $('div#access-control .empty').show();
-                $('div#access-control .actions').hide();
+                $('div#object-detail .empty').show();
+                $('div#object-detail .actions').hide();
             }
             ikwen.setupSearch('#context-search input', '#results', searchDescriptor, beforeSearch);
         })()

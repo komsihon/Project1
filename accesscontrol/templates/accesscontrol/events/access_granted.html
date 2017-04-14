@@ -1,6 +1,7 @@
-{% load i18n staticfiles humanize %}
+{% load i18n staticfiles humanize auth_tokens %}
 {% if is_iao %}
     <div style="padding: 0 15px">
+        {% url 'ikwen:profile' member.id as profile_url  %}
         {% if group_name != 'Community' %}
             <h4 class="text-primary">{% trans "New collaborator" %}</h4>
         {% else %}
@@ -9,14 +10,14 @@
         {% with service_url=service.url  %}
         <div class="member" style="border-bottom: none; padding: 15px 0">
             {% if member.photo and member.photo.name %}
-                <a href="{% url 'ikwen:profile' member.id %}" class="photo"
+                <a href="{{ profile_url|ikwenize }}" class="photo"
                    style="background-image: url({{ IKWEN_MEDIA_URL }}{{ member.photo.small_name }}); cursor: pointer"></a>
             {% else %}
-                <a href="{% url 'ikwen:profile' member.id %}" class="photo"
+                <a href="{{ profile_url|ikwenize }}" class="photo"
                    style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %}); cursor: pointer"></a>
             {% endif %}
             <div style="margin-left: 80px">
-                <a href="{% url 'ikwen:profile' member.id %}" class="name"
+                <a href="{{ profile_url|ikwenize }}" class="name"
                    style="cursor: pointer; display: block; margin-bottom: 5px">{{ member.full_name }}</a>
                 {% url 'ikwen:community' as community_url %}
                 {% if group_name != 'Community' %}

@@ -7,38 +7,13 @@
     {{ block.super }}
     <style  type="text/css">
         #navbar .search, #navbar .navbar-right {display: none}
-        #content {margin-top: 5%}
-
-        @media (min-width: 415px) {
-            #content {
-                margin-top: 2%
-            }
-        }
-
-        @media (min-width: 992px) {
-            #content {
-                margin-top: 7%
-            }
-        }
-        #content > div {margin: auto}
-        #content form {margin-top: 25px}
-        div#login {width: 360px}
-        div#login form {border: 2px solid #dce4ec; border-radius: 4px; padding: 30px}
-        @media (max-width: 768px) {
-            #content div#login {margin: auto; width: 96%}
-        }
         label span {font-weight: normal}
         #terms-warning {color: #999; font-size: 11px}
-{#        #terms-warning a {color: #999}#}
-        #content form .hint {color: #8D96C5; font-size: 14px}
-        #content form ul.errorlist {padding-left: 0}
-        #content form ul.errorlist li {color: #FF0808; list-style-type: none}
-        form#register .country-code {color: #888; font-style: italic; font-size: 1.1em; font-weight: bold; margin: 20px 0 0 3px; position: absolute}
     </style>
 {% endblock %}
 
 {% block content %}
-    <div id="content" class="container">
+    <div id="content" class="form container">
         {% if login_form.errors %}
             <p class="failure" style="font-size: 1em; padding: 9px">{{ error_message }}</p>
         {% elif request.GET.msg %}
@@ -47,7 +22,7 @@
             <p class="success" style="font-size: 1em; padding: 9px">{% trans "Your password was successfully reset, login now." %}</p>
         {% endif %}
         {% if not request.GET.action or request.GET.action == 'login' or login_form %}
-        <div id="login">
+        <div id="login" class="form-wrapper">
             <h3 style="text-align: center">
                 <div style="margin-bottom: .3em; text-align: center">
                     {% if config.logo.name %}

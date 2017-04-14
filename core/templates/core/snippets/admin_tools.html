@@ -1,7 +1,11 @@
 {% load i18n %}
 <div id="admin-tools">
     <form id="context-search" onsubmit="return false">
-        <input type="text" class="form-input input-sm" placeholder="{% trans "Search" %}"/>
+        <div>
+            <i class="glyphicon glyphicon-search"></i>
+            <i class="glyphicon glyphicon-menu-left hide-search back"></i>
+            <input type="text" class="form-input input-sm tool search" placeholder="{% trans "Search" %}"/>
+        </div>
     </form>
     <div id="page-navigation" class="text-muted" data-page-index="1" data-page-size="{{ page_size }}">
         {% if total_objects > page_size %}
@@ -11,4 +15,5 @@
             <div>{{ total_objects }}/{{ total_objects }}</div>
         {% endif %}
     </div>
+    <div class="clearfix"></div>
 </div>
