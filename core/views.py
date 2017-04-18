@@ -37,7 +37,8 @@ from ikwen.billing.models import Invoice
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT
 from ikwen.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, AbstractConfig, Country
-from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons, add_database_to_settings
+from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons, add_database_to_settings, \
+    add_database
 import ikwen.conf.settings
 
 try:
@@ -446,8 +447,10 @@ class Console(BaseView):
 
 @login_required
 def reset_notices_counter(request, *args, **kwargs):
-    request.user.personal_notices = 0
-    request.user.save()
+    member = request.user
+    for s in member.get_services():
+        add_database(s.database)
+        Member.objects.using(s.database).filter(pk=member.id).update(personal_notices=0)
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
 

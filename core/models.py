@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import subprocess
 from django.conf import settings
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.cache import cache
@@ -6,10 +7,11 @@ from django.core.urlresolvers import reverse
 from django.db import models, router
 from django.db import transaction
 from django.db.models.signals import post_delete
-from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext_lazy as _
+from django.template.loader import get_template
+from django.template import Context
 from django_mongodb_engine.contrib import MongoDBManager
 from djangotoolbox.fields import ListField
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
@@ -310,10 +312,6 @@ class Service(models.Model):
         Update domain of a service to a new one. Rewrites the web server
         config file and reloads it.
         """
-        from django.template.loader import get_template
-        from django.template import Context
-        import subprocess
-
         previous_domain = self.domain
         apache_tpl = get_template(web_server_config_template)
         apache_context = Context({'is_naked_domain': is_naked_domain, 'domain': new_domain, 'ikwen_name': self.project_name_slug})
@@ -328,6 +326,28 @@ class Service(models.Model):
         self.url = self.url.replace(previous_domain, new_domain)
         self.admin_url = self.admin_url.replace(previous_domain, new_domain)
         self.save()
+
+    def reload_settings(self, settings_template, **kwargs):
+        """
+        Recreate the settings file from settings template and touches
+        the WSGI file to cause the server to reload the changes.
+        """
+        from ikwen.conf.settings import STATIC_ROOT, STATIC_URL, MEDIA_ROOT, MEDIA_URL
+        from ikwen.core.tools import generate_django_secret_key
+
+        secret_key = generate_django_secret_key()
+        allowed_hosts = '"%s", "www.%s"' % (self.domain, self.domain)
+        media_root = MEDIA_ROOT + self.project_name_slug + '/'
+        media_url = MEDIA_URL + self.project_name_slug + '/'
+        c = {'secret_key': secret_key, 'ikwen_name': self.project_name_slug, 'service': self,
+             'static_root': STATIC_ROOT, 'static_url': STATIC_URL, 'media_root': media_root, 'media_url': media_url,
+             'allowed_hosts': allowed_hosts, 'debug': getattr(settings, 'DEBUG', False)}
+        c.update(kwargs)
+        settings_tpl = get_template(settings_template)
+        fh = open(self.home_folder + '/conf/settings.py', 'w')
+        fh.write(settings_tpl.render(Context(c)))
+        fh.close()
+        subprocess.call(['touch', self.home_folder + '/conf/wsgi.py'])
 
 
 class AbstractConfig(Model):
