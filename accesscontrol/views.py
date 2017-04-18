@@ -13,7 +13,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
 from django.core.validators import validate_email
 from django.http.response import HttpResponseRedirect, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404
@@ -148,8 +148,8 @@ class SignIn(BaseView):
             next_url = request.REQUEST.get('next')
             if next_url:
                 return HttpResponseRedirect(next_url)
-            elif not getattr(settings, 'IS_IKWEN', False) and request.user.is_iao:
-                next_url = reverse('admin_home')
+            elif not getattr(settings, 'IS_IKWEN', False) and request.user.is_staff:
+                return staff_router(request, *args, **kwargs)
             else:
                 next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', None)
                 if next_url_view:
@@ -181,8 +181,8 @@ class SignIn(BaseView):
                 next_url = next_url.split('?')[0]
                 query_string = urlunquote(query_string).replace('next=%s' % next_url, '').strip('?').strip('&')
             else:
-                if not getattr(settings, 'IS_IKWEN', False) and member.is_iao:
-                    next_url = reverse('admin_home')
+                if not getattr(settings, 'IS_IKWEN', False) and member.is_staff:
+                    return staff_router(request, *args, **kwargs)
                 else:
                     next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', None)
                     if next_url_view:
@@ -198,6 +198,42 @@ class SignIn(BaseView):
                                         _("Invalid username/password or account inactive"))
                 context['error_message'] = error_message
             return render(request, 'accesscontrol/sign_in.html', context)
+
+
+@login_required
+def staff_router(request, *args, **kwargs):
+    """
+    This view routes Staff user to his correct homepage
+    as defined in the STAFF_ROUTER setting. Failing to
+    """
+    member = request.user
+    next_url = reverse('ikwen:staff_without_permission')
+    routes = getattr(settings, 'STAFF_ROUTER')
+    if routes:
+        for route in routes:
+            perm = routes[0]
+            url_name = route[1]
+            params = route[2] if len(route) > 2 else None
+            if member.has_perm(perm):
+                if params:
+                    if type(params) is tuple:
+                        next_url = reverse(url_name, args=params)
+                    else:  # params are supposed to be a dictionary here
+                        next_url = reverse(url_name, kwargs=params)
+                else:
+                    next_url = reverse(url_name)
+            break
+    elif member.is_superuser:
+        try:
+            next_url = reverse('sudo_home')
+        except NoReverseMatch:
+            next_url = reverse(getattr(settings, 'LOGIN_REDIRECT_URL', 'home'))
+
+    return HttpResponseRedirect(next_url)
+
+
+class StaffWithoutPermission(BaseView):
+    template_name = 'accesscontrol/staff_without_permission.html'
 
 
 class ForgottenPassword(BaseView):

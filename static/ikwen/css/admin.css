@@ -18,7 +18,8 @@ body {font-size: 13px; overflow: hidden}
     top: -65px;
     z-index: 1000;
     transition: top .3s;
-    }
+}
+.menu-button {display: block}
 #selection-control.visible {top: 0;transition: top .3s;padding-top: 20px;}
 #selection-control .clear-selection {background: url('../img/arrow-left.png');background-size: 24px; cursor: pointer;
     float: left;height: 24px;opacity: .5; width: 24px;}
@@ -161,10 +162,7 @@ footer a {color: #999}
     #selection-control {height: 65px}
     #navbar {background: #fff}
     .navbar-header > .container-fluid {padding-left: 0}
-    .menu-button {
-        display: block;
-        margin: 23px 15px 0 0;
-    }
+    .menu-button {margin: 23px 20px 0 0}
     .icon-bar {background: #888;}
     .navbar-default .navbar-nav>li>a, #navbar .glyphicon {color: #888;}
     .navbar-default .navbar-brand {color: #888;font-size: 30px;padding-top: 15px;}

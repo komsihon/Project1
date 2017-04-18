@@ -380,32 +380,37 @@ def group_history_value_list(days_value_list, group_unit='month'):
 def set_counters(watch_object, *args, **kwargs):
     now = timezone.now()
     last_reset = watch_object.counters_reset_on
+    history_fields = [field for field in watch_object.__dict__.keys() if field.endswith('_history')]
     if last_reset:
         diff = now - last_reset
         gap = diff.days
         if diff.days == 0:
             if now.day == last_reset.day:
+                for field in history_fields:
+                    if type(watch_object.__dict__[field]) is list:
+                        if len(watch_object.__dict__[field]) == 0:
+                            watch_object.__dict__[field].append(0)
+                    else:
+                        if not watch_object.__dict__[field]:
+                            watch_object.__dict__[field] = '0'
                 return
             else:
                 gap = 1
-        for arg in args:
-            if type(watch_object.__dict__[arg]) is list:
+        for field in history_fields:
+            if type(watch_object.__dict__[field]) is list:
                 extension = [0 for i in range(gap)]
                 extension = extension[-366:]
-                watch_object.__dict__[arg].extend(extension)
+                watch_object.__dict__[field].extend(extension)
             else:
                 extension = ['0' for i in range(gap)]
                 extension = extension[-366:]
-                watch_object.__dict__[arg] = watch_object.__dict__[arg] + ',' + ','.join(extension)
+                watch_object.__dict__[field] = watch_object.__dict__[field] + ',' + ','.join(extension)
     else:
-        for arg in args:
-            if type(watch_object.__dict__[arg]) is list:
-                watch_object.__dict__[arg].append(0)
+        for field in history_fields:
+            if type(watch_object.__dict__[field]) is list:
+                watch_object.__dict__[field].append(0)
             else:
-                if watch_object.__dict__[arg]:
-                    watch_object.__dict__[arg] += ',0'
-                else:
-                    watch_object.__dict__[arg] = 0
+                watch_object.__dict__[field] = '0'
     watch_object.counters_reset_on = timezone.now()
     db = router.db_for_write(watch_object.__class__, instance=watch_object)
     watch_object.save(using=db)

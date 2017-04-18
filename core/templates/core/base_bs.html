@@ -42,12 +42,14 @@
                                     <span class="icon-bar"></span>
                                 </div>
                                 {% block header_brand %}
-                                    <a class="navbar-brand" href="{{ service.url }}">{{ service.project_name }}</a>
+                                    <a class="navbar-brand" href="{{ service.url }}">
+                                        <strong>{{ service.project_name }}</strong>
+                                    </a>
                                 {% endblock %}
                                 <nav class="visible-xs pull-right">
                                     <ul id="nav-xs">
                                         <li class="show-search">
-                                            <a href="#"><i class="glyphicon glyphicon-search"></i> </a>
+                                            <i class="glyphicon glyphicon-search"></i>
                                         </li>
                                         {% if user.is_authenticated %}
                                             <li>

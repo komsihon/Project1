@@ -166,6 +166,8 @@ class Service(models.Model):
     project_name = models.CharField(max_length=60,
                                     help_text="Name of the project")
     project_name_slug = models.SlugField(unique=True)
+    home_folder = models.CharField(max_length=150, blank=True, null=True,
+                                   help_text="The absolute path to website home folder on the server")
     database = models.CharField(max_length=150, blank=True)
     domain_type = models.CharField(max_length=15, blank=True, choices=DOMAIN_TYPE_CHOICES)
     domain = models.CharField(max_length=100, unique=True, blank=True, null=True)
@@ -302,6 +304,30 @@ class Service(models.Model):
                 self.app.save()
             super(Service, self).save(using=self.database)
         super(Service, self).save(using=using, *args, **kwargs)
+
+    def update_domain(self, new_domain, is_naked_domain, web_server_config_template):
+        """
+        Update domain of a service to a new one. Rewrites the web server
+        config file and reloads it.
+        """
+        from django.template.loader import get_template
+        from django.template import Context
+        import subprocess
+
+        previous_domain = self.domain
+        apache_tpl = get_template(web_server_config_template)
+        apache_context = Context({'is_naked_domain': is_naked_domain, 'domain': new_domain, 'ikwen_name': self.project_name_slug})
+        fh = open(self.home_folder + '/apache.conf', 'w')
+        fh.write(apache_tpl.render(apache_context))
+        fh.close()
+        subprocess.call(['sudo', 'unlink', '/etc/apache2/sites-enabled/' + previous_domain + '.conf'])
+        subprocess.call(['sudo', 'ln', '-sf', self.home_folder + '/apache.conf', '/etc/apache2/sites-enabled/' + new_domain + '.conf'])
+        subprocess.call(['sudo', 'service', 'apache2', 'reload'])
+
+        self.domain = new_domain
+        self.url = self.url.replace(previous_domain, new_domain)
+        self.admin_url = self.admin_url.replace(previous_domain, new_domain)
+        self.save()
 
 
 class AbstractConfig(Model):

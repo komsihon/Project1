@@ -80,7 +80,7 @@ def request_cash_out(request, *args, **kwargs):
             msg.content_subtype = "html"
             Thread(target=lambda m: m.send(), args=(msg,)).start()
 
-        set_counters(ikwen_service, 'cash_out_history', 'cash_out_count_history')
+        set_counters(ikwen_service)
         increment_history_field(ikwen_service, 'cash_out_history', amount)
         increment_history_field(ikwen_service, 'cash_out_count_history')
     return HttpResponse(json.dumps({'success': True}), 'content-type: text/json')

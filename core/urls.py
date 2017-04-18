@@ -11,7 +11,8 @@ from ikwen.core.views import get_location_by_ip
 from ikwen.accesscontrol.views import SignIn, AccountSetup, update_info, \
     update_password, ForgottenPassword, SetNewPassword, Profile, Community, CompanyProfile, \
     grant_access, request_access, set_collaborator_permissions, move_member_to_group, toggle_member, \
-    list_collaborators, MemberList, load_member_detail, AccessRequestList, deny_access, Register
+    list_collaborators, MemberList, load_member_detail, AccessRequestList, deny_access, Register, StaffWithoutPermission, \
+    staff_router
 from ikwen.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, \
     ServiceExpired, reset_notices_counter, get_queued_sms, LegalMentions, TermsAndConditions, Configuration, \
     upload_customization_image, list_projects, upload_image, load_event_content
@@ -50,6 +51,8 @@ urlpatterns = patterns(
     url(r'^flatPage/$', permission_required('accesscontrol.sudo')(ChangeFlatPage.as_view()), name='change_flatpage'),
     url(r'^flatPage/(?P<page_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(ChangeFlatPage.as_view()), name='change_flatpage'),
     url(r'^list_collaborators$', list_collaborators, name='list_collaborators'),
+    url(r'^staffRouter/$', staff_router, name='staff_router'),
+    url(r'^staffWithoutPermission/$', StaffWithoutPermission.as_view(), name='staff_without_permission'),
 
     url(r'^customers/$', MemberList.as_view(), name='member_list'),
     url(r'^load_member_detail$', load_member_detail, name='load_member_detail'),

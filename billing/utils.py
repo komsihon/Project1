@@ -488,41 +488,37 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months):
         service_partner = Service.objects.using(partner.database).get(pk=service_umbrella.id)
         app_partner = service_partner.app
 
-        set_counters(service_partner, 'invoice_earnings_history', 'earnings_history', 'invoice_count_history')
+        set_counters(service_partner)
         increment_history_field(service_partner, 'invoice_earnings_history', partner_earnings)
         increment_history_field(service_partner, 'earnings_history', partner_earnings)
         increment_history_field(service_partner, 'invoice_count_history')
 
-        set_counters(app_partner, 'invoice_earnings_history', 'earnings_history', 'invoice_count_history')
+        set_counters(app_partner)
         increment_history_field(app_partner, 'invoice_earnings_history', partner_earnings)
         increment_history_field(app_partner, 'earnings_history', partner_earnings)
         increment_history_field(app_partner, 'invoice_count_history')
 
-        set_counters(partner, 'turnover_history', 'invoice_earnings_history',
-                     'earnings_history', 'invoice_count_history')
+        set_counters(partner)
         increment_history_field(partner, 'turnover_history', invoice.amount)
         increment_history_field(partner, 'invoice_earnings_history', ikwen_earnings)
         increment_history_field(partner, 'earnings_history', ikwen_earnings)
         increment_history_field(partner, 'invoice_count_history')
 
         partner_app = partner.app  # This is going to be the ikwen core/retail app
-        set_counters(partner_app, 'turnover_history', 'invoice_earnings_history',
-                     'earnings_history', 'invoice_count_history')
+        set_counters(partner_app)
         increment_history_field(partner_app, 'turnover_history', invoice.amount)
         increment_history_field(partner_app, 'invoice_earnings_history', ikwen_earnings)
         increment_history_field(partner_app, 'earnings_history', ikwen_earnings)
         increment_history_field(partner_app, 'invoice_count_history')
 
-    set_counters(service_umbrella, 'turnover_history', 'invoice_earnings_history',
-                 'earnings_history', 'invoice_count_history')
+    set_counters(service_umbrella)
     increment_history_field(service_umbrella, 'turnover_history', invoice.amount)
     increment_history_field(service_umbrella, 'invoice_earnings_history', ikwen_earnings)
     increment_history_field(service_umbrella, 'earnings_history', ikwen_earnings)
     increment_history_field(service_umbrella, 'invoice_count_history')
 
     app_umbrella = service_umbrella.app  # The app powering the site that is paying the invoice
-    set_counters(app_umbrella, 'turnover_history', 'invoice_earnings_history',
-                 'earnings_history', 'invoice_count_history')
+    set_counters(app_umbrella)
     increment_history_field(app_umbrella, 'turnover_history', invoice.amount)
     increment_history_field(app_umbrella, 'invoice_earnings_history', ikwen_earnings)
     increment_history_field(app_umbrella, 'earnings_history', ikwen_earnings)
@@ -543,7 +539,7 @@ def _share_payment_and_set_stats_other(invoice):
 
     config.raise_balance(service_earnings)
 
-    set_counters(service, 'turnover_history', 'earnings_history', 'invoice_count_history')
+    set_counters(service)
     increment_history_field(service, 'turnover_history', invoice.amount)
     increment_history_field(service, 'earnings_history', service_earnings)
     increment_history_field(service, 'invoice_count_history')
@@ -559,46 +555,40 @@ def _share_payment_and_set_stats_other(invoice):
 
         partner_profile_umbrella.raise_balance(partner_earnings)
 
-        set_counters(service_partner, 'turnover_history', 'transaction_earnings_history',
-                     'earnings_history', 'transaction_count_history')
+        set_counters(service_partner)
         increment_history_field(service_partner, 'turnover_history', invoice.amount)
         increment_history_field(service_partner, 'earnings_history', partner_earnings)
         increment_history_field(service_partner, 'transaction_earnings_history', partner_earnings)
         increment_history_field(service_partner, 'transaction_count_history')
 
         app_partner = service_partner.app
-        set_counters(app_partner, 'turnover_history', 'transaction_earnings_history',
-                     'earnings_history', 'transaction_count_history')
+        set_counters(app_partner)
         increment_history_field(app_partner, 'turnover_history', invoice.amount)
         increment_history_field(app_partner, 'earnings_history', partner_earnings)
         increment_history_field(app_partner, 'transaction_earnings_history', partner_earnings)
         increment_history_field(app_partner, 'transaction_count_history')
 
-        set_counters(partner_umbrella, 'turnover_history', 'transaction_earnings_history',
-                     'earnings_history', 'transaction_count_history')
+        set_counters(partner_umbrella)
         increment_history_field(partner_umbrella, 'turnover_history', invoice.amount)
         increment_history_field(partner_umbrella, 'earnings_history', ikwen_earnings)
         increment_history_field(partner_umbrella, 'transaction_earnings_history', ikwen_earnings)
         increment_history_field(partner_umbrella, 'transaction_count_history')
 
         partner_app_umbrella = partner_umbrella.app
-        set_counters(partner_app_umbrella, 'turnover_history', 'transaction_earnings_history',
-                     'earnings_history', 'transaction_count_history')
+        set_counters(partner_app_umbrella)
         increment_history_field(partner_app_umbrella, 'turnover_history', invoice.amount)
         increment_history_field(partner_app_umbrella, 'earnings_history', ikwen_earnings)
         increment_history_field(partner_app_umbrella, 'transaction_earnings_history', ikwen_earnings)
         increment_history_field(partner_app_umbrella, 'transaction_count_history')
 
-    set_counters(service_umbrella, 'turnover_history', 'transaction_earnings_history',
-                 'earnings_history', 'transaction_count_history')
+    set_counters(service_umbrella)
     increment_history_field(service_umbrella, 'turnover_history', invoice.amount)
     increment_history_field(service_umbrella, 'earnings_history', ikwen_earnings)
     increment_history_field(service_umbrella, 'transaction_earnings_history', ikwen_earnings)
     increment_history_field(service_umbrella, 'transaction_count_history')
 
     app_umbrella = service_umbrella.app
-    set_counters(app_umbrella, 'turnover_history', 'transaction_earnings_history',
-                 'earnings_history', 'transaction_count_history')
+    set_counters(app_umbrella)
     increment_history_field(app_umbrella, 'turnover_history', invoice.amount)
     increment_history_field(app_umbrella, 'earnings_history', ikwen_earnings)
     increment_history_field(app_umbrella, 'transaction_earnings_history', ikwen_earnings)

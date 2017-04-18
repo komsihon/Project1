@@ -9,10 +9,10 @@ from ikwen.core.utils import increment_history_field, calculate_watch_info, rank
 
 
 class WatchObject(models.Model):
-    history1 = models.CharField(max_length=20)
-    history2 = ListField()
-    total_history1 = models.IntegerField(default=0)
-    total_history2 = models.IntegerField(default=0)
+    val1_history = models.CharField(max_length=20)
+    val2_history = ListField()
+    total_val1 = models.IntegerField(default=0)
+    total_val2 = models.IntegerField(default=0)
 
     class Meta:
         app_label = 'core'
@@ -20,8 +20,8 @@ class WatchObject(models.Model):
 
 def init_watch_object():
     watch_object = WatchObject()
-    watch_object.history1 = '18,9,57,23,46'
-    watch_object.history2 = [18, 9, 57, 23, 46]
+    watch_object.val1_history = '18,9,57,23,46'
+    watch_object.val2_history = [18, 9, 57, 23, 46]
     return watch_object
 
 
@@ -46,19 +46,19 @@ class CoreUtilsTestCase(unittest.TestCase):
         Last element of the report fields are incremented by the number passed as parameter
         """
         watch_object = init_watch_object()
-        increment_history_field(watch_object, 'history1', 10)
-        increment_history_field(watch_object, 'history2', 10)
-        self.assertEqual(watch_object.history1, '18,9,57,23,56.0')
-        self.assertListEqual(watch_object.history2, [18, 9, 57, 23, 56])
-        self.assertEqual(watch_object.total_history1, 10)
-        self.assertEqual(watch_object.total_history2, 10)
+        increment_history_field(watch_object, 'val1_history', 10)
+        increment_history_field(watch_object, 'val2_history', 10)
+        self.assertEqual(watch_object.val1_history, '18,9,57,23,56.0')
+        self.assertListEqual(watch_object.val2_history, [18, 9, 57, 23, 56])
+        self.assertEqual(watch_object.total_val1, 10)
+        self.assertEqual(watch_object.total_val2, 10)
 
     def test_calculate_watch_info_with_less_history_values_than_period(self):
         watch_object = init_watch_object()
-        watch_info0 = calculate_watch_info(watch_object.history2)
-        watch_info1 = calculate_watch_info(watch_object.history2, duration=1)
-        watch_info7 = calculate_watch_info(watch_object.history2, duration=7)
-        watch_info28 = calculate_watch_info(watch_object.history2, duration=28)
+        watch_info0 = calculate_watch_info(watch_object.val2_history)
+        watch_info1 = calculate_watch_info(watch_object.val2_history, duration=1)
+        watch_info7 = calculate_watch_info(watch_object.val2_history, duration=7)
+        watch_info28 = calculate_watch_info(watch_object.val2_history, duration=28)
 
         self.assertDictEqual(watch_info0, {'total': 46, 'change': None, 'change_rate': None})
         self.assertDictEqual(watch_info1, {'total': 23, 'change': None, 'change_rate': None})
@@ -67,11 +67,11 @@ class CoreUtilsTestCase(unittest.TestCase):
 
     def test_calculate_watch_info_with_sufficient_history_values(self):
         watch_object = init_watch_object()
-        watch_object.history2 = list(range(57))
-        watch_info0 = calculate_watch_info(watch_object.history2)
-        watch_info1 = calculate_watch_info(watch_object.history2, duration=1)
-        watch_info7 = calculate_watch_info(watch_object.history2, duration=7)
-        watch_info28 = calculate_watch_info(watch_object.history2, duration=28)
+        watch_object.val2_history = list(range(57))
+        watch_info0 = calculate_watch_info(watch_object.val2_history)
+        watch_info1 = calculate_watch_info(watch_object.val2_history, duration=1)
+        watch_info7 = calculate_watch_info(watch_object.val2_history, duration=7)
+        watch_info28 = calculate_watch_info(watch_object.val2_history, duration=28)
 
         t0_28 = sum(range(28))
         t28_56 = sum(range(28, 56))
@@ -82,17 +82,17 @@ class CoreUtilsTestCase(unittest.TestCase):
 
     def test_calculate_rank_watch_objects(self):
         wo1 = WatchObject()
-        wo1.history2 = list(range(57))
+        wo1.val2_history = list(range(57))
         wo2 = WatchObject()
-        wo2.history2 = list(range(56, -1, -1))
+        wo2.val2_history = list(range(56, -1, -1))
         wo3 = WatchObject()
-        wo3.history2 = list(range(0, 110, 2))
+        wo3.val2_history = list(range(0, 110, 2))
 
         l = [wo1, wo2, wo3]
-        ranked_watch_objects0 = rank_watch_objects(l, 'history2')
-        ranked_watch_objects1 = rank_watch_objects(l, 'history2', 1)
-        ranked_watch_objects7 = rank_watch_objects(l, 'history2', 7)
-        ranked_watch_objects28 = rank_watch_objects(l, 'history2', 28)
+        ranked_watch_objects0 = rank_watch_objects(l, 'val2_history')
+        ranked_watch_objects1 = rank_watch_objects(l, 'val2_history', 1)
+        ranked_watch_objects7 = rank_watch_objects(l, 'val2_history', 7)
+        ranked_watch_objects28 = rank_watch_objects(l, 'val2_history', 28)
 
         self.assertListEqual([wo3, wo1, wo2], ranked_watch_objects0)
         self.assertListEqual([wo3, wo1, wo2], ranked_watch_objects1)
@@ -104,19 +104,19 @@ class CoreUtilsTestCase(unittest.TestCase):
         now = timezone.now()
         yesterday = now - timedelta(days=1)
         watch_object.counters_reset_on = now
-        set_counters(watch_object, 'history1', 'history2')
-        self.assertEqual(watch_object.history1, '18,9,57,23,46')
-        self.assertListEqual(watch_object.history2, [18, 9, 57, 23, 46])
+        set_counters(watch_object)
+        self.assertEqual(watch_object.val1_history, '18,9,57,23,46')
+        self.assertListEqual(watch_object.val2_history, [18, 9, 57, 23, 46])
         watch_object.counters_reset_on = yesterday
-        set_counters(watch_object, 'history1', 'history2')
-        self.assertEqual(watch_object.history1, '18,9,57,23,46,0')
-        self.assertListEqual(watch_object.history2, [18, 9, 57, 23, 46, 0])
+        set_counters(watch_object)
+        self.assertEqual(watch_object.val1_history, '18,9,57,23,46,0')
+        self.assertListEqual(watch_object.val2_history, [18, 9, 57, 23, 46, 0])
 
     # def test_group_history_value_list(self):
     #     watch_object = init_watch_object()
-    #     watch_object.history2 = list(range(57))
-    #     grouped_monthly = group_history_value_list(watch_object.history2)
-    #     grouped_weekly = group_history_value_list(watch_object.history2, group_unit='week')
+    #     watch_object.val2_history = list(range(57))
+    #     grouped_monthly = group_history_value_list(watch_object.val2_history)
+    #     grouped_weekly = group_history_value_list(watch_object.val2_history, group_unit='week')
     #
     #     # monthly = [1, sum(range(1, 29)), sum(range(29, 57))]
     #     weekly = [0, sum(range(1, 8)), sum(range(8, 15)), sum(range(15, 22)), sum(range(22, 29)),
