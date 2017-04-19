@@ -10,7 +10,7 @@
 		{% block head_style %}
             <link rel='stylesheet' href="{% static 'ikwen/font-awesome/css/font-awesome.min.css' %}" />
             <link rel='stylesheet' href="{% static 'ikwen/css/flatly.bootstrap.min.css' %}" />
-            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}" />
+            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}?v=17.4" />
 		{% endblock %}
         {% block head_js %}
             <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -188,7 +188,9 @@
         {% endblock %}
         <div class="edge-swipe-overlay"></div>
         <script src="{% static 'ikwen/js/bootstrap.min.js' %}"></script>
-        <script src="{% static 'ikwen/js/ikwen-util.js' %}"></script>
+        <script src="{% static 'ikwen/hammerjs/hammer.min.js' %}"></script>
+        <script src="{% static 'ikwen/hammerjs/jquery.hammer.js' %}"></script>
+        <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=17.4"></script>
         {% block js %}
             <script>
                 (function() {

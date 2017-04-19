@@ -13,7 +13,7 @@
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
-    <link href="{% static 'ikwen/css/admin.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <link href="{% static 'ikwen/css/admin.css' %}?v=17.4" media="screen" rel="stylesheet" type="text/css" />
     <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
 {% endblock %}
 
@@ -179,18 +179,6 @@
             }).on('click', '.ik-li .trash', function() {
                 var selection = $(this).parents('.ik-li').data('id');
                 deleteSelection(selection);
-            }).on('click', '.menu-button', function() {
-                $('.edge-swipe-overlay').fadeIn('fast');
-                $('.edge-panel-left').show().animate({marginLeft: 0}, 'fast');
-            }).on('click', '.edge-swipe-overlay', function(e) {
-                var elt = e.target.className;
-                if (elt.indexOf('edge-swipe-overlay') >= 0 || elt.indexOf('close') >= 0) {
-                    $('.edge-panel-left').animate({marginLeft: '-300px'}, 'fast');
-                    if ($(window).width() < 768) {
-                        $('.edge-panel-right').animate({marginRight: '-300px'}, 'fast');
-                    }
-                    $('.edge-swipe-overlay').fadeOut('fast');
-                }
             });
 
             $('#admin-tools').on('click', '.glyphicon-search', function() {

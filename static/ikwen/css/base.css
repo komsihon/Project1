@@ -198,7 +198,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     .ik-li .meta {display: block}
     .input-sm {font-size: 15px}
     #navbar > .container-fluid {padding: 0;}
-    .navbar-default .navbar-brand {max-width: 115px;overflow: hidden;}
+    .navbar-default .navbar-brand {max-width: 115px;overflow: hidden;padding-left: 0;}
     .navbar-default .navbar-brand > * {float: left; width: 300%}
     .container-fluid > strong.navbar-header {float: left;margin-left: 0;}
     #navbar-results {border-top: 1px solid #eee}
@@ -255,7 +255,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     #site-menu {background:none; }
     .glyphicon + .label {margin: -15px 0 0 15px;position: absolute;}
     #content.container {padding-top: 75px;}
-    .edge-panel-right {display: block; margin-right: 0}
+    .edge-panel-right {display: block;margin-right: 0;z-index: 20;}
     .tiles .ik-li {height: 280px;width: 33.33%;}
     .nav > .tab > a {padding: 10px 15px}
 }
