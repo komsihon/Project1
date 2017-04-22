@@ -8,9 +8,6 @@
     {{ block.super }}
     <style type="text/css">
         body {background: #f6f6f6}
-        @media (min-width: 1200px) {
-            #admin-content {padding-left: 40px}
-        }
         section div.row {height: 30px}
         section label+span {color: #888}
         section em {font-size: 12px}
@@ -23,118 +20,120 @@
 {% endblock %}
 
 {% block admin_content %}
-    <div id="admin-content" class="container-fluid">
-        <div id="stage">
-            <section class="general subtle-shade">
-                <div class="update-result">
-                    <p class="message hidden"></p>
-                </div>
-                <header>
-                    <h3> {% trans "General" %} </h3>
-{#                    <span class="icon" style="background-position: -177px 0"></span>#}
-                </header>
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Application" %}</label>
-                    <span>
-                        <span> {{ service.app.name }} </span>
-                    </span>
-                </div>
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Project name" %}</label>
-                    <span>{{ service.project_name }}</span>
-                </div>
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Online since" %}</label>
-                    <span> {{ service.since }} </span>
-                </div>
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "API Signature" %}</label>
-                    <span> {{ service.api_signature }} </span>
-                </div>
-{#                <div class="detail">#}
-{#                    <label class="name">{% trans "Admin" %}</label>#}
-{#                    <span> <a href="{{ service.admin_url }}">Access</a> </span>#}
-{#                </div>#}
-            </section>
-            <section id="billing" class="subtle-shade">
-                <header>
-                    <h3 style="float: left"> {% trans "Billing" %} </h3>
-                    {% if service.expired %}<span class="label label-danger" style="float: right">{% trans "Expired" %}</span>{% endif %}
-                    {#                    {% url 'billing:invoice_list' service.id as invoice_list_url %}#}
-                    {#                    <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}" target="_blank">{% trans "Pay your invoice" %}</a>#}
-                    <div class="clear"></div>
-                </header>
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Version" %}</label>
-                    <span>
-                        {{ service.version }}
-{#                        {% if service.version == 'Trial' %}#}
-{#                            - <a href="{% url 'ikwen:invoice_list' %}"> {% trans 'Activate full version' %} </a>#}
-{#                        {% endif %}#}
-                    </span>
-                </div>
-                {% if service.version != 'Free' %}
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Monthly cost" %}</label>
-                    <span>{{ currency_symbol }}{{ service.monthly_cost|intcomma }}</span>
-                </div>
-                <div class="detail billing-cycle row">
-                    <label class="col-sm-3">{% trans "Billing cycle" %}</label>
-                    <span>
-                        {% trans service.billing_cycle %}
-                        - <a class="action-edit" href="#"> {% trans "Change" %} </a>
-                    </span>
-                </div>
-                <div class="edit billing-cycle hidden row" style="height: 45px">
-                    <div class="col-sm-3" style="margin-right: 6px">
-                        <label for="billing-cycle" class="sr-only">New billing cycle</label>
-                        <select id="billing-cycle" class="form-control input-sm">
-                        {% for bc in billing_cycles %}
-                            <option value="{{ bc.0 }}">{{ bc.1 }}</option>
-                        {% endfor %}
-                        </select>
+    <div id="admin-content">
+        <div class="container-fluid">
+            <div id="stage">
+                <section class="general subtle-shade">
+                    <div class="update-result">
+                        <p class="message hidden"></p>
                     </div>
-                    <div class="buttons col-sm-7">
-                        <button field="city_id" class="btn btn-sm btn-primary"> OK </button>
-                        <button class="btn btn-sm btn-default">{% trans "Cancel" %}</button>
-                    </div>
-                </div>
-                <div class="detail row" style="clear: both">
-                    <label class="col-sm-3">{% trans "Last payment" %}</label>
-                    {% if service.last_payment %}<span>{{ service.last_payment }}</span>{% else %}<span>N/A</span>{% endif %}
-                </div>
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Expiry" %}</label>
-                    {% if service.expiry %}
-                        <span>{{ service.expiry }} <em style="font-size: 11px">({{ service.expiry }})</em></span>
-                    {% else %}
-                        <span>N/A</span>
-                    {% endif %}
-                </div>
-{#                <div class="detail row">#}
-{#                    <label class="col-sm-3">{% trans "Next invoice" %}</label>#}
-{#                    {% if service.next_invoice_on %}#}
-{#                        <span>{{ service.next_invoice_on }} <em style="font-size: 11px">({{ currency_symbol }}{{ service.next_invoice_amount|intcomma }})</em></span>#}
-{#                    {% else %}#}
-{#                        <span>N/A</span>#}
-{#                    {% endif %}#}
-{#                </div>#}
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Invoices" %}</label>
-                    {% if service.pending_invoice_count > 0 %}
+                    <header>
+                        <h3> {% trans "General" %} </h3>
+    {#                    <span class="icon" style="background-position: -177px 0"></span>#}
+                    </header>
+                    <div class="detail row">
+                        <label class="col-sm-3">{% trans "Application" %}</label>
                         <span>
-                            <strong>{{ service.pending_invoice_count }} {% trans "Pending" %}</strong>
-                            {% url 'billing:invoice_list' as invoice_list_url %}
-                            - <a href="{{ invoice_list_url|ikwenize }}" target="_blank"> {% trans 'See' %} </a>
+                            <span> {{ service.app.name }} </span>
                         </span>
-                    {% else %}
-                        <span>N/A</span>
+                    </div>
+                    <div class="detail row">
+                        <label class="col-sm-3">{% trans "Project name" %}</label>
+                        <span>{{ service.project_name }}</span>
+                    </div>
+                    <div class="detail row">
+                        <label class="col-sm-3">{% trans "Online since" %}</label>
+                        <span> {{ service.since }} </span>
+                    </div>
+                    <div class="detail row">
+                        <label class="col-sm-3">{% trans "API Signature" %}</label>
+                        <span> {{ service.api_signature }} </span>
+                    </div>
+    {#                <div class="detail">#}
+    {#                    <label class="name">{% trans "Admin" %}</label>#}
+    {#                    <span> <a href="{{ service.admin_url }}">Access</a> </span>#}
+    {#                </div>#}
+                </section>
+                <section id="billing" class="subtle-shade">
+                    <header>
+                        <h3 style="float: left"> {% trans "Billing" %} </h3>
+                        {% if service.expired %}<span class="label label-danger" style="float: right">{% trans "Expired" %}</span>{% endif %}
+                        {#                    {% url 'billing:invoice_list' service.id as invoice_list_url %}#}
+                        {#                    <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}" target="_blank">{% trans "Pay your invoice" %}</a>#}
+                        <div class="clear"></div>
+                    </header>
+                    <div class="detail row">
+                        <label class="col-sm-3">{% trans "Version" %}</label>
+                        <span>
+                            {{ service.version }}
+    {#                        {% if service.version == 'Trial' %}#}
+    {#                            - <a href="{% url 'ikwen:invoice_list' %}"> {% trans 'Activate full version' %} </a>#}
+    {#                        {% endif %}#}
+                        </span>
+                    </div>
+                    {% if service.version != 'Free' %}
+                    <div class="detail row">
+                        <label class="col-sm-3">{% trans "Monthly cost" %}</label>
+                        <span>{{ currency_symbol }} {{ service.monthly_cost|intcomma }}</span>
+                    </div>
+                    <div class="detail billing-cycle row">
+                        <label class="col-sm-3">{% trans "Billing cycle" %}</label>
+                        <span>
+                            {% trans service.billing_cycle %}
+                            - <a class="action-edit" href="#"> {% trans "Change" %} </a>
+                        </span>
+                    </div>
+                    <div class="edit billing-cycle hidden row" style="height: 45px">
+                        <div class="col-sm-3" style="margin-right: 6px">
+                            <label for="billing-cycle" class="sr-only">New billing cycle</label>
+                            <select id="billing-cycle" class="form-control input-sm">
+                            {% for bc in billing_cycles %}
+                                <option value="{{ bc.0 }}">{{ bc.1 }}</option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                        <div class="buttons col-sm-7">
+                            <button field="city_id" class="btn btn-sm btn-primary"> OK </button>
+                            <button class="btn btn-sm btn-default">{% trans "Cancel" %}</button>
+                        </div>
+                    </div>
+                    <div class="detail row" style="clear: both">
+                        <label class="col-sm-3">{% trans "Last payment" %}</label>
+                        {% if service.last_payment %}<span>{{ service.last_payment }}</span>{% else %}<span>N/A</span>{% endif %}
+                    </div>
+                    <div class="detail row">
+                        <label class="col-sm-3">{% trans "Expiry" %}</label>
+                        {% if service.expiry %}
+                            <span>{{ service.expiry }} <em style="font-size: 11px">({{ service.expiry }})</em></span>
+                        {% else %}
+                            <span>N/A</span>
+                        {% endif %}
+                    </div>
+    {#                <div class="detail row">#}
+    {#                    <label class="col-sm-3">{% trans "Next invoice" %}</label>#}
+    {#                    {% if service.next_invoice_on %}#}
+    {#                        <span>{{ service.next_invoice_on }} <em style="font-size: 11px">({{ currency_symbol }}{{ service.next_invoice_amount|intcomma }})</em></span>#}
+    {#                    {% else %}#}
+    {#                        <span>N/A</span>#}
+    {#                    {% endif %}#}
+    {#                </div>#}
+                    <div class="detail row">
+                        <label class="col-sm-3">{% trans "Invoices" %}</label>
+                        {% if service.pending_invoice_count > 0 %}
+                            <span>
+                                <strong>{{ service.pending_invoice_count }} {% trans "Pending" %}</strong>
+                                {% url 'billing:invoice_list' as invoice_list_url %}
+                                - <a href="{{ invoice_list_url|ikwenize }}" target="_blank"> {% trans 'See' %} </a>
+                            </span>
+                        {% else %}
+                            <span>N/A</span>
+                        {% endif %}
+                    </div>
                     {% endif %}
-                </div>
-                {% endif %}
-            </section>
+                </section>
+            </div>
         </div>
-        <div class="clear"></div>
+        <div class="clearfix"></div>
     </div>
 {% endblock %}
 {% block js %}

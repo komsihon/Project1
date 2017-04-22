@@ -224,15 +224,17 @@
             $('.edge-swipe-overlay').fadeOut('fast');
         }
     });
-    $('.edge-swipe-overlay').hammer().bind("swipeleft", function() {
-        $('.edge-panel-left').animate({marginLeft: '-300px'}, 'fast');
-        $('.edge-swipe-overlay').fadeOut('fast');
-    }).bind("swiperight", function() {
-        if ($(window).width() < 768) {
-            $('.edge-panel-right').animate({marginRight: '-300px'}, 'fast');
+    try {
+        $('.edge-swipe-overlay').hammer().bind("swipeleft", function() {
+            $('.edge-panel-left').animate({marginLeft: '-300px'}, 'fast');
             $('.edge-swipe-overlay').fadeOut('fast');
-        }
-    });
+        }).bind("swiperight", function() {
+            if ($(window).width() < 768) {
+                $('.edge-panel-right').animate({marginRight: '-300px'}, 'fast');
+                $('.edge-swipe-overlay').fadeOut('fast');
+            }
+        });
+    } catch (e) {}
 
     /**
      * Appends authentication tokens to "href" of all A elements

@@ -204,7 +204,7 @@ class Service(models.Model):
 
     transaction_count_history = ListField(editable=False)
     invoice_count_history = ListField(editable=False)
-    customer_service_count_history = ListField(editable=False)
+    custom_service_count_history = ListField(editable=False)
     cash_out_count_history = ListField(editable=False)
 
     total_turnover = models.IntegerField(default=0)
@@ -243,17 +243,21 @@ class Service(models.Model):
         config = self.config
         var['logo'] = config.logo.url if config.logo.name else Service.LOGO_PLACEHOLDER
         var['short_description'] = config.short_description
-        del(var['database'])
-        del(var['turnover_history'])
-        del(var['earnings_history'])
-        del(var['transaction_earnings_history'])
-        del(var['invoice_earnings_history'])
-        del(var['custom_service_earnings_history'])
-        del(var['cash_out_history'])
-        del(var['transaction_count_history'])
-        del(var['invoice_count_history'])
-        del(var['customer_service_count_history'])
-        del(var['cash_out_count_history'])
+        try:
+            del(var['database'])
+            del(var['turnover_history'])
+            del(var['earnings_history'])
+            del(var['transaction_earnings_history'])
+            del(var['invoice_earnings_history'])
+            del(var['custom_service_earnings_history'])
+            del(var['cash_out_history'])
+            del(var['transaction_count_history'])
+            del(var['invoice_count_history'])
+            del(var['custom_service_count_history'])
+            del(var['cash_out_count_history'])
+        except Exception as e:
+            if getattr(settings, 'DEBUG', False):
+                raise e
         return var
 
     def _get_created_on(self):

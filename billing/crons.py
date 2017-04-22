@@ -7,7 +7,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
 
 from datetime import datetime, timedelta
 from django.conf import settings
-from django.db.models import Q
 from django.contrib.auth.models import Group
 from django.core import mail
 from django.core.mail import EmailMessage
@@ -25,7 +24,6 @@ from ikwen.billing.models import Invoice, InvoicingConfig, INVOICES_SENT_EVENT, 
 from ikwen.billing.utils import get_invoice_generated_message, get_invoice_reminder_message, get_invoice_overdue_message, \
     get_service_suspension_message, get_next_invoice_number, get_subscription_model, get_billing_cycle_months_count
 
-import logging
 import logging.handlers
 error_log = logging.getLogger('crons.error')
 error_log.setLevel(logging.ERROR)
@@ -53,8 +51,11 @@ def send_invoices():
         error_log.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
     reminder_date_time = now + timedelta(days=invoicing_config.gap)
-    for subscription in Subscription.objects.filter(Q(status=Subscription.ACTIVE) | Q(status=Subscription.PENDING),
-                                                    monthly_cost__gt=0, expiry=reminder_date_time.date()):
+    subscription_qs = Subscription.objects.filter(status=Subscription.ACTIVE,
+                                                    monthly_cost__gt=0, expiry=reminder_date_time.date())
+    print "%d Service candidate for invoice issuance." % subscription_qs.count()
+    for subscription in subscription_qs:
+        print "Processing %s" % str(subscription)
         member = subscription.member
         number = get_next_invoice_number()
         months_count = None
@@ -76,8 +77,9 @@ def send_invoices():
         count += 1
         total_amount += amount
         add_event(service, NEW_INVOICE_EVENT, member=member, object_id=invoice.id)
+        print "Event posted to %s's Console" % member.username
         subject, message, sms_text = get_invoice_generated_message(invoice)
-        if member.email and member.email.find(member.phone) < 0:
+        if member.email:
             invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
             html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                             extra_context={'invoice_url': invoice_url})
@@ -87,13 +89,17 @@ def send_invoices():
             msg = EmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
             invoice.last_reminder = timezone.now()
+            print "Sending mail to %s" % member.email
             try:
                 if msg.send():
+                    print "Mail sent to %s" % member.email
                     invoice.reminders_sent = 1
                 else:
+                    print "Sending mail to %s failed" % member.email
                     error_log.error(u"Invoice #%s generated but mail not sent to %s" % (number, member.email),
                                     exc_info=True)
             except:
+                print "Sending mail to %s failed" % member.email
                 error_log.error(u"Connexion error on Invoice #%s to %s" % (number, member.email), exc_info=True)
             invoice.save()
         if sms_text:
@@ -131,16 +137,19 @@ def send_invoice_reminders():
     except:
         error_log.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
-    for invoice in Invoice.objects.filter(status=Invoice.PENDING, due_date__gte=now.date(),
-                                          last_reminder__isnull=False):
+    invoice_qs = Invoice.objects.filter(status=Invoice.PENDING, due_date__gte=now.date(), last_reminder__isnull=False)
+    print "%d invoice(s) candidate for reminder." % invoice_qs.count()
+    for invoice in invoice_qs:
         diff = now - invoice.last_reminder
         if diff.days == invoicing_config.reminder_delay:
+            print "Processing invoice for Service %s" % str(invoice.subscription)
             count += 1
             total_amount += invoice.amount
             member = invoice.subscription.member
             add_event(service, INVOICE_REMINDER_EVENT, member=member, object_id=invoice.id)
+            print "Event posted to %s's Console" % member.username
             subject, message, sms_text = get_invoice_reminder_message(invoice)
-            if member.email and member.email.find(member.phone) < 0:
+            if member.email:
                 invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'invoice_url': invoice_url})
@@ -150,12 +159,16 @@ def send_invoice_reminders():
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
                 invoice.last_reminder = timezone.now()
+                print "Sending mail to %s" % member.email
                 try:
                     if msg.send():
+                        print "Mail sent to %s" % member.email
                         invoice.reminders_sent += 1
                     else:
+                        print "Sending mail to %s failed" % member.email
                         error_log.error(u"Reminder mail for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
                 except:
+                    print "Sending mail to %s failed" % member.email
                     error_log.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
                 invoice.save()
             if sms_text:
@@ -187,19 +200,23 @@ def send_invoice_overdue_notices():
     except:
         error_log.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
-    for invoice in Invoice.objects.filter(status=Invoice.PENDING, due_date__lt=now, overdue_notices_sent__lt=3):
+    invoice_qs = Invoice.objects.filter(status=Invoice.PENDING, due_date__lt=now, overdue_notices_sent__lt=3)
+    print "%d invoice(s) candidate for overdue notice." % invoice_qs.count()
+    for invoice in invoice_qs:
         if invoice.last_overdue_notice:
             diff = now - invoice.last_overdue_notice
         else:
             invoice.status = Invoice.OVERDUE
             invoice.save()
         if not invoice.last_overdue_notice or diff.days == invoicing_config.overdue_delay:
+            print "Processing invoice for Service %s" % str(invoice.subscription)
             count += 1
             total_amount += invoice.amount
             member = invoice.subscription.member
             add_event(service, OVERDUE_NOTICE_EVENT, member=member, object_id=invoice.id)
+            print "Event posted to %s's Console" % member.username
             subject, message, sms_text = get_invoice_overdue_message(invoice)
-            if member.email and member.email.find(member.phone) < 0:
+            if member.email:
                 invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'invoice_url': invoice_url})
@@ -209,12 +226,16 @@ def send_invoice_overdue_notices():
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
                 invoice.last_overdue_notice = timezone.now()
+                print "Sending mail to %s" % member.email
                 try:
                     if msg.send():
+                        print "Mail sent to %s" % member.email
                         invoice.overdue_notices_sent += 1
                     else:
+                        print "Sending mail to %s failed" % member.email
                         error_log.error(u"Overdue notice for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
                 except:
+                    print "Sending mail to %s failed" % member.email
                     error_log.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
                 invoice.save()
             if sms_text:
@@ -248,19 +269,23 @@ def suspend_customers_services():
         error_log.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
     deadline = now - timedelta(days=invoicing_config.tolerance)
-    for invoice in Invoice.objects.filter(due_date__lte=deadline, status=Invoice.PENDING):
+    invoice_qs = Invoice.objects.filter(due_date__lte=deadline, status=Invoice.PENDING)
+    print "%d invoice(s) candidate for service suspension." % invoice_qs.count()
+    for invoice in invoice_qs:
         invoice.status = Invoice.EXCEEDED
         invoice.save()
         action = getattr(settings, 'SERVICE_SUSPENSION_ACTION', None)
         if action:
+            print "Processing invoice for Service %s" % str(invoice.subscription)
             count += 1
             total_amount += invoice.amount
             action = import_by_path(action)
             action(invoice.subscription)
             member = invoice.subscription.member
             add_event(service, SERVICE_SUSPENDED_EVENT, member=member, object_id=invoice.id)
+            print "Event posted to %s's Console" % member.username
             subject, message, sms_text = get_service_suspension_message(invoice)
-            if member.email and member.email.find(member.phone) < 0:
+            if member.email:
                 invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'invoice_url': invoice_url})
@@ -269,10 +294,15 @@ def suspend_customers_services():
                 sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
+                print "Sending mail to %s" % member.email
                 try:
-                    if not msg.send():
+                    if msg.send():
+                        print "Mail sent to %s" % member.email
+                    else:
+                        print "Sending mail to %s failed" % member.email
                         error_log.error(u"Notice of suspension for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
                 except:
+                    print "Sending mail to %s failed" % member.email
                     error_log.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
             if sms_text:
                 if member.phone:

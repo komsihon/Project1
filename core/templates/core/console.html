@@ -7,6 +7,7 @@
 {% block head_style %}
     {{ block.super }}
     <link href="{% static 'ikwen/ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <link rel='stylesheet' href="{% static 'ikwen/swiper/css/swiper.min.css' %}" />
     <style type="text/css">
         #cover nav {background: #fff; height: 42px; width: 100%}
         #cover nav ul {margin: 0; padding: 0}
@@ -20,8 +21,21 @@
             #cover nav li {width: 160px}
             #cover nav li:last-child {border-right: 1px solid #ddd}
         }
+        @media (max-width: 767px) {
+            #access-requests > .container-fluid {padding: 0}
+            #access-requests .swiper-slide {width: 40%}
+        }
+        @media (min-width: 768px) {
+            #access-requests .swiper-slide {max-width: 150px; width: 30%}
+        }
     </style>
 {% endblock %}
+
+{% block head_js %}
+    {{ block.super }}
+    <script src="{% static 'ikwen/swiper/js/swiper.jquery.min.js' %}"></script>
+{% endblock %}
+
 {% block after_head %}
     <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     <script>
@@ -70,28 +84,27 @@
             </div>
         </header>
         {% for service, event_list in access_request_events.items %}
-            <div id="access-requests" class="container-fluid">
-                <div class="row">
-                    <div style="padding: 0 15px">
-                        <div class="{{ service.project_name_slug }} card subtle-shade">
-                            <h3>
-                                {% if service.config.logo.name %}
-                                    <img src="{{ service.config.logo.url }}" width="30"/>
-                                {% endif %}
-                                <a href="{{ service.url }}" style="cursor: pointer">{{ service.project_name }}</a>
-                            </h3>
-                            <div class="AccessRequest">
-                                <h4>
-                                    {% trans "Request to join" %}
-                                    {% if event_list|length > 4 and event_list.0.event_type.target_url_name %}
-                                        {% url event_list.0.event_type.target_url_name as target_url %}
-                                        <a class="more"
-                                           href="{{ target_url|append_auth_tokens:request }}">{% trans "See all" %}</a>
-                                    {% endif %}
-                                </h4>
-                                <div class="row" style="margin-top: 15px">
-                                    {% for event in event_list %} {{ event.render|safe }} {% endfor %}
-                                </div>
+            <div id="access-requests">
+                <div class="{{ service.project_name_slug }} card subtle-shade">
+                    <h3>
+                        {% if service.config.logo.name %}
+                            <img src="{{ service.config.logo.url }}" width="30"/>
+                        {% endif %}
+                        <a href="{{ service.url }}" style="cursor: pointer">{{ service.project_name }}</a>
+                    </h3>
+                    <h4 style="margin-top: 0">
+                        {% trans "Request to join" %}
+                        {% if event_list|length > 4 and event_list.0.event_type.target_url_name %}
+                            {% url event_list.0.event_type.target_url_name as target_url %}
+                            <a class="more" href="{{ target_url|append_auth_tokens:request }}">
+                                {% trans "See all" %} ({{ event_list|length }})
+                            </a>
+                        {% endif %}
+                    </h4>
+                    <div class="row AccessRequest">
+                        <div class="row swiper-container" style="margin-top: 5px">
+                            <div class="swiper-wrapper">
+                                {% for event in event_list %} {{ event.render|safe }} {% endfor %}
                             </div>
                         </div>
                     </div>
@@ -139,7 +152,20 @@
     {% include 'core/snippets/banner_and_pp_uploader.html' %}
     <script>
         (function() {
-            ikwen.appendAuthTokens('#access-requests');
+            var accessRequestSwiper = new Swiper('#access-requests .swiper-container', {
+                slidesPerView: 'auto',
+                breakpoints: {
+                    10000: {
+                        nextButton: '.swiper-button-next',
+                        prevButton: '.swiper-button-prev',
+                        spaceBetween: 15
+                    },
+                    767: {
+                        nextButton: '.swiper-button-next',
+                        prevButton: '.swiper-button-prev'
+                    }
+                }
+            });
             function loadCardContent(eventId) {
                 var _$card = $('#' + eventId),
                     baseUrl = _$card.data('base-url');

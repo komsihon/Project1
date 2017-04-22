@@ -665,8 +665,10 @@ def move_member_to_group(request, *args, **kwargs):
     group = Group.objects.get(pk=group_id)
     member = Member.objects.get(pk=member_id)
     if member.is_bao:
-        return HttpResponse(json.dumps({'error': "BAO can only be transferred."}), content_type='application/json')
+        return HttpResponse(json.dumps({'error': "Bao can only be transferred."}), content_type='application/json')
     if group.name == SUDO:
+        if not request.user.is_bao:
+            return HttpResponse(json.dumps({'error': "Only Bao User can transfer member here."}), content_type='application/json')
         member.is_staff = True
         member.is_superuser = True
     else:

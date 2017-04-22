@@ -207,7 +207,6 @@ MOMO_BEFORE_CASH_OUT = 'ikwen.billing.views.set_invoice_checkout'
 MOMO_AFTER_CASH_OUT = 'ikwen.billing.views.confirm_invoice_payment'
 
 
-
 #  *******       E-mail CONFIGURATION       *******  #
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_HOST_USER = 'ksihon'

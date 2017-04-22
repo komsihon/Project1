@@ -8,9 +8,9 @@
     <style  type="text/css">
         #navbar {background: rgba(0, 0, 0, 0)}
         #navbar form.search input {display: none}
-        #navbar .search, #navbar .navbar-right {display: none}
+        #navbar-search, #navbar .navbar-right {display: none}
         #content > div {margin: auto}
-        div#checkout {background: rgba(255, 255, 255, .9); border-radius: 3px; padding: 1px 20px 30px; width: 300px}
+        div#checkout {background: rgba(255, 255, 255, .9); border-radius: 3px; clear: both; padding: 10px 20px 30px; width: 300px}
         #navbar .navbar-brand, #navbar .navbar-brand:hover {display: none}
 
         @media (max-width: 767px) {
@@ -36,7 +36,11 @@
 
 {% block content %}
     <div id="content" class="container">
-        <span class="text-primary">{{ user.full_name }}</span>
+        <div style="font-size: 13px">
+            <a href="{{ request.META.HTTP_REFERER }}" class="pull-left">{% trans "Cancel" %}</a>
+            <span class="text-primary pull-right">{{ user.full_name }}</span>
+            <div class="clearfix"></div>
+        </div>
         <div id="checkout">
             <div style="margin-bottom: 45px">
                 <span class="pull-left" style="width: 60%">

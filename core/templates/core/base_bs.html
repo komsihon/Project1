@@ -10,7 +10,7 @@
 		{% block head_style %}
             <link rel='stylesheet' href="{% static 'ikwen/font-awesome/css/font-awesome.min.css' %}" />
             <link rel='stylesheet' href="{% static 'ikwen/css/flatly.bootstrap.min.css' %}" />
-            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}?v=17.4" />
+            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}" />
 		{% endblock %}
         {% block head_js %}
             <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -55,8 +55,8 @@
                                             <li>
                                                 <a href="{{ settings.IKWEN_CONSOLE_URL }}">
                                                     <i class="glyphicon glyphicon-bell" aria-hidden="true"></i>
-                                                    {% if user.get_notice_count > 0 %}
-                                                        <span class="label label-danger">{{ user.get_notice_count }}</span>
+                                                    {% if user.personal_notices > 0 %}
+                                                        <span class="label label-danger">{{ user.personal_notices }}</span>
                                                     {% endif %}
                                                 </a>
                                             </li>
@@ -80,6 +80,7 @@
                         <div id="navbar-search" class="navbar-form navbar-left">
                             <form id="search" autocomplete="off" onsubmit="return false">
                                 <i class="glyphicon glyphicon-menu-left hide-search visible-xs"></i>
+                                <i class="glyphicon glyphicon-search hidden-xs"></i>
                                 <input type="text" name="radix" class="form-control input-sm" placeholder="{% trans "Search" %}">
                                 <input type="hidden" name="q">
                                 <span class="spinner" style="display: none"></span>
