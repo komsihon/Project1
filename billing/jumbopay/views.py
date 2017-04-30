@@ -3,8 +3,6 @@ from threading import Thread
 
 import requests
 from django.conf import settings
-from django.core.urlresolvers import reverse
-from django.db.models.loading import get_model
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
@@ -14,7 +12,6 @@ from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from requests.exceptions import SSLError
 
-from ikwen.core.views import IKWEN_BASE_URL
 from requests import RequestException
 from requests import Timeout
 
@@ -71,7 +68,11 @@ def call_cashout(transaction):
     """
     JUMBOPAY_API_URL = getattr(settings, 'JUMBOPAY_API_URL', 'https://154.70.100.194/api/live/v2/')
     label = '%s:%s' % (transaction.model, transaction.object_id)
-    data = {'amount': transaction.amount, 'libelle': label, 'phonenumber': transaction.phone, 'lang': 'en'}
+    if getattr(settings, 'DEBUG_MOMO', False):
+        amount = 100
+    else:
+        amount = transaction.amount
+    data = {'amount': amount, 'libelle': label, 'phonenumber': transaction.phone, 'lang': 'en'}
     cashout_url = JUMBOPAY_API_URL + 'cashout'
     if getattr(settings, 'DEBUG', False):
         jumbopay = json.loads(PaymentMean.objects.get(slug='jumbopay-momo').credentials)
@@ -112,7 +113,9 @@ def call_cashout(transaction):
         except Timeout:
             transaction.status = MoMoTransaction.TIMEOUT
         except RequestException:
+            import traceback
             transaction.status = MoMoTransaction.REQUEST_EXCEPTION
+            transaction.message = traceback.format_exc()
         except:
             import traceback
             transaction.status = MoMoTransaction.SERVER_ERROR

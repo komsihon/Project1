@@ -208,7 +208,7 @@ def staff_router(request, *args, **kwargs):
     """
     member = request.user
     next_url = reverse('ikwen:staff_without_permission')
-    routes = getattr(settings, 'STAFF_ROUTER')
+    routes = getattr(settings, 'STAFF_ROUTER', None)
     if routes:
         for route in routes:
             perm = routes[0]

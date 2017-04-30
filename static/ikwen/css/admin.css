@@ -7,6 +7,8 @@
 */
 
 body {font-size: 13px; overflow: hidden}
+.glyphicon.toggle.on {color: #ccc}
+.glyphicon.toggle.off {color: #33c800}
 
 #selection-control {
     background: #fff;
@@ -50,7 +52,7 @@ div#container.admin {padding-top: 92px;}
 .go-to-website span {float: left;margin-left: 5px;margin-top: 3px;}
 
 #admin-content {padding-top: 15px;min-height: 450px;padding-bottom: 120px;}
-#admin-content > .container-fluid {padding: 0;padding-bottom: 30px;}
+#admin-content > .container-fluid {padding: 0;padding-bottom: 200px;}
 #admin-content.change-form {padding-top: 0}
 #admin-content.change-form form {clear: both;padding: 15px 15px 90px;}
 #admin-content.change-form > form {clear: both;padding: 0 0 90px;}

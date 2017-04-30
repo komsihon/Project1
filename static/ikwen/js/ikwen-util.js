@@ -271,7 +271,7 @@
     var contentTabListSwiper, contentTabPaneSwiper;
 
     function initContentTabListSwiper() {
-        if ($('.content-tab-list').length == 0) return;
+        if ($('.content-tab-list').length == 0 || contentTabListSwiper) return;
         $('.content-tab-list').addClass('bottom-shade');
         $('.content-tab-list .nav-tabs').addClass('swiper-wrapper');
         $('.content-tab-list .tab').addClass('swiper-slide');
@@ -313,7 +313,9 @@
         } else if (winWidth >= 768) {
             if (!contentTabListSwiper) return;
             contentTabListSwiper.destroy();
+            contentTabListSwiper = null;
             contentTabPaneSwiper.destroy();
+            contentTabPaneSwiper = null;
             $('.content-tab-list').removeClass('bottom-shade');
             $('.content-tab-list .nav-tabs').removeClass('swiper-wrapper').css('transform', 'none');
             $('.content-tab-list .tab').removeClass('swiper-slide').css({width: 'auto', marginRight: 0});
