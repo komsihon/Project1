@@ -165,7 +165,7 @@ footer a {color: #999}
     #selection-control {height: 65px}
     #navbar {background: #fff}
     .navbar-header > .container-fluid {padding-left: 0}
-    .menu-button {margin: 23px 20px 0 0}
+    .menu-button {padding: 23px 20px 0 0;}
     .icon-bar {background: #888;}
     .navbar-default .navbar-nav>li>a, #navbar .glyphicon {color: #888;}
     .navbar-default .navbar-brand {color: #888;font-size: 30px;padding-top: 15px;}
