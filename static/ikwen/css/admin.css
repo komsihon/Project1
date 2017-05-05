@@ -55,7 +55,7 @@ div#container.admin {padding-top: 92px;}
 #admin-content > .container-fluid {padding: 0;padding-bottom: 200px;}
 #admin-content.change-form {padding-top: 0}
 #admin-content.change-form form {clear: both;padding: 15px 15px 90px;}
-#admin-content.change-form > form {clear: both;padding: 0 0 90px;}
+#admin-content.change-form > form {clear: both;float:left;margin-bottom:30px;padding: 0 0 90px;width:100%}
 #admin-content.change-form h3 {font-size: 18px; font-weight: 700}
 #admin-content.change-form h3:first-of-type {margin-top: 0}
 
