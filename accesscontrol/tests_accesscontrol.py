@@ -133,7 +133,8 @@ class IkwenAccessControlTestCase(unittest.TestCase):
     def test_set_collaborator_permissions(self):
         """
         Setting collaborator's permissions clears preceding permissions and just reset them as new.
-        This done to avoid to append the same permission multiple times in the permissions lists
+        This done to avoid to append the same permission multiple times in the permissions lists.
+        Note that adding permissions to a Member automatically sets him as staff
         """
         ct = ContentType.objects.all()[0]
         Permission.objects.all().delete()
@@ -150,9 +151,11 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         json_response = json.loads(response.content)
         self.assertTrue(json_response['success'])
+        m3 = Member.objects.get(username='member3')
         obj = UserPermissionList.objects.get(user=m3)
         self.assertIn(perm3.id, obj.permission_fk_list)
         self.assertIn(perm4.id, obj.permission_fk_list)
+        self.assertTrue(m3.is_staff)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
     def test_move_member_to_group(self):
@@ -219,3 +222,25 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         """
         response = self.client.get(reverse('ikwen:company_profile', args=('ikwen-service-2',)))
         self.assertEqual(response.status_code, 200)
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102',
+                       STAFF_ROUTER=(
+                               ('theming.ik_action1', 'some_view_name'),
+                               ('theming.ik_action2', 'some_view_name'),
+                               ('theming.ik_action3', 'ikwen:company_profile', ('ikwen-service-2',)),
+                       ))
+    def test_staff_router(self):
+        """
+        Make sure STAFF_ROUTER routes to the correct view
+        """
+        ct = ContentType.objects.get(name='template', app_label='theming')
+        Permission.objects.all().delete()
+        perm3 = Permission.objects.create(codename='ik_action3', name="Can do action 3", content_type=ct)
+        m3 = Member.objects.get(username='member3')
+        m3.is_staff = True
+        add_permission_to_user(perm3, m3)
+        self.client.login(username='member3', password='admin')
+        response = self.client.get(reverse('ikwen:staff_router'), follow=True)
+        final = response.redirect_chain[-1]
+        location = final[0].strip('/').split('/')[-1]
+        self.assertEqual(location, 'ikwen-service-2')

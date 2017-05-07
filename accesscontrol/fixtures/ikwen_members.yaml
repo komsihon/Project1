@@ -7,6 +7,7 @@
     phone: 677000001
     is_iao: Yes
     is_superuser: Yes
+    is_bao: Yes
     first_name: Arch
     last_name: Soft
     full_name: Soft Arch
@@ -23,6 +24,7 @@
     first_name: Tamo
     is_iao: Yes
     is_superuser: Yes
+    is_bao: Yes
     gender: Male
     customer_on_fk_list: [56eb6d04b37b3379b531b101]
     collaborates_on_fk_list: [56eb6d04b37b3379b531b102]

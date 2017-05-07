@@ -28,11 +28,8 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from ikwen.core.utils import send_sms
-
 from ikwen.accesscontrol.backends import UMBRELLA
-
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
-
 from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
 from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_group
@@ -211,7 +208,7 @@ def staff_router(request, *args, **kwargs):
     routes = getattr(settings, 'STAFF_ROUTER', None)
     if routes:
         for route in routes:
-            perm = routes[0]
+            perm = route[0]
             url_name = route[1]
             params = route[2] if len(route) > 2 else None
             if member.has_perm(perm):
@@ -222,7 +219,7 @@ def staff_router(request, *args, **kwargs):
                         next_url = reverse(url_name, kwargs=params)
                 else:
                     next_url = reverse(url_name)
-            break
+                break
     elif member.is_superuser:
         try:
             next_url = reverse('sudo_home')
@@ -634,15 +631,15 @@ def deny_access(request, *args, **kwargs):
 
 @permission_required('accesscontrol.sudo')
 def set_collaborator_permissions(request, *args, **kwargs):
-    permission_ids = request.GET['permission_ids']
+    permission_id_list = request.GET['permission_ids'].split(',')
     member_id = request.GET['member_id']
     member = Member.objects.get(pk=member_id)
     obj = UserPermissionList.objects.get(user=member)
     obj.permission_list = []
     obj.permission_fk_list = []
     obj.save()
-    if permission_ids:
-        for perm_id in permission_ids.split(','):
+    if permission_id_list:
+        for perm_id in permission_id_list:
             perm = Permission.objects.get(pk=perm_id)
             add_permission_to_user(perm, member)
             # Add Django original permissions of the content_type so that
@@ -652,6 +649,10 @@ def set_collaborator_permissions(request, *args, **kwargs):
             django_perms = Permission.objects.filter(content_type=ct)
             for perm in django_perms:
                 add_permission_to_user(perm, member)
+        member.is_staff = True
+    else:
+        member.is_staff = False
+    member.save()
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
 
@@ -660,7 +661,7 @@ def move_member_to_group(request, *args, **kwargs):
     group_id = request.GET['group_id']
     member_id = request.GET['member_id']
     if member_id == request.user.id:
-        # One cannot block himself
+        # One cannot move himself
         return HttpResponse(json.dumps({'error': "One cannot move himself"}), content_type='application/json')
     group = Group.objects.get(pk=group_id)
     member = Member.objects.get(pk=member_id)
