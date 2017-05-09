@@ -3,11 +3,11 @@ from django.conf.urls import patterns, url
 from django.contrib.auth.decorators import login_required, permission_required
 from ikwen.billing.paypal.views import SetExpressCheckout
 
-from ikwen.billing.jumbopay.views import MoMoCheckout, init_momo_cashout, check_momo_transaction_status, \
-    jumbopay_local_api
+from ikwen.billing.jumbopay.views import jumbopay_local_api
 
 from ikwen.billing.views import InvoiceList, InvoiceDetail, NoticeMail, change_billing_cycle, list_members, \
-    list_subscriptions, IframeAdmin, PaymentMeanList, set_credentials, toggle_payment_mean, DeployCloud
+    list_subscriptions, IframeAdmin, PaymentMeanList, set_credentials, toggle_payment_mean, MoMoSetCheckout, DeployCloud, \
+    init_momo_transaction, check_momo_transaction_status
 
 urlpatterns = patterns(
     '',
@@ -22,8 +22,8 @@ urlpatterns = patterns(
     url(r'^list_members$', list_members, name='list_members'),
     url(r'^list_subscriptions$', list_subscriptions, name='list_subscriptions'),
 
-    url(r'^MoMoCheckout/$', MoMoCheckout.as_view(), name='momo_set_checkout'),
-    url(r'^MoMo/initCashout/$', init_momo_cashout, name='init_momo_cashout'),
+    url(r'^MoMo/setCheckout/$', MoMoSetCheckout.as_view(), name='momo_set_checkout'),
+    url(r'^MoMo/initTransaction/$', init_momo_transaction, name='init_momo_transaction'),
     url(r'^MoMo/checkTransaction/$', check_momo_transaction_status, name='check_momo_transaction_status'),
 
     url(r'^JumboPayAPI/$', jumbopay_local_api, name='jumbopay_local_api'),  # For Unit Tests only

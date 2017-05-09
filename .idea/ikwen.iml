@@ -18,6 +18,7 @@
     <orderEntry type="module" module-name="ikwenAppRetail" />
     <orderEntry type="module" module-name="CreolinkMaps" />
     <orderEntry type="module" module-name="Laakam" />
+    <orderEntry type="module" module-name="Shavida" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />

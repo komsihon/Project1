@@ -19,6 +19,7 @@ def project_settings(request):
         'settings': {
             'DEBUG': getattr(settings, 'DEBUG', False),
             'IS_IKWEN': getattr(settings, 'IS_IKWEN', False),
+            'IS_UMBRELLA': getattr(settings, 'IS_UMBRELLA', False),
             'IKWEN_SERVICE_ID': getattr(settings, 'IKWEN_SERVICE_ID'),
             'IKWEN_BASE_URL': IKWEN_BASE_URL,
             'IKWEN_CONSOLE_URL': IKWEN_BASE_URL + console_uri,
