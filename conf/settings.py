@@ -178,7 +178,6 @@ IS_UMBRELLA = True  # ikwen main site: www.ikwen.com itself
 SITE_ID = '54eb6d3379b531e09cb3704b'
 
 IKWEN_SERVICE_ID = '57b702ca4fc0c2139660d9f8'
-# IKWEN_SERVICE_ID = '584040984fc0c238ede98ef8'
 
 AUTH_USER_MODEL = 'accesscontrol.Member'
 
