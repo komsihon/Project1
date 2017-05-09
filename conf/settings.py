@@ -103,19 +103,19 @@ if DEBUG or TESTING:
 else:
     WALLETS_DB = {  # ikwen_kakocase.ikwen_kakocase relational database used to store sensitive objects among which CashOutRequest
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ikwen_wallets',
-        'USER': 'root',
-        'PASSWORD': 'admin'
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': ''
     }
 
 DATABASES = {
     'default': {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'ikwen_umbrella',
+        'NAME': '',
     },
     'umbrella': {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'ikwen_umbrella',
+        'NAME': '',
     },
     WALLETS_DB_ALIAS: WALLETS_DB
 }
@@ -209,9 +209,9 @@ MTN_MOMO_API_URL = 'https://developer.mtn.cm/OnlineMomoWeb/faces/transaction/tra
 
 
 #  *******       E-mail CONFIGURATION       *******  #
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'ksihon'
-EMAIL_HOST_PASSWORD = 'L0v!nj!t!s'
+EMAIL_HOST = ''
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
