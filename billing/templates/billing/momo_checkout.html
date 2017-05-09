@@ -80,7 +80,7 @@
                 $(this).removeClass('btn-primary').addClass('btn-default');
                 $('#checkout .spinner').show();
                 var phone = $('#phone').val();
-                $.getJSON('{% url 'billing:init_momo_cashout' %}', {phone: phone}, function(data) {
+                $.getJSON('{% url 'billing:init_momo_transaction' %}', {phone: phone}, function(data) {
                     $('#transaction-result').removeClass('text-danger').addClass('text-info')
                             .text("{% trans "Good! Please confirm transaction on your phone." %}");
                     txId = data.tx_id;

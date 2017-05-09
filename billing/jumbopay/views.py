@@ -4,12 +4,7 @@ from threading import Thread
 import requests
 from django.conf import settings
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, render
-from django.utils.decorators import method_decorator
-from django.utils.module_loading import import_by_path
-from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
-from django.views.decorators.debug import sensitive_post_parameters
+from django.views.decorators.csrf import csrf_exempt
 from requests.exceptions import SSLError
 
 from requests import RequestException
@@ -20,30 +15,6 @@ from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.core.utils import get_service_instance
 
 from ikwen.billing.models import PaymentMean, MoMoTransaction
-
-from ikwen.core.views import BaseView
-
-
-class MoMoCheckout(BaseView):
-    template_name = 'billing/momo_checkout.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(MoMoCheckout, self).get_context_data(**kwargs)
-        context['payment_mean'] = get_object_or_404(PaymentMean, slug='jumbopay-momo')
-        return context
-
-    @method_decorator(sensitive_post_parameters())
-    @method_decorator(csrf_protect)
-    @method_decorator(never_cache)
-    def post(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
-        path = getattr(settings, 'MOMO_BEFORE_CASH_OUT')
-        momo_before_checkout = import_by_path(path)
-        resp = momo_before_checkout(request, *args, **kwargs)
-        if resp:
-            return resp
-        context['amount'] = request.session['amount']
-        return render(request, self.template_name, context)
 
 
 def init_momo_cashout(request, *args, **kwargs):
@@ -122,34 +93,6 @@ def call_cashout(transaction):
             transaction.message = traceback.format_exc()
 
     transaction.save(using=UMBRELLA)
-
-
-def check_momo_transaction_status(request, *args, **kwargs):
-    tx_id = request.GET['tx_id']
-    tx = MoMoTransaction.objects.using(UMBRELLA).get(pk=tx_id)
-
-    # When a MoMoTransaction is created, its status is None or empty string
-    # So perform a double check. First, make sure a status has been set
-    if tx.status:
-        if tx.status == MoMoTransaction.SUCCESS:
-            path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
-            momo_after_checkout = import_by_path(path)
-            if getattr(settings, 'DEBUG', False):
-                resp_dict = momo_after_checkout(request, *args, **kwargs)
-                return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
-            else:
-                try:
-                    resp_dict = momo_after_checkout(request, *args, **kwargs)
-                    return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
-                except:
-                    return HttpResponse(json.dumps({'error': 'Unknown server error in AFTER_CASH_OUT'}))
-        resp_dict = {'error': tx.status, 'message': ''}
-        if getattr(settings, 'DEBUG', False):
-            resp_dict['message'] = tx.message
-        elif tx.status == MoMoTransaction.API_ERROR:
-            resp_dict['message'] = tx.message  # Show only API Errors in production
-        return HttpResponse(resp_dict, 'content-type: text/json')
-    return HttpResponse(json.dumps({'running': True}), 'content-type: text/json')
 
 
 def do_cashin(phone, amount, model_name, object_id):

@@ -103,19 +103,19 @@ if DEBUG or TESTING:
 else:
     WALLETS_DB = {  # ikwen_kakocase.ikwen_kakocase relational database used to store sensitive objects among which CashOutRequest
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ikwen_wallets',
-        'USER': 'root',
-        'PASSWORD': 'admin'
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': ''
     }
 
 DATABASES = {
     'default': {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'ikwen_umbrella',
+        'NAME': '',
     },
     'umbrella': {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'ikwen_umbrella',
+        'NAME': '',
     },
     WALLETS_DB_ALIAS: WALLETS_DB
 }
@@ -178,7 +178,6 @@ IS_UMBRELLA = True  # ikwen main site: www.ikwen.com itself
 SITE_ID = '54eb6d3379b531e09cb3704b'
 
 IKWEN_SERVICE_ID = '57b702ca4fc0c2139660d9f8'
-# IKWEN_SERVICE_ID = '584040984fc0c238ede98ef8'
 
 AUTH_USER_MODEL = 'accesscontrol.Member'
 
@@ -205,12 +204,13 @@ MOMO_SLUG = 'jumbopay-momo'
 JUMBOPAY_API_URL = 'https://154.70.100.194/api/sandbox/v2/' if DEBUG else 'https://154.70.100.194/api/live/v2/'
 MOMO_BEFORE_CASH_OUT = 'ikwen.billing.views.set_invoice_checkout'
 MOMO_AFTER_CASH_OUT = 'ikwen.billing.views.confirm_invoice_payment'
+MTN_MOMO_API_URL = 'https://developer.mtn.cm/OnlineMomoWeb/faces/transaction/transactionRequest.xhtml'
 
 
 #  *******       E-mail CONFIGURATION       *******  #
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'ksihon'
-EMAIL_HOST_PASSWORD = 'sendgr1d'
+EMAIL_HOST = ''
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 

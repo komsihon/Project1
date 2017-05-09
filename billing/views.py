@@ -13,19 +13,26 @@ from django.db.models.loading import get_model
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
 from django.template import Context
 from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.utils.http import urlquote
+from django.utils.module_loading import import_by_path
 from django.utils.text import slugify
+from django.views.decorators.debug import sensitive_post_parameters
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
+from django.shortcuts import get_object_or_404, render
+from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
-from django.views.decorators.csrf import csrf_exempt
+from ikwen.billing.jumbopay.views import init_momo_cashout
+
+from ikwen.billing.mtnmomo.views import init_request_payment
 from ikwen.billing.cloud_setup import DeploymentForm, deploy
 
 from ikwen.partnership.models import ApplicationRetailConfig
 
-from ikwen.core.models import Service, Application, SERVICE_DEPLOYED
+from ikwen.core.models import Service, Application
 
 from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content
 
@@ -35,7 +42,7 @@ from ikwen.accesscontrol.backends import UMBRELLA
 
 from ikwen.core.views import BaseView
 from ikwen.billing.models import Invoice, SendingReport, SERVICE_SUSPENDED_EVENT, PaymentMean, Payment, \
-    PAYMENT_CONFIRMATION, CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry
+    PAYMENT_CONFIRMATION, CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry, MoMoTransaction
 from ikwen.billing.utils import get_invoicing_config_instance, get_subscription_model, get_days_count, \
     get_payment_confirmation_message, share_payment_and_set_stats
 
@@ -527,3 +534,64 @@ class NoticeMail(BillingBaseView):
         context = super(NoticeMail, self).get_context_data(**kwargs)
         context['invoice_url'] = 'some_url'
         return context
+
+
+class MoMoSetCheckout(BaseView):
+    template_name = 'billing/momo_checkout.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(MoMoSetCheckout, self).get_context_data(**kwargs)
+        context['payment_mean'] = get_object_or_404(PaymentMean, slug='jumbopay-momo')
+        return context
+
+    @method_decorator(sensitive_post_parameters())
+    @method_decorator(csrf_protect)
+    @method_decorator(never_cache)
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        path = getattr(settings, 'MOMO_BEFORE_CASH_OUT')
+        momo_before_checkout = import_by_path(path)
+        resp = momo_before_checkout(request, *args, **kwargs)
+        if resp:
+            return resp
+        context['amount'] = request.session['amount']
+        return render(request, self.template_name, context)
+
+
+def init_momo_transaction(request, *args, **kwargs):
+    phone = request.GET['phone']
+    if phone.startswith('67') or phone.startwith('68') or (650 <= int(phone[:3]) < 655):
+        # MTN is processed by MTN API itself
+        return init_request_payment(request, *args, **kwargs)
+    elif getattr(settings, 'IS_IKWEN', False):
+        return HttpResponse(json.dumps({'error': 'Only MTN Mobile Money payments are accepted'}), 'content-type: text/json')
+    else: # Orange is processed by JumboPay
+        return init_momo_cashout(request, *args, **kwargs)
+
+
+def check_momo_transaction_status(request, *args, **kwargs):
+    tx_id = request.GET['tx_id']
+    tx = MoMoTransaction.objects.using(UMBRELLA).get(pk=tx_id)
+
+    # When a MoMoTransaction is created, its status is None or empty string
+    # So perform a double check. First, make sure a status has been set
+    if tx.status:
+        if tx.status == MoMoTransaction.SUCCESS:
+            path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
+            momo_after_checkout = import_by_path(path)
+            if getattr(settings, 'DEBUG', False):
+                resp_dict = momo_after_checkout(request, *args, **kwargs)
+                return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
+            else:
+                try:
+                    resp_dict = momo_after_checkout(request, *args, **kwargs)
+                    return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
+                except:
+                    return HttpResponse(json.dumps({'error': 'Unknown server error in AFTER_CASH_OUT'}))
+        resp_dict = {'error': tx.status, 'message': ''}
+        if getattr(settings, 'DEBUG', False):
+            resp_dict['message'] = tx.message
+        elif tx.status == MoMoTransaction.API_ERROR:
+            resp_dict['message'] = tx.message  # Show only API Errors in production
+        return HttpResponse(resp_dict, 'content-type: text/json')
+    return HttpResponse(json.dumps({'running': True}), 'content-type: text/json')
