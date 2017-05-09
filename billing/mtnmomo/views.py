@@ -10,7 +10,6 @@ from requests import RequestException
 from requests import Timeout
 
 from ikwen.accesscontrol.backends import UMBRELLA
-
 from ikwen.core.utils import get_service_instance
 
 from ikwen.billing.models import PaymentMean, MoMoTransaction
