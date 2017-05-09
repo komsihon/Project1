@@ -176,6 +176,11 @@ IS_UMBRELLA = True  # ikwen main site: www.ikwen.com itself
 SITE_ID = '54eb6d3379b531e09cb3704b'
 IKWEN_SERVICE_ID = '57b702ca4fc0c2139660d9f8'
 
+# When the ikwen_share on a transaction turns out to be bigger than
+# one of the operator (Case of fixed share), ikwen will collect a
+# share rate of FALLBACK_SHARE_RATE percent. Actually set to 10%
+FALLBACK_SHARE_RATE = 10
+
 AUTH_USER_MODEL = 'accesscontrol.Member'
 
 AUTHENTICATION_BACKENDS = (
