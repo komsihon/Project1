@@ -324,10 +324,12 @@ class PaymentMeanAdmin(admin.ModelAdmin):
 class MoMoTransactionAdmin(admin.ModelAdmin):
     list_display = ('service', 'phone', 'amount', 'model', 'object_id',)
     search_fields = ('phone',)
-    list_filter = ('service',)
     ordering = ('-id', )
-    readonly_fields = ('service', 'type', 'phone', 'amount', 'model',
+    readonly_fields = ('service_id', 'type', 'phone', 'amount', 'model',
                        'object_id', 'processor_tx_id', 'task_id', 'message', 'status')
+
+    def get_queryset(self, request):
+        return super(MoMoTransactionAdmin, self).get_queryset(request).using('wallets')
 
 
 class PartnerListFilter(admin.SimpleListFilter):

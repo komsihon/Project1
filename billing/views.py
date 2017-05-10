@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import Group
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.db.models import Q
 from django.db.models.loading import get_model
 from django.http import HttpResponse
@@ -569,9 +570,10 @@ def init_momo_transaction(request, *args, **kwargs):
         return init_momo_cashout(request, *args, **kwargs)
 
 
+@transaction.atomic
 def check_momo_transaction_status(request, *args, **kwargs):
     tx_id = request.GET['tx_id']
-    tx = MoMoTransaction.objects.using(UMBRELLA).get(pk=tx_id)
+    tx = MoMoTransaction.objects.using('wallets').get(pk=tx_id)
 
     # When a MoMoTransaction is created, its status is None or empty string
     # So perform a double check. First, make sure a status has been set

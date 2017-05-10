@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from djangotoolbox.fields import ListField, EmbeddedModelField
+from ikwen.accesscontrol.backends import UMBRELLA
 
 from ikwen.accesscontrol.models import Member
 from ikwen.core.fields import MultiImageField
@@ -384,7 +385,7 @@ class MoMoTransaction(Model):
     CASH_IN = 'CashIn'
     CASH_OUT = 'CashOut'
 
-    service = models.ForeignKey(Service, related_name='+')
+    service_id = models.CharField(max_length=24)
     type = models.CharField(max_length=24)
     phone = models.CharField(max_length=24)
     amount = models.FloatField()
@@ -396,6 +397,10 @@ class MoMoTransaction(Model):
                                help_text="Task ID (JumboPay MoMo API)")
     message = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=30, blank=True, null=True)
+
+    def _get_service(self):
+        return Service.objects.using(UMBRELLA).get(pk=self.service_id)
+    service = property(_get_service)
 
     class Meta:
         db_table = 'ikwen_momo_transaction'

@@ -23,8 +23,8 @@ def init_request_payment(request, *args, **kwargs):
     model_name = request.session['model_name']
     object_id = request.session['object_id']
     amount = request.session['amount']
-    tx = MoMoTransaction.objects.using(UMBRELLA).create(service=service, type=MoMoTransaction.CASH_OUT, phone=phone,
-                                                        amount=amount, model=model_name, object_id=object_id)
+    tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT, phone=phone,
+                                                         amount=amount, model=model_name, object_id=object_id)
     if getattr(settings, 'DEBUG', False):
         request_payment(tx)
     else:
