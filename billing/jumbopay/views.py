@@ -92,7 +92,7 @@ def call_cashout(transaction):
             transaction.status = MoMoTransaction.SERVER_ERROR
             transaction.message = traceback.format_exc()
 
-    transaction.save(using=UMBRELLA)
+    transaction.save(using='wallets')
 
 
 def do_cashin(phone, amount, model_name, object_id):
@@ -152,7 +152,7 @@ def do_cashin(phone, amount, model_name, object_id):
             import traceback
             tx.status = MoMoTransaction.SERVER_ERROR
             tx.message = traceback.format_exc()
-    tx.save(using=UMBRELLA)
+    tx.save(using='wallets')
     return tx
 
 

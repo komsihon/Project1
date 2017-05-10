@@ -322,9 +322,10 @@ class PaymentMeanAdmin(admin.ModelAdmin):
 
 
 class MoMoTransactionAdmin(admin.ModelAdmin):
-    list_display = ('service', 'phone', 'amount', 'model', 'object_id',)
+    list_display = ('service', 'phone', 'amount', 'model', 'object_id', 'created_on', 'status')
     search_fields = ('phone',)
     ordering = ('-id', )
+    list_filter = ('created_on', 'status', )
     readonly_fields = ('service_id', 'type', 'phone', 'amount', 'model',
                        'object_id', 'processor_tx_id', 'task_id', 'message', 'status')
 

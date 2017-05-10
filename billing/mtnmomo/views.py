@@ -86,6 +86,6 @@ def request_payment(transaction):
             transaction.status = MoMoTransaction.SERVER_ERROR
             transaction.message = traceback.format_exc()
 
-    transaction.save(using=UMBRELLA)
+    transaction.save(using='wallets')
 
 
