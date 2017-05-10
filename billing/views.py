@@ -561,7 +561,7 @@ class MoMoSetCheckout(BaseView):
 
 def init_momo_transaction(request, *args, **kwargs):
     phone = request.GET['phone']
-    if phone.startswith('67') or phone.startwith('68') or (650 <= int(phone[:3]) < 655):
+    if phone.startswith('67') or phone.startswith('68') or (650 <= int(phone[:3]) < 655):
         # MTN is processed by MTN API itself
         return init_request_payment(request, *args, **kwargs)
     elif getattr(settings, 'IS_IKWEN', False):
