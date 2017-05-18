@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime, timedelta
 from threading import Thread
 
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
+from django.contrib.auth.models import Group
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -11,13 +13,15 @@ from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext_lazy as _
+from ikwen.accesscontrol.backends import UMBRELLA
 from import_export.admin import ImportExportMixin, ExportMixin
 
-from ikwen.accesscontrol.models import Member
+from ikwen.accesscontrol.models import Member, SUDO
 from ikwen.billing.models import Payment, AbstractInvoice, InvoicingConfig, Invoice, NEW_INVOICE_EVENT, \
-    SUBSCRIPTION_EVENT, PaymentMean, MoMoTransaction, CloudBillingPlan
+    SUBSCRIPTION_EVENT, PaymentMean, MoMoTransaction, CloudBillingPlan, PAYMENT_CONFIRMATION
 from ikwen.billing.utils import get_payment_confirmation_message, get_invoice_generated_message, \
-    get_next_invoice_number, get_subscription_registered_message, get_subscription_model, get_product_model
+    get_next_invoice_number, get_subscription_registered_message, get_subscription_model, get_product_model, \
+    get_invoicing_config_instance, get_days_count, share_payment_and_set_stats
 from ikwen.core.admin import CustomBaseAdmin
 from ikwen.core.models import QueuedSMS, Config, Application, Service, RETAIL_APP_SLUG
 from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, add_event
@@ -111,9 +115,26 @@ class SubscriptionAdmin(CustomBaseAdmin, ImportExportMixin):
 
 class PaymentInline(admin.TabularInline):
     model = Payment
-    extra = 1
     list_display = ('amount', 'method', 'created_on', 'cashier', )
-    readonly_fields = ('created_on', 'cashier')
+
+    def get_extra(self, request, obj=None, **kwargs):
+        if obj.status == Invoice.PAID:
+            return 0
+        return 1
+
+    def get_max_num(self, request, obj=None, **kwargs):
+        if obj.status == Invoice.PAID:
+            return 1
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj.status == Invoice.PAID:
+            return 'method', 'amount', 'created_on', 'cashier'
+        return 'created_on', 'cashier'
+
+    def has_delete_permission(self, request, obj=None):
+        if obj.status == Invoice.PAID:
+            return False
+        return super(PaymentInline, self).has_delete_permission(request, obj)
 
 
 class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
@@ -133,23 +154,23 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
     inlines = (PaymentInline, )
     save_on_top = True
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj.status == Invoice.PAID:
+            return 'number', 'subscription', 'amount', 'due_date', 'date_issued', 'status',  'reminders_sent', 'overdue_notices_sent'
+        return 'number', 'subscription', 'date_issued', 'status',  'reminders_sent', 'overdue_notices_sent'
+
     def save_model(self, request, obj, form, change):
         # Send e-mail for manually generated Invoice upon creation
         if change:
             super(InvoiceAdmin, self).save_model(request, obj, form, change)
             return
-        # Send e-mail only if e-mail is a valid one. It will be agreed that if a client
-        # does not have an e-mail. we create a fake e-mail that contains his phone number.
-        # So e-mail containing phone number are invalid.
         obj.number = get_next_invoice_number(auto=False)
         super(InvoiceAdmin, self).save_model(request, obj, form, change)
         member = obj.subscription.member
         service = get_service_instance()
         config = service.config
         subject, message, sms_text = get_invoice_generated_message(obj)
-
-        # This helps differentiates from fake email accounts created as phone@provider.com
-        if member.email.find(member.phone) < 0:
+        if member.email:
             add_event(service, NEW_INVOICE_EVENT, member=member, object_id=obj.id)
             invoice_url = service.url + reverse('billing:invoice_detail', args=(obj.id,))
             html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
@@ -191,12 +212,33 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
             member = instance.invoice.subscription.member
             service = get_service_instance()
             config = service.config
-            subject, message, sms_text = get_payment_confirmation_message(instance)
-            if member.email.find(member.phone) < 0:
+            invoice = instance.invoice
+            s = invoice.service
+            days = get_days_count(invoice.months_count)
+            if s.status == Service.SUSPENDED:
+                invoicing_config = get_invoicing_config_instance()
+                days -= invoicing_config.tolerance  # Catch-up days that were offered before service suspension
+                expiry = datetime.now() + timedelta(days=days)
+                expiry = expiry.date()
+            elif s.expiry:
+                expiry = s.expiry + timedelta(days=days)
+            else:
+                expiry = datetime.now() + timedelta(days=days)
+                expiry = expiry.date()
+            s.expiry = expiry
+            s.status = Service.ACTIVE
+            if invoice.is_one_off:
+                s.version = Service.FULL
+            s.save()
+            share_payment_and_set_stats(invoice, invoice.months_count)
+
+            sudo_group = Group.objects.using(UMBRELLA).get(name=SUDO)
+            add_event(service, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
+            add_event(service, PAYMENT_CONFIRMATION, member=member, object_id=invoice.id)
+            subject, message, sms_text = get_payment_confirmation_message(instance, member)
+            if member.email:
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html')
-                # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
-                # to be delivered to Spams because of origin check.
-                sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
+                sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
                 Thread(target=lambda m: m.send(), args=(msg,)).start()
@@ -206,9 +248,9 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
                         send_sms(member.phone, sms_text)
                     else:
                         QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
-            if total_amount >= instance.invoice.amount:
-                instance.invoice.status = AbstractInvoice.PAID
-                instance.invoice.save()
+            if total_amount >= invoice.amount:
+                invoice.status = AbstractInvoice.PAID
+                invoice.save()
 
     def get_search_results(self, request, queryset, search_term):
         try:
