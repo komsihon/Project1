@@ -394,7 +394,8 @@ class Profile(BaseView):
                 rq_service = rq.service
                 if rq_service in self.request.user.collaborates_on:
                     add_database_to_settings(rq_service.database)
-                    groups = Group.objects.using(rq_service.database).exclude(name=SUDO).order_by('name')
+                    groups = list(Group.objects.using(rq_service.database).exclude(name=SUDO).order_by('name'))
+                    groups.append(Group.objects.using(rq_service.database).get(name=SUDO))  # Sudo will appear last
                     rqs.append({'rq': rq, 'groups': groups})
             context['access_request_list'] = rqs
         context['profile_name'] = member.full_name
@@ -589,6 +590,8 @@ def grant_access(request, *args, **kwargs):
 
     if group.name != COMMUNITY:
         rq_member.is_staff = True
+    if group.name == SUDO:
+        rq_member.is_superuser = True
     rq_member.is_iao = False
     rq_member.save(using=database)
     member = Member.objects.using(database).get(pk=rq_member.id)  # Reload from local database to avoid database router error
