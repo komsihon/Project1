@@ -27,6 +27,7 @@ body {color: #545454}
     margin-left: 6px;
     text-decoration: none;
     }
+.modal .actions {clear: both}
 .actions .glyphicon, .glyphicon.action {border: 1px solid #ddd; border-radius: 3px}
 .cta {font-family: "PT Sans", Lato, sans-serif;font-weight: 700;letter-spacing: 0.5px;text-transform: uppercase;}
 .stretched {height: 100%; width: 100%}
@@ -192,6 +193,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 }
 
 @media (max-width: 767px) {
+    .modal .actions .action {margin-top: .6em}
     .ik-li.img-lg {padding: 8px 6px}
     .ik-li.img-lg .image {height: 100px; width: 130px;}
     .ik-li.img-lg .info {margin-left: 10px;width: 160px;}
@@ -214,6 +216,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     .bottom-shade-xs {box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .1)}
 }
 @media (min-width: 768px) {
+    .modal .actions {margin-top: 2em}
     #content.container {padding-left: 15px;padding-right: 15px;}
     .form-wrapper {width: 360px}
     #navbar .navbar-header {float: left; height: auto}
