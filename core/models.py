@@ -21,6 +21,7 @@ from ikwen.core.utils import add_database_to_settings, to_dict, get_service_inst
 
 WELCOME_ON_IKWEN_EVENT = 'WelcomeOnIkwen'
 CASH_OUT_REQUEST_EVENT = 'CashOutRequest'
+CASH_OUT_REQUEST_PAID = 'CashOutRequestPaid'
 SERVICE_DEPLOYED = 'ServiceDeployed'
 
 RETAIL_APP_SLUG = 'ikwen-retail'  # Slug of the 'ikwen App retail' Application
@@ -278,7 +279,9 @@ class Service(models.Model):
     def _get_details(self):
         return "Application: <em>%(app_name)s</em><br>" \
                "Running as: <em>%(project_name)s</em><br>" \
-               "On: <em>%(url)s</em>" % {'app_name': self.app.name, 'project_name': self.project_name, 'url': self.url}
+               "On: <em><a href='%(url)s' target='_blank'>%(url)s</a></em>" % {'app_name': self.app.name,
+                                                                               'project_name': self.project_name,
+                                                                               'url': self.url}
     details = property(_get_details)
 
     def get_profile_url(self):
