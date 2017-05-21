@@ -120,6 +120,37 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="conf-mtn-momo" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-info">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{% trans "Configure" %} MTN Mobile Money</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group row">
+                            <label for="mtn-momo-merchant-email" class="col-sm-5 col-md-4">{% trans "Merchant Email" %}</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="mtn-momo-merchant-email" name="merchant_email" class="form-control input-sm" />
+                            </div>
+                        </div>
+                    </form>
+                    <div class="row" style="clear: both; padding-top: 1em">
+                        <div class="col-xs-12 col-sm-4 col-md-3">
+                            <button class="btn btn-success btn-block btn-sm"
+                                    data-dismiss="modal" aria-label="Close">{% trans "OK" %}</button>
+                        </div>
+                        <div class="col-xs-12 col-sm-4 col-md-3">
+                            <button class="btn btn-default btn-block btn-sm"
+                                    data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block js %}
@@ -143,6 +174,11 @@
                     APIKey = $(this).parents('.ik-li').data('api_key');
                 $('#jp-api-key').val(APIKey);
                 $('div#conf-jumbopay-momo button.btn-success').data('mean-id', meanId);
+            }).on('click', '.conf-mtn-momo', function() {
+                var meanId = $(this).parents('.ik-li').data('id'),
+                    merchantEmail = $(this).parents('.ik-li').data('merchant_email');
+                $('#mtn-momo-merchant-email').val(merchantEmail);
+                $('div#conf-mtn-momo button.btn-success').data('mean-id', meanId);
             }).on('click', '.ik-li.mean .check', function() {
                 var meanId = $(this).parents('.ik-li').data('id'),
                     _$check = $(this);
@@ -181,6 +217,19 @@
                         return
                     }
                     ikwen.showFloatingNotice("{% trans "JumboPay Mobile Money successfully configured" %}", '', 5);
+                })
+            });
+            $('div#conf-mtn-momo button.btn-success').click(function() {
+                var credentials = JSON.stringify({
+                    merchant_email: $('#mtn-momo-merchant-email').val()
+                }),
+                meanId = $(this).data('mean-id');
+                $.getJSON('{% url 'billing:set_credentials' %}', {mean_id: meanId, credentials: credentials}, function(resp) {
+                    if (resp.error) {
+                        ikwen.showFloatingNotice(resp.error, '', 5);
+                        return
+                    }
+                    ikwen.showFloatingNotice("{% trans "MTN Mobile Money successfully configured" %}", '', 5);
                 })
             });
         })()
