@@ -34,6 +34,6 @@
         };
         var label = "{% if is_company %}{% trans "Change logo" %}{% else %}{% trans "Change photo" %}{% endif %}";
         ikwen.initUploader('#banner .photo .upload-image', label, 'profile', '#banner .photo');
-        ikwen.initUploader('#banner > .upload-image', "{% trans "Change cover" %}", 'cover', '#cover');
+        ikwen.initUploader('#banner > .upload-image', "{% trans "Cover" %} (1000px x 390px)", 'cover', '#cover');
     })()
 </script>
