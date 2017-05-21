@@ -1,12 +1,13 @@
 {% load i18n static staticfiles humanize %}
 <div style="padding: 0 15px">
-    <h4 class="text-primary">{% trans "Cash-Out request" %}</h4>
+    <h4 class="text-primary">{% trans "Money transfer confirmation" %}</h4>
+    {% with amount=cor.amount|intcomma account_number=cor.account_number project_name=service.project_name url=service.url %}
     {% if is_iao %}
         <div>
-            <p class="about">{% blocktrans with amount=cor.amount|intcomma account_number=cor.account_number project_name=service.project_name url=service.url %}
-                Your request to cash out <ins style="color: #666">{{ currency_symbol }} {{ amount }}</ins>
-                from <a href="{{ url }}" target="_blank">{{ project_name }}</a> account was successfully submitted.
-                Money will be paid to <ins>{{ account_number }}</ins> within the next 24h.
+            <p class="about">{% blocktrans %}
+                This is a confirmation that <ins>{{ currency_symbol }} {{ amount }}</ins> was transferred
+                on your account <ins>{{ account_number }}</ins> for your request to cash-out
+                your money with us on <a href="{{ url }}" target="_blank">{{ project_name }}</a>.
             {% endblocktrans %}</p>
         </div>
     {% else %}
@@ -20,12 +21,13 @@
             {% endif %}
             <div style="margin-left: 80px">
                 <a href="{% url 'ikwen:profile' member.id %}" class="name" style="cursor: pointer; display: block; margin-bottom: 5px">{{ member.full_name }}</a>
-                <p class="about">{% blocktrans with amount=cor.amount|intcomma account_number=cor.account_number project_name=service.project_name url=service.url%}
-                    Made a request to cash out <ins style="color: #666">{{ currency_symbol }} {{ amount }}</ins>
-                    from <a href="{{ url }}" target="_blank">{{ project_name }}</a> account.
-                    Money will be paid to <ins>{{ account_number }}</ins> within the next 24h.
+                <p class="about">{% blocktrans %}
+                    This is a confirmation that <ins>{{ currency_symbol }} {{ amount }}</ins> was transferred
+                    to account <ins>{{ account_number }}</ins> for his request to cash-out
+                    his money with us on <strong>{{ project_name }}</strong>.
                 {% endblocktrans %}</p>
             </div>
         </div>
     {% endif %}
+    {% endwith %}
 </div>

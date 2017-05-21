@@ -6,15 +6,15 @@
             {% blocktrans with iao_name=member.first_name %}Dear {{ iao_name }}{% endblocktrans %},<br>
 
             {% blocktrans %}
-                This is a confirmation that we just received a request to cash-out your money
-                on {{ project_name }}. Money will be paid within the next 24h. See details below.
+                This is a confirmation of money transfer for your request to cash-out
+                your money with us on <strong>{{ project_name }}</strong>. See details below.
             {% endblocktrans %}
 
             <br><br>
 
             <div style="clear: both; font-size: .9em">
                 <div>
-                    <h4 style="color: #555; margin-bottom: 0">{% trans "Pay to" %}:</h4>
+                    <h4 style="color: #555; margin-bottom: 0">{% trans "Paid to" %}:</h4>
                     {{ member.full_name }},
                     <p style="font-size: .9em; line-height: 1.4em; margin-top: .3em">
                         <ins>Amount</ins>: {{ cash_out_request.amount|intcomma }}<br>
@@ -22,6 +22,7 @@
                         {% if cash_out_request.account_number %}
                             <ins>Account number</ins>: {{ cash_out_request.account_number }}<br>
                         {% endif %}
+                        <ins>Reference</ins>: {{ cash_out_request.reference }}<br>
                         <strong style="color: #666">
                             {% if cash_out_request.city %} {{ cash_out_request.city }}, {% endif %}
                             {% if cash_out_request.country %} {{ cash_out_request.country }}. {% endif %}

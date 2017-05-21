@@ -58,18 +58,25 @@ class CashOutRequest(Model):
     """
     PENDING = 'Pending'
     PAID = 'Paid'
+    STATUS_CHOICES = (
+        (PENDING, 'Pending'),
+        (PAID, 'Paid'),
+    )
     # service = models.ForeignKey(Service)
     service_id = models.CharField(max_length=24)
     # member = models.ForeignKey('accesscontrol.Member')
     member_id = models.CharField(max_length=24)
     amount = models.IntegerField(default=0)
-    status = models.CharField(max_length=15, default=PENDING)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default=PENDING)
     # country = models.CharField(max_length=60)
     # city = models.CharField(max_length=60)
     method = models.CharField(_("payment method"), max_length=30,
                               help_text=_("Method used to pay the member"))
     account_number = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
+    reference = models.CharField(max_length=100)
+    teller_username = models.CharField(max_length=100, blank=True, null=True,
+                                       help_text=_("Teller who processed this request"))
 
     class Meta:
         db_table = 'ikwen_cash_out_request'
@@ -84,3 +91,12 @@ class CashOutRequest(Model):
     def _get_member(self):
         return Member.objects.using(UMBRELLA).get(pk=self.member_id)
     member = property(_get_member)
+
+    def _get_teller(self):
+        if not self.teller_username:
+            return
+        try:
+            return Member.objects.using(UMBRELLA).get(username=self.teller_username)
+        except Member.DoesNotExist:
+            pass
+    teller = property(_get_teller)
