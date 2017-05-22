@@ -79,7 +79,7 @@
                             {% endif %}
                         {% else %}
                             <div class="text-muted" style="margin-top: 1em">
-                                {% trans "You can cash out as from" %} {{ config.currency_symbol }} {{ config.cash_out_min|intcomma }}
+                                {% trans "You can cash out as from" %} <strong>{{ config.currency_symbol }} {{ config.cash_out_min|intcomma }}</strong>
                             </div>
                         {% endif %}
                         </div>

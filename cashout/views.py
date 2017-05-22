@@ -156,4 +156,5 @@ class Payments(BaseView):
         context['payments'] = payments
         context['payment_addresses'] = CashOutAddress.objects.using(UMBRELLA).filter(service=service)
         context['payment_methods'] = CashOutMethod.objects.using(UMBRELLA).all()
+        context['cash_out_min'] = service.config.cash_out_min
         return context
