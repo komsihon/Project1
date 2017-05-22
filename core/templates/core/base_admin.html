@@ -31,12 +31,12 @@
     {{ block.super }}
     <div id="app-nav" class="container-fluid">
         <span class="cta app-logo">
-            <img src="{% get_media_prefix %}{{ service.app.logo.name }}" class="img-responsive" />
+            <img src="{{ settings.IKWEN_MEDIA_URL }}{{ service.app.logo.name }}" class="img-responsive" />
         </span>
         <span class="cta app-name">{{ service.app.name }}</span>
         <ol class="breadcrumb">
-            {% url 'admin_home' as admin_home_url %}
-            <li><a href="{{ admin_home_url|append_auth_tokens:request }}">{{ service.project_name }}</a></li>
+            {% url 'ikwen:staff_router' as admin_home_url %}
+            <li><a href="{{ admin_home_url }}">{{ service.project_name }}</a></li>
             {% block breadcrumb_location %}{% endblock %}
         </ol>
         <a href="{% url 'home' %}" class="go-to-website pull-right" title="{% trans "Go to public website" %}">
