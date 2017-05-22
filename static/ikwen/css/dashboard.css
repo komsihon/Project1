@@ -24,6 +24,9 @@
     font-size: 34px
 }
 
+.section-title {clear: both}
+.view-payments {float: left; width: auto}
+
 .show-details {
     float: right;
     font-size: 13px
@@ -142,6 +145,12 @@
 
 .ranking li span:last-child {
     float: right
+}
+@media (max-width: 767px) {
+    .watch.last-week, .watch.last-28-days {margin-top: 25px}
+    .payments .view-payments {margin-top: 5px}
+    .section-title {border-top: 1px solid #ddd;padding-top: 10px;margin-top: 25px;margin-bottom: 15px;}
+    .section-title.perf {margin-bottom: 25px;}
 }
 @media (min-width: 992px) {
     #admin-content {padding-left: 240px;}
