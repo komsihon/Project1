@@ -25,7 +25,6 @@
 }
 
 .section-title {clear: both}
-#admin-content em.last-payment {color: #555; display: block; font-size: 25px; width: 100%}
 .view-payments {float: left; width: auto}
 
 .show-details {
@@ -149,8 +148,6 @@
 }
 @media (max-width: 767px) {
     .watch.last-week, .watch.last-28-days {margin-top: 25px}
-    #admin-content em.balance {font-size: 24px}
-    #admin-content em.last-payment {font-size: 21px}
     .payments .view-payments {margin-top: 5px}
     .section-title {border-top: 1px solid #ddd;padding-top: 10px;margin-top: 25px;margin-bottom: 15px;}
     .section-title.perf {margin-bottom: 25px;}

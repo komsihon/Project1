@@ -103,19 +103,19 @@ if DEBUG or TESTING:
 else:
     WALLETS_DB = {  # ikwen_kakocase.ikwen_kakocase relational database used to store sensitive objects among which CashOutRequest
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '',
-        'USER': '',
-        'PASSWORD': ''
+        'NAME': 'ikwen_wallets',
+        'USER': 'root',
+        'PASSWORD': 'admin'
     }
 
 DATABASES = {
     'default': {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',
+        'NAME': 'ikwen_umbrella',
     },
     'umbrella': {
         'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',
+        'NAME': 'ikwen_umbrella',
     },
     WALLETS_DB_ALIAS: WALLETS_DB
 }
@@ -172,9 +172,13 @@ LOGOUT_REDIRECT_URL = 'home'
 #  *******       IKWEN CONFIGURATION       *******      #
 
 IS_IKWEN = True
+
 IS_UMBRELLA = True  # ikwen main site: www.ikwen.com itself
+
 SITE_ID = '54eb6d3379b531e09cb3704b'
+
 IKWEN_SERVICE_ID = '57b702ca4fc0c2139660d9f8'
+# IKWEN_SERVICE_ID = '584040984fc0c238ede98ef8'
 
 # When the ikwen_share on a transaction turns out to be bigger than
 # one of the operator (Case of fixed share), ikwen will collect a
@@ -210,9 +214,9 @@ MTN_MOMO_API_URL = 'https://developer.mtn.cm/OnlineMomoWeb/faces/transaction/tra
 
 
 #  *******       E-mail CONFIGURATION       *******  #
-EMAIL_HOST = ''
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'ksihon'
+EMAIL_HOST_PASSWORD = 'L0v!nj!t!s'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
