@@ -6,13 +6,21 @@
     {{ block.super }}
     <link rel='stylesheet' href="{% static 'ikwen/swiper/css/swiper.min.css' %}" />
     <style type="text/css">
-        #navbar {background: none}
-        #navbar .navbar-brand {color: #888; display: none; font-weight: 700}
+        #navbar {background: #fff}
+        #navbar .navbar-brand {color: #888; font-size: 2em; font-weight: 700}
         #navbar a {color: #888}
+        .navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:hover, .navbar-default .navbar-nav>.open>a:focus {background: #eee}
+        .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {background: #eee}
+        #navbar .glyphicon {color: #aaa}
+        #content {margin-bottom: 2em; padding-top: 75px; padding-left: 0}
+        .page-header {margin: 0 0 1em}
         #navbar .menu-button, #navbar-search {
             display: none
         }
         .section-title {color: #666; margin: 2em 0 1em}
+        .section-title:first-of-type {margin-top: 0}
+        .section-title.billing {margin-top: 2em}
+        .section-title.choose-theme {margin: 10.5px 0 1em}
         .btn-icon {border: 1px solid; border-radius: 3px; cursor: pointer; font-size: 15px; height: 33px;
             line-height: 31px; text-align: center; width: 33px}
         .btn-icon.glyphicon-plus {padding-left: 2px}
@@ -33,9 +41,22 @@
         .theme img {transition: box-shadow .3s}
         .theme:hover img, .theme.active img {box-shadow: 1px 1px 9px 4px rgba(255, 87, 0, 0.42); transition: box-shadow .3s}
         @media (max-width: 767px) {
+            #navbar {background: #f8f6f6}
+            #navbar .navbar-brand {font-size: 1.5em; font-weight: 700}
+            #content {padding-top: 55px;}
+            .page-header {margin: 0.5em 0 0}
+            .dropdown-menu-xs {background: #f8f6f6}
+            .dropdown-menu-xs li {border-bottom: 1px solid #eee;}
             .theme {margin-top: 1.5em}
+            .section-title.choose-theme {margin-bottom: .5em}
         }
     </style>
+{% endblock %}
+
+{% block header_brand %}
+    <a class="navbar-brand" href="{{ settings.IKWEN_BASE_URL }}">
+        <strong>ikwen</strong>
+    </a>
 {% endblock %}
 
 {% block content %}
@@ -46,8 +67,7 @@
             {% endif %}
         </div>
         <div class="container">
-            <h2 class="text-muted"><strong>ikwen</strong></h2>
-            <p class="text-muted" style="margin-bottom: 2em; text-align: center">
+            <p class="page-header text-muted" style="text-align: center">
                 <img src="{{ settings.IKWEN_MEDIA_URL }}{{ app.logo.name }}" width="45" />
                 <span>
                     {% blocktrans with app_name=app.name %}Create your {{ app_name }} website{% endblocktrans %}
@@ -116,7 +136,7 @@
             {% if can_choose_themes %}
             <div style="background: #222; margin-top: 1em; padding: .5em 0 2em">
                 <div class="container">
-                    <h4 style="color: #ddd; margin-bottom: 1.2em">{% trans "Choose theme" %}</h4>
+                    <h4 class="section-title choose-theme" style="color: #ddd">{% trans "Choose theme" %}</h4>
                     <div class="swiper-container" style="padding: 10px; margin-left: -10px">
                         <div class="swiper-wrapper">
                             {% for theme in theme_list %}
@@ -133,7 +153,7 @@
             {% endif %}
             <div class="container">
                 <div class="col-sm-9 col-md-8">
-                    <h4 class="section-title">{% trans "Billing" %}</h4>
+                    <h4 class="section-title billing">{% trans "Billing" %}</h4>
                     <div class="form-group row">
                         <label for="billing-cycle" class="col-sm-4 col-md-3">{% trans "Billing cycle" %} </label>
                         <div class="col-sm-6 col-md-6">
@@ -362,6 +382,13 @@
                     425: {
                         slidesPerView: 1
                     }
+                }
+            });
+            $(window).scroll(function() {
+                if ($(this).scrollTop() > 0) {
+                    $('#navbar').addClass('has-shade')
+                } else {
+                    $('#navbar').removeClass('has-shade')
                 }
             });
         })()
