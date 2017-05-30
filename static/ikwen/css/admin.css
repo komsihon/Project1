@@ -191,8 +191,9 @@ footer a {color: #999}
     .images-uploader .frame {width: 235px;height: 190px;}
     .images-uploader .qq-upload-button {line-height: 190px}
     #admin-tools + #results {margin-top: 35px;}
+    .results-filter + #results {margin-top: 35px;}
     .results-filter {padding-top: 30px;}
-    #admin-content .member .info, #admin-content .ik-li .info {max-width: 390px;}
+    #admin-content .member .info, #admin-content .ik-li .info {max-width: 400px;}
     #admin-content .has-edge-panel-right .member .info, #admin-content .has-edge-panel-right .ik-li .info {max-width: 225px;}
 }
 
@@ -212,10 +213,12 @@ footer a {color: #999}
     #admin-content.change-form form {padding-left: 0}
     #admin-tools {padding-left: 0;}
     .results-filter {padding: 30px 10px 5px 0;}
-    #admin-content .has-edge-panel-right .member .info, #admin-content .has-edge-panel-right .ik-li .info {max-width: 390px;}
+    #admin-content .member .info, #admin-content .ik-li .info {max-width: 600px;}
+    #admin-content .has-edge-panel-right .member .info, #admin-content .has-edge-panel-right .ik-li .info {max-width: 400px;}
 }
 @media (min-width: 1200px) {
     .member .info, .ik-li .info {margin-left: 15px}
+    #admin-content .has-edge-panel-right .member .info, #admin-content .has-edge-panel-right .ik-li .info {max-width: 600px;}
 }
 
 /* Object Details ik-li info width must be overriden */
