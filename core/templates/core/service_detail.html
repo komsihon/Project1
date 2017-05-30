@@ -85,7 +85,7 @@
                     </div>
                     <div class="edit billing-cycle hidden row" style="height: 45px">
                         <div class="col-sm-3" style="margin-right: 6px">
-                            <label for="billing-cycle" class="sr-only">New billing cycle</label>
+                            <label for="billing-cycle" class="sr-only">{% trans "New billing cycle" %}</label>
                             <select id="billing-cycle" class="form-control input-sm">
                             {% for bc in billing_cycles %}
                                 <option value="{{ bc.0 }}">{{ bc.1 }}</option>
