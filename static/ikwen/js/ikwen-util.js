@@ -217,9 +217,10 @@
     }).on('click', '.edge-swipe-overlay', function(e) {
         var elt = e.target.className;
         if (elt.indexOf('edge-swipe-overlay') >= 0 || elt.indexOf('close') >= 0) {
-            $('.edge-panel-left').animate({marginLeft: '-300px'}, 'fast');
+            var width = $('.edge-panel-left').width();
+            $('.edge-panel-left').animate({marginLeft: '-' + width + 'px'}, 'fast');
             if ($(window).width() < 768) {
-                $('.edge-panel-right').animate({marginRight: '-300px'}, 'fast');
+                $('.edge-panel-right').animate({marginRight: '-' + width + 'px'}, 'fast');
             }
             $('.edge-swipe-overlay').fadeOut('fast');
         }
