@@ -34,7 +34,7 @@ def ikwenize(uri):
     Ex: ikwenize('/console') = 'http://www.ikwen.com/console'
     """
     url = uri
-    if not getattr(settings, 'IS_IKWEN', False):
+    if not getattr(settings, 'IS_UMBRELLA', False):
         from ikwen.core.views import IKWEN_BASE_URL
         uri = uri.replace('/ikwen', '')
         if getattr(settings, 'DEBUG', False):
