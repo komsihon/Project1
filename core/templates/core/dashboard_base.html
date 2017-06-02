@@ -14,6 +14,114 @@
     <li>{% trans "Dashboard" %}</li>
 {% endblock %}
 
+{% block admin_content %}
+    <div id="admin-content">
+        <div class="container-fluid">
+            <h5 style="margin-top: 0">
+                <span>{% trans "Earnings" %} <span class="text-muted">({{ config.currency_code }})</span> </span>
+                <a href="#" class="show-details">{% trans "Details" %}</a>
+            </h5>
+            <div class="row" style="clear: both">
+                <div class="col-xs-6 col-sm-3 watch">
+                    <h5>{% trans "Today" %}</h5>
+                    <div>
+                        <span style="font-size: 30px">{{ earnings_report.today.total|intcomma }}</span>
+                    </div>
+                </div>
+                <div class="col-xs-6 col-sm-3 watch">
+                    <h5>{% trans "Yesterday" %}</h5>
+                    <div>
+                        <span>{{ earnings_report.yesterday.total|intcomma }}</span>
+                        {% if earnings_report.yesterday.change and earnings_report.yesterday.change > 0 %}
+                            <div class="arrow up"></div>
+                        {% elif earnings_report.yesterday.change and earning.yesterday.change < 0 %}
+                            <div class="arrow down"></div>
+                        {% endif %}
+                    </div>
+                    {% if earnings_report.yesterday.change and earnings_report.yesterday.change > 0 %}
+                        <p class="change up">{{ earnings_report.yesterday.change }}
+                            (+{{ earnings_report.yesterday.change_rate|floatformat:2 }}%)</p>
+                    {% elif earnings_report.yesterday.change and earning.yesterday.change < 0 %}
+                        <p class="change down">{{ earnings_report.yesterday.change }}
+                            ({{ earnings_report.yesterday.change_rate|floatformat:2 }}%)</p>
+                    {% else %}
+                        <p class="change text-muted">---</p>
+                    {% endif %}
+                    <p class="vs">{% trans "vs same day last week" %}</p>
+                </div>
+                <div class="col-xs-6 col-sm-3 watch">
+                    <h5>{% trans "Last week" %}</h5>
+                    <div>
+                        <span>{{ earnings_report.last_week.total|intcomma }}</span>
+                        {% if earnings_report.last_week.change and earnings_report.last_week.change > 0 %}
+                            <div class="arrow up"></div>
+                        {% elif earnings_report.last_week.change and earning.last_week.change < 0 %}
+                            <div class="arrow down"></div>
+                        {% endif %}
+                    </div>
+                    {% if earnings_report.last_week.change and earnings_report.last_week.change > 0 %}
+                        <p class="change up">{{ earnings_report.last_week.change }}
+                            (+{{ earnings_report.last_week.change_rate|floatformat:2 }}%)</p>
+                    {% elif earnings_report.last_week.change and earning.last_week.change < 0 %}
+                        <p class="change down">{{ earnings_report.last_week.change }}
+                            ({{ earnings_report.last_week.change_rate|floatformat:2 }}%)</p>
+                    {% else %}
+                        <p class="change text-muted">---</p>
+                    {% endif %}
+                    <p class="vs">{% trans "vs previous 7 days" %}</p>
+                </div>
+                <div class="col-xs-6 col-sm-3 watch">
+                    <h5 title="{% trans "Last 28 days" %}">{% trans "Last 28 days" %}</h5>
+                    <div>
+                        <span>{{ earnings_report.last_28_days.total|intcomma }}</span>
+                        {% if earnings_report.last_28_days.change and earnings_report.last_28_days.change > 0 %}
+                            <div class="arrow up"></div>
+                        {% elif earnings_report.last_28_days.change and earning.last_28_days.change < 0 %}
+                            <div class="arrow down"></div>
+                        {% endif %}
+                    </div>
+                    {% if earnings_report.last_28_days.change and earnings_report.last_28_days.change > 0 %}
+                        <p class="change up">{{ earnings_report.last_28_days.change }}
+                            (+{{ earnings_report.last_28_days.change_rate|floatformat:2 }}%)</p>
+                    {% elif earnings_report.last_28_days.change and earning.last_28_days.change < 0 %}
+                        <p class="change down">{{ earnings_report.last_28_days.change }}
+                            ({{ earnings_report.last_28_days.change_rate|floatformat:2 }}%)</p>
+                    {% else %}
+                        <p class="change text-muted">---</p>
+                    {% endif %}
+                    <p class="vs">{% trans "vs previous 28 days" %}</p>
+                </div>
+            </div>
+            {% if perms.accesscontrol.sudo and not config.is_pro_version or settings.DEBUG %}
+                <h5 class="section-title">
+                    <span>{% trans "Payments" %} <span class="text-muted">({{ config.currency_code }})</span></span>
+                </h5>
+                <div class="row payments">
+                    <div class="col-xs-6 col-sm-4">
+                        <h6 class="text-muted">{% trans "Balance" %}</h6>
+                        <em class="balance">{{ wallet.balance|floatformat:config.decimal_precision|intcomma }}</em>
+                        <div>
+                            <a href="{% url 'cashout:home' %}">{% trans "Payment details" %}</a>
+                        </div>
+                    </div>
+                    {% if last_cash_out %}
+                        <div class="col-xs-6 col-sm-3">
+                            <h6 class="text-muted">{% trans "Last payment" %}</h6>
+                            <em class="last-payment">{{ last_cash_out.amount }}</em>
+                            <time style="float: left; font-size: 12px; margin-top: -4px">{{ last_cash_out.created_on|date }}</time>
+                            <span style="float: left; font-size: 12px; margin-top: -5px">
+                                <span class="hidden-xs" style="float: left; margin: 0 6px">-</span>
+                                <a href="{% url 'cashout:home' %}" style="float: left; width: auto">{% trans "View payments" %}</a>
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            {% block performances %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}
+
 {% block js %}
     {{ block.super }}
     <script type="text/javascript">

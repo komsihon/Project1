@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 from datetime import datetime, timedelta
+from time import strptime
 
 import requests
 from ajaxuploader.views import AjaxFileUploader
@@ -26,6 +27,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.contrib.admin import helpers
 from django.utils.translation import gettext as _
+from ikwen.cashout.models import CashOutRequest
 
 from ikwen.accesscontrol.templatetags.auth_tokens import append_auth_tokens
 
@@ -36,9 +38,10 @@ from ikwen.billing.models import Invoice
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT
-from ikwen.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, AbstractConfig, Country
+from ikwen.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, AbstractConfig, Country, \
+    OperatorWallet
 from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons, add_database_to_settings, \
-    add_database
+    add_database, calculate_watch_info, set_counters
 import ikwen.conf.settings
 
 try:
@@ -549,6 +552,40 @@ def get_location_by_ip(request, *args, **kwargs):
     except:
         response = {'error': True}
     return HttpResponse(json.dumps(response))
+
+
+class DashboardBase(BaseView):
+
+    def get_context_data(self, **kwargs):
+        context = super(DashboardBase, self).get_context_data(**kwargs)
+        service = get_service_instance()
+        set_counters(service)
+        earnings_today = calculate_watch_info(service.earnings_history)
+        earnings_yesterday = calculate_watch_info(service.earnings_history, 1)
+        earnings_last_week = calculate_watch_info(service.earnings_history, 7)
+        earnings_last_28_days = calculate_watch_info(service.earnings_history, 28)
+
+        earnings_report = {
+            'today': earnings_today,
+            'yesterday': earnings_yesterday,
+            'last_week': earnings_last_week,
+            'last_28_days': earnings_last_28_days
+        }
+
+        qs = CashOutRequest.objects.using('wallets').filter(service_id=service.id, status=CashOutRequest.PAID).order_by('-id')
+        last_cash_out = qs[0] if qs.count() >= 1 else None
+        if last_cash_out:
+            # Re-transform created_on into a datetime object
+            last_cash_out.created_on = datetime(*strptime(last_cash_out.created_on[:19], '%Y-%m-%d %H:%M:%S')[:6])
+        service = get_service_instance()
+        try:
+            wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=service.id)
+            context['wallet'] = wallet
+        except:
+            pass
+        context['earnings_report'] = earnings_report
+        context['last_cash_out'] = last_cash_out
+        return context
 
 
 class LegalMentions(BaseView):
