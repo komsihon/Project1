@@ -407,7 +407,7 @@ class MoMoTransaction(Model):
         verbose_name_plural = 'MoMo Transactions'
 
 
-class CloudBillingPlan(models.Model):
+class CloudBillingPlan(Model):
     app = models.ForeignKey(Application)
     partner = models.ForeignKey(Service, related_name='+', blank=True, null=True,
                                 help_text="Retailer this billing plan applies to.")
