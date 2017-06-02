@@ -95,6 +95,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
         """
         service = get_service_instance()
         service.expiry = datetime.now() - timedelta(days=10)
+        service.status = Service.SUSPENDED
         service.save()
         response = self.client.get(reverse('ikwen:register'), follow=True)
         final = response.redirect_chain[-1]
@@ -108,7 +109,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', DEBUG=True,
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-                       EMAIL_FILE_PATH='test_emails/core/',
+                       EMAIL_FILE_PATH='test_emails/core/', UNIT_TESTING=True,
                        JUMBOPAY_API_URL='https://154.70.100.194/api/sandbox/v2/')
     def test_pay_invoice(self):
         """
@@ -123,7 +124,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
                                                                            'extra_months': 0})
         self.assertEqual(response.status_code, 200)
         # Init payment from Checkout page
-        response = self.client.get(reverse('billing:init_momo_cashout'), data={'phone': '655003321'})
+        response = self.client.get(reverse('billing:init_momo_transaction'), data={'phone': '677003321'})
         json_resp = json.loads(response.content)
         tx_id = json_resp['tx_id']
         response = self.client.get(reverse('billing:check_momo_transaction_status'), data={'tx_id': tx_id})
@@ -136,7 +137,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', DEBUG=True,
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-                       EMAIL_FILE_PATH='test_emails/core/',
+                       EMAIL_FILE_PATH='test_emails/core/', UNIT_TESTING=True,
                        JUMBOPAY_API_URL='https://154.70.100.194/api/sandbox/v2/')
     def test_pay_invoice_with_service_having_retailer(self):
         """
@@ -160,7 +161,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
                                                                            'extra_months': 2})
         self.assertEqual(response.status_code, 200)
         # Init payment from Checkout page
-        response = self.client.get(reverse('billing:init_momo_cashout'), data={'phone': '655003321'})
+        response = self.client.get(reverse('billing:init_momo_transaction'), data={'phone': '677003321'})
         json_resp = json.loads(response.content)
         tx_id = json_resp['tx_id']
         response = self.client.get(reverse('billing:check_momo_transaction_status'), data={'tx_id': tx_id})
@@ -211,7 +212,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', DEBUG=True,
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-                       EMAIL_FILE_PATH='test_emails/core/',
+                       EMAIL_FILE_PATH='test_emails/core/', UNIT_TESTING=True,
                        JUMBOPAY_API_URL='https://154.70.100.194/api/sandbox/v2/')
     def test_pay_one_off_invoice_with_service_having_retailer(self):
         """
@@ -240,7 +241,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
         response = self.client.post(reverse('billing:momo_set_checkout'), {'invoice_id': '56eb6d04b37b3379d531e012'})
         self.assertEqual(response.status_code, 200)
         # Init payment from Checkout page
-        response = self.client.get(reverse('billing:init_momo_cashout'), data={'phone': '655003321'})
+        response = self.client.get(reverse('billing:init_momo_transaction'), data={'phone': '677003321'})
         json_resp = json.loads(response.content)
         tx_id = json_resp['tx_id']
         response = self.client.get(reverse('billing:check_momo_transaction_status'), data={'tx_id': tx_id})

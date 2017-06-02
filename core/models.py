@@ -85,6 +85,9 @@ class Application(AbstractWatchModel):
     deployment_url_name = models.CharField(max_length=100, blank=True, null=True,
                                       help_text=_("Django URL name: <strong>[<em>namespace</em>:]view_name</strong> "
                                                   "of the view that handles deployment of this application."))
+    is_public = models.BooleanField(default=True,
+                                    help_text=_("If true, the <em>Deploy</em> button appears on the "
+                                                "application's description page on ikwen website."))
 
     turnover_history = ListField(editable=False)
     earnings_history = ListField(editable=False)
