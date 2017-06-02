@@ -45,7 +45,12 @@ def request_payment(transaction):
     data = {'idbouton': 2, 'typebouton': 'PAIE', 'submit.x': 104, 'submit.y': 70,
             '_cIP': '', '_amount': amount, '_tel': transaction.phone}
     cashout_url = MTN_MOMO_API_URL
-    if getattr(settings, 'DEBUG', False):
+    if getattr(settings, 'UNIT_TESTING', False):
+        transaction.processor_tx_id = 'tx_1'
+        transaction.task_id = 'task_1'
+        transaction.message = 'Success'
+        transaction.status = MoMoTransaction.SUCCESS
+    elif getattr(settings, 'DEBUG', False):
         mtn_momo = json.loads(PaymentMean.objects.get(slug=_MTN_MOMO).credentials)
         data.update({'_email': mtn_momo['merchant_email']})
         r = requests.get(cashout_url, params=data, verify=False, timeout=130)
