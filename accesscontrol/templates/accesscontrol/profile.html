@@ -175,7 +175,7 @@
                                        href="{% url 'ikwen:request_access' %}?service_id={{ page_service.id }}">{% trans "Join" %}</a>
                                 {% endif %}
                             </div>
-                        {% elif app.deployment_url_name %}
+                        {% elif app.is_public and app.deployment_url_name %}
                             <div class="actions">
                                 <a id="deploy" class="btn btn-sm" href="{% url app.deployment_url_name app.slug %}">{% trans "DEPLOY" %}</a>
                             </div>
