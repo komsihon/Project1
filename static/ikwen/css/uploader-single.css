@@ -1,0 +1,19 @@
+/**
+    Document   : uploader-single
+    Created on : June 04, 2017, 11:32
+    Author     : Kom Sihon
+    Description:
+        Renders an uploader for a single image.
+        This means a larger image and the upload button is bigger and more visible
+*/
+
+div#upload-container { float: left; margin-top: 3px; width: 74% }
+div#upload-container .image {background: url('../img/no_photo.png') no-repeat center; background-size: 100%; border: solid 1px #DBE6FF; height: 225px; float: left; margin: 5px; overflow: hidden; width: 280px}
+div#upload-container .image .progress {float: left; background: #3C63FF; height: 10px; margin-top: 213px}
+div#upload-container .image .spinner {margin-top: 90px}
+div#upload-container .uploader {display: none; height: 225px; position: absolute; text-align: center; width: 280px}
+div#upload-container .image:hover .uploader {display: block}
+.qq-uploader {background: rgba(0, 0, 0, .7); height: 40px; padding-top: 8px}
+.qq-upload-button {background: none; border: none; box-shadow: none; color: #fff; text-shadow: none; height: 100px; width: 100%}
+.qq-upload-button-hover {box-shadow: none; color: #fff}
+.qq-upload-list {display: none}
