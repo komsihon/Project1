@@ -1,5 +1,5 @@
 {% extends 'core/app_base_admin.html' %}
-{% load i18n humanize staticfiles auth_tokens %}
+{% load i18n humanize static auth_tokens %}
 
 {% block page_title %}
 <title> {% trans "Configure theme" %} - {{ service.project_name }} </title>
@@ -7,19 +7,7 @@
 
 {% block head_style %}
     {{ block.super }}
-    <style>
-        .verify {border: 1px solid #e74c3c}  {# Highlights form errors (Check performed by javascript) #}
-        div#upload-container { float: left; margin-top: 3px; width: 74% }
-        div#upload-container .image {background: url('{% static 'ikwen/img/no_photo.png' %}') no-repeat center; background-size: 100%; border: solid 1px #DBE6FF; height: 240px; float: left; margin: 5px; overflow: hidden; width: 300px}
-        div#upload-container .image .progress {float: left; background: #3C63FF; height: 10px; margin-top: 228px}
-        div#upload-container .image .spinner {margin-top: 90px}
-        div#upload-container .uploader {display: none; height: 240px; position: absolute; text-align: center; width: 300px}
-        div#upload-container .image:hover .uploader {display: block}
-        .qq-uploader {background: rgba(0, 0, 0, .7); height: 40px; padding-top: 8px}
-        .qq-upload-button {background: none; border: none; box-shadow: none; color: #fff; text-shadow: none; height: 100px; width: 100%}
-        .qq-upload-button-hover {box-shadow: none; color: #fff}
-        .qq-upload-list {display: none}
-    </style>
+    <link href="{% static 'ikwen/css/uploader-single.css' %}" media="screen" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block breadcrumb_location %}
@@ -40,8 +28,8 @@
             <section class="photos" style="width: 100%">
                 <label class="required" style="float: left; width: 100%">{% trans "Logo" %}</label>
                 <div id="upload-container">
-                    {% if theme.logo and theme.logo.name %}
-                    <div class="image" style="background-image: url('{{ theme.logo.url }}')">
+                    {% if theme.logo.name %}
+                    <div class="image" style="background-image: url('{% get_media_prefix %}{{ theme.logo.name }}')">
                     {% else %}
                     <div class="image">
                     {% endif %}
@@ -50,9 +38,12 @@
                         {% include 'core/snippets/spinner.html' %}
                     </div>
                 </div>
-                <p class="help clear">
+                <p class="help clear" style="width: 280px">
                     <strong>{% trans "Your logo" %}</strong>:
                     <em class="text-muted">{% block theme_logo_dimensions %}{% endblock %}</em>
+                    {% if theme.logo.name %}
+                    <i id="delete-theme-logo" class="glyphicon glyphicon-trash"></i>
+                    {% endif %}
                 </p>
             </section>
             <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
@@ -105,6 +96,10 @@
                     'csrf_name': 'csrfmiddlewaretoken',
                     'csrf_xname': 'X-CSRFToken'
                 }
+            });
+            $('#delete-theme-logo').click(function() {
+                $.getJSON('{% url 'theming:delete_logo' %}');
+                $('div#upload-container .image').css('background-image', "url('" + '{% static 'ikwen/img/no_photo.png' %}' +"')");
             });
         })()
     </script>

@@ -1,11 +1,13 @@
+import json
 import os
 
 from django.conf import settings
 from django.contrib.admin import helpers
+from django.contrib.auth.decorators import permission_required
 from django.core.files import File
 from django.core.urlresolvers import reverse
 from django.forms.models import modelform_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
@@ -13,7 +15,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 
 from ikwen.theming.admin import ThemeAdmin
 
-from ikwen.core.utils import get_model_admin_instance
+from ikwen.core.utils import get_model_admin_instance, get_service_instance
 
 from ikwen.theming.models import Theme
 
@@ -84,3 +86,19 @@ class ConfigureTheme(BaseView):
             context = self.get_context_data(**kwargs)
             context['errors'] = form.errors
             return render(request, self.template_name, context)
+
+
+@permission_required('accesscontrol.sudo')
+def delete_logo(request, *args, **kwargs):
+    service = get_service_instance()
+    theme = service.config.theme
+    try:
+        os.unlink(theme.logo.path)
+        theme.logo = ''
+        theme.save()
+    except:
+        pass
+    return HttpResponse(
+        json.dumps({'success': True}),
+        content_type='application/json'
+    )
