@@ -214,28 +214,44 @@
     }).on('click', '.menu-button', function() {
         $('.edge-swipe-overlay').fadeIn('fast');
         $('.edge-panel-left').show().animate({marginLeft: 0}, 'fast');
+        location.hash = 'edge-panel-disclosed';
     }).on('click', '.edge-swipe-overlay', function(e) {
         var elt = e.target.className;
         if (elt.indexOf('edge-swipe-overlay') >= 0 || elt.indexOf('close') >= 0) {
-            var width = $('.edge-panel-left').width();
-            $('.edge-panel-left').animate({marginLeft: '-' + width + 'px'}, 'fast');
-            if ($(window).width() < 768) {
-                $('.edge-panel-right').animate({marginRight: '-' + width + 'px'}, 'fast');
-            }
-            $('.edge-swipe-overlay').fadeOut('fast');
+            history.back();  // Causes the processHash() function to run
         }
     });
+    $(window).on('hashchange', processHash);
+    function processHash() {
+        if (location.hash.length < 1) {
+            hideEdgePanelLeft();
+            if ($(window).width() < 768) {
+                hideEdgePanelRight();
+            }
+        }
+    }
     try {
         $('.edge-swipe-overlay').hammer().bind("swipeleft", function() {
-            $('.edge-panel-left').animate({marginLeft: '-300px'}, 'fast');
-            $('.edge-swipe-overlay').fadeOut('fast');
+            history.back();  // Causes the processHash() function to run
         }).bind("swiperight", function() {
             if ($(window).width() < 768) {
-                $('.edge-panel-right').animate({marginRight: '-300px'}, 'fast');
-                $('.edge-swipe-overlay').fadeOut('fast');
+                history.back();  // Causes the processHash() function to run
             }
         });
     } catch (e) {}
+
+    function hideEdgePanelLeft() {
+        var width = $('.edge-panel-left').width();
+        $('.edge-panel-left').animate({marginLeft: '-' + width + 'px'}, 'fast');
+        $('.edge-swipe-overlay').fadeOut('fast');
+
+    }
+
+    function hideEdgePanelRight() {
+        var width = $('.edge-panel-right').width();
+        $('.edge-panel-right').animate({marginRight: '-' + width + 'px'}, 'fast');
+        $('.edge-swipe-overlay').fadeOut('fast');
+    }
 
     /**
      * Appends authentication tokens to "href" of all A elements
@@ -267,6 +283,7 @@
     c.swipeInRightPanel = function() {
         $('.edge-swipe-overlay').fadeIn('fast');
         $('.edge-panel-right').show().addClass('has-shade').appendTo('.edge-swipe-overlay').animate({marginRight: 0}, 'fast');
+        location.hash = 'edge-panel-disclosed';
     };
 
     var contentTabListSwiper, contentTabPaneSwiper;
