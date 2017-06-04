@@ -9,6 +9,7 @@
 body {font-size: 13px; overflow: hidden}
 .glyphicon.toggle.on {color: #ccc}
 .glyphicon.toggle.off {color: #33c800}
+.verify {border: 1px solid #e74c3c} /* Highlights form errors (Check performed by javascript) */
 
 #selection-control {
     background: #fff;
@@ -223,3 +224,4 @@ footer a {color: #999}
 
 /* Object Details ik-li info width must be overriden */
 #object-detail .ik-li .info {width: auto}
+#delete-theme-logo {color: #ff3030; cursor: pointer; float: right}
