@@ -577,7 +577,9 @@ def check_momo_transaction_status(request, *args, **kwargs):
 
     # When a MoMoTransaction is created, its status is None or empty string
     # So perform a double check. First, make sure a status has been set
-    if tx.status:
+    if tx.is_running and tx.status:
+        tx.is_running = False
+        tx.save(using='wallets')
         if tx.status == MoMoTransaction.SUCCESS:
             path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
             momo_after_checkout = import_by_path(path)

@@ -396,6 +396,7 @@ class MoMoTransaction(Model):
     task_id = models.CharField(max_length=30, blank=True, null=True,
                                help_text="Task ID (JumboPay MoMo API)")
     message = models.TextField(blank=True, null=True)
+    is_running = models.BooleanField(default=True)
     status = models.CharField(max_length=30, blank=True, null=True)
 
     def _get_service(self):
