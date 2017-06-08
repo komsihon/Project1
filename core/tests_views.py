@@ -6,7 +6,6 @@
 
 import json
 from datetime import datetime, timedelta
-from time import sleep
 
 from django.core.cache import cache
 from django.core.management import call_command

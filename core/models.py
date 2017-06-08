@@ -563,6 +563,26 @@ class Config(AbstractConfig):
     class Meta:
         db_table = 'ikwen_config'
 
+    def save(self, *args, **kwargs):
+        using = kwargs.get('using')
+        if using:
+            del(kwargs['using'])
+        else:
+            using = 'default'
+        if getattr(settings, 'IS_IKWEN', False):
+            db = self.service.database
+            add_database_to_settings(db)
+            try:
+                obj_mirror = Config.objects.using(db).get(pk=self.id)
+                obj_mirror.currency_code = self.currency_code
+                obj_mirror.currency_symbol = self.currency_symbol
+                obj_mirror.cash_out_min = self.cash_out_min
+                obj_mirror.is_pro_version = self.is_pro_version
+                super(Config, obj_mirror).save(using=db)
+            except Config.DoesNotExist:
+                pass
+        super(Config, self).save(using=using)
+
 
 class OperatorWallet(Model):
     nonrel_id = models.CharField(max_length=24, unique=True)
