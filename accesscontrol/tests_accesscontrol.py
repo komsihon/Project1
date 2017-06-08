@@ -126,8 +126,8 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         response = self.client.get(reverse('ikwen:list_collaborators'), {'q': 'tch'})
         self.assertEqual(response.status_code, 200)
         json_response = json.loads(response.content)
-        self.assertEqual(len(json_response), 1)
-        self.assertEqual(json_response[0]['id'], '56eb6d04b37b3379b531e014')
+        self.assertEqual(len(json_response), 2)
+        self.assertEqual(json_response[0]['id'], '56eb6d04b37b3379b531e013')
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
     def test_set_collaborator_permissions(self):

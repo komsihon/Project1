@@ -507,11 +507,13 @@ def list_collaborators(request, *args, **kwargs):
     if len(q) < 2:
         return
     q = q[:4]
-    service = get_service_instance()
-    queryset = Member.objects.raw_query({'collaborates_on_fk_list': {'$elemMatch': {'$eq': service.id}}})
-    # TODO: Substring search directly in the raw query rather than in the list comprehension
-    members = [member.to_dict() for member in queryset if q in member.full_name.lower()]
-    return HttpResponse(json.dumps(members), content_type='application/json')
+    results = []
+    for m in Member.objects.filter(full_name__icontains=q):
+        try:
+            results.append(m.to_dict())
+        except:
+            pass
+    return HttpResponse(json.dumps(results), content_type='application/json')
 
 
 class AccessRequestList(BaseView):
