@@ -42,11 +42,17 @@ class ApplicationAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         super(ApplicationAdmin, self).save_model(request, obj, form, change)
         try:
+            media_root = getattr(settings, 'MEDIA_ROOT')
             if os.path.exists(obj.logo.path):
                 output_folder = 'ikwen/favicons/%s/' % obj.slug
-                if not os.path.exists(getattr(settings, 'MEDIA_ROOT') + output_folder):
-                    os.makedirs(getattr(settings, 'MEDIA_ROOT') + output_folder)
+                if not os.path.exists(media_root + output_folder):
+                    os.makedirs(media_root + output_folder)
                 generate_favicons(obj.logo.path, output_folder)
+                filename = obj.logo.name.split('/')[-1]
+                dst = obj.logo.name.replace(filename, obj.slug + '-logo.png')
+                os.rename(obj.logo.path, media_root + dst)
+                obj.logo = dst
+                obj.save()
         except ValueError:
             pass
 
