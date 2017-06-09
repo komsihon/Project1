@@ -87,8 +87,8 @@ if DEBUG or TESTING:
 else:
     WALLETS_DB = {  # ikwen_kakocase.ikwen_kakocase relational database used to store sensitive objects among which CashOutRequest
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ikwen_wallets',
-        'USER': 'root',
+        'NAME': '',
+        'USER': '',
         'PASSWORD': 'admin'
     }
 
@@ -97,12 +97,12 @@ else:
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '{{ database }}',
+        'ENGINE': '', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '',
     },
     'umbrella': {
-        'ENGINE': 'django_mongodb_engine', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'ikwen_umbrella',
+        'ENGINE': '', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '',
     },
     'wallets': WALLETS_DB
 }
@@ -143,8 +143,18 @@ STATIC_URL = '{{ static_url }}'
 
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR,  'templates'),
-    '{{ app_folder }}/templates'
+    '/home/komsihon/Dropbox/PycharmProjects/ikwen/partnership/templates'
 )
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': 60 * 2,
+        'KEY_PREFIX': '{{ ikwen_name }}',  # Use rather svdprod for Production
+        'VERSION': '1'
+    }
+}
 
 
 #  *******       IKWEN CONFIGURATION       *******      #
@@ -170,7 +180,26 @@ AUTHENTICATION_BACKENDS = (
 )
 
 LOGIN_URL = 'ikwen:sign_in'
-LOGOUT_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'ikwen:sign_in'
+
+# STAFF_ROUTER describes how staff users are routed upon login.
+# It is a list of tuples each containing at least 2 elements,
+# the first being the permission, the second being
+# the url name, or raw url where to route if user having that permission
+# The third element if exists will be the passed as *args for the url
+# or **kwargs depending if it's a tuple or a dictionary
+# Note that the Superuser will always be routed to the first url
+# since he has all permissions
+#
+# Eg:
+# STAFF_ROUTER = (
+#     ('app_label.view_dashboard', 'app_label:dashboard'),
+#     ('app_label.manage_orders', 'app_label:order_list')
+# )
+STAFF_ROUTER = (
+    ('partnership.ik_view_dashboard', 'dashboard'),
+)
 
 IKWEN_BASE_URL = 'http://www.ikwen.com'  # Used only for dev purposes (DEBUG = False)
 
@@ -186,8 +215,8 @@ SERVICE_SUSPENSION_ACTION = 'ikwen.billing.utils.suspend_subscription'
 
 #  *******       E-mail CONFIGURATION       *******  #
 
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'ksihon'
-EMAIL_HOST_PASSWORD = 'sendgr1d'
+EMAIL_HOST = ''
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True

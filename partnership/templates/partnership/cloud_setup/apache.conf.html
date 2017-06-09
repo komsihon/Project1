@@ -1,0 +1,22 @@
+{% if is_naked_domain %}
+<VirtualHost *:80>
+    ServerName {{ domain }}
+	Redirect permanent / http://www.{{ domain }}/
+</VirtualHost>
+{% endif %}
+
+<VirtualHost *:80>
+	ServerName {% if is_naked_domain %}www.{% endif %}{{ domain }}
+
+	DocumentRoot /home/ikwen/Cloud/ikwenAppRetailer/{{ ikwen_name }}
+	<Directory /home/ikwen/Cloud/ikwenAppRetailer/{{ ikwen_name }}/conf/>
+		<Files wsgi.py>
+			Order deny,allow
+		    Require all granted
+		</Files>
+	</Directory>
+
+	WSGIDaemonProcess {{ ikwen_name }} python-path=/home/ikwen/Cloud/ikwenAppRetailer/{{ ikwen_name }}:/home/yayatoo/virtualenv/local/lib/python2.7/site-packages
+	WSGIProcessGroup {{ ikwen_name }}
+	WSGIScriptAlias / /home/ikwen/Cloud/ikwenAppRetailer/{{ ikwen_name }}/conf/wsgi.py
+</VirtualHost>

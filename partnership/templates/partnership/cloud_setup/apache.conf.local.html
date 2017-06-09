@@ -1,0 +1,12 @@
+<Directory /home/komsihon/PycharmProjects/CloudTest/ikwenAppRetailer/{{ ikwen_name }}/conf>
+	<Files wsgi.py>
+		Order deny,allow
+		Require all granted
+	</Files>
+</Directory>
+
+WSGIScriptAlias /{{ ikwen_name }} /home/komsihon/PycharmProjects/CloudTest/ikwenAppRetailer/{{ ikwen_name }}/conf/wsgi.py
+WSGIDaemonProcess {{ ikwen_name }} python-path=/home/komsihon/PycharmProjects/CloudTest/ikwenAppRetailer/{{ ikwen_name }}:/home/komsihon/Tools/virtualenv/lib/python2.7/site-packages/
+<Location /{{ ikwen_name }}>
+	WSGIProcessGroup {{ ikwen_name }}
+</Location>
