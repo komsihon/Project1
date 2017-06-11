@@ -394,7 +394,7 @@ class MoMoTransaction(Model):
     processor_tx_id = models.CharField(max_length=100, blank=True,
                                        help_text="ID of the transaction in the Payment Processor system")
     task_id = models.CharField(max_length=30, blank=True, null=True,
-                               help_text="Task ID (JumboPay MoMo API)")
+                               help_text="Task ID (Payment Processor API)")
     message = models.TextField(blank=True, null=True)
     is_running = models.BooleanField(default=True)
     status = models.CharField(max_length=30, blank=True, null=True)
@@ -405,6 +405,7 @@ class MoMoTransaction(Model):
 
     class Meta:
         db_table = 'ikwen_momo_transaction'
+        verbose_name = 'MoMo Transaction'
         verbose_name_plural = 'MoMo Transactions'
 
 
