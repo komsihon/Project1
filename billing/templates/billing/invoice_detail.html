@@ -11,7 +11,7 @@
         body {background: #f6f6f6}
         #navbar {display: none}
         header#main {background: #f9f9f9; border-bottom: 1px solid #ddd; padding: 6px 15px 15px}
-        header#main img {float: left}
+        header#main img {float: left; margin: 12px 15px 0 0}
         header#main .badge {background: #039B03; border-radius: 4px; color: #fff; float: right;
             font: bold 11px Arial; margin-right: 15px; padding: 3px 10px}
         header#main form div {line-height: 24px}
@@ -36,11 +36,10 @@
         <div class="subtle-shade" style="border-radius: 6px; overflow: hidden">
             <header id="main" class="row" data-amount="{{ invoice.amount }}" data-monthly-cost="{{ invoice.service.monthly_cost }}">
                 <div class="col-sm-4">
-                    {% if config.logo.name %}
-                        <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}" height="50"/>
-                    {% else %}
-                        <h2>{{ config.company_name }}</h2>
+                    {% if vendor.logo.name %}
+                        <img src="{{ settings.IKWEN_MEDIA_URL }}{{ vendor.logo.name }}" height="50"/>
                     {% endif %}
+                    <h2 class="pull-left">{{ vendor.company_name }}</h2>
                 </div>
                 {% if invoice.status == 'Paid' %}
                     <div class="badge">{% trans "Paid" %}</div>
@@ -94,10 +93,10 @@
                         <td class="col-sm-4">
                             <h4>{% trans "Pay To" %}</h4>
                             <div>
-                                {% if config.company_name %}<strong>{{ config.company_name }}</strong>{% endif %}
-                                {% if config.address %}<p>{{ config.address }}</p>{% endif %}
-                                {% if config.city %}<p>{{ config.city }}</p>{% endif %}
-                                {% if config.country %}<p>{{ config.country }}</p>{% endif %}
+                                {% if vendor.company_name %}<strong>{{ vendor.company_name }}</strong>{% endif %}
+                                {% if vendor.address %}<p>{{ vendor.address }}</p>{% endif %}
+                                {% if vendor.city %}<p>{{ vendor.city }}</p>{% endif %}
+                                {% if vendor.country %}<p>{{ vendor.country }}</p>{% endif %}
                             </div>
                         </td>
                     </tr>
