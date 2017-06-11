@@ -30,7 +30,7 @@ class ServiceStatusCheckMiddleware(object):
         service = get_service_instance(using=UMBRELLA)
         retailer = service.retailer
 
-        if retailer and retailer.status != Service.ACTIVE:
+        if retailer and retailer.status != Service.PENDING and retailer.status != Service.ACTIVE:
             # If a retailer is suspended, so are all his customers
             if rm.namespace == 'ikwen' and rm.url_name in [SERVICE_EXPIRED, LOAD_EVENT]:
                 return
