@@ -363,13 +363,51 @@ class PaymentMeanAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 
+class MoMoOperatorListFilter(admin.SimpleListFilter):
+    title = _('operator')
+    parameter_name = 'operator'
+
+    def lookups(self, request, model_admin):
+        choices = [
+            ('mtn', 'MTN'),
+            ('orange', 'Orange'),
+        ]
+        return choices
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        val = self.value()
+        if val:
+            if val == 'mtn':
+                return MoMoTransaction.objects.using('wallets')\
+                    .filter(Q(phone__startswith='650') |
+                            Q(phone__startswith='651') |
+                            Q(phone__startswith='652') |
+                            Q(phone__startswith='653') |
+                            Q(phone__startswith='654') |
+                            Q(phone__startswith='67') |
+                            Q(phone__startswith='68'))
+            else:
+                return MoMoTransaction.objects.using('wallets')\
+                    .filter(Q(phone__startswith='655') |
+                            Q(phone__startswith='656') |
+                            Q(phone__startswith='657') |
+                            Q(phone__startswith='658') |
+                            Q(phone__startswith='659') |
+                            Q(phone__startswith='69'))
+
+
 class MoMoTransactionAdmin(admin.ModelAdmin):
     list_display = ('service', 'phone', 'amount', 'model', 'object_id', 'created_on', 'status')
     search_fields = ('phone',)
     ordering = ('-id', )
-    list_filter = ('created_on', 'status', )
-    readonly_fields = ('service_id', 'type', 'phone', 'amount', 'model',
-                       'object_id', 'processor_tx_id', 'task_id', 'message', 'status')
+    list_filter = (MoMoOperatorListFilter, 'created_on', 'status', )
+    readonly_fields = ('service_id', 'type', 'phone', 'amount', 'model', 'object_id',
+                       'processor_tx_id', 'task_id', 'message', 'is_running', 'status')
 
     def get_queryset(self, request):
         return super(MoMoTransactionAdmin, self).get_queryset(request).using('wallets')
@@ -414,7 +452,7 @@ class CloudBillingPlanAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if obj.partner:
             try:
-                ApplicationRetailConfig.objects.get(app=obj.app)
+                ApplicationRetailConfig.objects.get(partner=obj.partner, app=obj.app)
             except ApplicationRetailConfig.DoesNotExist:
                 self.message_user(request, "Cannot create a billing plan without a prior retail config for this app")
                 return
