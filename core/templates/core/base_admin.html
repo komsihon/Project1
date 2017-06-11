@@ -86,11 +86,13 @@
                                 </ul>
                                 <div class="divider"></div>
                                 <ul class="nav nav-pills nav-stacked">
+                                    {% if config.is_pro_version %}
                                     <li role="presentation" class="payment-means">
                                         <a href="{% url 'billing:payment_mean_list' %}">
-                                            {% trans "Payment means" %} <span class="label label-danger">New</span>
+                                            {% trans "Payment means" %}
                                         </a>
                                     </li>
+                                    {% endif %}
                                     <li role="presentation" class="configuration">
                                         {% url 'ikwen:configuration' as configuration_url %}
                                         <a href="{{ configuration_url|append_auth_tokens:request }}">{% trans "Configuration" %}</a>
