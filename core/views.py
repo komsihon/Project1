@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.files import File
 from django.core.exceptions import ImproperlyConfigured
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.db.models import get_model
@@ -81,6 +82,7 @@ class HybridListView(ListView):
     ordering = ('-created_on', )
     list_filter = ()
     ajax_ordering = ('-created_on', )
+    html_results_template_name = None
 
     def get_queryset(self):
         if self.queryset is not None:
@@ -104,7 +106,8 @@ class HybridListView(ListView):
         return context
 
     def render_to_response(self, context, **response_kwargs):
-        if self.request.GET.get('format') == 'json':
+        fmt = self.request.GET.get('format')
+        if fmt:
             queryset = self.get_queryset()
             queryset = self.filter_queryset(queryset)
             start_date = self.request.GET.get('start_date')
@@ -120,18 +123,32 @@ class HybridListView(ListView):
             limit = start + length
             queryset = self.get_search_results(queryset)
             queryset = queryset.order_by(*self.ajax_ordering)[start:limit]
-            response = []
-            for item in queryset:
+            if fmt == 'json':
+                response = []
+                for item in queryset:
+                    try:
+                        response.append(item.to_dict())
+                    except:
+                        continue
+                callback = self.request.GET.get('callback')
+                if callback:
+                    response = {'object_list': response}
+                    jsonp = callback + '(' + json.dumps(response) + ')'
+                    return HttpResponse(jsonp, content_type='application/json', **response_kwargs)
+                return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
+            else:
+                page_size = 15 if self.request.user_agent.is_mobile else 25
+                paginator = Paginator(queryset, page_size)
+                page = self.request.GET.get('page')
                 try:
-                    response.append(item.to_dict())
-                except:
-                    continue
-            callback = self.request.GET.get('callback')
-            if callback:
-                response = {'object_list': response}
-                jsonp = callback + '(' + json.dumps(response) + ')'
-                return HttpResponse(jsonp, content_type='application/json', **response_kwargs)
-            return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
+                    objects_page = paginator.page(page)
+                except PageNotAnInteger:
+                    objects_page = paginator.page(1)
+                except EmptyPage:
+                    objects_page = paginator.page(paginator.num_pages)
+                context['q'] = self.request.GET.get('q')
+                context['objects_page'] = objects_page
+                return render(self.request, self.html_results_template_name, context)
         else:
             return super(HybridListView, self).render_to_response(context, **response_kwargs)
 
@@ -407,7 +424,8 @@ class Console(BaseView):
 
         type_access_request = ConsoleEventType.objects.get(codename=ACCESS_REQUEST_EVENT)
         access_request_events = {}
-        for service in member.get_services():
+        member_services = member.get_services()
+        for service in member_services:
             request_event_list = list(ConsoleEvent.objects
                                       .filter(event_type=type_access_request, member=member, service=service)
                                       .order_by('-id'))
@@ -416,7 +434,7 @@ class Console(BaseView):
 
         event_list = ConsoleEvent.objects.exclude(event_type=type_access_request) \
                          .filter(Q(member=member) | Q(group_id__in=member.group_fk_list) | Q(group_id__isnull=True, member__isnull=True),
-                                 service__in=member.get_services()).order_by('-id')[:length]
+                                 service__in=member_services).order_by('-id')[:length]
         context['access_request_events'] = access_request_events
         context['event_list'] = event_list
         context['is_console'] = True  # console.html extends profile.html, so this helps differentiates in templates
@@ -455,15 +473,6 @@ def reset_notices_counter(request, *args, **kwargs):
         add_database(s.database)
         Member.objects.using(s.database).filter(pk=member.id).update(personal_notices=0)
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
-
-
-class DefaultDashboard(BaseView):
-    """
-    Can be used to set at default Dashboard page for applications.
-    This view can be used to create the url with the name 'admin_home'
-    that MUST ABSOLUTELY EXIST in all ikwen applications.
-    """
-    template_name = 'core/dashboard.html'
 
 
 def list_projects(request, *args, **kwargs):
@@ -508,10 +517,13 @@ def render_service_deployed_event(event, request):
     database = service.database
     add_database_to_settings(database)
     currency_symbol = service.config.currency_symbol
-    invoice = Invoice.objects.using(database).get(pk=event.object_id)
+    try:
+        invoice = Invoice.objects.using(database).get(pk=event.object_id)
+    except Invoice.DoesNotExist:
+        invoice = Invoice.objects.using(UMBRELLA).get(pk=event.object_id)
     service_deployed = invoice.service
     member = service_deployed.member
-    if request.user != member:
+    if request.GET['member_id'] != member.id:
         data = {'title': 'New service deployed',
                 'details': service_deployed.details,
                 'member': member,
