@@ -112,7 +112,9 @@ class InvoiceDetail(BillingBaseView):
         context['payment_mean_list'] = list(PaymentMean.objects.filter(is_active=True).order_by('-is_main'))
         if getattr(settings, 'IS_IKWEN', False):
             try:
-                context['customer_config'] = invoice.service.config
+                invoice_service = invoice.service
+                context['customer_config'] = invoice_service.config
+                context['vendor'] = invoice_service.retailer.config if invoice_service.retailer else context['config']
             except:
                 pass
 
@@ -311,6 +313,12 @@ def set_credentials(request, *args, **kwargs):
     """
     Set credentials of a payment mean on an IAO Website
     """
+    config = get_service_instance().config
+    if not config.is_pro_version:
+        return HttpResponse(
+            json.dumps({'error': "Operation not allowed"}),
+            'content-type: text/json'
+        )
     mean_id = request.GET['mean_id']
     credentials = request.GET['credentials']
     payment_mean = PaymentMean.objects.get(pk=mean_id)

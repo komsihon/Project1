@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from time import strftime
 
 from django.conf import settings
-from django.core.cache import cache
 from django.db.models import get_model
 from ikwen.partnership.models import PartnerProfile
 
