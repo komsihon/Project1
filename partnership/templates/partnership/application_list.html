@@ -5,51 +5,48 @@
 <title>{% trans "Applications" %} - {{ service.project_name }}</title>
 {% endblock %}
 
-{% block head_style %}
-    {{ block.super }}
-    <style>
-        #results {clear: both}
-    </style>
-{% endblock %}
-
 {% block breadcrumb_location %}
     <li>{% trans "Applications" %}</li>
 {% endblock %}
 
 {% block admin_content %}
-    <div id="admin-content" class="container-fluid">
-        <div id="results">
-            <ul class="object-list" style="padding: 20px 0 0 0">
-            {% for app in application_list %}
-                <li class="ik-li app" id="{{ app.id }}" data-id="{{ app.id }}">
-                    <div class="image" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ app.logo.name }})"></div>
-                    <div class="info">
-                        <div class="name" style="float: left">{{ app.name }}</div>
-                        <div class="about">
-                            <p>
-                                <span class="wholesale_price">
-                                    <strong>{% trans "Starting" %}</strong>: {{ config.currency_symbol }}{{ product.wholesale_price|intcomma }}
-                                </span>
-                                <span class="retail_price">
-                                    {% if product.retail_price %}
-                                        <strong>{% trans "Retail" %}</strong>:
-                                        {{ config.currency_symbol }}<span class="value">{{ product.retail_price|intcomma }}</span>
-                                    {% endif %}
-                                </span>
-                                <span class="max_price">{% if product.max_price %}<strong>{% trans "Max" %}</strong>: {{ config.currency_symbol }}{{ product.max_price|intcomma }}{% endif %}</span>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="actions">
-                        {% if app.deployment_url_name %}
-                        <a href="{% url app.deployment_url_name app.slug %}">
-                            <i class="glyphicon glyphicon-cloud-upload" title="{% trans "Deploy Cloud" %}"></i>
-                        </a>
+    <div id="admin-content">
+        <div class="container-fluid">
+            {% include 'core/snippets/admin_tools.html' %}
+            <div id="results">
+                <ul class="object-list">
+                {% for plan in plan_list %}
+                    {% with app=plan.app %}
+                    <li class="ik-li app" id="{{ plan.id }}" data-id="{{ plan.id }}">
+                        {% if app.logo.name %}
+                            <div class="image rounded"
+                                 style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ app.logo.name }})"></div>
+                        {% else %}
+                            <div class="image rounded"
+                                 style="background-image: url({% static 'ikwen/img/logo-placeholder.jpg' %})"></div>
                         {% endif %}
-                    </div>
-                </li>
-            {% endfor %}
-            </ul>
+                        <div class="info">
+                            <div class="name" style="float: left">{{ app.name }}</div>
+                            <div class="about" style="clear: both">
+                                <p>
+                                    <span class="starting">
+                                        <strong>{% trans "Starting" %}</strong>: {{ config.currency_symbol }}{{ plan.setup_cost|intcomma }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            {% if app.deployment_url_name %}
+                            <a href="{% url app.deployment_url_name app.slug %}">
+                                <i class="glyphicon glyphicon-cloud-upload" title="{% trans "Deploy Cloud" %}"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% endwith %}
+                {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
 {% endblock %}

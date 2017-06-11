@@ -1,0 +1,114 @@
+{% extends 'core/app_base_admin.html' %}
+{% load i18n humanize static auth_tokens %}
+
+{% block page_title %}
+<title>{{ website.project_name }} - {{ service.project_name }}</title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <link rel='stylesheet' href="{% static 'ikwen/css/app-retail.css' %}" />
+{% endblock %}
+
+{% block breadcrumb_location %}
+    {% if settings.IS_IKWEN %}
+        <li> <a href="{% url 'partnership:service_list' %}">{% trans "Services" %}</a> </li>
+    {% else %}
+        <li> <a href="{% url 'service_list' %}">{% trans "Services" %}</a> </li>
+    {% endif %}
+    <li> {{ website.project_name }} </li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content">
+        <div class="container-fluid">
+            <form class="container-fluid" method="post" action="">{% csrf_token %}
+                {% if form.errors %}
+                    <div class="errorlist">{{ form.errors }}</div>
+                {% endif %}
+                <div class="ik-li member" style="border-bottom: none">
+                    {% with member=website.member %}
+                    {% if member.photo.name %}
+                        <div class="photo bg-img" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ member.photo.name }})"></div>
+                    {% else %}
+                        <div class="photo bg-img" style="background-image: url({% get_static_prefix %}ikwen/img/member-avatar.jpg)"></div>
+                    {% endif %}
+                    <div class="info">
+                        <a class="full_name target_url">{{ member.full_name }}</a>
+                        <p class="about">
+                            <span class="phone">{{ member.phone }}</span>, <span class="email">{{ member.email }}</span>
+                        </p>
+                    </div>
+                    {% endwith %}
+                </div>
+                <header>
+                    <h3 style="float: left"> {% trans "Website details" %} </h3>
+                    {% if website.expired %}<span class="label label-danger" style="float: right">{% trans "Expired" %}</span>{% endif %}
+                    <div class="clear"></div>
+                </header>
+                <div class="detail row">
+                    <label class="col-sm-3">{% trans "Project name" %}</label>
+                    <span>{{ website.project_name }}</span>
+                </div>
+                <div class="detail row">
+                    <label class="col-sm-3">{% trans "URL" %}</label>
+                    <span>
+                        <a href="{{ website.url }}">{{ website.url }}</a>
+                    </span>
+                </div>
+                <div class="detail row">
+                    <label class="col-sm-3">{% trans "Expiry" %}</label>
+                    <span>{{ website.expiry|date }}</span>
+                </div>
+                <div class="detail row">
+                    <label for="billing-cycle" class="col-sm-3" style="float: left">{% trans "Billing cycle" %}</label>
+                    <div class="col-xs-6 col-sm-3" style="padding-left: 0">
+                        <select id="billing-cycle" name="billing_cycle" class="form-control input-sm">
+                            <option value="{{ website.billing_cycle }}">{{ website.billing_cycle }}</option>
+                            {% for bc in billing_cycles %}
+                                <option value="{{ bc.0 }}">{{ bc.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="detail row visible-xs" style="margin-top: 40px">
+                    <h4 class="col-xs-12">{% trans "Monthly cost" %}</h4>
+                </div>
+                {% if settings.IS_IKWEN %}
+                    <div class="detail left-0 row" style="padding-top: 15px; margin-bottom: 10px">
+                        <label class="col-sm-3 hidden-xs" for="monthly-cost">{% trans "Monthly cost" %}</label>
+                        <span class="col-xs-6 col-sm-3">
+                            <input id="monthly-cost" name="monthly_cost" class="form-control input-sm" type="number" value="{{ website.monthly_cost }}" />
+                        </span>
+                    </div>
+                {% else %}
+                    <div class="detail row left-0 text-muted" style="padding-top: 15px; margin-bottom: 10px">
+                        <span class="col-xs-4 col-sm-1 col-sm-offset-3">{% trans "ikwen fees" %}</span>
+                        <span class="col-xs-8 col-sm-2">{% trans "your fees" %}</span>
+                    </div>
+                    <div class="detail left-0 row">
+                        <label class="col-sm-3 hidden-xs" for="monthly-cost">{% trans "Monthly cost" %}</label>
+                        <span class="col-xs-4 col-sm-1" style="margin-top: 8px">{{ currency_symbol }} {{ billing_plan.monthly_cost|intcomma }}</span>
+                        <span class="col-xs-8 col-sm-2">
+                            <input id="monthly-cost" name="monthly_cost" class="form-control input-sm" type="number" value="{{ website.monthly_cost }}" />
+                        </span>
+                    </div>
+                {% endif %}
+                <div class="left-0" style="padding-top: 30px; margin-bottom: 10px">
+                    <div class="col-xs-12 col-sm-3 col-md-2">
+                        <button class="btn btn-sm btn-block btn-success">{% trans "Save" %}</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+
+        })()
+    </script>
+{% endblock %}

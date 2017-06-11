@@ -1,0 +1,108 @@
+{% extends 'core/app_base_admin.html' %}
+{% load i18n humanize static auth_tokens %}
+
+{% block page_title %}
+<title>{% trans "Services" %} - {{ service.project_name }}</title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <link rel='stylesheet' href="{% static 'ikwen/css/app-retail.css' %}" />
+    <style>
+        #admin-tools {visibility: hidden}
+    </style>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>{% trans "Services" %}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content">
+        <div class="container-fluid">
+{#            {% include 'core/snippets/spinner.html' %}#}
+{#            {% include 'trade/snippets/order_list_results.html' %}#}
+            {% include 'core/snippets/admin_tools.html' %}
+            <div id="results">
+                <ul class="object-list">
+                {% for service in service_list %}
+                    {% if settings.IS_IKWEN %}
+                        {% url 'partnership:change_service' service.id as service_url %}
+                    {% else %}
+                        {% url 'change_service' service.id as service_url %}
+                    {% endif %}
+                    <li class="ik-li app" id="{{ service.id }}" data-id="{{ service.id }}">
+                        {% if service.config.logo.name %}
+                            <a href="{{ service_url }}" class="image rounded"
+                               style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ service.config.logo.name }})"></a>
+                        {% else %}
+                            <a href="{{ service_url }}" class="image rounded"
+                               style="background-image: url({% get_static_prefix %}ikwen/img/logo-placeholder.jpg)"></a>
+                        {% endif %}
+                        <div class="info">
+                            <div class="name project_name" style="float: left">
+                                <a href="{{ service_url }}">{{ service.project_name }}</a>
+                            </div>
+                            <a class="url" href="{{ service.url }}">{{ service.url }}</a>
+                            <div class="about">
+                                <p>
+                                    <span class="meta monthly_cost">
+                                        <strong>{% trans "Monthly" %}</strong>: {{ config.currency_symbol }}{{ service.monthly_cost|intcomma }}
+                                    </span>
+                                    <span class="meta expiry">
+                                        <strong>{% trans "Expiry" %}</strong>: {{ service.expiry }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="actions">
+{#                            {% if app.deployment_url_name %}#}
+{#                            <a href="{% url app.deployment_url_name app.slug %}">#}
+{#                                <i class="glyphicon glyphicon-cloud-upload" title="{% trans "Deploy Cloud" %}"></i>#}
+{#                            </a>#}
+{#                            {% endif %}#}
+                        </div>
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .services').addClass('active');
+{#            function loadResults() {#}
+{#                var search = $('form#context-search input').val();#}
+{#                if (search) {#}
+{#                    var params = 'q=' + search;#}
+{#                } else {#}
+{#                    var status = $('div#admin-tools .status').val();#}
+{#                    var params = 'status=' + status;#}
+{#                }#}
+{##}
+{#                var currentPage = $('.pagination li.active').data('val');#}
+{#                params += '&page=' + currentPage + '&format=html_results';#}
+{##}
+{#                var query = '{{ request.META.QUERY_STRING|safe }}' ;#}
+{#                if (query) query += '&' + params;#}
+{#                else query = params;#}
+{##}
+{#                $('div#admin-content > .spinner').fadeIn();#}
+{#                $('div#admin-content .container-fluid').load('{{ request.path }}', query, function() {#}
+{#                    $('div#admin-content > .spinner').fadeOut();#}
+{#                    if (status) $('div#admin-tools .status').val(status);#}
+{#                })#}
+{#            }#}
+
+{#            var searchDescriptor = [{#}
+{#                endpoint: '{% url 'kako:product_list' %}',#}
+{#                resultTplSelector: '#results li.ik-li'#}
+{#            }];#}
+{#            ikwen.setupHTMLResultsSearch('#context-search input', '#results', searchDescriptor, beforeSearch, afterSearch);#}
+        })()
+    </script>
+{% endblock %}

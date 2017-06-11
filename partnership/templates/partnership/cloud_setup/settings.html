@@ -49,6 +49,12 @@ INSTALLED_APPS = (
     'ikwen.flatpages',
     'ikwen.partnership',
     'ikwen.theming',
+
+    'ikwen_kakocase.kakocase',
+    'ikwen_kakocase.kako',
+
+    'ikwen_shavida.shavida',
+    'ikwen_shavida.movies',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -75,14 +81,14 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
 )
 
-ROOT_URLCONF = 'ikwen.partnership.conf.urls'
+ROOT_URLCONF = 'ikwen.partnership.urls'
 
 WSGI_APPLICATION = 'conf.wsgi.application'
 
 if DEBUG or TESTING:
     WALLETS_DB = {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '/home/ikwen/ikwen_apps/Umbrella/db.sqlite3',
+        'NAME': '/home/komsihon/Dropbox/PycharmProjects/ikwen/db.sqlite3',
     }
 else:
     WALLETS_DB = {  # ikwen_kakocase.ikwen_kakocase relational database used to store sensitive objects among which CashOutRequest
@@ -98,7 +104,7 @@ else:
 DATABASES = {
     'default': {
         'ENGINE': '', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',
+        'NAME': '{{ ikwen_name }}',
     },
     'umbrella': {
         'ENGINE': '', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -207,8 +213,8 @@ WSGI_SCRIPT_ALIAS = ''  # Used only for dev purposes (DEBUG = False)
 
 
 #  *******       BILLING CONFIGURATION       *******  #
-BILLING_PRODUCT_MODEL = 'core.Service'
-BILLING_PRODUCT_MODEL_ADMIN = 'ikwen.core.admin.ServiceAdmin'
+BILLING_SUBSCRIPTION_MODEL = 'core.Service'
+BILLING_SUBSCRIPTION_MODEL_ADMIN = 'ikwen.core.admin.ServiceAdmin'
 BILLING_INVOICE_ITEM_MODEL = 'billing.IkwenInvoiceItem'
 SERVICE_SUSPENSION_ACTION = 'ikwen.billing.utils.suspend_subscription'
 

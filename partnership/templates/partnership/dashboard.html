@@ -1,0 +1,219 @@
+{% extends 'core/dashboard_base.html' %}
+{% load i18n humanize staticfiles auth_tokens %}
+
+{% block performances %}
+    <h5 class="section-title perf">
+        <div>
+            <span style="float: left">{% trans "Performances" %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-</span>
+            <div class="dropdown" style="cursor: pointer; float: left; margin-left: 15px">
+                <span class="dropdown-toggle" id="period" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    <span class="target">{% trans "Today" %}</span>
+                    <span class="caret"></span>
+                </span>
+                <ul id="performances-period" class="dropdown-menu" aria-labelledby="period">
+                    <li data-target="today" style="display: none"><a>{% trans "Today" %}</a></li>
+                    <li data-target="yesterday"><a>{% trans "Yesterday" %}</a></li>
+                    <li data-target="last_week"><a>{% trans "Last week" %}</a></li>
+                    <li data-target="last_28_days"><a>{% trans "Last 28 days" %}</a></li>
+                </ul>
+            </div>
+        </div>
+        <a href="#" class="show-details">{% trans "Details" %}</a>
+    </h5>
+    <div class="row performances" style="clear: both">
+        <div class="col-sm-6">
+            <div>
+                <header>
+                    <h5>{% trans "Transactions" %}</h5>
+                    <a href="#" class="show-details">{% trans "Details" %}</a>
+                    <div class="clear"></div>
+                </header>
+                <div>
+                    <em class="report today">{{ transactions_report.today.count|intcomma }}</em>
+                    <em class="report yesterday tpl">{{ transactions_report.yesterday.count|intcomma }}</em>
+                    <em class="report last_week tpl">{{ transactions_report.last_week.count|intcomma }}</em>
+                    <em class="report last_28_days tpl">{{ transactions_report.last_28_days.count|intcomma }}</em>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div>
+                <header>
+                    <h5>{% trans "AEPT" %} <i class="text-muted">(Avg. Earning Per Transaction)</i></h5>
+                    <a href="#" class="show-details">{% trans "Details" %}</a>
+                    <div class="clear"></div>
+                </header>
+                <div>
+                    <em class="report today">{{ config.currency_symbol }} {{ transactions_report.today.aepo|intcomma }}</em>
+                    <em class="report yesterday tpl">{{ config.currency_symbol }} {{ transactions_report.yesterday.aepo|intcomma }}</em>
+                    <em class="report last_week tpl">{{ config.currency_symbol }} {{ transactions_report.last_week.aepo|intcomma }}</em>
+                    <em class="report last_28_days tpl">{{ config.currency_symbol }} {{ transactions_report.last_28_days.aepo|intcomma }}</em>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row performances" style="clear: both">
+        <div class="col-sm-6">
+            <div>
+                <header>
+                    <h5>{% trans "Top apps" %}</h5>
+                    <a href="#" class="show-details">{% trans "Details" %}</a>
+                    <div class="clear"></div>
+                </header>
+                <div class="th">
+                    <span style="float: left">{% trans "App" %}</span>
+                    <span title="Estimated earnings" style="float: right">
+                        {% trans "Earnings" %}
+                        <span class="text-muted" style="font-weight: 400">({{ config.currency_code }})</span>
+                    </span>
+                </div>
+                <ul class="report ranking today">
+                    {% if apps_report.today and apps_report.today.0.total > 0 %}
+                        {% for app in apps_report.today|slice:"5" %}
+                            {% if app.total > 0 %}
+                                <li>
+                                    {% url 'ikwen:profile' app.slug as app_url %}
+                                    <a href="{{ app_url|ikwenize }}">{{ app.name }}</a>
+                                    <span>{{ app.total|intcomma }}</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <li class="empty">Not enough data</li>
+                    {% endif %}
+                </ul>
+                <ul class="report ranking yesterday tpl">
+                    {% if apps_report.yesterday and apps_report.yesterday.0.total > 0 %}
+                        {% for app in apps_report.yesterday|slice:"5" %}
+                            {% if app.total > 0 %}
+                                <li>
+                                    {% url 'ikwen:profile' app.slug as app_url %}
+                                    <a href="{{ app_url|ikwenize }}">{{ app.name }}</a>
+                                    <span>{{ app.total|intcomma }}</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <li class="empty">Not enough data</li>
+                    {% endif %}
+                </ul>
+                <ul class="report ranking last_week tpl">
+                    {% if apps_report.last_week and apps_report.last_week.0.total > 0 %}
+                        {% for app in apps_report.last_week|slice:"5" %}
+                            {% if app.total > 0 %}
+                                <li>
+                                    {% url 'ikwen:profile' app.slug as app_url %}
+                                    <a href="{{ app_url|ikwenize }}">{{ app.name }}</a>
+                                    <span>{{ app.total|intcomma }}</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <li class="empty">Not enough data</li>
+                    {% endif %}
+                </ul>
+                <ul class="report ranking last_28_days tpl">
+                    {% if apps_report.last_28_days and apps_report.last_28_days.0.total > 0 %}
+                        {% for app in apps_report.last_28_days|slice:"5" %}
+                            {% if app.total > 0 %}
+                                <li>
+                                    {% url 'ikwen:profile' app.slug as app_url %}
+                                    <a href="{{ app_url|ikwenize }}">{{ app.name }}</a>
+                                    <span>{{ app.total|intcomma }}</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <li class="empty">Not enough data</li>
+                    {% endif %}
+                </ul>
+                <div class="clear"></div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div>
+                <header>
+                    <h5>{% trans "Top customers" %}</h5>
+                    <a href="#" class="show-details">{% trans "Details" %}</a>
+                    <div class="clear"></div>
+                </header>
+                <div class="th">
+                    <span style="float: left">{% trans "Customer" %}</span>
+                    <span title="Estimated earnings" style="float: right">
+                        {% trans "Earnings" %}
+                        <span class="text-muted" style="font-weight: 400">({{ config.currency_code }})</span>
+                    </span>
+                </div>
+                <ul class="report ranking today">
+                    {% if customers_report.today and customers_report.today.0.total > 0 %}
+                        {% for customer in customers_report.today|slice:"5" %}
+                            {% if customer.total > 0 %}
+                                {% with member=customer.member %}
+                                <li>
+                                    {% url 'ikwen:profile' member.id as member_url %}
+                                    <a href="{{ member_url|ikwenize }}">{{ member.full_name }}</a>
+                                    <span>{{ customer.total|intcomma }}</span>
+                                </li>
+                                {% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <li class="empty">Not enough data</li>
+                    {% endif %}
+                </ul>
+                <ul class="report ranking yesterday tpl">
+                    {% if customers_report.yesterday and customers_report.yesterday.0.total > 0 %}
+                        {% for customer in customers_report.yesterday|slice:"5" %}
+                            {% if customer.total > 0 %}
+                                {% with member=customer.member %}
+                                <li>
+                                    {% url 'ikwen:profile' member.id as member_url %}
+                                    <a href="{{ member_url|ikwenize }}">{{ member.full_name }}</a>
+                                    <span>{{ customer.total|intcomma }}</span>
+                                </li>
+                                {% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <li class="empty">Not enough data</li>
+                    {% endif %}
+                </ul>
+                <ul class="report ranking last_week tpl">
+                    {% if customers_report.last_week and customers_report.last_week.0.total > 0 %}
+                        {% for customer in customers_report.last_week|slice:"5" %}
+                            {% if customer.total > 0 %}
+                                {% with member=customer.member %}
+                                <li>
+                                    {% url 'ikwen:profile' member.id as member_url %}
+                                    <a href="{{ member_url|ikwenize }}">{{ member.full_name }}</a>
+                                    <span>{{ customer.total|intcomma }}</span>
+                                </li>
+                                {% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <li class="empty">Not enough data</li>
+                    {% endif %}
+                </ul>
+                <ul class="report ranking last_28_days tpl">
+                    {% if customers_report.last_28_days and customers_report.last_28_days.0.total > 0 %}
+                        {% for customer in customers_report.last_28_days|slice:"5" %}
+                            {% if customer.total > 0 %}
+                                {% with member=customer.member %}
+                                <li>
+                                    {% url 'ikwen:profile' member.id as member_url %}
+                                    <a href="{{ member_url|ikwenize }}">{{ member.full_name }}</a>
+                                    <span>{{ customer.total|intcomma }}</span>
+                                </li>
+                                {% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <li class="empty">Not enough data</li>
+                    {% endif %}
+                </ul>
+                <div class="clear"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

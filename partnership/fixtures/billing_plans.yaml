@@ -1,0 +1,11 @@
+- model: billing.cloudbillingplan
+  pk: 57e7b9b5371b6d0cb131a001
+  fields:
+    app: 56eb6d04b37b3379b531a001
+    name: cbp1
+    max_objects: 100
+    tx_share_fixed: 0
+    tx_share_rate: 75
+    setup_cost: 49000
+    setup_months_count: 6
+    monthly_cost: 6500

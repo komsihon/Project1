@@ -15,11 +15,9 @@ if getattr(settings, 'IS_IKWEN', False):
         (_('SMS'), {'fields': ('sms_api_script_url', 'sms_api_username', 'sms_api_password', )}),
         (_('Mailing'), {'fields': ('welcome_message', 'signature',)})
     ]
-    _readonly_fields = ('service', 'api_signature', )
+    _readonly_fields = ('service', )
 else:
-    service = get_service_instance()
-    config = service.config
-    _readonly_fields = ('api_signature', 'is_certified',)
+    _readonly_fields = ('is_certified',)
     _fieldsets = [
         (_('Company'), {'fields': ('company_name', 'short_description', 'slogan', 'description')}),
         (_('Address & Contact'), {'fields': ('contact_email', 'contact_phone', 'address', 'country', 'city')}),
@@ -28,7 +26,7 @@ else:
 
 
 class PartnerProfileAdmin(admin.ModelAdmin):
-    list_display = ('service', 'company_name', 'short_description', 'contact_email', 'contact_phone')
+    list_display = ('company_name', 'short_description', 'contact_email', 'contact_phone')
     fieldsets = _fieldsets
     readonly_fields = _readonly_fields
     list_filter = ('company_name', 'contact_email', )
