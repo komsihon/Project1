@@ -1,0 +1,19 @@
+/**
+    Document   : app-retail
+    Created on : May 29, 2017, 12:30
+    Author     : Kom Sihon
+    Description:
+        Rules for ikwen App Retail admin pages
+*/
+
+.ik-li {padding: 5px 10px 0;}
+.ik-li .name {padding-top: 0}
+.ik-li .url {display: block; clear: both}
+.ik-li .about {margin-top: 5px}
+.ik-li .meta {margin-right: 7px}
+
+.detail {clear: both;height: 32px;}
+
+@media (min-width: 768px) {
+     .left-0 .col-xs-6, .left-0 .col-xs-12 {padding-left: 0}
+}
