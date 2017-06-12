@@ -115,8 +115,7 @@ def deploy(app, member, project_name, billing_plan, monthly_cost,
 
     # Re-create settings.py file as well as apache.conf file for the newly created project
     secret_key = generate_django_secret_key()
-    api_signature = generate_random_key(20)
-    allowed_hosts = '%s, www.%s' % (domain, domain)
+    allowed_hosts = '"%s", "www.%s"' % (domain, domain)
     settings_tpl = get_template('partnership/cloud_setup/settings.html')
     settings_context = Context({'secret_key': secret_key, 'ikwen_name': ikwen_name,
                                 'service': service, 'static_root': STATIC_ROOT, 'static_url': STATIC_URL,
@@ -131,7 +130,7 @@ def deploy(app, member, project_name, billing_plan, monthly_cost,
     add_database_to_settings(database)
     for group in Group.objects.using(database).all():
         try:
-            gpl = GroupPermissionList.objects.get(group=group)
+            gpl = GroupPermissionList.objects.using(database).get(group=group)
             group.delete()
             group.save(using=database)   # Recreate the group in the service DB with a new id.
             gpl.group = group    # And update GroupPermissionList object with the newly re-created group
@@ -164,19 +163,6 @@ def deploy(app, member, project_name, billing_plan, monthly_cost,
 
     app.save(using=database)
     member.save(using=database)
-
-    FlatPage.objects.using(database).create(url=FlatPage.AGREEMENT, title=FlatPage.AGREEMENT)
-    FlatPage.objects.using(database).create(url=FlatPage.LEGAL_MENTIONS, title=FlatPage.LEGAL_MENTIONS)
-    for group in Group.objects.using(database).all():
-        try:
-            gpl = GroupPermissionList.objects.get(group=group)
-            group.id = None
-            group.save(using=database)   # Recreate the group in the service DB with a new id.
-            gpl.group = group    # And update GroupPermissionList object with the newly re-created group
-            gpl.save(using=database)
-        except GroupPermissionList.DoesNotExist:
-            group.id = None
-            group.save(using=database)  # Re-create the group in the service DB with anyway.
 
     FlatPage.objects.using(database).create(url=FlatPage.AGREEMENT, title=FlatPage.AGREEMENT)
     FlatPage.objects.using(database).create(url=FlatPage.LEGAL_MENTIONS, title=FlatPage.LEGAL_MENTIONS)
