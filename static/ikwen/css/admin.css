@@ -30,7 +30,7 @@ body {font-size: 13px; overflow: hidden}
 #selection-control .actions {float: right}
 #app-nav {border-bottom: 1px solid #eee;border-top: 1px solid #eee;font-weight: 700;height: 45px;margin-top: 47px;padding-top: 10px;position: fixed;width: 100%;z-index: 12;}
 #app-nav .app-name {display: none}
-#app-nav .app-logo {float: left;height: 30px;width: 30px;margin: 5px 5px 0 0;}
+#app-nav .app-logo {float: left;height: 30px;width: 30px;margin-right: 5px;}
 #app-nav .breadcrumb {background: none;float: left;padding-top: 5px;padding-left: 0;}
 #app-nav .breadcrumb li {color: #888}
 div#container.admin {padding-top: 92px;}
@@ -200,7 +200,7 @@ footer a {color: #999}
 
 @media (min-width: 992px) {
     .menu-button {display: none}
-    #app-nav .app-logo {margin-top: 0}
+    #app-nav .app-logo {margin-top: -5px}
     #app-nav .breadcrumb {padding-left: 15px; padding-top: 2px}
     #app-nav .app-name {display: block;float: left;margin-top: 3px;width: 190px;}
     #admin-nav {top: 110px;border-right: 1px solid #eee;}
