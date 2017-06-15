@@ -164,7 +164,8 @@ class Member(AbstractUser):
             try:
                 res.append(Service.objects.using(UMBRELLA).get(pk=pk))
             except:
-                pass
+                self.customer_on_fk_list.remove(pk)
+                self.save()
         return res
     customer_on = property(_get_customer_on)
 
@@ -175,7 +176,8 @@ class Member(AbstractUser):
             try:
                 res.append(Service.objects.using(UMBRELLA).get(pk=pk))
             except:
-                pass
+                self.collaborates_on_fk_list.remove(pk)
+                self.save()
         return res
     collaborates_on = property(_get_collaborates_on)
 
