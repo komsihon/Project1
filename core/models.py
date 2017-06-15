@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import subprocess
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.db import models, router
 from django.db import transaction
+from django.db.models import get_model
 from django.db.models.signals import post_delete
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
@@ -14,6 +16,7 @@ from django.template.loader import get_template
 from django.template import Context
 from django_mongodb_engine.contrib import MongoDBManager
 from djangotoolbox.fields import ListField
+
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 
 from ikwen.core.utils import add_database_to_settings, to_dict, get_service_instance, get_config_model
@@ -358,6 +361,58 @@ class Service(models.Model):
         fh.write(settings_tpl.render(Context(c)))
         fh.close()
         subprocess.call(['touch', self.home_folder + '/conf/wsgi.py'])
+
+    def purge(self, config_model_name):
+        """
+        Deletes the project totally, together with project files, media and databases
+        """
+        import os
+        import shutil
+        from ikwen.conf.settings import MEDIA_ROOT
+        from ikwen.accesscontrol.models import Member
+        media_root = MEDIA_ROOT + self.project_name_slug + '/'
+        apache_alias = '/etc/apache2/sites-enabled/' + self.domain + '.conf'
+        if os.path.exists(media_root):
+            shutil.rmtree(media_root)
+        if os.path.exists(apache_alias):
+            os.unlink(apache_alias)
+        if os.path.exists(self.home_folder):
+            shutil.rmtree(self.home_folder)
+
+        db = self.database
+        add_database_to_settings(db)
+        group_ids = [group.id for group in Group.objects.using(db).all()]
+        for m in Member.objects.using(db).all():
+            try:
+                m.collaborates_on_fk_list.remove(self.id)
+                m.customer_on_fk_list.remove(self.id)
+                for fk in group_ids:
+                    m.group_fk_list.remove(fk)
+            except ValueError:
+                pass
+            m.save()
+
+        member = self.member
+        if len(member.collaborates_on_fk_list) == 0:
+            member.is_iao = False
+            member.save()
+
+        app = self.app
+        app.operators_count -= 1
+        app.save()
+
+        from pymongo import MongoClient
+        client = MongoClient('127.0.0.1', 27017)
+        client.drop_database(self.database)
+
+        app_label = config_model_name.split('.')[0]
+        model = config_model_name.split('.')[1]
+        config_model = get_model(app_label, model)
+        config = config_model.objects.get(service=self)
+        base_config = config.get_base_config()
+        base_config.delete()
+        config.delete()
+        self.delete()
 
 
 class AbstractConfig(Model):
