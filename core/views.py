@@ -67,6 +67,16 @@ class BaseView(TemplateView):
         return context
 
 
+class AdminBaseView(BaseView):
+    def get_context_data(self, **kwargs):
+        context = super(AdminBaseView, self).get_context_data(**kwargs)
+        path = getattr(settings, 'GET_ADMIN_EXTRA_CONTEXT', None)
+        if path:
+            get_extra_context = import_by_path(path)
+            context.update(get_extra_context())
+        return context
+
+
 class HybridListView(ListView):
     """
     Extension of the django builtin :class:`django.views.generic.ListView`. This view is Hybrid because it can
@@ -98,7 +108,7 @@ class HybridListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(HybridListView, self).get_context_data(**kwargs)
-        context.update(BaseView().get_context_data(**kwargs))
+        context.update(AdminBaseView().get_context_data(**kwargs))
         context[self.context_object_name] = context[self.context_object_name].order_by(*self.ordering)[:self.page_size]
         context['page_size'] = self.page_size
         context['total_objects'] = self.get_queryset().count()
@@ -287,7 +297,7 @@ class DefaultHome(BaseView):
     template_name = 'core/default_home.html'
 
 
-class ServiceDetail(BaseView):
+class ServiceDetail(AdminBaseView):
     template_name = 'core/service_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -316,7 +326,7 @@ class ServiceDetail(BaseView):
         return context
 
 
-class Configuration(BaseView):
+class Configuration(AdminBaseView):
     template_name = 'core/configuration.html'
 
     UPLOAD_CONTEXT = 'config'
@@ -566,7 +576,7 @@ def get_location_by_ip(request, *args, **kwargs):
     return HttpResponse(json.dumps(response))
 
 
-class DashboardBase(BaseView):
+class DashboardBase(AdminBaseView):
 
     def get_context_data(self, **kwargs):
         context = super(DashboardBase, self).get_context_data(**kwargs)
