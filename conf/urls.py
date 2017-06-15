@@ -3,7 +3,7 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from ikwen.flatpages.views import FlatPageView
 
-from ikwen.core.views import DefaultHome, DefaultDashboard
+from ikwen.core.views import DefaultHome
 
 admin.autodiscover()
 
@@ -20,7 +20,6 @@ urlpatterns = patterns(
     url(r'^laakam/', include(admin.site.urls)),
     url(r'^i18n/', include('django.conf.urls.i18n')),
     url(r'^$', DefaultHome.as_view(), name='home'),
-    url(r'^dashboard/$', DefaultDashboard.as_view(), name='admin_home'),
     url(r'^billing/', include('ikwen.billing.urls', namespace='billing')),
     url(r'^cashout/', include('ikwen.cashout.urls', namespace='cashout')),
     url(r'^retail/', include('ikwen.partnership.urls', namespace='partnership')),
