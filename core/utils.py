@@ -160,12 +160,14 @@ def get_mail_content(subject, message=None, template_name='core/mails/notice.htm
     return html_template.render(d)
 
 
-def send_sms(recipient, text):
+def send_sms(recipient, text, label=None, script_url=None, fail_silently=True):
     # label is made of 10 first characters of company name without space
     config = get_service_instance().config
-    label = config.company_name.split(' ')[0][:10]
-    label = urlencode(label)
-    script_url = config.sms_api_script_url
+    if not label:
+        label = config.company_name.split(' ')[0][:10]
+        label = urlencode(label)
+    if not script_url:
+        script_url = config.sms_api_script_url
     username = config.sms_api_username
     password = config.sms_api_password
     if script_url and username and password:
@@ -174,7 +176,15 @@ def send_sms(recipient, text):
             .replace('$label', urlencode(label))\
             .replace('$recipient', recipient)\
             .replace('$text', urlencode(text))
-        requests.get(url)
+        print url
+        if fail_silently:
+            try:
+                requests.get(url)
+            except:
+                pass
+        else:
+            requests.get(url)
+
 
 
 def remove_special_words(s):
