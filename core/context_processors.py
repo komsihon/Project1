@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
 from ikwen.conf import settings as ikwen_settings
 from ikwen.flatpages.models import FlatPage
 
@@ -15,6 +15,17 @@ def project_settings(request):
         console_uri = console_uri.replace('/ikwen', '')
         if getattr(settings, 'DEBUG', False):
             console_uri = console_uri.replace(getattr(settings, 'WSGI_SCRIPT_ALIAS'), '')
+
+    agreement_url, legal_mentions_url = None, None
+    try:
+        agreement_url = reverse('flatpage', args=(FlatPage.AGREEMENT, ))
+    except NoReverseMatch:
+        pass
+    try:
+        legal_mentions_url = reverse('flatpage', args=(FlatPage.LEGAL_MENTIONS, ))
+    except NoReverseMatch:
+        pass
+
     return {
         'settings': {
             'DEBUG': getattr(settings, 'DEBUG', False),
@@ -24,8 +35,8 @@ def project_settings(request):
             'IKWEN_BASE_URL': IKWEN_BASE_URL,
             'IKWEN_CONSOLE_URL': IKWEN_BASE_URL + console_uri,
             'IKWEN_MEDIA_URL': ikwen_settings.MEDIA_URL,
-            'AGREEMENT_URL': reverse('flatpage', args=(FlatPage.AGREEMENT, )),
-            'LEGAL_MENTIONS_URL': reverse('flatpage', args=(FlatPage.LEGAL_MENTIONS, )),
+            'AGREEMENT_URL': agreement_url,
+            'LEGAL_MENTIONS_URL': legal_mentions_url,
             'PROJECT_URL': getattr(settings, 'PROJECT_URL', ''),
             'MEMBER_AVATAR': getattr(settings, 'MEMBER_AVATAR', 'ikwen/img/login-avatar.jpg')
         }
