@@ -26,6 +26,8 @@ from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
+from ikwen.conf.settings import MOMO_SLUG
+
 from ikwen.billing.jumbopay.views import init_momo_cashout
 
 from ikwen.billing.mtnmomo.views import init_request_payment
@@ -550,7 +552,24 @@ class MoMoSetCheckout(BaseView):
 
     def get_context_data(self, **kwargs):
         context = super(MoMoSetCheckout, self).get_context_data(**kwargs)
-        context['payment_mean'] = get_object_or_404(PaymentMean, slug='jumbopay-momo')
+        mean = self.request.GET.get('mean')
+        if mean:
+            try:
+                payment_mean = PaymentMean.objects.get(slug=mean)
+            except PaymentMean.DoesNotExist:
+                payment_mean = get_object_or_404(PaymentMean, slug=MOMO_SLUG)
+        else:
+            payment_mean = get_object_or_404(PaymentMean, slug=MOMO_SLUG)
+
+        if getattr(settings, 'DEBUG', False):
+            json.loads(payment_mean.credentials)
+        else:
+            try:
+                json.loads(payment_mean.credentials)
+            except:
+                return HttpResponse("Error, Could not parse MoMo Payment parameters for %s." % payment_mean.slug)
+
+        context['payment_mean'] = payment_mean
         return context
 
     @method_decorator(sensitive_post_parameters())
@@ -569,6 +588,7 @@ class MoMoSetCheckout(BaseView):
 
 def init_momo_transaction(request, *args, **kwargs):
     phone = request.GET['phone']
+    request.session['phone'] = phone
     if phone.startswith('67') or phone.startswith('68') or (650 <= int(phone[:3]) < 655):
         # MTN is processed by MTN API itself
         return init_request_payment(request, *args, **kwargs)
@@ -589,6 +609,7 @@ def check_momo_transaction_status(request, *args, **kwargs):
         tx.is_running = False
         tx.save(using='wallets')
         if tx.status == MoMoTransaction.SUCCESS:
+            request.session['tx_id'] = tx_id
             path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
             momo_after_checkout = import_by_path(path)
             if getattr(settings, 'DEBUG', False):
