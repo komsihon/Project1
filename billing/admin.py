@@ -410,7 +410,11 @@ class MoMoTransactionAdmin(admin.ModelAdmin):
                        'processor_tx_id', 'task_id', 'message', 'is_running', 'status')
 
     def get_queryset(self, request):
-        return super(MoMoTransactionAdmin, self).get_queryset(request).using('wallets')
+        if getattr(settings, 'IS_UMBRELLA', False):
+            return super(MoMoTransactionAdmin, self).get_queryset(request).using('wallets')
+        else:
+            service = get_service_instance()
+            return super(MoMoTransactionAdmin, self).get_queryset(request).using('wallets').filter(service_id=service.id)
 
 
 class PartnerListFilter(admin.SimpleListFilter):
