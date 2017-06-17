@@ -81,6 +81,10 @@
                 $(this).removeClass('btn-primary').addClass('btn-default');
                 $('#checkout .spinner').show();
                 var phone = $('#phone').val();
+                if (phone.length !== 9) {
+                    alert('Invalid phone number');
+                    return;
+                }
                 $.getJSON('{% url 'billing:init_momo_transaction' %}', {phone: phone}, function(data) {
                     $('#transaction-result').removeClass('text-danger').addClass('text-info')
                             .text("{% trans "Good! Please confirm transaction on your phone." %}");
