@@ -538,7 +538,7 @@ def render_service_deployed_event(event, request):
                 'show_pay_now': invoice.status != Invoice.PAID}
     from ikwen.conf import settings as ikwen_settings
     data.update({'currency_symbol': currency_symbol,
-                 'details_url': service.url + reverse('billing:invoice_detail', args=(invoice.id,)),
+                 'details_url': IKWEN_BASE_URL + reverse('billing:invoice_detail', args=(invoice.id,)),
                  'amount': invoice.amount,
                  'MEMBER_AVATAR': ikwen_settings.MEMBER_AVATAR, 'IKWEN_MEDIA_URL': ikwen_settings.MEDIA_URL})
     c = Context(data)
@@ -588,7 +588,10 @@ class DashboardBase(BaseView):
         last_cash_out = qs[0] if qs.count() >= 1 else None
         if last_cash_out:
             # Re-transform created_on into a datetime object
-            last_cash_out.created_on = datetime(*strptime(last_cash_out.created_on[:19], '%Y-%m-%d %H:%M:%S')[:6])
+            try:
+                last_cash_out.created_on = datetime(*strptime(last_cash_out.created_on[:19], '%Y-%m-%d %H:%M:%S')[:6])
+            except TypeError:
+                pass
         service = get_service_instance()
         try:
             wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=service.id)
