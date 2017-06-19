@@ -1,6 +1,8 @@
 
 from django.conf.urls import patterns, url, include
 from django.contrib.auth.decorators import permission_required
+from ikwen.core.views import load_event_content
+
 from ikwen.accesscontrol.views import SignIn
 
 from ikwen.flatpages.views import FlatPageView
@@ -22,4 +24,5 @@ urlpatterns = patterns(
     url(r'^ikwen/', include('ikwen.core.urls', namespace='ikwen')),
     url(r'^page/(?P<url>[-\w]+)/$', FlatPageView.as_view(), name='flatpage'),
     url(r'^deployCloud/(?P<app_slug>[-\w]+)/$', DeployCloud.as_view(), name='deploy_cloud'),
+    url(r'^load_event_content/$', load_event_content, name='load_event_content'),
 )
