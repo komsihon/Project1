@@ -45,8 +45,7 @@ class CashOutRequestAdmin(admin.ModelAdmin):
             service = Service.objects.get(pk=obj.service_id)
             wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=service.id)
             with transaction.atomic():
-                amount = int(wallet.balance)
-                wallet.balance -= amount
+                wallet.balance -= obj.amount
                 wallet.save(using='wallets')
                 iao = service.member
                 if getattr(settings, 'TESTING', False):
@@ -75,7 +74,7 @@ class CashOutRequestAdmin(admin.ModelAdmin):
                 Thread(target=lambda m: m.send(), args=(msg,)).start()
 
                 set_counters(ikwen_service)
-                increment_history_field(ikwen_service, 'cash_out_history', amount)
+                increment_history_field(ikwen_service, 'cash_out_history', obj.amount)
                 increment_history_field(ikwen_service, 'cash_out_count_history')
         super(CashOutRequestAdmin, self).save_model(request, obj, form, change)
 
