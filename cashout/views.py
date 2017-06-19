@@ -151,7 +151,10 @@ class Payments(BaseView):
         payments = []
         for p in CashOutRequest.objects.using('wallets').filter(service_id=service.id).order_by('-id'):
             # Re-transform created_on into a datetime object
-            p.created_on = datetime(*strptime(p.created_on[:19], '%Y-%m-%d %H:%M:%S')[:6])
+            try:
+                p.created_on = datetime(*strptime(p.created_on[:19], '%Y-%m-%d %H:%M:%S')[:6])
+            except TypeError:
+                pass
             payments.append(p)
         context['payments'] = payments
         context['payment_addresses'] = CashOutAddress.objects.using(UMBRELLA).filter(service=service)
