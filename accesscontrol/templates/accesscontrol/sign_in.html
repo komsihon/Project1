@@ -36,7 +36,7 @@
             <form action="{% url 'ikwen:sign_in' %}?{{ request.META.QUERY_STRING }}" method="post">{% csrf_token %}
                 <div class="form-group" style="margin-top: .4em">
                     <label for="lg-username">{% trans "Username or email" %}</label>
-                    <input id="lg-username" class="form-control input-sm username" type="text" name="username"
+                    <input id="lg-username" class="form-control input-sm username" type="text" name="username" autofocus
                            value="{{ request.GET.username }}{{ request.GET.phone }}" /> {#Only username or phone will be output depending on what is available#}
                 </div>
                 <div class="form-group">
