@@ -1,9 +1,7 @@
 
 from django.conf.urls import patterns, url, include
 from django.contrib.auth.decorators import permission_required
-from ikwen.core.views import load_event_content
-
-from ikwen.accesscontrol.views import SignIn
+from ikwen.core.views import load_event_content, DefaultHome
 
 from ikwen.flatpages.views import FlatPageView
 
@@ -11,7 +9,7 @@ from ikwen.partnership.views import Dashboard, ApplicationList, ServiceList, Cha
 
 urlpatterns = patterns(
     '',
-    url(r'^$', SignIn.as_view(), name='home'),
+    url(r'^$', DefaultHome.as_view(), name='home'),
     url(r'^dashboard/$', permission_required('accesscontrol.sudo')(Dashboard.as_view()), name='dashboard'),
     url(r'^apps/$', permission_required('accesscontrol.sudo')(ApplicationList.as_view()), name='app_list'),
     url(r'^services/$', permission_required('accesscontrol.sudo')(ServiceList.as_view()), name='service_list'),
