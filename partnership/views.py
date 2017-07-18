@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.http import urlquote
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 
@@ -72,7 +73,8 @@ class ChangeService(BaseView):
             website.monthly_cost = monthly_cost
             website.save(using='umbrella')
             website.save(using='default')
-            next_url = request.META['HTTP_REFERER'] + '?success=yes'
+            next_url = request.META['HTTP_REFERER']
+            request.session['notice_message'] = 'Service <strong>' + str(website) + '</strong> ' + _('successfully updated')
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)
