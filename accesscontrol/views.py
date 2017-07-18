@@ -134,7 +134,7 @@ class Register(BaseView):
         else:
             context = BaseView().get_context_data(**kwargs)
             context['register_form'] = form
-            return render(request, 'accesscontrol/sign_in.html', context)
+            return render(request, 'accesscontrol/register.html', context)
 
 
 class SignIn(BaseView):
@@ -688,6 +688,18 @@ def move_member_to_group(request, *args, **kwargs):
     obj.save()
     add_user_to_group(member,  group)
     member_umbrella = Member.objects.using(UMBRELLA).get(pk=member_id)
+    
+    service = get_service_instance()
+    collaborates_on_fk_list = member_umbrella.collaborates_on_fk_list
+    if group.name == COMMUNITY:
+        if service.id in collaborates_on_fk_list:
+            collaborates_on_fk_list.remove(service.id)
+    else:
+        if service.id not in collaborates_on_fk_list:
+            collaborates_on_fk_list.append(service.id)
+    Member.objects.filter(pk=member_id).update(collaborates_on_fk_list=collaborates_on_fk_list)
+    Member.objects.using(UMBRELLA).filter(pk=member_id).update(collaborates_on_fk_list=collaborates_on_fk_list)
+
     for grp in Group.objects.exclude(name__in=[COMMUNITY, SUDO]):
         try:
             member_umbrella.group_fk_list.remove(grp.id)
