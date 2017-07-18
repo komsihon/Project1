@@ -14,6 +14,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.db.models import get_model
+from django.forms.models import modelform_factory
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.template import Context
@@ -42,7 +43,7 @@ from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT
 from ikwen.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, AbstractConfig, Country, \
     OperatorWallet
 from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons, add_database_to_settings, \
-    add_database, calculate_watch_info, set_counters
+    add_database, calculate_watch_info, set_counters, get_model_admin_instance
 import ikwen.conf.settings
 
 try:
@@ -65,6 +66,15 @@ class BaseView(TemplateView):
         context['currency_code'] = config.currency_code
         context['currency_symbol'] = config.currency_symbol
         return context
+
+    def render_to_response(self, context, **response_kwargs):
+        try:
+            # If a notice message is set, add to context and remove from session
+            context['notice_message'] = self.request.session['notice_message']
+            self.request.session['notice_message'] = None
+        except KeyError:
+            pass
+        return super(BaseView, self).render_to_response(context, **response_kwargs)
 
 
 class HybridListView(ListView):
@@ -107,6 +117,7 @@ class HybridListView(ListView):
 
     def render_to_response(self, context, **response_kwargs):
         fmt = self.request.GET.get('format')
+        action = self.request.GET.get('action')
         if fmt:
             queryset = self.get_queryset()
             queryset = self.filter_queryset(queryset)
@@ -121,7 +132,7 @@ class HybridListView(ListView):
             start = int(self.request.GET.get('start'))
             length = int(self.request.GET.get('length', self.page_size))
             limit = start + length
-            queryset = self.get_search_results(queryset)
+            queryset = self.get_search_results(queryset, max_chars=4)
             queryset = queryset.order_by(*self.ajax_ordering)[start:limit]
             if fmt == 'json':
                 response = []
@@ -149,20 +160,42 @@ class HybridListView(ListView):
                 context['q'] = self.request.GET.get('q')
                 context['objects_page'] = objects_page
                 return render(self.request, self.html_results_template_name, context)
+        elif action == 'delete':
+            selection = self.request.GET['selection'].split(',')
+            deleted = []
+            for pk in selection:
+                level = self.model.objects.get(pk=pk)
+                level.delete()
+                deleted.append(pk)
+            response = {
+                'message': "%d level(s) deleted." % len(selection),
+                'deleted': deleted
+            }
+            return HttpResponse(json.dumps(response))
         else:
+            try:
+                # If a notice message is set, add to context and remove from session
+                context['notice_message'] = self.request.session['notice_message']
+                self.request.session['notice_message'] = None
+            except KeyError:
+                pass
             return super(HybridListView, self).render_to_response(context, **response_kwargs)
 
-    def get_search_results(self, queryset):
+    def get_search_results(self, queryset, max_chars=None):
         """
-        Default search function that filters the queryset based on the value of GET parameter q and the search_field
-        :param queryset:
-        :return:
+        Default search function that filters the queryset based on
+        the value of GET parameter q and the search_field.
+        Only the first max_chars of the search string will be used
+        to search. Setting it to none causes to search with the
+        input string exactly as such.
         """
         # TODO: Implement MongoDB native indexed text search instead of Django ORM one for better performance
         search_term = self.request.GET.get('q')
         if search_term and len(search_term) >= 2:
             search_term = search_term.lower()
-            word = slugify(search_term)[:4]
+            word = slugify(search_term)
+            if max_chars:
+                word = word[:max_chars]
             if word:
                 kwargs = {self.search_field + '__icontains': word}
                 queryset = queryset.filter(**kwargs)
@@ -188,6 +221,51 @@ class HybridListView(ListView):
                 filter = item()
                 queryset = filter.queryset(self.request, queryset)
         return queryset
+
+
+class ChangeObjectBase(BaseView):
+    model = None
+    model_admin = None
+    template_name = None
+    context_object_name = 'obj'
+
+    def get_context_data(self, **kwargs):
+        context = super(ChangeObjectBase, self).get_context_data(**kwargs)
+        object_id = kwargs.get('object_id')  # May be overridden with the one from GET data
+        object_id = self.request.GET.get('object_id', object_id)
+        obj = None
+        if object_id:
+            obj = get_object_or_404(self.model, pk=object_id)
+        model_admin = get_model_admin_instance(self.model, self.model_admin)
+        ModelForm = modelform_factory(self.model, fields=self.model_admin.fields)
+        form = ModelForm(instance=obj)
+        obj_form = helpers.AdminForm(form, list(model_admin.get_fieldsets(self.request)),
+                                     model_admin.get_prepopulated_fields(self.request),
+                                     model_admin.get_readonly_fields(self.request))
+        context[self.context_object_name] = obj
+        context['model_admin_form'] = obj_form
+        return context
+
+    @method_decorator(sensitive_post_parameters())
+    @method_decorator(csrf_protect)
+    def post(self, request, *args, **kwargs):
+        object_id = request.POST.get('object_id')
+        obj = None
+        if object_id:
+            obj = get_object_or_404(self.model, pk=object_id)
+        object_admin = get_model_admin_instance(self.model, self.model_admin)
+        ModelForm = object_admin.get_form(request)
+        form = ModelForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            url_name = obj._meta.app_label + ':' + obj.__class__.__name__.lower() + '_list'
+            next_url = reverse(url_name)
+            request.session['notice'] = obj._meta.verbose_name + ' ' + _('successfully updated')
+            return HttpResponseRedirect(next_url)
+        else:
+            context = self.get_context_data(**kwargs)
+            context['errors'] = form.errors
+            return render(request, self.template_name, context)
 
 
 upload_image = AjaxFileUploader(DefaultUploadBackend)
