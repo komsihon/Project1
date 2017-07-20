@@ -193,6 +193,8 @@ class Service(models.Model):
     monthly_cost = models.PositiveIntegerField()
     version = models.CharField(max_length=15, blank=True, choices=VERSION_CHOICES)  # Free, Trial, Full
     status = models.CharField(max_length=15, default=PENDING, choices=STATUS_CHOICES)
+    is_public = models.BooleanField(default=True,
+                                    help_text=_("If true, the service can appear in ikwen search results."))
     # Date of expiry of the service. The billing system automatically sets it to
     # IkwenInvoice.due_date + IkwenInvoice.tolerance
     # IkwenInvoice in this case is the invoice addressed to client for this Service

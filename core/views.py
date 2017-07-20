@@ -558,7 +558,7 @@ def list_projects(request, *args, **kwargs):
     if len(q) < 2:
         return
 
-    queryset = Service.objects.using(UMBRELLA)
+    queryset = Service.objects.using(UMBRELLA).filter(is_public=True)
     word = slugify(q)[:4]
     if word:
         queryset = queryset.filter(project_name__icontains=word)

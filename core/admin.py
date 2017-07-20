@@ -61,7 +61,7 @@ class ServiceAdmin(admin.ModelAdmin):
     list_display = ('project_name', 'app', 'member', 'monthly_cost', 'expiry', 'since', 'version', 'status', )
     raw_id_fields = ('member', )
     search_fields = ('project_name', )
-    list_filter = ('app', 'version', 'expiry', 'since', 'status', )
+    list_filter = ('app', 'version', 'expiry', 'since', 'status', 'is_public', )
     ordering = ('-id', )
     readonly_fields = ('retailer', 'since',
                        'total_turnover', 'total_earnings', 'total_transaction_earnings', 'total_custom_service_earnings',
