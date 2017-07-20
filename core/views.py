@@ -511,8 +511,8 @@ class Console(BaseView):
                 access_request_events[service] = request_event_list
 
         event_list = ConsoleEvent.objects.exclude(event_type=type_access_request) \
-                         .filter(Q(member=member) | Q(group_id__in=member.group_fk_list) | Q(group_id__isnull=True, member__isnull=True),
-                                 service__in=member_services).order_by('-id')[:length]
+                         .filter(Q(member=member) | Q(group_id__in=member.group_fk_list) |
+                                 Q(group_id__isnull=True, member__isnull=True, service__in=member_services)).order_by('-id')[:length]
         context['access_request_events'] = access_request_events
         context['event_list'] = event_list
         context['is_console'] = True  # console.html extends profile.html, so this helps differentiates in templates
@@ -531,8 +531,8 @@ class Console(BaseView):
             type_access_request = ConsoleEventType.objects.get(codename=ACCESS_REQUEST_EVENT)
             member = self.request.user
             queryset = ConsoleEvent.objects.exclude(event_type=type_access_request)\
-                           .filter(Q(member=member) | Q(group_id__in=member.group_fk_list) | Q(group_id__isnull=True, member__isnull=True),
-                                   service__in=member.get_services()).order_by('-id')[start:limit]
+                           .filter(Q(member=member) | Q(group_id__in=member.group_fk_list) |
+                                   Q(group_id__isnull=True, member__isnull=True, service__in=member.get_services())).order_by('-id')[start:limit]
             response = []
             for event in queryset:
                 try:
