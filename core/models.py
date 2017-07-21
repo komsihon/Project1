@@ -383,8 +383,9 @@ class Service(models.Model):
 
         db = self.database
         add_database_to_settings(db)
+        ConsoleEvent.objects.filter(service=self).delete()
         group_ids = [group.id for group in Group.objects.using(db).all()]
-        for m in Member.objects.using(db).all():
+        for m in Member.objects.all():
             try:
                 m.collaborates_on_fk_list.remove(self.id)
                 m.customer_on_fk_list.remove(self.id)
