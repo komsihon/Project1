@@ -16,6 +16,7 @@ from django.template.loader import get_template
 from django.template import Context
 from django_mongodb_engine.contrib import MongoDBManager
 from djangotoolbox.fields import ListField
+from ikwen.accesscontrol.backends import UMBRELLA
 
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 
@@ -385,15 +386,16 @@ class Service(models.Model):
         add_database_to_settings(db)
         ConsoleEvent.objects.filter(service=self).delete()
         group_ids = [group.id for group in Group.objects.using(db).all()]
-        for m in Member.objects.all():
+        for m in Member.objects.using(db).all():
             try:
+                m = m.get_from(UMBRELLA)
                 m.collaborates_on_fk_list.remove(self.id)
                 m.customer_on_fk_list.remove(self.id)
                 for fk in group_ids:
                     m.group_fk_list.remove(fk)
-            except ValueError:
+            except:
                 pass
-            m.save()
+            m.save(using=UMBRELLA)
 
         member = self.member
         if len(member.collaborates_on_fk_list) == 0:
