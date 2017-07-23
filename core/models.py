@@ -16,7 +16,6 @@ from django.template.loader import get_template
 from django.template import Context
 from django_mongodb_engine.contrib import MongoDBManager
 from djangotoolbox.fields import ListField
-from ikwen.accesscontrol.backends import UMBRELLA
 
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 
@@ -373,6 +372,7 @@ class Service(models.Model):
         import shutil
         from ikwen.conf.settings import MEDIA_ROOT
         from ikwen.accesscontrol.models import Member
+        from ikwen.accesscontrol.backends import UMBRELLA
         media_root = MEDIA_ROOT + self.project_name_slug + '/'
         apache_alias = '/etc/apache2/sites-enabled/' + self.domain + '.conf'
         if os.path.exists(media_root):
