@@ -13,6 +13,8 @@ from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext_lazy as _
+from ikwen.billing.orangemoney.views import UNKNOWN_PHONE
+
 from ikwen.accesscontrol.backends import UMBRELLA
 from import_export.admin import ImportExportMixin, ExportMixin
 
@@ -197,7 +199,7 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
         for instance in instances:
             if isinstance(instance, Payment):
                 if instance.cashier:
-                    # Instances with non null cashier are those who previously existed.
+                    # Instances with non null cashier are those that previously existed.
                     # setting them to None allows to ignore them at the end of the loop
                     # since we want to undertake action only for newly added Payment
                     instance = None
@@ -332,7 +334,7 @@ class PaymentAdmin(CustomBaseAdmin, ExportMixin):
     raw_id_fields = ('invoice', )
 
     def save_model(self, request, obj, form, change):
-        return HttpResponseForbidden("To add a payment, you must go the Invoice detail form.")
+        return HttpResponseForbidden("To add a payment, you must go to the Invoice detail form.")
 
     def get_search_results(self, request, queryset, search_term):
         try:
@@ -398,7 +400,8 @@ class MoMoOperatorListFilter(admin.SimpleListFilter):
                             Q(phone__startswith='657') |
                             Q(phone__startswith='658') |
                             Q(phone__startswith='659') |
-                            Q(phone__startswith='69'))
+                            Q(phone__startswith='69') |
+                            Q(phone=UNKNOWN_PHONE))
 
 
 class MoMoTransactionAdmin(admin.ModelAdmin):
