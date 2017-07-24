@@ -28,10 +28,15 @@ class FlatPageList(HybridListView):
         action = self.request.GET.get('action')
         if action == 'delete':
             selection = self.request.GET['selection'].split(',')
+            deleted = []
             for page_id in selection:
                 page = FlatPage.objects.get(pk=page_id)
                 page.delete()
-            response = {'message': "%d page(s) deleted." % len(selection)}
+                deleted.append(page_id)
+            response = {
+                'message': "%d level(s) deleted." % len(selection),
+                'deleted': deleted
+            }
             return HttpResponse(json.dumps(response))
         return super(FlatPageList, self).render_to_response(context, **response_kwargs)
 
