@@ -85,15 +85,24 @@
                     alert('Invalid phone number');
                     return;
                 }
-                $.getJSON('{% url 'billing:init_momo_transaction' %}', {phone: phone}, function(data) {
-                    $('#transaction-result').removeClass('text-danger').addClass('text-info')
-                            .text("{% trans "Good! Please confirm transaction on your phone." %}");
-                    txId = data.tx_id;
-                    {# Keep the transaction locally so that we can keep on cheking it even if page reloads #}
-                    {# This is particularly useful for smartphones. They tend to reload pages when we reopen #}
-                    {# the browser. #}
-                    localStorage.setItem('txId', txId);
-                    setTimeout(startTransactionStatusChecker, 5000)
+                $.ajax({
+                    url: '{% url 'billing:check_momo_transaction_status' %}',
+                    data: {phone: phone},
+                    error: function(req, status, error) {
+                        $('#checkout .spinner').hide();
+                        $('#transaction-result').removeClass('text-info').addClass('text-danger')
+                                .text(status + ": " + error);
+                    },
+                    success: function(data) {
+                        $('#transaction-result').removeClass('text-danger').addClass('text-info')
+                                .text("{% trans "Good! Please confirm transaction on your phone." %}");
+                        txId = data.tx_id;
+                        {# Keep the transaction locally so that we can keep on cheking it even if page reloads #}
+                        {# This is particularly useful for smartphones. They tend to reload pages when we reopen #}
+                        {# the browser. #}
+                        localStorage.setItem('txId', txId);
+                        setTimeout(startTransactionStatusChecker, 5000)
+                    }
                 })
             });
             function startTransactionStatusChecker() {
