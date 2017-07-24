@@ -90,19 +90,25 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="conf-jumbopay-momo" tabindex="-1" role="dialog">
+    <div class="modal fade" id="conf-orange-money" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content modal-info">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">{% trans "Configure" %} JumboPay Mobile Money</h4>
+                    <h4 class="modal-title">{% trans "Configure" %} Orange Money</h4>
                 </div>
                 <div class="modal-body">
                     <form>
                         <div class="form-group row">
-                            <label for="jp-api-key" class="col-sm-5 col-md-4">{% trans "JumboPay API Key" %}</label>
+                            <label for="om-merchant-key" class="col-sm-5 col-md-4">{% trans "Merchant Key" %}</label>
                             <div class="col-sm-7">
-                                <input type="text" id="jp-api-key" name="api_key" class="form-control input-sm" />
+                                <input type="text" id="om-merchant-key" name="merchant_key" class="form-control input-sm" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="om-access-token" class="col-sm-5 col-md-4">{% trans "Access Token" %}</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="om-access-token" name="access_token" class="form-control input-sm" />
                             </div>
                         </div>
                     </form>
@@ -170,11 +176,13 @@
                 $('#pp-signature').val(signature);
                 $('#pp-merchant-id').val(merchantId);
                 $('div#conf-paypal button.btn-success').data('mean-id', meanId);
-            }).on('click', '.conf-jumbopay-momo', function() {
+            }).on('click', '.conf-orange-money', function() {
                 var meanId = $(this).parents('.ik-li').data('id'),
-                    APIKey = $(this).parents('.ik-li').data('api_key');
-                $('#jp-api-key').val(APIKey);
-                $('div#conf-jumbopay-momo button.btn-success').data('mean-id', meanId);
+                    merchantKey = $(this).parents('.ik-li').data('merchant_key'),
+                    accessToken = $(this).parents('.ik-li').data('access_token');
+                $('#om-merchant-key').val(merchantKey);
+                $('#om-access-token').val(accessToken);
+                $('div#conf-orange-money button.btn-success').data('mean-id', meanId);
             }).on('click', '.conf-mtn-momo', function() {
                 var meanId = $(this).parents('.ik-li').data('id'),
                     merchantEmail = $(this).parents('.ik-li').data('merchant_email');
@@ -207,9 +215,10 @@
                     ikwen.showFloatingNotice("{% trans "PayPal successfully configured" %}", '', 5);
                 })
             });
-            $('div#conf-jumbopay-momo button.btn-success').click(function() {
+            $('div#conf-orange-money button.btn-success').click(function() {
                 var credentials = JSON.stringify({
-                    api_key: $('#jp-api-key').val()
+                    merchant_key: $('#om-merchant-key').val(),
+                    access_token: $('#om-access-token').val()
                 }),
                 meanId = $(this).data('mean-id');
                 $.getJSON('{% url 'billing:set_credentials' %}', {mean_id: meanId, credentials: credentials}, function(resp) {
@@ -217,7 +226,7 @@
                         ikwen.showFloatingNotice(resp.error, '', 5);
                         return
                     }
-                    ikwen.showFloatingNotice("{% trans "JumboPay Mobile Money successfully configured" %}", '', 5);
+                    ikwen.showFloatingNotice("{% trans "Orange Money successfully configured" %}", '', 5);
                 })
             });
             $('div#conf-mtn-momo button.btn-success').click(function() {
