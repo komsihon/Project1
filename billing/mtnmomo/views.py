@@ -14,7 +14,7 @@ from ikwen.core.utils import get_service_instance
 
 from ikwen.billing.models import PaymentMean, MoMoTransaction
 
-_MTN_MOMO = 'mtn-momo'
+MTN_MOMO = 'mtn-momo'
 
 
 def init_request_payment(request, *args, **kwargs):
@@ -51,7 +51,7 @@ def request_payment(transaction):
         transaction.message = 'Success'
         transaction.status = MoMoTransaction.SUCCESS
     elif getattr(settings, 'DEBUG', False):
-        mtn_momo = json.loads(PaymentMean.objects.get(slug=_MTN_MOMO).credentials)
+        mtn_momo = json.loads(PaymentMean.objects.get(slug=MTN_MOMO).credentials)
         data.update({'_email': mtn_momo['merchant_email']})
         r = requests.get(cashout_url, params=data, verify=False, timeout=130)
         resp = r.json()
@@ -64,9 +64,9 @@ def request_payment(transaction):
             transaction.status = MoMoTransaction.SUCCESS
     else:
         try:
-            mtn_momo = json.loads(PaymentMean.objects.get(slug=_MTN_MOMO).credentials)
+            mtn_momo = json.loads(PaymentMean.objects.get(slug=MTN_MOMO).credentials)
         except:
-            return HttpResponse("Error, Could not parse JumboPay parameters.")
+            return HttpResponse("Error, Could not parse MoMo API parameters.")
         try:
             data.update({'_email': mtn_momo['merchant_email']})
             r = requests.get(cashout_url, params=data, verify=False, timeout=130)
