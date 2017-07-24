@@ -149,7 +149,7 @@ class AbstractSubscription(Model):
         (CANCELED, _('Canceled')),
         (ACTIVE, _('Active'))
     )
-    member = models.ForeignKey(Member, related_name='+',
+    member = models.ForeignKey(Member, blank=True, null=True, related_name='+',
                                help_text=_("Client who subscribes to the service."))
     product = models.ForeignKey(getattr(settings, 'BILLING_PRODUCT_MODEL', 'billing.Product'),
                                 related_name='+')
