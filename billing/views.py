@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
+import random
+import string
 from datetime import date, datetime, timedelta
 from threading import Thread
 
@@ -26,6 +28,8 @@ from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
+from ikwen.billing.orangemoney.views import init_web_payment, ORANGE_MONEY
+
 from ikwen.conf.settings import MOMO_SLUG
 
 from ikwen.billing.jumbopay.views import init_momo_cashout
@@ -381,7 +385,7 @@ def set_invoice_checkout(request, *args, **kwargs):
     request.session['extra_months'] = extra_months
 
 
-def confirm_invoice_payment(request):
+def confirm_invoice_payment(request, *args, **kwargs):
     """
     This function has no URL associated with it.
     It serves as ikwen setting "MOMO_AFTER_CHECKOUT"
@@ -567,7 +571,7 @@ class MoMoSetCheckout(BaseView):
             try:
                 json.loads(payment_mean.credentials)
             except:
-                return HttpResponse("Error, Could not parse MoMo Payment parameters for %s." % payment_mean.slug)
+                return HttpResponse("Error, Could not parse Payment API parameters for %s." % payment_mean.name)
 
         context['payment_mean'] = payment_mean
         return context
@@ -577,11 +581,14 @@ class MoMoSetCheckout(BaseView):
     @method_decorator(never_cache)
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
+        payment_mean = context['payment_mean']
+        signature = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(16)])
+        request.session['signature'] = signature
         path = getattr(settings, 'MOMO_BEFORE_CASH_OUT')
         momo_before_checkout = import_by_path(path)
-        resp = momo_before_checkout(request, *args, **kwargs)
-        if resp:
-            return resp
+        momo_before_checkout(request, *args, **kwargs)
+        if payment_mean.slug == ORANGE_MONEY:
+            return init_web_payment(request, *args, **kwargs)
         context['amount'] = request.session['amount']
         return render(request, self.template_name, context)
 
@@ -613,7 +620,7 @@ def check_momo_transaction_status(request, *args, **kwargs):
             path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
             momo_after_checkout = import_by_path(path)
             if getattr(settings, 'DEBUG', False):
-                resp_dict = momo_after_checkout(request, *args, **kwargs)
+                resp_dict = momo_after_checkout(request, signature=request.session['signature'])
                 return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
             else:
                 try:
@@ -625,6 +632,10 @@ def check_momo_transaction_status(request, *args, **kwargs):
         if getattr(settings, 'DEBUG', False):
             resp_dict['message'] = tx.message
         elif tx.status == MoMoTransaction.API_ERROR:
-            resp_dict['message'] = tx.message  # Show only API Errors in production
+            resp_dict['message'] = 'Error: Your balance may be insufficient. Please check and try again.'
+        elif tx.status == MoMoTransaction.TIMEOUT:
+            resp_dict['message'] = 'Timeout: MTN Server is taking too long to respond. Please try again later'
+        elif tx.status == MoMoTransaction.SERVER_ERROR:
+            resp_dict['message'] = 'Unknow server error. Please try again later'
         return HttpResponse(resp_dict, 'content-type: text/json')
     return HttpResponse(json.dumps({'running': True}), 'content-type: text/json')
