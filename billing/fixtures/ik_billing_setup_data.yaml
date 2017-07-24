@@ -28,6 +28,7 @@
     company_name: ikwen
     contact_email: contact@ikwen.com
     logo: logos/some_logo.png
+    is_pro_version: Yes
 
 - model: core.consoleeventtype
   pk: 56eb3379b531a0104b373bd1
