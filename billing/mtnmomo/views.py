@@ -78,6 +78,10 @@ def request_payment(transaction):
                 transaction.status = MoMoTransaction.API_ERROR
             else:
                 transaction.status = MoMoTransaction.SUCCESS
+        except KeyError:
+            import traceback
+            transaction.status = MoMoTransaction.FAILURE
+            transaction.message = traceback.format_exc()
         except SSLError:
             transaction.status = MoMoTransaction.SSL_ERROR
         except Timeout:
