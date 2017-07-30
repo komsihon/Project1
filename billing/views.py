@@ -609,7 +609,6 @@ def init_momo_transaction(request, *args, **kwargs):
 def check_momo_transaction_status(request, *args, **kwargs):
     tx_id = request.GET['tx_id']
     tx = MoMoTransaction.objects.using('wallets').get(pk=tx_id)
-
     # When a MoMoTransaction is created, its status is None or empty string
     # So perform a double check. First, make sure a status has been set
     if tx.is_running and tx.status:
