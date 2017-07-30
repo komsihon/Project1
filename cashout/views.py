@@ -70,12 +70,12 @@ def request_cash_out(request, *args, **kwargs):
             event_originator = ikwen_service
 
         add_event(event_originator, CASH_OUT_REQUEST_EVENT, member=iao, object_id=cor.id)
-
         subject = _("Cash-out request on %s" % business.project_name)
         html_content = get_mail_content(subject, '', template_name='cashout/mails/request_notice.html',
                                         extra_context={'cash_out_request': cor, 'business': business,
                                                        'service': event_originator})
         msg = EmailMessage(subject, html_content, sender, [iao.email])
+        msg.bcc = ['k.sihon@ikwen.com', 'contact@ikwen.com']
         msg.content_subtype = "html"
         Thread(target=lambda m: m.send(), args=(msg,)).start()
 
