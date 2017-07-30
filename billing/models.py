@@ -376,6 +376,7 @@ class PaymentMean(Model):
 
 class MoMoTransaction(Model):
     SUCCESS = 'Success'
+    FAILURE = 'Failure'
     REQUEST_EXCEPTION = 'RequestException'
     TIMEOUT = 'Timeout'
     API_ERROR = 'APIError'

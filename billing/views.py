@@ -631,11 +631,13 @@ def check_momo_transaction_status(request, *args, **kwargs):
         resp_dict = {'error': tx.status, 'message': ''}
         if getattr(settings, 'DEBUG', False):
             resp_dict['message'] = tx.message
+        elif tx.status == MoMoTransaction.FAILURE:
+            resp_dict['message'] = 'Ooops! You may have refused authorization. Please try again.'
         elif tx.status == MoMoTransaction.API_ERROR:
             resp_dict['message'] = 'Error: Your balance may be insufficient. Please check and try again.'
         elif tx.status == MoMoTransaction.TIMEOUT:
             resp_dict['message'] = 'Timeout: MTN Server is taking too long to respond. Please try again later'
         elif tx.status == MoMoTransaction.SERVER_ERROR:
-            resp_dict['message'] = 'Unknow server error. Please try again later'
+            resp_dict['message'] = 'Unknown server error. Please try again later'
         return HttpResponse(resp_dict, 'content-type: text/json')
     return HttpResponse(json.dumps({'running': True}), 'content-type: text/json')
