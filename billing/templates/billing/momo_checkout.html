@@ -58,7 +58,7 @@
             <form onsubmit="return false">{% csrf_token %}
                 <div class="form-group" style="margin-top: .4em">
                     <label for="phone" class="sr-only">{% trans "Phone number" %}</label>
-                    <input id="phone" class="form-control input-sm" type="text" name="phone" />
+                    <input id="phone" class="form-control input-sm" type="text" name="phone" value="{{ phone }}" />
                 </div>
                 <div class="form-group">
                     <button id="do-pay" class="btn btn-primary btn-block btn-sm"> {% trans "Submit" %} </button>
@@ -86,7 +86,7 @@
                     return;
                 }
                 $.ajax({
-                    url: '{% url 'billing:check_momo_transaction_status' %}',
+                    url: '{% url 'billing:init_momo_transaction' %}',
                     data: {phone: phone},
                     error: function(req, status, error) {
                         $('#checkout .spinner').hide();
