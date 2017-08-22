@@ -1,10 +1,14 @@
 import json
+from datetime import datetime
+from threading import Thread
 
 import requests
+import time
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.http import HttpResponse
 from django.http.response import HttpResponseRedirect
+from django.utils.module_loading import import_by_path
 from requests.exceptions import SSLError
 
 from requests import RequestException
@@ -14,12 +18,22 @@ from ikwen.core.utils import get_service_instance
 
 from ikwen.billing.models import PaymentMean, MoMoTransaction
 
+import logging
+import logging.handlers
+tx_status_log = logging.getLogger('transaction_status.error')
+tx_status_log.setLevel(logging.INFO)
+error_file_handler = logging.handlers.RotatingFileHandler('om_transaction_status.log', 'w', 100000, 4)
+error_file_handler.setLevel(logging.INFO)
+f = logging.Formatter('%(levelname)-10s %(asctime)-27s %(message)s')
+error_file_handler.setFormatter(f)
+tx_status_log.addHandler(error_file_handler)
+
 ORANGE_MONEY = 'orange-money'
 UNKNOWN_PHONE = '<Unknown>'
 
 
 def init_web_payment(request, *args, **kwargs):
-    ORANGE_MONEY_API_URL = getattr(settings, 'ORANGE_MONEY_API_URL')
+    api_url = getattr(settings, 'ORANGE_MONEY_API_URL') + '/webpayment'
     phone = UNKNOWN_PHONE
     service = get_service_instance()
     request.session['phone'] = phone
@@ -29,15 +43,17 @@ def init_web_payment(request, *args, **kwargs):
         amount = request.session['amount']
     model_name = request.session['model_name']
     object_id = request.session['object_id']
-    transaction = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
-                                                                  phone=phone, amount=amount, model=model_name,
-                                                                  object_id=object_id)
+    momo_tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
+                                                              phone=phone, amount=amount, model=model_name,
+                                                              object_id=object_id)
+    request.session['tx_id'] = momo_tx.id
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     notif_url = request.session['notif_url']
-    notif_url += '/%d' % transaction.id
+    notif_url += '/%d' % momo_tx.id
     data = {'order_id': object_id,
             'amount': amount,
             'lang': 'fr',
+            'reference': service.config.company_name.upper(),
             'return_url': request.session['return_url'],
             'cancel_url': request.session['cancel_url'],
             'notif_url': notif_url}
@@ -45,18 +61,19 @@ def init_web_payment(request, *args, **kwargs):
         om = json.loads(PaymentMean.objects.get(slug=ORANGE_MONEY).credentials)
         headers.update({'Authorization': 'Bearer ' + om['access_token']})
         data.update({'merchant_key': om['merchant_key'], 'currency': 'OUV'})
-        r = requests.post(ORANGE_MONEY_API_URL, headers=headers, data=json.dumps(data), verify=False, timeout=130)
+        r = requests.post(api_url, headers=headers, data=json.dumps(data), verify=False, timeout=130)
         resp = r.json()
-        transaction.message = resp['message']
+        momo_tx.message = resp['message']
         if resp['status'] == 201:
             request.session['pay_token'] = resp['pay_token']
             request.session['notif_token'] = resp['notif_token']
-            transaction.status = MoMoTransaction.SUCCESS
-            transaction.save()
+            momo_tx.status = MoMoTransaction.SUCCESS
+            momo_tx.save()
+            Thread(target=check_transaction_status, args=(request, )).start()
             return HttpResponseRedirect(resp['payment_url'])
         else:
-            transaction.status = MoMoTransaction.API_ERROR
-            transaction.save()
+            momo_tx.status = MoMoTransaction.API_ERROR
+            momo_tx.save()
     else:
         try:
             om = json.loads(PaymentMean.objects.get(slug=ORANGE_MONEY).credentials)
@@ -65,28 +82,67 @@ def init_web_payment(request, *args, **kwargs):
         try:
             headers.update({'Authorization': 'Bearer ' + om['access_token']})
             data.update({'merchant_key': om['merchant_key'], 'currency': 'XAF'})
-            r = requests.post(ORANGE_MONEY_API_URL, headers=headers, data=json.dumps(data), verify=False, timeout=130)
+            r = requests.post(api_url, headers=headers, data=json.dumps(data), verify=False, timeout=130)
             resp = r.json()
-            transaction.message = resp['message']
+            momo_tx.message = resp['message']
             if resp['status'] == 201:
                 request.session['pay_token'] = resp['pay_token']
                 request.session['notif_token'] = resp['notif_token']
-                transaction.status = MoMoTransaction.SUCCESS
-                transaction.save()
+                momo_tx.status = MoMoTransaction.SUCCESS
+                momo_tx.save()
+                Thread(target=check_transaction_status, args=(request, )).start()
                 return HttpResponseRedirect(resp['payment_url'])
             else:
-                transaction.status = MoMoTransaction.API_ERROR
-                transaction.save()
+                momo_tx.status = MoMoTransaction.API_ERROR
+                momo_tx.save()
         except SSLError:
-            transaction.status = MoMoTransaction.SSL_ERROR
+            momo_tx.status = MoMoTransaction.SSL_ERROR
         except Timeout:
-            transaction.status = MoMoTransaction.TIMEOUT
+            momo_tx.status = MoMoTransaction.TIMEOUT
         except RequestException:
             import traceback
-            transaction.status = MoMoTransaction.REQUEST_EXCEPTION
-            transaction.message = traceback.format_exc()
+            momo_tx.status = MoMoTransaction.REQUEST_EXCEPTION
+            momo_tx.message = traceback.format_exc()
         except:
             import traceback
-            transaction.status = MoMoTransaction.SERVER_ERROR
-            transaction.message = traceback.format_exc()
+            momo_tx.status = MoMoTransaction.SERVER_ERROR
+            momo_tx.message = traceback.format_exc()
 
+
+def check_transaction_status(request):
+    api_url = getattr(settings, 'ORANGE_MONEY_API_URL') + '/transactionstatus'
+    amount = request.session['amount']
+    object_id = request.session['object_id']
+    headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+    data = {'order_id': object_id,
+            'amount': amount,
+            'pay_token': request.session['pay_token']}
+    om = json.loads(PaymentMean.objects.get(slug=ORANGE_MONEY).credentials)
+    t0 = datetime.now()
+    while True:
+        time.sleep(1)
+        t1 = datetime.now()
+        diff = t1 - t0
+        if diff.seconds >= (10 * 60):
+            break
+        try:
+            # tx_status_log.info("Checking transaction")
+            headers.update({'Authorization': 'Bearer ' + om['access_token']})
+            r = requests.post(api_url, headers=headers, data=json.dumps(data), verify=False, timeout=130)
+            resp = r.json()
+            status = resp['status']
+            if status == 'FAILED':
+                break
+            if status == 'SUCCESS':
+                request.session['processor_tx_id'] = resp['txnid']
+                path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
+                momo_after_checkout = import_by_path(path)
+                with transaction.atomic():
+                    try:
+                        momo_after_checkout(request, signature=request.session['signature'], tx_id=request.session['tx_id'])
+                    except:
+                        tx_status_log.error("Error while running callback function", exc_info=True)
+                break
+        except:
+            tx_status_log.error("Failure while querying transaction status", exc_info=True)
+            continue
