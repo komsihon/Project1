@@ -574,6 +574,9 @@ class MoMoSetCheckout(BaseView):
                 return HttpResponse("Error, Could not parse Payment API parameters for %s." % payment_mean.name)
 
         context['payment_mean'] = payment_mean
+        member = self.request.user
+        if member.is_authenticated():
+            context['phone'] = member.phone
         return context
 
     @method_decorator(sensitive_post_parameters())
@@ -586,7 +589,9 @@ class MoMoSetCheckout(BaseView):
         request.session['signature'] = signature
         path = getattr(settings, 'MOMO_BEFORE_CASH_OUT')
         momo_before_checkout = import_by_path(path)
-        momo_before_checkout(request, *args, **kwargs)
+        http_resp = momo_before_checkout(request, *args, **kwargs)
+        if http_resp:
+            return http_resp
         if payment_mean.slug == ORANGE_MONEY:
             return init_web_payment(request, *args, **kwargs)
         context['amount'] = request.session['amount']
@@ -624,7 +629,7 @@ def check_momo_transaction_status(request, *args, **kwargs):
                 return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
             else:
                 try:
-                    resp_dict = momo_after_checkout(request, *args, **kwargs)
+                    resp_dict = momo_after_checkout(request, signature=request.session['signature'])
                     return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
                 except:
                     return HttpResponse(json.dumps({'error': 'Unknown server error in AFTER_CASH_OUT'}))
@@ -634,10 +639,10 @@ def check_momo_transaction_status(request, *args, **kwargs):
         elif tx.status == MoMoTransaction.FAILURE:
             resp_dict['message'] = 'Ooops! You may have refused authorization. Please try again.'
         elif tx.status == MoMoTransaction.API_ERROR:
-            resp_dict['message'] = 'Error: Your balance may be insufficient. Please check and try again.'
+            resp_dict['message'] = 'Your balance may be insufficient. Please check and try again.'
         elif tx.status == MoMoTransaction.TIMEOUT:
-            resp_dict['message'] = 'Timeout: MTN Server is taking too long to respond. Please try again later'
+            resp_dict['message'] = 'MTN Server is taking too long to respond. Please try again later'
         elif tx.status == MoMoTransaction.SERVER_ERROR:
             resp_dict['message'] = 'Unknown server error. Please try again later'
-        return HttpResponse(resp_dict, 'content-type: text/json')
+        return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
     return HttpResponse(json.dumps({'running': True}), 'content-type: text/json')
