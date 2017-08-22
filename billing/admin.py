@@ -263,7 +263,7 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
             subscriptions = []
             for member in members:
                 subscriptions.extend(list(Subscription.objects.filter(member=member)))
-            queryset = self.model.objects.filter(
+            queryset = self.get_queryset(request).filter(
                 Q(subscription__in=subscriptions) | Q(number__icontains=search_term.lower())
             )
             use_distinct = False
@@ -281,7 +281,7 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
             subscriptions = []
             for member in members:
                 subscriptions.extend(list(Subscription.objects.filter(member=member)))
-            queryset = self.model.objects.filter(
+            queryset = self.get_queryset(request).filter(
                 Q(subscription__in=subscriptions) | Q(number__icontains=search_term.lower())
             )
             use_distinct = False
