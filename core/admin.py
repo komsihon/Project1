@@ -81,12 +81,20 @@ class ServiceAdmin(admin.ModelAdmin):
         else:
             super(ServiceAdmin, self).save_model(request, obj, form, change)
 
+if getattr(settings, 'IS_IKWEN', False):
+    _list_display = ('service', 'company_name', 'short_description', 'contact_email', 'contact_phone')
+    _general_fields = ('service', 'company_name', 'short_description', 'slogan',
+                       'description', 'currency_code', 'currency_symbol')
+else:
+    _list_display = ('company_name', 'short_description', 'contact_email', 'contact_phone')
+    _general_fields = ('company_name', 'short_description', 'slogan',
+                       'description', 'currency_code', 'currency_symbol')
+
 
 class ConfigAdmin(admin.ModelAdmin):
-    list_display = ('service', 'company_name', 'short_description', 'contact_email', 'contact_phone')
+    list_display = _list_display
     fieldsets = (
-        (_('General'), {'fields': ('service', 'company_name', 'short_description', 'slogan',
-                                   'description', 'currency_code', 'currency_symbol',)}),
+        (_('General'), {'fields': _general_fields}),
         (_('Address & Contact'), {'fields': ('contact_email', 'contact_phone', 'address', 'country', 'city')}),
         (_('Social'), {'fields': ('facebook_link', 'twitter_link', 'google_plus_link', 'instagram_link', 'linkedin_link', )}),
         (_('Mailing'), {'fields': ('welcome_message', 'signature', )}),
