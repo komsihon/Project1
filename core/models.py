@@ -389,12 +389,21 @@ class Service(models.Model):
         for m in Member.objects.using(db).all():
             try:
                 m = m.get_from(UMBRELLA)
-                m.collaborates_on_fk_list.remove(self.id)
-                m.customer_on_fk_list.remove(self.id)
-                for fk in group_ids:
-                    m.group_fk_list.remove(fk)
             except:
+                continue
+            try:
+                m.collaborates_on_fk_list.remove(self.id)
+            except ValueError:
                 pass
+            try:
+                m.customer_on_fk_list.remove(self.id)
+            except ValueError:
+                pass
+            for fk in group_ids:
+                try:
+                    m.group_fk_list.remove(fk)
+                except:
+                    pass
             m.save(using=UMBRELLA)
 
         member = self.member
@@ -432,7 +441,7 @@ class AbstractConfig(Model):
     )
     LOGO_UPLOAD_TO = 'ikwen/configs/logos'
     COVER_UPLOAD_TO = 'ikwen/configs/cover_images'
-    service = models.OneToOneField(Service, editable=getattr(settings, 'IS_IKWEN', False), related_name='+')
+    service = models.OneToOneField(Service, related_name='+')
     balance = models.FloatField(_("balance"), default=0)
     company_name = models.CharField(max_length=60, verbose_name=_("Website / Company name"),
                                     help_text=_("Website/Company name as you want it to appear in mails and pages."))
