@@ -19,14 +19,7 @@ from ikwen.core.utils import get_service_instance
 from ikwen.billing.models import PaymentMean, MoMoTransaction
 
 import logging
-import logging.handlers
-tx_status_log = logging.getLogger('transaction_status.error')
-tx_status_log.setLevel(logging.INFO)
-error_file_handler = logging.handlers.RotatingFileHandler('om_transaction_status.log', 'w', 100000, 4)
-error_file_handler.setLevel(logging.INFO)
-f = logging.Formatter('%(levelname)-10s %(asctime)-27s %(message)s')
-error_file_handler.setFormatter(f)
-tx_status_log.addHandler(error_file_handler)
+logger = logging.getLogger('ikwen')
 
 ORANGE_MONEY = 'orange-money'
 UNKNOWN_PHONE = '<Unknown>'
@@ -141,8 +134,8 @@ def check_transaction_status(request):
                     try:
                         momo_after_checkout(request, signature=request.session['signature'], tx_id=request.session['tx_id'])
                     except:
-                        tx_status_log.error("Error while running callback function", exc_info=True)
+                        logger.error("Orange Money: Error while running callback function", exc_info=True)
                 break
         except:
-            tx_status_log.error("Failure while querying transaction status", exc_info=True)
+            logger.error("Orange Money: Failure while querying transaction status", exc_info=True)
             continue

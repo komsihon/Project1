@@ -53,6 +53,9 @@ from ikwen.billing.models import Invoice, SendingReport, SERVICE_SUSPENDED_EVENT
 from ikwen.billing.utils import get_invoicing_config_instance, get_subscription_model, get_days_count, \
     get_payment_confirmation_message, share_payment_and_set_stats
 
+import logging
+logger = logging.getLogger('ikwen')
+
 subscription_model_name = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
 app_label = subscription_model_name.split('.')[0]
 model = subscription_model_name.split('.')[1]
@@ -632,6 +635,7 @@ def check_momo_transaction_status(request, *args, **kwargs):
                     resp_dict = momo_after_checkout(request, signature=request.session['signature'])
                     return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
                 except:
+                    logger.error("MTN MoMo: Failure while querying transaction status", exc_info=True)
                     return HttpResponse(json.dumps({'error': 'Unknown server error in AFTER_CASH_OUT'}))
         resp_dict = {'error': tx.status, 'message': ''}
         if getattr(settings, 'DEBUG', False):

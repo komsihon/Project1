@@ -14,6 +14,9 @@ from ikwen.core.utils import get_service_instance
 
 from ikwen.billing.models import PaymentMean, MoMoTransaction
 
+import logging
+logger = logging.getLogger('ikwen')
+
 MTN_MOMO = 'mtn-momo'
 
 
@@ -82,6 +85,7 @@ def request_payment(transaction):
             import traceback
             transaction.status = MoMoTransaction.FAILURE
             transaction.message = traceback.format_exc()
+            logger.error("MTN MoMo: Failed to init transaction", exc_info=True)
         except SSLError:
             transaction.status = MoMoTransaction.SSL_ERROR
         except Timeout:
@@ -90,10 +94,12 @@ def request_payment(transaction):
             import traceback
             transaction.status = MoMoTransaction.REQUEST_EXCEPTION
             transaction.message = traceback.format_exc()
+            logger.error("MTN MoMo: Failed to init transaction", exc_info=True)
         except:
             import traceback
             transaction.status = MoMoTransaction.SERVER_ERROR
             transaction.message = traceback.format_exc()
+            logger.error("MTN MoMo: Failed to init transaction", exc_info=True)
 
     transaction.save(using='wallets')
 
