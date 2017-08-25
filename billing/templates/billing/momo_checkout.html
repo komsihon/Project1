@@ -1,6 +1,5 @@
 {% extends "core/base_bs.html" %}
 {% load i18n staticfiles humanize %}
-%}
 
 {% block page_title %}<title>{% trans "Mobile Money Checkout" %} - {{ service.project_name }} </title>{% endblock %}
 {% block head_style %}
@@ -49,7 +48,7 @@
                 </span>
                 <span class="pull-right" style="color: #03A9F4">
                     <i class="glyphicon glyphicon-shopping-cart" style="color: #3F51B5; font-size: 21px; margin-right: 5px"></i>
-                    {{ config.currency_symbol }} <strong>{{ amount|intcomma }}</strong>
+                    {{ config.currency_symbol }} <strong>{{ amount|floatformat:"0"|intcomma }}</strong>
                 </span>
                 <div class="clearfix"></div>
             </div>
@@ -92,6 +91,7 @@
                         $('#checkout .spinner').hide();
                         $('#transaction-result').removeClass('text-info').addClass('text-danger')
                                 .text(status + ": " + error);
+                        $('#do-pay').removeClass('btn-default').addClass('btn-primary');
                     },
                     success: function(data) {
                         $('#transaction-result').removeClass('text-danger').addClass('text-info')
@@ -116,7 +116,7 @@
                             clearInterval(checkerId);
                             $('#transaction-result').removeClass('text-info').addClass('text-danger')
                                     .text("{% trans "Unknow server error" %}");
-                            $(this).removeClass('btn-primary').addClass('btn-default');
+                            $('#do-pay').removeClass('btn-default').addClass('btn-primary');
                         },
                         success: function(data) {
                             if (data.running) return;
@@ -127,7 +127,7 @@
                                 var notice = data.error;
                                 if (data.message) notice += ': ' + data.message;
                                 $('#transaction-result').removeClass('text-info').addClass('text-danger').text(notice);
-                                $(this).removeClass('btn-primary').addClass('btn-default');
+                                $('#do-pay').removeClass('btn-default').addClass('btn-primary');
                                 return;
                             }
                             if (data.success) {
@@ -149,7 +149,7 @@
             if (localStorage.getItem('txId')) {
                 txId = localStorage.getItem('txId');
                 startTransactionStatusChecker();
-                $(this).removeClass('btn-primary').addClass('btn-default');
+                $('#do-pay').removeClass('btn-primary').addClass('btn-default');
                 $('#checkout .spinner').show();
                 $('#transaction-result').removeClass('text-danger').addClass('text-info')
                         .text("{% trans "Good! Please confirm transaction on your phone." %}");
