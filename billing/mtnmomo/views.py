@@ -56,7 +56,7 @@ def request_payment(transaction):
     elif getattr(settings, 'DEBUG', False):
         mtn_momo = json.loads(PaymentMean.objects.get(slug=MTN_MOMO).credentials)
         data.update({'_email': mtn_momo['merchant_email']})
-        r = requests.get(cashout_url, params=data, verify=False, timeout=130)
+        r = requests.get(cashout_url, params=data, verify=False, timeout=180)
         resp = r.json()
         transaction.processor_tx_id = resp['TransactionID']
         transaction.task_id = resp['ProcessingNumber']
