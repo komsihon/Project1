@@ -44,7 +44,7 @@ def request_payment(transaction):
     if getattr(settings, 'DEBUG_MOMO', False):
         amount = 100
     else:
-        amount = transaction.amount
+        amount = int(transaction.amount)
     data = {'idbouton': 2, 'typebouton': 'PAIE', 'submit.x': 104, 'submit.y': 70,
             '_cIP': '', '_amount': amount, '_tel': transaction.phone}
     cashout_url = MTN_MOMO_API_URL

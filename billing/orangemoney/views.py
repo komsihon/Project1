@@ -44,7 +44,7 @@ def init_web_payment(request, *args, **kwargs):
     notif_url = request.session['notif_url']
     notif_url += '/%d' % momo_tx.id
     data = {'order_id': object_id,
-            'amount': amount,
+            'amount': int(amount),
             'lang': 'fr',
             'reference': service.config.company_name.upper(),
             'return_url': request.session['return_url'],
@@ -108,7 +108,7 @@ def check_transaction_status(request):
     object_id = request.session['object_id']
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     data = {'order_id': object_id,
-            'amount': amount,
+            'amount': int(amount),
             'pay_token': request.session['pay_token']}
     om = json.loads(PaymentMean.objects.get(slug=ORANGE_MONEY).credentials)
     t0 = datetime.now()
