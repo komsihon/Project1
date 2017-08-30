@@ -385,7 +385,7 @@ class MoMoOperatorListFilter(admin.SimpleListFilter):
         val = self.value()
         if val:
             if val == 'mtn':
-                return MoMoTransaction.objects.using('wallets')\
+                return queryset\
                     .filter(Q(phone__startswith='650') |
                             Q(phone__startswith='651') |
                             Q(phone__startswith='652') |
@@ -394,7 +394,7 @@ class MoMoOperatorListFilter(admin.SimpleListFilter):
                             Q(phone__startswith='67') |
                             Q(phone__startswith='68'))
             else:
-                return MoMoTransaction.objects.using('wallets')\
+                return queryset\
                     .filter(Q(phone__startswith='655') |
                             Q(phone__startswith='656') |
                             Q(phone__startswith='657') |
@@ -414,10 +414,10 @@ class MoMoTransactionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         if getattr(settings, 'IS_UMBRELLA', False):
-            return super(MoMoTransactionAdmin, self).get_queryset(request).using('wallets')
+            return super(MoMoTransactionAdmin, self).get_queryset(request).using('wallets').filter(is_running=False)
         else:
             service = get_service_instance()
-            return super(MoMoTransactionAdmin, self).get_queryset(request).using('wallets').filter(service_id=service.id)
+            return super(MoMoTransactionAdmin, self).get_queryset(request).using('wallets').filter(service_id=service.id, is_running=False)
 
 
 class PartnerListFilter(admin.SimpleListFilter):
