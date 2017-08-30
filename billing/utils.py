@@ -18,6 +18,9 @@ from django.utils.translation import gettext as _
 
 from ikwen.billing.models import InvoicingConfig, Invoice, AbstractSubscription
 
+import logging
+logger = logging.getLogger('ikwen')
+
 
 def get_invoicing_config_instance(using='default'):
     invoicing_config = InvoicingConfig.objects.using(using).all()[0]
@@ -433,24 +436,6 @@ def suspend_subscription(subscription):
     subscription.save()
 
 
-def check_service_retailer(service):
-    """
-    This function checks whether the ikwen Service passed as
-    parameter is retailed by a partner. If so, the Invoice must
-    be generated from the partner billing platform. This function
-    will then return True to prevent the main ikwen billing crons
-    to issue the invoice to that customer.
-
-    :param service: ikwen Service
-    :return: True if the Service is retailed by ikwen. None otherwise
-             It is important that this function returns None rather
-             than None because the BILLING_BEFORE_NEW_INVOICE will pass
-             over if event the returned value is None
-    """
-    if service.retailer:
-        return True
-
-
 def share_payment_and_set_stats(invoice, total_months):
     if getattr(settings, 'IS_IKWEN', False):
         # This is ikwen collecting payment for Invoice of its Cloud apps
@@ -591,3 +576,42 @@ def _share_payment_and_set_stats_other(invoice):
     increment_history_field(app_umbrella, 'earnings_history', ikwen_earnings)
     increment_history_field(app_umbrella, 'transaction_earnings_history', ikwen_earnings)
     increment_history_field(app_umbrella, 'transaction_count_history')
+
+
+def refresh_currencies_exchange_rates():
+    import requests
+    from currencies.models import Currency
+    from ikwen.conf.settings import OPENEXCHANGE_APP_ID
+
+    if Currency.active.all().count() < 2:
+        return
+
+    config = get_service_instance().config
+    now = datetime.now()
+    url = 'https://openexchangerates.org/api/latest.json'
+    params = {'app_id': OPENEXCHANGE_APP_ID, 'base': 'USD'}
+    if getattr(settings, 'DEBUG', False):
+        r = requests.get(url, params=params)
+        rates = r.json()['rates']
+        base = Currency.active.base()
+        ub_factor = rates[base.code]  # USD factor against base currency
+        for crcy in Currency.objects.all():
+            uc_factor = rates[crcy.code]  # USD factor against this currency
+            crcy.factor = uc_factor / ub_factor
+            crcy.save()
+        config.last_currencies_rates_update = now
+        config.save()
+    else:
+        try:
+            r = requests.get(url, params=params)
+            rates = r.json()['rates']
+            base = Currency.active.base()
+            ub_factor = rates[base.code]  # USD factor against base currency
+            for crcy in Currency.objects.all():
+                uc_factor = rates[crcy.code]  # USD factor against this currency
+                crcy.factor = uc_factor / ub_factor
+                crcy.save()
+            config.last_currencies_rates_update = now
+            config.save()
+        except:
+            logger.error("Failure while querying Exchange Rates API", exc_info=True)
