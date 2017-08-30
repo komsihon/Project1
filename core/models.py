@@ -526,6 +526,7 @@ class AbstractConfig(Model):
                     "<li>Set the Checkout minimum without restriction</li>"
                     "<li>Technical tools like configuring their own Google Analytics scripts, etc.</li></ul>"))
     decimal_precision = models.IntegerField(default=2)
+    last_currencies_rates_update = models.DateTimeField(editable=False, null=True)
 
     class Meta:
         verbose_name_plural = _("Configurations of the platform")

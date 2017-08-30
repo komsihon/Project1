@@ -63,6 +63,9 @@
             <form id="configuration" class="admin-form" method="post" action="{{ request.META.path }}">{% csrf_token %}
                 <input type="hidden" name="id" value="{{ config.id }}" />
                 <input type="hidden" name="company_name_slug" value="{{ config.company_name_slug }}" />
+                {% if config.is_pro_version %}
+                    {% include 'core/snippets/currencies_config.html' %}
+                {% endif %}
                 {% include 'core/snippets/model_admin_form.html' %}
                 <div class="form-group col-xs-12 col-sm-4 col-md-3" style="padding-top: 15px">
                     <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
@@ -79,11 +82,12 @@
     <script type="text/javascript">
         (function() {
             $('div#admin-nav .configuration').addClass('active');
+            $('.currencies-config').insertAfter('.website h3').show();
             $('.form-row').addClass('form-group');
             $('.form-row input, .form-row select, .form-row textarea').addClass('form-control input-sm');
             $('.form-row textarea').addClass('form-control input-sm');
-            {% if request.GET.success %}
-                ikwen.showFloatingNotice('{% trans "Configuration info successfully updated." %}', '', 6);
+            {% if messages %}
+                {% for msg in messages %}ikwen.showFloatingNotice('{{ msg }}', '', 6);{% endfor %}
             {% endif %}
         })()
     </script>

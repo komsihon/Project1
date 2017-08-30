@@ -1,0 +1,28 @@
+{% load i18n %}
+<div class="currencies-config" style="display: none">
+    {# Invisible upon page loading, then inserted in the right place using JavaScript #}
+    <div class="form-group">
+        <div>
+            <label class="required" for="id_currency_code">{% trans "Base currency" %}:</label>
+            <select id="id_currency_code" name="currency_code" class="form-control input-sm">
+            {% for curr in CURRENCIES %}
+                <option value="{{ curr.code }}"{% if curr.is_base %} selected="selected"{% endif %}>
+                            {{ curr.code }} - {{ curr.name }}
+                </option>
+            {% endfor %}
+            </select>
+        </div>
+        <strong style="display: block; padding-top: 5px">{% trans "Active currencies" %}</strong>
+        <div class="currency-list">
+            {% for curr in currency_list %}
+                <div class="checkbox col-sm-4">
+                    <label for="squaredThree">
+                         <input type="checkbox" name="{{ curr.code }}" {% if curr.is_active %}checked{% endif %}
+                                {% if curr.is_base %}disabled{% endif %}>{{ curr.code }} - {{ curr.name }}
+                        {% if curr.is_base %}<input type="hidden" name="{{ curr.code }}" value="on" />{% endif %}
+                    </label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

@@ -78,6 +78,8 @@ div#container.admin {padding-top: 92px;}
 
 .checkbox-row input[type=checkbox] {float: left;width: 20px;}
 .checkbox-row label {margin: 10px 0 0 10px}
+.currency-list {border: 1px solid #ddd; background: #fff; border-radius: 3px; float: left;margin: 5px 0 15px; padding-top: 15px}
+.currency-list .checkbox:first-of-type {margin: -5px 0 10px 0}
 #stage section {background: #fff;float: left;margin-top: 25px;overflow: hidden;padding: 15px;width: 100%;}
 #stage section h3 {font-size: 21px; font-weight: 700; margin-top: 0}
 footer {text-align: left;padding: 10px;background: #fff;width: 225px;bottom: 0;position: fixed;}

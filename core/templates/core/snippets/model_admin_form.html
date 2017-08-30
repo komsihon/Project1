@@ -1,6 +1,6 @@
 
 {% for fieldset in model_admin_form %}
-    <section>
+    <section class="{{ fieldset.name|slugify }}">
     {% if fieldset.name %}<h3>{{ fieldset.name }}</h3>{% endif %}
     {% for line in fieldset %}
         <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">

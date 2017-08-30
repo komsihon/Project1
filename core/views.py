@@ -6,6 +6,7 @@ from time import strptime
 import requests
 from ajaxuploader.views import AjaxFileUploader
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.files import File
@@ -29,12 +30,13 @@ from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.contrib.admin import helpers
 from django.utils.translation import gettext as _
+from currencies.models import Currency
 from ikwen.cashout.models import CashOutRequest
 
 from ikwen.accesscontrol.templatetags.auth_tokens import append_auth_tokens
 
 from ikwen.billing.utils import get_invoicing_config_instance, get_billing_cycle_days_count, \
-    get_billing_cycle_months_count, get_subscription_model
+    get_billing_cycle_months_count, get_subscription_model, refresh_currencies_exchange_rates
 
 from ikwen.billing.models import Invoice
 
@@ -246,16 +248,15 @@ class ChangeObjectBase(BaseView):
         context['model_admin_form'] = obj_form
         return context
 
-    @method_decorator(sensitive_post_parameters())
-    @method_decorator(csrf_protect)
     def post(self, request, *args, **kwargs):
-        object_id = request.POST.get('object_id')
-        obj = None
+        object_admin = get_model_admin_instance(self.model, self.model_admin)
+        object_id = kwargs.get('object_id')
         if object_id:
             obj = get_object_or_404(self.model, pk=object_id)
-        object_admin = get_model_admin_instance(self.model, self.model_admin)
-        ModelForm = object_admin.get_form(request)
-        form = ModelForm(request.POST, instance=obj)
+        else:
+            obj = self.model()
+        model_form = object_admin.get_form(request)
+        form = model_form(request.POST, instance=obj)
         if form.is_valid():
             form.save()
             url_name = obj._meta.app_label + ':' + obj.__class__.__name__.lower() + '_list'
@@ -429,6 +430,7 @@ class Configuration(BaseView):
         context['is_company'] = True
         context['img_upload_context'] = self.UPLOAD_CONTEXT
         context['billing_cycles'] = Service.BILLING_CYCLES_CHOICES
+        context['currency_list'] = Currency.objects.all().order_by('code')
         return context
 
     @method_decorator(sensitive_post_parameters())
@@ -449,13 +451,29 @@ class Configuration(BaseView):
         ModelForm = config_admin.get_form(request)
         form = ModelForm(request.POST, instance=service.config)
         if form.is_valid():
+            try:
+                currency_code = request.POST['currency_code']
+                if currency_code != Currency.active.base().code:
+                    refresh_currencies_exchange_rates()
+                Currency.objects.all().update(is_base=False, is_default=False, is_active=False)
+                Currency.objects.filter(code=currency_code).update(is_base=True, is_default=True, is_active=True)
+                for crcy in Currency.objects.all():
+                    try:
+                        request.POST[crcy.code]  # Tests wheter this currency was activated
+                        crcy.is_active = True
+                        crcy.save()
+                    except KeyError:
+                        continue
+            except:
+                pass
             form.cleaned_data['company_name_slug'] = slugify(form.cleaned_data['company_name'])
             form.save()
             cache.delete(service.id + ':config:')
             cache.delete(service.id + ':config:default')
             cache.delete(service.id + ':config:' + UMBRELLA)
             service.config.save(using=UMBRELLA)
-            next_url = append_auth_tokens(next_url + '?success=yes', request)
+            messages.success(request, _("Configuration successfully updated."))
+            next_url = append_auth_tokens(next_url, request)
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)
