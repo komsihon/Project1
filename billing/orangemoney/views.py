@@ -132,7 +132,9 @@ def check_transaction_status(request):
                 momo_after_checkout = import_by_path(path)
                 with transaction.atomic():
                     try:
-                        momo_after_checkout(request, signature=request.session['signature'], tx_id=request.session['tx_id'])
+                        tx_id = request.session['tx_id']
+                        MoMoTransaction.objects.using('wallets').filter(pk=tx_id).update(is_running=False)
+                        momo_after_checkout(request, signature=request.session['signature'], tx_id=tx_id)
                     except:
                         logger.error("Orange Money: Error while running callback function", exc_info=True)
                 break
