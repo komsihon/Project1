@@ -198,15 +198,14 @@ class IkwenAuthTestCase(unittest.TestCase):
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
     def test_register_with_password_mismatch(self):
         """
-        Different password and confirmation set the passwordMismatch=yes GET parameter and prior GET parameters remain
+        Different password and confirmation brings back to the register page and prior GET parameters remain
         """
         origin = reverse('ikwen:register') + '?next=http://localhost/hotspot/config&p1=v1&p2=v2'
         response = self.client.post(origin, {'username': 'good', 'password': 'secret', 'password2': 'sec',
                                              'phone': '655045781', 'first_name': 'Sah', 'last_name': 'Fogaing'}, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertGreaterEqual(response.request['PATH_INFO'].find('/signIn/'), 0)
+        self.assertGreaterEqual(response.request['PATH_INFO'].find('/register/'), 0)
         params = unquote(response.request['QUERY_STRING']).split('&')
-        self.assertGreaterEqual(params.index('passwordMismatch=yes'), 0)
         self.assertGreaterEqual(params.index('next=http://localhost/hotspot/config'), 0)
         self.assertGreaterEqual(params.index('p1=v1'), 0)
         self.assertGreaterEqual(params.index('p2=v2'), 0)

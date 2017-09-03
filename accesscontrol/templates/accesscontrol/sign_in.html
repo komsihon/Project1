@@ -1,6 +1,5 @@
 {% extends "core/base_bs.html" %}
-{% load i18n %}
-{% load staticfiles %}
+{% load i18n static %}
 
 {% block page_title %}<title>{{ service.project_name }} - {% trans "Sign in" %} </title>{% endblock %}
 {% block head_style %}
@@ -22,6 +21,9 @@
             <p class="failure" style="font-size: 1em; padding: 9px">{{ request.GET.msg }}</p>
         {% elif request.GET.successfulPasswordReset %}
             <p class="success" style="font-size: 1em; padding: 9px">{% trans "Your password was successfully reset, login now." %}</p>
+        {% endif %}
+        {% if messages %}
+            {% for msg in messages %}<p class="msg-tag {{ msg.tags }}" style="font-size: 1em; padding: 9px">{{ msg }}</p>{% endfor %}
         {% endif %}
         <div id="login" class="form-wrapper">
             <h3 style="text-align: center">
@@ -68,14 +70,7 @@
     <script type="text/javascript">
         {% get_current_language as LANGUAGE_CODE %}
         (function() {
-             {% if request.GET.existingUsername %}
-                $('div#top-notice-ctnr span').html('{{ request.GET.msg }}').addClass('failure');
-                $('#top-notice-ctnr').fadeIn().delay(10000).fadeOut();
-             {% elif request.GET.existingPhone %}
-                $('div#top-notice-ctnr span').html('{{ request.GET.msg }}').addClass('failure');
-                $('#top-notice-ctnr').fadeIn().delay(10000).fadeOut();
-            {% endif %}
-            {% if request.GET.action or register_form %}
+             {% if request.GET.action or register_form %}
                 $('#rg-username').blur(function() {
                     var username = $(this).val(),
                         $formGroup = $('.form-group.email'),

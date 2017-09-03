@@ -11,8 +11,8 @@ from ikwen.core.views import get_location_by_ip
 from ikwen.accesscontrol.views import SignIn, AccountSetup, update_info, \
     update_password, ForgottenPassword, SetNewPassword, Profile, Community, CompanyProfile, \
     grant_access, request_access, set_collaborator_permissions, move_member_to_group, toggle_member, \
-    list_collaborators, MemberList, load_member_detail, AccessRequestList, deny_access, Register, StaffWithoutPermission, \
-    staff_router
+    list_collaborators, MemberList, load_member_detail, AccessRequestList, deny_access, Register, \
+    StaffWithoutPermission, staff_router, PhoneConfirmation, SetNewPasswordSMSRecovery
 from ikwen.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, \
     ServiceExpired, reset_notices_counter, get_queued_sms, LegalMentions, TermsAndConditions, Configuration, \
     upload_customization_image, list_projects, upload_image, load_event_content
@@ -20,9 +20,13 @@ from ikwen.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, \
 REGISTER = 'register'
 SIGN_IN = 'sign_in'
 LOGOUT = 'logout'
+ACCOUNT_SETUP = 'account_setup'
+UPDATE_INFO = 'update_info'
+UPDATE_PASSWORD = 'update_password'
 SERVICE_DETAIL = 'service_detail'
 SERVICE_EXPIRED = 'service_expired'
 LOAD_EVENT = 'load_event_content'
+PHONE_CONFIRMATION = 'phone_confirmation'
 
 urlpatterns = patterns(
     '',
@@ -30,13 +34,15 @@ urlpatterns = patterns(
     url(r'^signOut$', 'django.contrib.auth.views.logout', {'next_page': getattr(settings, "LOGIN_URL")}),
     url(r'^signIn/$', SignIn.as_view(), name=SIGN_IN),
     url(r'^register/$', Register.as_view(), name=REGISTER),
+    url(r'^phoneConfirmation/$', login_required(PhoneConfirmation.as_view()), name=PHONE_CONFIRMATION),
 
     url(r'^accountSetup/$', login_required(AccountSetup.as_view()), name='account_setup'),
-    url(r'^update_info$', update_info, name='update_info'),
-    url(r'^update_password$', update_password, name='update_password'),
+    url(r'^update_info$', update_info, name=UPDATE_INFO),
+    url(r'^update_password$', update_password, name=UPDATE_PASSWORD),
 
     url(r'^forgottenPassword/$', ForgottenPassword.as_view(), name='forgotten_password'),
     url(r'^setNewPassword/(?P<uidb64>[-\w]+)/(?P<token>[-\w]+)/$', SetNewPassword.as_view(), name='set_new_password'),
+    url(r'^setNewPasswordSMSRecovery/$', SetNewPasswordSMSRecovery.as_view(), name='set_new_password_sms_recovery'),
 
     url(r'^profile/(?P<member_id>[-\w]+)/$', login_required(Profile.as_view()), name='profile'),
     url(r'^request_access$', request_access, name='request_access'),

@@ -1,5 +1,14 @@
 {% extends "core/base_bs.html" %}
-{% load i18n staticfiles %}
+{% load i18n static %}
+{% block meta %}
+    {% include 'core/snippets/favicon.html' %}
+    <meta property="description" content="{{ config.short_description }}" />
+    <meta property="og:title" content="{{ service.project_name }}" />
+    <meta property="og:image" content="{% get_media_prefix %}{{ config.logo.name }}" />
+    <meta property="og:description" content="{{ config.short_description }}" />
+    <meta property="og:url" content="{{ service.url }}" />
+    <meta property="og:site_name" content="{{ service.domain|upper }}" />
+{% endblock %}
 {% block page_title %}<title>{{ service.project_name }} - {{ config.short_description  }} </title>{% endblock %}
 {% block head_style %}
     {{ block.super }}

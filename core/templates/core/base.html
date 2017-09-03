@@ -1,10 +1,11 @@
-{% load i18n %}
-{% load staticfiles %}
+{% load i18n static %}
 <!DOCTYPE html>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        {% block meta %}{% endblock %}
+        {% block meta %}
+            {% include 'core/snippets/favicon.html' %}
+        {% endblock %}
 		{% block page_title %}{% endblock %}
         {% block head_style %}
             {% if request.META.HTTP_HOST == 'localhost' %}

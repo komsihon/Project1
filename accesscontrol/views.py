@@ -5,6 +5,7 @@ import string
 from threading import Thread
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.forms import AuthenticationForm
@@ -15,6 +16,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.core.validators import validate_email
+from django.db.models import Q
 from django.http.response import HttpResponseRedirect, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404
 from django.template import Context
@@ -27,17 +29,18 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
-from ikwen.core.utils import send_sms
-from ikwen.accesscontrol.backends import UMBRELLA
-from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
-from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
 from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_group
 
-from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SetPasswordForm
+from ikwen.accesscontrol.backends import UMBRELLA
+from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SMSPasswordResetForm, SetPasswordForm, \
+    SetPasswordFormSMSRecovery
 from ikwen.accesscontrol.models import Member, AccessRequest, ACCESS_REQUEST_EVENT, \
     SUDO, ACCESS_GRANTED_EVENT, COMMUNITY, WELCOME_EVENT
+from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
+from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
 from ikwen.core.utils import get_service_instance, get_mail_content, add_database_to_settings, add_event
+from ikwen.core.utils import send_sms
 from ikwen.core.views import BaseView, HybridListView, IKWEN_BASE_URL
 
 
@@ -66,6 +69,7 @@ class Register(BaseView):
             email = form.cleaned_data.get('email', '').strip().lower()
             first_name = form.cleaned_data.get('first_name', '').strip()
             last_name = form.cleaned_data.get('last_name', '').strip()
+            sign_in_url = reverse('ikwen:register')
             query_string = request.META.get('QUERY_STRING')
             try:
                 validate_email(username)
@@ -83,13 +87,19 @@ class Register(BaseView):
                     else:
                         msg = _("You already have an account on ikwen with this phone. It was created on %s. "
                                 "Use it to login." % member.entry_service.project_name)
-                        existing_account_url = reverse('ikwen:sign_in') + "?existingPhone=yes&msg=%s&%s" % (
-                        msg, query_string)
-                        return HttpResponseRedirect(existing_account_url.strip('&'))
+                        messages.info(request, msg)
+                        if query_string:
+                            sign_in_url += "?" + query_string
+                        return HttpResponseRedirect(sign_in_url)
                 password = form.cleaned_data['password']
                 password2 = form.cleaned_data['password2']
                 if password != password2:
-                    return HttpResponseRedirect(reverse('ikwen:sign_in') + "?passwordMismatch=yes&" + query_string)
+                    msg = _("Sorry, passwords mismatch.")
+                    messages.error(request, msg)
+                    register_url = reverse('ikwen:register')
+                    if query_string:
+                        register_url += "?" + query_string
+                    return HttpResponseRedirect(register_url)
                 Member.objects.create_user(username=username, phone=phone, email=email, password=password,
                                            first_name=first_name, last_name=last_name)
                 member = authenticate(username=username, password=password)
@@ -110,10 +120,7 @@ class Register(BaseView):
                     # Remove next_url from the original query_string
                     next_url = next_url.split('?')[0]
                     query_string = urlunquote(query_string).replace('next=%s' % next_url, '').strip('?').strip('&')
-                    if query_string:
-                        query_string += '&successfulRegistration=yes'
-                    else:
-                        query_string = 'successfulRegistration=yes'
+                    next_url += "?" + query_string
                 else:
                     if getattr(settings, 'IS_IKWEN', False):
                         next_url = reverse('ikwen:console')
@@ -123,14 +130,16 @@ class Register(BaseView):
                             next_url = reverse(next_url_view)
                         else:
                             next_url = ikwenize(reverse('ikwen:console'))
-                    query_string = 'successfulRegistration=yes'
-                return HttpResponseRedirect(next_url + "?" + query_string)
+                msg = _("Registration successful.")
+                messages.success(request, msg)
+                return HttpResponseRedirect(next_url)
             else:
                 msg = _("You already have an account on ikwen with this username. It was created on %s. "
                         "Use it to login." % member.entry_service.project_name)
-                existing_account_url = reverse('ikwen:sign_in') + "?existingUsername=yes&msg=%s&%s" % (
-                msg, query_string)
-                return HttpResponseRedirect(existing_account_url.strip('&'))
+                messages.info(request, msg)
+                if query_string:
+                    sign_in_url += "?" + query_string
+                return HttpResponseRedirect(sign_in_url)
         else:
             context = BaseView().get_context_data(**kwargs)
             context['register_form'] = form
@@ -236,17 +245,38 @@ class StaffWithoutPermission(BaseView):
 class ForgottenPassword(BaseView):
     template_name = 'accesscontrol/forgotten_password.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(ForgottenPassword, self).get_context_data(**kwargs)
+        sms_recovery = getattr(settings, 'PASSWORD_RECOVERY_METHOD', 'mail').lower() == 'sms'
+        context['sms_recovery'] = sms_recovery
+        return context
+
     @method_decorator(csrf_protect)
     def post(self, request, *args, **kwargs):
         # TODO: Handle mail sending failure
-        form = PasswordResetForm(request.POST)
-        if form.is_valid():
-            opts = {
-                'use_https': request.is_secure(),
-                'request': request,
-            }
-            form.save(**opts)
-            return HttpResponseRedirect(reverse('ikwen:forgotten_password') + '?success=yes')
+        sms_recovery = getattr(settings, 'PASSWORD_RECOVERY_METHOD', 'mail').lower() == 'sms'
+        if sms_recovery:
+            form = SMSPasswordResetForm(request.POST)
+            if form.is_valid():
+                request.session['phone'] = form.cleaned_data['phone']
+                return HttpResponseRedirect(reverse('ikwen:set_new_password_sms_recovery'))
+            else:
+                context = self.get_context_data(**kwargs)
+                context['form'] = form
+                return render(request, self.template_name, context)
+        else:
+            form = PasswordResetForm(request.POST)
+            if form.is_valid():
+                opts = {
+                    'use_https': request.is_secure(),
+                    'request': request,
+                }
+                form.save(**opts)
+                return HttpResponseRedirect(reverse('ikwen:forgotten_password') + '?success=yes')
+            else:
+                context = self.get_context_data(**kwargs)
+                context['form'] = form
+                return render(request, self.template_name, context)
 
 
 class SetNewPassword(BaseView):
@@ -286,7 +316,104 @@ class SetNewPassword(BaseView):
         form = SetPasswordForm(member, request.POST)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('ikwen:sign_in') + '?successfulPasswordReset=yes')
+            msg = _("Password successfully reset.")
+            messages.success(request, msg)
+            return HttpResponseRedirect(reverse('ikwen:sign_in'))
+        else:
+            context = self.get_context_data(**kwargs)
+            context['form'] = form
+            return render(request, self.template_name, context)
+
+
+class SetNewPasswordSMSRecovery(BaseView):
+    template_name = 'accesscontrol/set_new_password_sms_recovery.html'
+
+    def send_code(self, request, new_code=False):
+        service = get_service_instance()
+        reset_code = ''.join([random.SystemRandom().choice(string.digits) for _ in range(4)])
+        do_send = False
+        try:
+            current = request.session['reset_code']  # Test whether there's a pending reset_code in session
+            if new_code:
+                request.session['reset_code'] = reset_code
+                do_send = True
+        except KeyError:
+            request.session['reset_code'] = reset_code
+            do_send = True
+
+        if do_send:
+            phone = slugify(request.session['phone']).replace('-', '')
+            if len(phone) == 9:
+                phone = '237' + phone  # This works only for Cameroon
+            text = 'Your password reset code is %s' % reset_code
+            try:
+                main_link = service.config.sms_api_script_url
+                if not main_link:
+                    main_link = getattr(settings, 'SMS_MAIN_LINK', None)
+                send_sms(phone, text, script_url=main_link, fail_silently=False)
+            except:
+                fallback_link = getattr(settings, 'SMS_FALLBACK_LINK', None)
+                send_sms(phone, text, script_url=fallback_link)
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        if getattr(settings, 'DEBUG', False):
+            self.send_code(request)
+        else:
+            try:
+                self.send_code(request)
+            except:
+                context['error_message'] = _('Could not send code. Please try again later')
+        return super(SetNewPasswordSMSRecovery, self).get(request, *args, **kwargs)
+
+    def render_to_response(self, context, **response_kwargs):
+        response = {'success': True}
+        if self.request.GET.get('action') == 'new_code':
+            if getattr(settings, 'DEBUG', False):
+                self.send_code(self.request, new_code=True)
+            else:
+                try:
+                    self.send_code(self.request, new_code=True)
+                except:
+                    response = {'error': _('Could not send code. Please try again later')}
+            return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
+        else:
+            return super(SetNewPasswordSMSRecovery, self).render_to_response(context, **response_kwargs)
+
+    @method_decorator(sensitive_post_parameters())
+    @method_decorator(never_cache)
+    @method_decorator(csrf_protect)
+    def post(self, request, *args, **kwargs):
+        form = SetPasswordFormSMSRecovery(request.POST)
+        if form.is_valid():
+            reset_code = request.session.get('reset_code')
+            if reset_code != form.cleaned_data['reset_code']:
+                context = self.get_context_data(**kwargs)
+                context['error_message'] = _('Invalid code. Please try again')
+                return render(request, self.template_name, context)
+            new_pwd1 = form.cleaned_data['new_password1']
+            new_pwd2 = form.cleaned_data['new_password2']
+            if new_pwd1 != new_pwd2:
+                context = self.get_context_data(**kwargs)
+                context['error_message'] = _('Passwords mismatch. Please try again')
+                return render(request, self.template_name, context)
+            phone = request.session['phone']
+            active_users = Member.objects.filter(Q(phone=phone) | Q(username=phone),
+                                                 is_active=True)
+            for member in active_users:
+                # Make sure that no SMS is sent to a user that actually has
+                # a password marked as unusable
+                if not member.has_usable_password():
+                    continue
+                member.propagate_password_change(new_pwd1)
+            msg = _("Password successfully reset.")
+            messages.success(request, msg)
+            next_url = reverse('ikwen:sign_in') + '?phone=' + phone
+            return HttpResponseRedirect(next_url)
+        else:
+            context = self.get_context_data(**kwargs)
+            context['form'] = form
+            return render(request, self.template_name, context)
 
 
 def send_welcome_email(member):
@@ -807,7 +934,7 @@ class PhoneConfirmation(BaseView):
         code = ''.join([random.SystemRandom().choice(string.digits) for _ in range(4)])
         do_send = False
         try:
-            current = request.session['code']
+            current = request.session['code']  # Test whether there's a pending code in session
             if new_code:
                 request.session['code'] = code
                 do_send = True
@@ -820,11 +947,19 @@ class PhoneConfirmation(BaseView):
             if len(phone) == 9:
                 phone = '237' + phone  # This works only for Cameroon
             text = 'Your %s confirmation code is %s' % (service.project_name, code)
-            send_sms(phone, text)
+            try:
+                main_link = service.config.sms_api_script_url
+                if not main_link:
+                    main_link = getattr(settings, 'SMS_MAIN_LINK', None)
+                send_sms(phone, text, script_url=main_link, fail_silently=False)
+            except:
+                fallback_link = getattr(settings, 'SMS_FALLBACK_LINK', None)
+                send_sms(phone, text, script_url=fallback_link)
 
     def get(self, request, *args, **kwargs):
+        next_url = getattr(settings, 'LOGIN_REDIRECT_URL', 'home')
         if request.user.is_authenticated() and request.user.phone_verified:
-            return HttpResponseRedirect(reverse('movies:home'))
+            return HttpResponseRedirect(reverse(next_url))
         context = self.get_context_data(**kwargs)
         if getattr(settings, 'DEBUG', False):
             self.send_code(request)
@@ -833,7 +968,7 @@ class PhoneConfirmation(BaseView):
                 self.send_code(request)
             except:
                 context['error_message'] = _('Could not send code. Please try again later')
-        return render(request, self.template_name, context)
+        return super(PhoneConfirmation, self).get(request, *args, **kwargs)
 
     def render_to_response(self, context, **response_kwargs):
         response = {'success': True}
@@ -858,4 +993,5 @@ class PhoneConfirmation(BaseView):
             return render(request, self.template_name, context)
         member.phone_verified = True
         member.save()
-        return HttpResponseRedirect(reverse('home'))
+        next_url = getattr(settings, 'LOGIN_REDIRECT_URL', 'home')
+        return HttpResponseRedirect(reverse(next_url))

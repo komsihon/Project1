@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import get_current_site
 from django.core.mail import EmailMessage
+from django.db.models import Q
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from ikwen.accesscontrol.backends import UMBRELLA
@@ -16,6 +18,8 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 #from captcha.fields import ReCaptchaField
 
+name_required = getattr(settings, 'NAME_REQUIRED', True)
+
 
 class MemberForm(forms.Form):
     username = forms.CharField(max_length=100)
@@ -23,8 +27,8 @@ class MemberForm(forms.Form):
     password2 = forms.CharField(max_length=30)
     phone = forms.IntegerField(required=False)
     email = forms.EmailField(required=False)
-    first_name = forms.CharField(max_length=60)
-    last_name = forms.CharField(max_length=60)
+    first_name = forms.CharField(max_length=60, required=name_required)
+    last_name = forms.CharField(max_length=60, required=name_required)
 
 
 class PasswordResetForm(forms.Form):
@@ -61,6 +65,10 @@ class PasswordResetForm(forms.Form):
             msg.send()
 
 
+class SMSPasswordResetForm(forms.Form):
+    phone = forms.CharField(label=_("Phone"), max_length=30)
+
+
 class SetPasswordForm(forms.Form):
     """
     A form that lets a user change set their password without entering the old
@@ -93,3 +101,16 @@ class SetPasswordForm(forms.Form):
         if commit:
             self.user.propagate_password_change(self.cleaned_data['new_password1'])
         return self.user
+
+
+class SetPasswordFormSMSRecovery(forms.Form):
+    """
+    A form that lets a user change set their password by
+    entering a code sent by SMS and a new password
+    """
+    reset_code = forms.CharField(label=_("Verification password"),
+                                 widget=forms.PasswordInput)
+    new_password1 = forms.CharField(label=_("New password"),
+                                    widget=forms.PasswordInput)
+    new_password2 = forms.CharField(label=_("New password confirmation"),
+                                    widget=forms.PasswordInput)

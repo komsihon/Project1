@@ -48,8 +48,11 @@
 
 {% block content %}
     <div id="content" class="form container">
-        {% if request.GET.msg %}
-            <p class="failure" style="font-size: 1em; padding: 9px">{{ request.GET.msg }}</p>
+        {% if messages %}
+            {% for msg in messages %}<p class="msg-tag {{ msg.tags }}" style="font-size: 1em; padding: 9px">{{ msg }}</p>{% endfor %}
+        {% endif %}
+        {% if register_form.errors %}
+            {{ register_form.errors }}
         {% endif %}
         <div id="register" class="row">
             <div class="col-sm-3 col-md-4 brand">
@@ -157,13 +160,6 @@
     <script type="text/javascript">
         {% get_current_language as LANGUAGE_CODE %}
         (function () {
-            {% if request.GET.existingUsername %}
-                $('div#top-notice-ctnr span').html('{{ request.GET.msg }}').addClass('failure');
-                $('#top-notice-ctnr').fadeIn().delay(10000).fadeOut();
-            {% elif request.GET.existingPhone %}
-                $('div#top-notice-ctnr span').html('{{ request.GET.msg }}').addClass('failure');
-                $('#top-notice-ctnr').fadeIn().delay(10000).fadeOut();
-            {% endif %}
             $('#rg-username').blur(function () {
                 var username = $(this).val().trim(),
                     $formGroup = $('.form-group.email'),

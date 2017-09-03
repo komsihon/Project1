@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
 from django.utils.http import urlsafe_base64_decode
 
@@ -43,3 +44,22 @@ class XDomainTokenAuthMiddleware(object):
                 m2 = request.user.get_from(UMBRELLA)
                 request.user.business_notices = m2.business_notices
                 request.user.personal_notices = m2.personal_notices
+
+
+class PhoneVerificationMiddleware(object):
+    """
+    Middleware that checks whether Member has a verified phone number.
+    If not, he is prompted to do so. Note that the application should
+    have functional HTTP SMS API configured for this to work.
+    SMS API link is read from AbstractConfig.sms_api_script_url
+    """
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        rm = request.resolver_match
+        from ikwen.core.urls import PHONE_CONFIRMATION, LOGOUT, ACCOUNT_SETUP, UPDATE_INFO, UPDATE_PASSWORD
+        if rm.namespace == 'ikwen':
+            if rm.url_name == LOGOUT or rm.url_name == ACCOUNT_SETUP or rm.url_name == UPDATE_INFO or \
+               rm.url_name == UPDATE_PASSWORD or rm.url_name == PHONE_CONFIRMATION:
+                return
+        if request.user.is_authenticated() and not request.user.phone_verified:
+            next_url = reverse('ikwen:phone_confirmation')
+            return HttpResponseRedirect(next_url)

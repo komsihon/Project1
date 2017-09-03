@@ -80,7 +80,7 @@ class BillingUtilsTest(TestCase):
     def test_shutdown_customers_services(self):
         invoicing_config = InvoicingConfig.objects.all()[0]
         due_date = datetime.now() - timedelta(days=invoicing_config.tolerance + 3)
-        Invoice.objects.all().update(due_date=due_date)
+        Invoice.objects.all().update(due_date=due_date, status=Invoice.OVERDUE)
         suspend_customers_services()
         sent = Invoice.objects.filter(status=Invoice.EXCEEDED).count()
-        self.assertEqual(sent, 3)
+        self.assertEqual(sent, 4)

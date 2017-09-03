@@ -17,6 +17,9 @@ from django.template.defaultfilters import urlencode, slugify
 from django.template.loader import get_template
 from django.utils import timezone
 
+import logging
+logger = logging.getLogger('ikwen')
+
 
 def to_dict(var):
     try:
@@ -176,15 +179,16 @@ def send_sms(recipient, text, label=None, script_url=None, fail_silently=True):
             .replace('$label', urlencode(label))\
             .replace('$recipient', recipient)\
             .replace('$text', urlencode(text))
-        print url
+        base_url = url.split('?')[0]
         if fail_silently:
             try:
                 requests.get(url)
+                logger.debug('SMS submitted to %s through %s' % (recipient, base_url))
             except:
-                pass
+                logger.error('Failed to submit SMS to %s through %s' % (recipient, base_url), exc_info=True)
         else:
             requests.get(url)
-
+            logger.debug('SMS submitted to %s through %s' % (recipient, base_url))
 
 
 def remove_special_words(s):
@@ -543,6 +547,11 @@ def generate_favicons(logo_path, output_folder=None):
         img.thumbnail((d, d), Image.ANTIALIAS)
         output = media_root + FAVICONS_FOLDER + 'ms-icon-%dx%d.png' % (d, d)
         img.save(output, format="PNG", quality=100)
+
+
+def to_snake_case(s):
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', s)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
 # *** PayPal Stuffs *** #
