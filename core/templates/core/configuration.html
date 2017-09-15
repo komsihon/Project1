@@ -63,7 +63,7 @@
             <form id="configuration" class="admin-form" method="post" action="{{ request.META.path }}">{% csrf_token %}
                 <input type="hidden" name="id" value="{{ config.id }}" />
                 <input type="hidden" name="company_name_slug" value="{{ config.company_name_slug }}" />
-                {% if config.is_pro_version %}
+                {% if config.can_manage_currencies %}
                     {% include 'core/snippets/currencies_config.html' %}
                 {% endif %}
                 {% include 'core/snippets/model_admin_form.html' %}
