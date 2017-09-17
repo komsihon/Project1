@@ -592,7 +592,7 @@ class MoMoSetCheckout(BaseView):
         request.session['signature'] = signature
         path = getattr(settings, 'MOMO_BEFORE_CASH_OUT')
         momo_before_checkout = import_by_path(path)
-        http_resp = momo_before_checkout(request, *args, **kwargs)
+        http_resp = momo_before_checkout(request, payment_mean, *args, **kwargs)
         if http_resp:
             return http_resp
         if payment_mean.slug == ORANGE_MONEY:
@@ -602,15 +602,11 @@ class MoMoSetCheckout(BaseView):
 
 
 def init_momo_transaction(request, *args, **kwargs):
-    phone = request.GET['phone']
+    phone = slugify(request.GET['phone'])
+    if phone[:3] == '237':
+        phone = phone[3:]
     request.session['phone'] = phone
-    if phone.startswith('67') or phone.startswith('68') or (650 <= int(phone[:3]) < 655):
-        # MTN is processed by MTN API itself
-        return init_request_payment(request, *args, **kwargs)
-    elif getattr(settings, 'IS_IKWEN', False):
-        return HttpResponse(json.dumps({'error': 'Only MTN Mobile Money payments are accepted'}), 'content-type: text/json')
-    else: # Orange is processed by JumboPay
-        return init_momo_cashout(request, *args, **kwargs)
+    return init_request_payment(request, *args, **kwargs)
 
 
 @transaction.atomic

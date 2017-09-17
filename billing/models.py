@@ -388,6 +388,9 @@ class MoMoTransaction(Model):
 
     service_id = models.CharField(max_length=24)
     type = models.CharField(max_length=24)
+    wallet = models.CharField(max_length=60, blank=True, null=True,
+                              help_text="Wallet Provider Solution. Eg: MTN MoMo, Orange Money, etc.")
+    username = models.CharField(max_length=100, blank=True, null=True)
     phone = models.CharField(max_length=24)
     amount = models.FloatField()
     model = models.CharField(max_length=150)

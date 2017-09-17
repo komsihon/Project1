@@ -26,8 +26,10 @@ def init_request_payment(request, *args, **kwargs):
     model_name = request.session['model_name']
     object_id = request.session['object_id']
     amount = request.session['amount']
-    tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT, phone=phone,
-                                                         amount=amount, model=model_name, object_id=object_id)
+    username = request.user.username if request.user.is_authenticated() else None
+    tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
+                                                         phone=phone, amount=amount, model=model_name,
+                                                         object_id=object_id, wallet=MTN_MOMO, username=username)
     if getattr(settings, 'DEBUG', False):
         request_payment(tx)
     else:

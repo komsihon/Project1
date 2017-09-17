@@ -36,9 +36,10 @@ def init_web_payment(request, *args, **kwargs):
         amount = request.session['amount']
     model_name = request.session['model_name']
     object_id = request.session['object_id']
+    username = request.user.username if request.user.is_authenticated() else None
     momo_tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
                                                               phone=phone, amount=amount, model=model_name,
-                                                              object_id=object_id)
+                                                              object_id=object_id, wallet=ORANGE_MONEY, username=username)
     request.session['tx_id'] = momo_tx.id
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     notif_url = request.session['notif_url']
