@@ -464,12 +464,19 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months):
                 ikwen_earnings = retail_config.ikwen_monthly_cost * total_months
         partner_earnings = invoice.amount - ikwen_earnings
         add_database_to_settings(partner.database)
+        partner_original = Service.objects.using(partner.database).get(pk=partner.id)
         partner_profile_original = PartnerProfile.objects.using(partner.database).get(service=partner)
 
         partner_profile_original.raise_balance(partner_earnings)
 
         service_partner = Service.objects.using(partner.database).get(pk=service_umbrella.id)
         app_partner = service_partner.app
+
+        set_counters(partner_original)
+        increment_history_field(partner_original, 'turnover_history', invoice.amount)
+        increment_history_field(partner_original, 'invoice_earnings_history', partner_earnings)
+        increment_history_field(partner_original, 'earnings_history', partner_earnings)
+        increment_history_field(partner_original, 'invoice_count_history')
 
         set_counters(service_partner)
         increment_history_field(service_partner, 'invoice_earnings_history', partner_earnings)
