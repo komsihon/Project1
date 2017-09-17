@@ -127,6 +127,29 @@
         });
     };
 
+    c.setupHTMLResultsSearch = function(inputSelector, resultPanelSelector, descriptors) {
+        $('body').on('keyup', inputSelector, function() {
+            var q = $(inputSelector).val(),
+                min = $(resultPanelSelector).data('min-search-chars');
+            if (min) {
+                if (q.length < parseInt(min)) {
+                    call = [];
+                    return;
+                }
+            }
+            if (call.length == 0) $(resultPanelSelector).find('.spinner').show();
+            for (var i=0; i<descriptors.length; i++) {
+                var descriptor = descriptors[i],
+                    url = descriptor.endpoint,
+                    query = 'q=' + search + '&format=html_results';
+                $(resultPanelSelector).load(url, query, function() {
+                    $(resultPanelSelector).find('.spinner').fadeOut();
+                });
+                call.push(q);
+            }
+        });
+    };
+
     c.setupFilter = function(resultPanelSelector, descriptor, beforeSearch, afterResults) {
         $('div#admin-nav').on('click', '.choices li', function() {
             $(this).siblings().removeClass('active');
@@ -204,6 +227,10 @@
         return $tpl
     };
 
+    var $epl = $('.edge-panel-left'),
+        $epr = $('.edge-panel-right'),
+        $eso = $('.edge-swipe-overlay'),
+        isMenuSwipe = false;
     $('body').on('click', '.nav-tabs .tab', function() {
         $('.nav-tabs .tab').removeClass('active');
         $(this).addClass('active');
@@ -212,9 +239,7 @@
             contentTabPaneSwiper.slideTo(i, 300, false)
         }
     }).on('click', '.menu-button', function() {
-        $('.edge-swipe-overlay').fadeIn('fast');
-        $('.edge-panel-left').show().animate({marginLeft: 0}, 'fast');
-        location.hash = 'edge-panel-disclosed';
+        showEdgePanelLeft();
     }).on('click', '.edge-swipe-overlay', function(e) {
         var elt = e.target.className;
         if (elt.indexOf('edge-swipe-overlay') >= 0 || elt.indexOf('close') >= 0) {
@@ -231,26 +256,72 @@
         }
     }
     try {
-        $('.edge-swipe-overlay').hammer().bind("swipeleft", function() {
-            history.back();  // Causes the processHash() function to run
-        }).bind("swiperight", function() {
-            if ($(window).width() < 768) {
-                history.back();  // Causes the processHash() function to run
+        $('body').hammer().bind("panstart", function(ev) {
+            isMenuSwipe = ev.gesture.center.x <= 40 && !$eso.is(':visible');
+        }).bind("pan", function(ev) {
+            if (!isMenuSwipe) return;
+            if (!$eso.is(':visible')) $eso.fadeIn();
+            else return;
+            showEdgePanelLeft()
+        });
+        $eso.hammer().bind("pan", function(ev) {
+            var deltaX = ev.gesture.deltaX;
+            if ($epl.is(':visible')) {
+                if (deltaX > 0) return;
+                $epl.css({marginLeft: deltaX + 'px'})
+            } else {
+                if (deltaX < 0) return;
+                $('.edge-panel-right').css({marginRight: '-' + deltaX + 'px'})
             }
+        }).bind("panend", function(ev) {
+            if ($epl.is(':visible')) {
+                var eplWidth = $epl.width(),
+                    ml = parseInt($epl.css('margin-left'));
+                if (Math.abs(ml) > (eplWidth/10)) {
+                    $epl.animate({marginLeft: '-' + eplWidth + 'px'}, 'fast', 'linear', function() {
+                        $(this).hide();
+                    });
+                    history.back();  // Causes the processHash() function to run
+                } else $epl.animate({marginLeft: 0}, 'fast');
+            } else {
+                var eprWidth = $('.edge-panel-right').width(),
+                    mr = parseInt($('.edge-panel-right').css('margin-right'));
+                if (Math.abs(mr) > (eprWidth/10)) {
+                    $('.edge-panel-right').animate({marginRight: '-' + eprWidth + 'px'}, 'fast', 'linear', function() {
+                        $(this).hide();
+                    });
+                    history.back();  // Causes the processHash() function to run
+                } else $('.edge-panel-right').animate({marginRight: 0}, 'fast');
+            }
+        });
+        $('.edge-panel-left, .edge-panel-right').hammer().bind("pan", function(ev) {
+            ev.stopPropagation()
+        }).bind("panend", function(ev) {
+            ev.stopPropagation()
         });
     } catch (e) {}
 
-    function hideEdgePanelLeft() {
-        var width = $('.edge-panel-left').width();
-        $('.edge-panel-left').animate({marginLeft: '-' + width + 'px'}, 'fast');
-        $('.edge-swipe-overlay').fadeOut('fast');
+    function showEdgePanelLeft() {
+        if ($epl.length === 0) return;
+        $eso.fadeIn('fast');
+        $epl.show().animate({marginLeft: 0}, 'fast');
+        location.hash = 'edge-panel-disclosed';
+    }
 
+    function hideEdgePanelLeft() {
+        var width = $epl.width();
+        $epl.animate({marginLeft: '-' + width + 'px'}, 'fast', 'linear', function() {
+            $(this).hide();
+        });
+        $eso.fadeOut('fast');
     }
 
     function hideEdgePanelRight() {
         var width = $('.edge-panel-right').width();
-        $('.edge-panel-right').animate({marginRight: '-' + width + 'px'}, 'fast');
-        $('.edge-swipe-overlay').fadeOut('fast');
+        $('.edge-panel-right').animate({marginRight: '-' + width + 'px'}, 'fast', 'linear', function() {
+            $(this).hide();
+        });
+        $eso.fadeOut('fast');
     }
 
     /**
