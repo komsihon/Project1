@@ -3,6 +3,8 @@
 
 import os
 
+from django.db.models import Q
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
 
 from datetime import datetime, timedelta
@@ -15,7 +17,7 @@ from django.utils import timezone
 from django.utils.module_loading import import_by_path
 from ikwen.accesscontrol.models import SUDO
 
-from ikwen.core.models import Config, QueuedSMS
+from ikwen.core.models import Config, QueuedSMS, Service
 from ikwen.core.utils import get_service_instance, send_sms, add_event
 from ikwen.core.utils import get_mail_content
 from ikwen.billing.models import Invoice, InvoicingConfig, INVOICES_SENT_EVENT, \
@@ -52,10 +54,12 @@ def send_invoices():
     count, total_amount = 0, 0
     reminder_date_time = now + timedelta(days=invoicing_config.gap)
     subscription_qs = Subscription.objects.filter(status=Subscription.ACTIVE,
-                                                    monthly_cost__gt=0, expiry=reminder_date_time.date())
+                                                  monthly_cost__gt=0, expiry=reminder_date_time.date())
     print "%d Service candidate for invoice issuance." % subscription_qs.count()
     for subscription in subscription_qs:
-        print "Processing %s" % str(subscription)
+        if getattr(settings, 'IS_IKWEN', False):
+            if subscription.version == Service.FREE:
+                continue
         member = subscription.member
         number = get_next_invoice_number()
         months_count = None
@@ -140,6 +144,10 @@ def send_invoice_reminders():
     invoice_qs = Invoice.objects.filter(status=Invoice.PENDING, due_date__gte=now.date(), last_reminder__isnull=False)
     print "%d invoice(s) candidate for reminder." % invoice_qs.count()
     for invoice in invoice_qs:
+        subscription = invoice.subscription
+        if getattr(settings, 'IS_IKWEN', False):
+            if subscription.version == Service.FREE:
+                continue
         diff = now - invoice.last_reminder
         if diff.days == invoicing_config.reminder_delay:
             print "Processing invoice for Service %s" % str(invoice.subscription)
@@ -200,9 +208,14 @@ def send_invoice_overdue_notices():
     except:
         error_log.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
-    invoice_qs = Invoice.objects.filter(status=Invoice.PENDING, due_date__lt=now, overdue_notices_sent__lt=3)
+    invoice_qs = Invoice.objects.filter(Q(status=Invoice.PENDING) | Q(status=Invoice.OVERDUE),
+                                        due_date__lt=now, overdue_notices_sent__lt=3)
     print "%d invoice(s) candidate for overdue notice." % invoice_qs.count()
     for invoice in invoice_qs:
+        subscription = invoice.subscription
+        if getattr(settings, 'IS_IKWEN', False):
+            if subscription.version == Service.FREE:
+                continue
         if invoice.last_overdue_notice:
             diff = now - invoice.last_overdue_notice
         else:
@@ -269,19 +282,26 @@ def suspend_customers_services():
         error_log.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
     deadline = now - timedelta(days=invoicing_config.tolerance)
-    invoice_qs = Invoice.objects.filter(due_date__lte=deadline, status=Invoice.PENDING)
+    invoice_qs = Invoice.objects.filter(due_date__lte=deadline, status=Invoice.OVERDUE)
     print "%d invoice(s) candidate for service suspension." % invoice_qs.count()
     for invoice in invoice_qs:
+        subscription = invoice.subscription
+        if getattr(settings, 'IS_IKWEN', False):
+            if subscription.version == Service.FREE:
+                continue
         invoice.status = Invoice.EXCEEDED
         invoice.save()
         action = getattr(settings, 'SERVICE_SUSPENSION_ACTION', None)
         if action:
-            print "Processing invoice for Service %s" % str(invoice.subscription)
             count += 1
             total_amount += invoice.amount
             action = import_by_path(action)
-            action(invoice.subscription)
-            member = invoice.subscription.member
+            try:
+                action(subscription)
+            except:
+                error_log.error("Error while processing subscription %s" % str(subscription), exc_info=True)
+                continue
+            member = subscription.member
             add_event(service, SERVICE_SUSPENDED_EVENT, member=member, object_id=invoice.id)
             print "Event posted to %s's Console" % member.username
             subject, message, sms_text = get_service_suspension_message(invoice)

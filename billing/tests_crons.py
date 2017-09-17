@@ -41,7 +41,7 @@ class BillingUtilsTest(TestCase):
 
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801',
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-                       EMAIL_FILE_PATH='test_emails/billing/')
+                       EMAIL_FILE_PATH='test_emails/billing/', IS_IKWEN=False)
     def test_send_invoices(self):
         Invoice.objects.all().delete()
         invoicing_config = InvoicingConfig.objects.all()[0]
@@ -53,7 +53,7 @@ class BillingUtilsTest(TestCase):
 
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801',
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-                       EMAIL_FILE_PATH='test_emails/billing/')
+                       EMAIL_FILE_PATH='test_emails/billing/', IS_IKWEN=False)
     def test_send_invoices_reminders(self):
         invoicing_config = InvoicingConfig.objects.all()[0]
         due_date = datetime.now() + timedelta(days=10)
@@ -65,7 +65,7 @@ class BillingUtilsTest(TestCase):
 
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801',
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-                       EMAIL_FILE_PATH='test_emails/billing/')
+                       EMAIL_FILE_PATH='test_emails/billing/', IS_IKWEN=False)
     def test_send_invoice_overdue_notices(self):
         invoicing_config = InvoicingConfig.objects.all()[0]
         due_date = datetime.now() - timedelta(days=1)
@@ -78,11 +78,11 @@ class BillingUtilsTest(TestCase):
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801',
                        SERVICE_SUSPENSION_ACTION='ikwen.billing.tests_crons.shutdown_service',
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-                       EMAIL_FILE_PATH='test_emails/billing/')
+                       EMAIL_FILE_PATH='test_emails/billing/', IS_IKWEN=False)
     def test_shutdown_customers_services(self):
         invoicing_config = InvoicingConfig.objects.all()[0]
         due_date = datetime.now() - timedelta(days=invoicing_config.tolerance + 3)
-        Invoice.objects.all().update(due_date=due_date)
+        Invoice.objects.all().update(due_date=due_date, status=Invoice.OVERDUE)
         suspend_customers_services()
         sent = Invoice.objects.filter(status=Invoice.EXCEEDED).count()
-        self.assertEqual(sent, 3)
+        self.assertEqual(sent, 4)
