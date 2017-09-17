@@ -16,7 +16,7 @@ class CashOutMethod(Model):
     Method of Cash-Out
     """
     name = models.CharField(max_length=60, unique=True)
-    slug = models.SlugField()
+    slug = models.SlugField(help_text="Must the same as those of PaymentMean slugs.")
     # The type of method helps determine the algorithm to call to actually
     # perform the operation in the cashout.views.request_cash_out method
     type = models.CharField(max_length=30, blank=True, choices=Payment.METHODS_CHOICES)
@@ -67,6 +67,9 @@ class CashOutRequest(Model):
     # member = models.ForeignKey('accesscontrol.Member')
     member_id = models.CharField(max_length=24)
     amount = models.IntegerField(default=0)
+    provider = models.CharField(max_length=60,
+                                help_text="Wallet operator from which we collected the money. "
+                                          "It is actually the slug of the PaymentMean.")
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default=PENDING)
     # country = models.CharField(max_length=60)
     # city = models.CharField(max_length=60)

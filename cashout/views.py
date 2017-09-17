@@ -7,6 +7,8 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
+from ikwen.core.constants import PENDING
+
 from ikwen.accesscontrol.models import Member
 
 from ikwen.accesscontrol.backends import UMBRELLA
@@ -25,21 +27,29 @@ from ikwen.cashout.models import CashOutRequest, CashOutAddress, CashOutMethod
 # TODO: Write test for this function. Create and call the right template in the sending of mail
 @permission_required('accesscontrol.sudo')
 def request_cash_out(request, *args, **kwargs):
-    address_id = request.GET['address_id']
-    address = CashOutAddress.objects.using(UMBRELLA).get(pk=address_id)
-    if not address:
-        return HttpResponse(json.dumps({'error': "Cash-out address not set"}), 'content-type: text/json')
+    provider = request.GET['provider']
+    method = CashOutMethod.objects.using(UMBRELLA).get(slug=provider)
     business = get_service_instance(using=UMBRELLA)
+    try:
+        address = CashOutAddress.objects.using(UMBRELLA).get(method=method)
+    except CashOutAddress.DoesNotExist:
+        return HttpResponse(json.dumps({'error': _("No Cash-out address set for this payment method.")}),
+                            'content-type: text/json')
+    try:
+        address = CashOutRequest.objects.using('wallets').get(service_id=business.id, provider=provider, status=PENDING)
+        return HttpResponse(json.dumps({'error': _("You already have a pending request for this wallet.")}),
+                            'content-type: text/json')
+    except CashOutRequest.DoesNotExist:
+        pass
     iao_profile = get_config_model().objects.using(UMBRELLA).get(service=business)
     member = request.user
-    wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=business.id)
+    wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=business.id, provider=provider)
     if wallet.balance < iao_profile.cash_out_min:
         response = {'error': 'Balance too low', 'cash_out_min': iao_profile.cash_out_min}
         return HttpResponse(json.dumps(response), 'content-type: text/json')
     with transaction.atomic():
-        method = address.method
         cor = CashOutRequest(service_id=business.id, member_id=member.id, amount=wallet.balance,
-                             method=method.name, account_number=address.account_number)
+                             method=method.name, account_number=address.account_number, provider=provider)
         cor.save(using='wallets')
         # TODO: Implement direct payment to user mobile when everything is stable
         # success, message, amount = False, None, wallet.balance
@@ -95,7 +105,11 @@ def manage_payment_address(request, *args, **kwargs):
         if address_id:
             address = CashOutAddress.objects.using(UMBRELLA).get(pk=address_id)
         else:
-            address = CashOutAddress()
+            try:
+                CashOutAddress.objects.using(UMBRELLA).get(method=method)
+                return HttpResponse(json.dumps({'error': "Cash-out address already exists for this payment method."}), 'content-type: text/json')
+            except CashOutAddress.DoesNotExist:
+                address = CashOutAddress()
         address.service = service
         address.method = method
         address.name = name
@@ -146,8 +160,9 @@ class Payments(BaseView):
         service = get_service_instance(using=UMBRELLA)
         context = super(Payments, self).get_context_data(**kwargs)
         from datetime import datetime
-        context['now'] = datetime.now()
-        context['wallet'] = OperatorWallet.objects.using('wallets').get(nonrel_id=service.id)
+        cash_out_min = service.config.cash_out_min
+        wallets = OperatorWallet.objects.using('wallets').filter(nonrel_id=service.id)
+        context['wallets'] = wallets
         payments = []
         for p in CashOutRequest.objects.using('wallets').filter(service_id=service.id).order_by('-id'):
             # Re-transform created_on into a datetime object
@@ -159,5 +174,6 @@ class Payments(BaseView):
         context['payments'] = payments
         context['payment_addresses'] = CashOutAddress.objects.using(UMBRELLA).filter(service=service)
         context['payment_methods'] = CashOutMethod.objects.using(UMBRELLA).all()
-        context['cash_out_min'] = service.config.cash_out_min
+        context['cash_out_min'] = cash_out_min
+        context['can_cash_out'] = wallets.filter(balance__gte=cash_out_min).count() > 0
         return context

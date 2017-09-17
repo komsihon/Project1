@@ -43,7 +43,7 @@ class CashOutRequestAdmin(admin.ModelAdmin):
                 return
             obj.teller_username = request.user.username
             service = Service.objects.get(pk=obj.service_id)
-            wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=service.id)
+            wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=service.id, provider=obj.provider)
             with transaction.atomic():
                 wallet.balance -= obj.amount
                 wallet.save(using='wallets')

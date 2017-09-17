@@ -1,5 +1,5 @@
 {% extends "core/app_base_admin.html" %}
-{% load i18n l10n humanize staticfiles auth_tokens admin_list  %}
+{% load i18n l10n humanize static auth_tokens admin_list currency  %}
 
 {% block page_title %}
 <title> {% trans "Payments" %} - ikwen </title>
@@ -7,43 +7,7 @@
 
 {% block head_style %}
     {{ block.super }}
-    <style>
-        body {background: #f6f6f6}
-        #app-nav {background: #fff}
-        .box {background: #fff; padding: 10px}
-        .box h3 {font-size: 18px; font-weight: 700; margin-top: 0}
-        .box .action {border-top: 1px solid #ddd; font-weight: 700;
-            margin-top: 2em; padding-top: 5px; text-align: right}
-        #wallet .balance {float: right; font-size: 1.5em; font-weight: 400}
-        .listing {padding-left: 0; margin-top: 1.5em; min-height: 100px}
-        .listing li {display: block; float: left; padding-bottom: 7px; width: 100%}
-        .payment-address {margin-top: 1em}
-        .payment-address .img {border: 1px solid #ddd; border-radius: 3px; float: left; height: 85px;
-            padding: 14px 0 15px; text-align: center; width: 40%}
-        .payment-address .img img {height: 55px}
-        .payment-address .details {float: left; font-size: .85em; margin: 2em 0 0 15px}
-        .payment-address .details p {margin-bottom: 0}
-        ul.actions {margin-left: -138px}
-        #confirm-cash-out .spinner {height: 35px; margin-top: -30px}
-        #show-addresses, .new-address {font-weight: 700; letter-spacing: 1px}
-        @media (max-width: 767px) {
-            #wallet {margin-bottom: 1em}
-            #addresses {margin-top: 1em}
-            #wallet .balance {font-size: .95em}
-            #show-addresses {margin-top: 1em}
-        }
-        @media (min-width: 768px) {
-            #wallet {margin-bottom: 2em}
-            .box {padding: 15px}
-            #wallet .box {padding-bottom: 20px}
-            .last-payment {margin-top: 1em}
-            .payment-address .img {border: 1px solid #ddd; border-radius: 3px; float: left; height: 85px;
-            padding: 14px 0 15px; text-align: center; width: 40%}
-        }
-        @media (min-width: 1200px) {
-            .payment-address .img {width: 24%}
-        }
-    </style>
+    <link rel='stylesheet' href="{% static 'ikwen/css/payments.css' %}" />
 {% endblock %}
 
 {% block breadcrumb_location %}
@@ -55,12 +19,24 @@
         <div class="container-fluid">
             <div id="wallet" class="col-xs-12">
                 <div class="box subtle-shade">
-                    <h3>
-                        <span>{% trans "Your balance" %}</span>
-                        <span class="balance">{{ config.currency_symbol }} <span class="wallet-balance">{{ wallet.balance|floatformat:config.decimal_precision|intcomma }}</span></span>
+                    <h3 class="title">
+                        <span>{% trans "Your wallet" %}</span>
                     </h3>
+                    <ul style="padding: 0">
+                        {% for wallet in wallets %}
+                        <li class="wallet col-xs-12 col-sm-4">
+                            <div class="" style="padding-left: 0">
+                                <span class="img" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ wallet.payment_mean.logo.name }})"></span>
+                                <span class="balance">
+                                    <span class="text-muted">{{ CURRENCY.symbol }}</span>
+                                    {{ wallet.balance|floatformat:config.decimal_precision|intcomma }}
+                                </span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
                     {% with last_payment=payments.0 %}
-                    <div class="row" style="margin-top: 4em">
+                    <div class="row" style="clear: both; padding-top: 1em">
                         <div class="col-sm-8 text-muted last-payment">
                             {% if last_payment.status == 'Paid' %}
                                 <i class="glyphicon glyphicon-calendar"></i>
@@ -70,7 +46,7 @@
                             {% endif %}
                         </div>
                         <div class="col-sm-4" style="text-align: right">
-                        {% if wallet.balance > 0 and wallet.balance >= cash_out_min %}
+                        {% if can_cash_out %}
                             {% if not last_payment or last_payment.status != 'Pending' %}
                                 <button id="show-addresses" class="btn btn-primary btn-sm pull-right"
                                         data-toggle="modal" data-target="#confirm-cash-out">{% trans "REQUEST A PAYMENT" %}</button>
@@ -243,17 +219,19 @@
             <div class="modal-content modal-info">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">{% trans "Choose payment address" %}</h4>
+                    <h4 class="modal-title">{% trans "Choose wallet provider" %}</h4>
                 </div>
                 <div class="modal-body">
                     <form onclick="return false" class="form-horizontal">
                         <input type="hidden" id="address-id" />
                         <div class="form-group row">
-                            <label for="pay-to" class="col-sm-5 col-md-4">{% trans "Pay to" %} </label>
+                            <label for="wallet-provider" class="col-sm-5 col-md-4">{% trans "Cash-out from" %} </label>
                             <div class="col-sm-7 col-md-8">
-                                <select id="pay-to" class="form-control input-sm">
-                                    {% for address in payment_addresses %}
-                                        <option value="{{ address.id }}">{{ address.method.name }} ({{ address.account_number }})</option>
+                                <select id="wallet-provider" class="form-control input-sm">
+                                    {% for wallet in wallets %}
+                                        {% if wallet.balance >= cash_out_min %}
+                                            <option value="{{ wallet.provider }}">{{ wallet.payment_mean.name }}</option>
+                                        {% endif %}
                                     {% endfor %}
                                 </select>
                             </div>
@@ -333,10 +311,10 @@
                 });
             });
             $('#confirm-cash-out').on('click', 'button.ok', function() {
-                var addressId = $('#pay-to').val();
+                var provider = $('#wallet-provider').val();
                 $(this).hide();
                 $('#confirm-cash-out .spinner').show();
-                $.getJSON('{% url 'cashout:request_cash_out' %}', {'address_id': addressId}, function(resp) {
+                $.getJSON('{% url 'cashout:request_cash_out' %}', {'provider': provider}, function(resp) {
                     if (resp.success) {
                         $('#show-addresses, #confirm-cash-out .spinner').hide();
                         $('#confirm-cash-out').modal('hide');
