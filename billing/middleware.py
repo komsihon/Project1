@@ -11,7 +11,7 @@ class CurrenciesRatesMiddleware(object):
 
     def process_request(self, request):
         config = get_service_instance().config
-        if not config.is_pro_version:
+        if not config.can_manage_currencies:
             return
         now = datetime.now()
         if config.last_currencies_rates_update:
