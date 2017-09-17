@@ -230,8 +230,15 @@
   pk: 56b38781b37b33199e17dab1
   fields:
     name: Mobile Money
-    slug: mobile-money
+    slug: mtn-momo
     type: MobileMoney
+
+- model: cashout.cashoutmethod
+  pk: 56b38781b37b33199e17dab2
+  fields:
+    name: UBA
+    slug: uba
+    type: bank-card
 
 - model: cashout.cashoutaddress
   pk: 5637b33199e17dab1b38781a

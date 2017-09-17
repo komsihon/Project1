@@ -2,7 +2,12 @@
 
 # import os
 # os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
+from datetime import datetime, timedelta
+
+from django.conf import settings
 from django.contrib.auth.models import Group
+from django.core.urlresolvers import reverse
+
 from ikwen.flatpages.models import FlatPage
 from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_user_to_group
@@ -83,7 +88,8 @@ def setup_dev_env(app_name, username, database=None, project_name=None,
 def generate_random_key(length):
     import random
     import string
-    special_chars = string.punctuation.replace("\\", '').replace("'", '').replace('"', '')
+    special_chars = string.punctuation.replace("\\", '').replace('/', ''). \
+        replace("'", '').replace('"', '').replace('?', '').replace('&', '')
     generated_key = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits + special_chars)
                              for _ in range(length)])
     return generated_key
@@ -91,6 +97,45 @@ def generate_random_key(length):
 
 def generate_django_secret_key():
     return generate_random_key(50)
+
+
+def get_setup_info(project_name, subdomain, domain=None):
+    project_name_slug = slugify(project_name)  # Eg: slugify('Cool Shop') = 'cool-shop'
+    ikwen_name = project_name_slug.replace('-', '')  # Eg: cool-shop --> 'coolshop'
+    pname = ikwen_name
+    i = 0
+    while True:
+        try:
+            Service.objects.using(UMBRELLA).get(project_name_slug=pname)
+            i += 1
+            pname = "%s%d" % (ikwen_name, i)
+        except Service.DoesNotExist:
+            ikwen_name = pname
+            break
+    api_signature = generate_random_key(30)
+    while True:
+        try:
+            Service.objects.using(UMBRELLA).get(api_signature=api_signature)
+            api_signature = generate_random_key(30)
+        except Service.DoesNotExist:
+            break
+    database = ikwen_name
+    if domain:
+        if domain.startswith('www.'):
+            domain = domain.replace('www.', '')
+        domain_type = Service.MAIN
+        is_naked_domain = True
+    else:
+        domain = '%s.%s' % (ikwen_name, subdomain)
+        domain_type = Service.SUB
+        is_naked_domain = False
+    if getattr(settings, 'IS_UMBRELLA', False):
+        admin_url = domain + '/ikwen' + reverse('ikwen:staff_router')
+    else:  # This is a deployment performed by a partner retailer
+        admin_url = domain + reverse('ikwen:staff_router')
+    now = datetime.now()
+    expiry = now + timedelta(days=15)
+    return ikwen_name, database, domain_type, is_naked_domain, admin_url, expiry
 
 
 # if __name__ == "__main__":

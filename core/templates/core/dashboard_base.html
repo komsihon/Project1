@@ -99,7 +99,7 @@
                 <div class="row payments">
                     <div class="col-xs-6 col-sm-4">
                         <h6 class="text-muted">{% trans "Balance" %}</h6>
-                        <em class="balance">{{ wallet.balance|floatformat:config.decimal_precision|intcomma }}</em>
+                        <em class="balance">{{ balance|floatformat:config.decimal_precision|intcomma }}</em>
                         <div>
                             <a href="{% url 'cashout:home' %}">{% trans "Payment details" %}</a>
                         </div>

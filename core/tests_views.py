@@ -17,7 +17,7 @@ from ikwen.partnership.models import PartnerProfile
 
 from ikwen.billing.models import Invoice, IkwenInvoiceItem, InvoiceEntry
 
-from ikwen.core.models import Service
+from ikwen.core.models import Service, OperatorWallet
 
 from ikwen.core.utils import get_service_instance, add_database_to_settings
 
@@ -196,6 +196,11 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
         self.assertEqual(partner_app.earnings_history, [12000])
         self.assertEqual(partner_app.invoice_count_history, [1])
 
+        partner_original = Service.objects.using('test_kc_partner_jumbo').get(pk='56eb6d04b9b531b10537b331')
+        self.assertEqual(partner_original.invoice_earnings_history, [6000])
+        self.assertEqual(partner_original.earnings_history, [6000])
+        self.assertEqual(partner_original.invoice_count_history, [1])
+
         service_mirror = Service.objects.using('test_kc_partner_jumbo').get(pk='56eb6d04b37b3379b531b102')
         self.assertEqual(service_mirror.invoice_earnings_history, [6000])
         self.assertEqual(service_mirror.earnings_history, [6000])
@@ -206,8 +211,8 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
         self.assertEqual(app_mirror.earnings_history, [6000])
         self.assertEqual(app_mirror.invoice_count_history, [1])
 
-        partner_original = PartnerProfile.objects.using('test_kc_partner_jumbo').get(pk='56922a3bb37b33da18d02fb1')
-        self.assertEqual(partner_original.balance, 6000)
+        partner_wallet = OperatorWallet.objects.using('wallets').get(nonrel_id='56eb6d04b9b531b10537b331')
+        self.assertEqual(partner_wallet.balance, 6000)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', DEBUG=True,
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
@@ -286,5 +291,5 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
         self.assertEqual(app_mirror.earnings_history, [11000])
         self.assertEqual(app_mirror.invoice_count_history, [1])
 
-        partner_original = PartnerProfile.objects.using('test_kc_partner_jumbo').get(pk='56922a3bb37b33da18d02fb1')
-        self.assertEqual(partner_original.balance, 11000)
+        partner_wallet = OperatorWallet.objects.using('wallets').get(nonrel_id='56eb6d04b9b531b10537b331')
+        self.assertEqual(partner_wallet.balance, 11000)

@@ -690,8 +690,10 @@ class DashboardBase(BaseView):
                 pass
         service = get_service_instance()
         try:
-            wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=service.id)
-            context['wallet'] = wallet
+            balance = 0
+            for wallet in OperatorWallet.objects.using('wallets').filter(nonrel_id=service.id):
+                balance += wallet.balance
+            context['balance'] = balance
         except:
             pass
         context['earnings_report'] = earnings_report

@@ -319,7 +319,6 @@ class Service(models.Model):
                 # Service's database as a staff, then increment operators_count for the Service.app
                 self.app.operators_count += 1
                 self.app.save()
-            super(Service, self).save(using=self.database)
         super(Service, self).save(using=using, *args, **kwargs)
 
     def update_domain(self, new_domain, is_naked_domain, web_server_config_template):
@@ -526,6 +525,7 @@ class AbstractConfig(Model):
                     "<li>Set the Checkout minimum without restriction</li>"
                     "<li>Technical tools like configuring their own Google Analytics scripts, etc.</li></ul>"))
     decimal_precision = models.IntegerField(default=2)
+    can_manage_currencies = models.BooleanField(default=False)
     last_currencies_rates_update = models.DateTimeField(editable=False, null=True)
 
     class Meta:
@@ -589,38 +589,32 @@ class AbstractConfig(Model):
             base_config = self.get_base_config()
             base_config.save(using=UMBRELLA)
 
-    def _get_wallet(self):
+    def _get_wallet(self, provider):
         try:
-            wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=self.service.id)
+            wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=self.service.id, provider=provider)
         except OperatorWallet.DoesNotExist:
-            wallet = OperatorWallet.objects.using('wallets').create(nonrel_id=self.service.id)
+            wallet = OperatorWallet.objects.using('wallets').create(nonrel_id=self.service.id, provider=provider)
         return wallet
 
-    def raise_balance(self, amount):
-        wallet = self._get_wallet()
+    def raise_balance(self, amount, provider=None):
+        from ikwen.billing.mtnmomo.views import MTN_MOMO
+        if not provider:
+            provider = MTN_MOMO
+        wallet = self._get_wallet(provider)
         with transaction.atomic():
             wallet.balance += amount
             wallet.save(using='wallets')
-        from ikwen.accesscontrol.backends import UMBRELLA
-        # Copy the value to ikwen Nonrel DataStore
-        self._meta.model.objects.using(UMBRELLA).filter(pk=self.id).update(balance=wallet.balance)
-        # Copy value to current Operator DataStore
-        db = router.db_for_write(self.__class__, instance=self)
-        self._meta.model.objects.using(db).filter(pk=self.id).update(balance=wallet.balance)
 
-    def lower_balance(self, amount):
-        wallet = self._get_wallet()
+    def lower_balance(self, amount, provider=None):
+        from ikwen.billing.mtnmomo.views import MTN_MOMO
+        if not provider:
+            provider = MTN_MOMO
+        wallet = self._get_wallet(provider)
         if wallet.balance < amount:
             raise ValueError("Amount larger than current balance.")
         with transaction.atomic():
             wallet.balance -= amount
             wallet.save(using='wallets')
-        from ikwen.accesscontrol.backends import UMBRELLA
-        # Copy the value to ikwen Nonrel DataStore
-        self._meta.model.objects.using(UMBRELLA).filter(pk=self.id).update(balance=wallet.balance)
-        # Copy value to current Operator DataStore
-        db = router.db_for_write(self.__class__, instance=self)
-        self._meta.model.objects.using(db).filter(pk=self.id).update(balance=wallet.balance)
 
 
 class Config(AbstractConfig):
@@ -648,6 +642,7 @@ class Config(AbstractConfig):
                 obj_mirror.currency_symbol = self.currency_symbol
                 obj_mirror.cash_out_min = self.cash_out_min
                 obj_mirror.is_pro_version = self.is_pro_version
+                obj_mirror.can_manage_currencies = self.can_manage_currencies
                 super(Config, obj_mirror).save(using=db)
             except Config.DoesNotExist:
                 pass
@@ -655,11 +650,23 @@ class Config(AbstractConfig):
 
 
 class OperatorWallet(Model):
-    nonrel_id = models.CharField(max_length=24, unique=True)
+    nonrel_id = models.CharField(max_length=24)
+    provider = models.CharField(max_length=60,
+                                help_text="Wallet operator from which we collected the money. "
+                                          "It is actually the slug of the PaymentMean.")
     balance = models.FloatField(_("balance"), default=0)
 
     class Meta:
         db_table = 'ikwen_operator_wallet'
+        unique_together = 'nonrel_id', 'provider'
+
+    def _get_payment_mean(self):
+        from ikwen.billing.models import PaymentMean
+        try:
+            return PaymentMean.objects.get(slug=self.provider)
+        except PaymentMean.DoesNotExist:
+            pass
+    payment_mean = property(_get_payment_mean)
 
 
 class Country(Model):
