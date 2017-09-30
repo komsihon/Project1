@@ -1,0 +1,55 @@
+/**
+    Document   : payments
+    Created on : Sept 08, 2017, 14:29
+    Author     : Kom Sihon
+    Description:
+        Rules for ikwen wallet management page
+*/
+
+body {background: #f6f6f6}
+#app-nav {background: #fff}
+.box {background: #fff; padding: 10px}
+.box h3 {font-size: 18px; font-weight: 700; margin-top: 0}
+.box .action {border-top: 1px solid #ddd; font-weight: 700;
+    margin-top: 2em; padding-top: 5px; text-align: right}
+#wallet .title {margin-bottom: 15px}
+#wallet .currency {float: right; font-size: 1.5em; font-weight: 400}
+#wallet .wallet {display: block; padding: 5px 0}
+#wallet .wallet:last-of-type {border-bottom: none}
+#wallet .wallet .img {background: no-repeat center; background-size: 100% auto; float: left; margin-right: 10px;
+    height: 45px; width: 45px}
+#wallet .wallet .balance {float: left; font-size: 1.2em; padding-top: 10px; font-weight: 400}
+#wallet .wallet .glyphicon.action {color: #999; font-size: 21px; margin-top: 7px; padding: 4px}
+.request-result {clear: both; margin-bottom: 0; padding-top: 5px;}
+.listing {padding-left: 0; margin-top: 1.5em; min-height: 100px}
+.listing li {display: block; float: left; padding-bottom: 7px; width: 100%}
+.payment-address {margin-top: 1em}
+.payment-address .img {border: 1px solid #ddd; border-radius: 3px; float: left; height: 85px;
+    padding: 14px 0 15px; text-align: center; width: 40%}
+.payment-address .img img {height: 55px}
+.payment-address .details {float: left; font-size: .85em; margin: 2em 0 0 15px}
+.payment-address .details p {margin-bottom: 0}
+ul.actions {margin-left: -138px}
+#confirm-cash-out .spinner {height: 35px; margin-top: -30px}
+#show-addresses, .new-address {font-weight: 700; letter-spacing: 1px}
+@media (max-width: 767px) {
+    #wallet {margin-bottom: 1em}
+    #wallet .wallet {border-bottom: 1px solid #ddd}
+    #addresses {margin-top: 1em}
+    #wallet .balance {font-size: .95em}
+    #show-addresses {margin-top: 1em}
+}
+@media (min-width: 768px) {
+    #wallet .title {margin-bottom: 30px}
+    #wallet .wallet {padding: 10px 0}
+    #wallet .wallet .balance {font-size: 1.3em;padding-top: 10px;}
+    #wallet {margin-bottom: 2em}
+    .box {padding: 15px}
+    #wallet .box {padding-bottom: 20px}
+    .last-payment {margin-top: 1em}
+    .payment-address .img {border: 1px solid #ddd; border-radius: 3px; float: left; height: 85px;
+    padding: 14px 0 15px; text-align: center; width: 40%}
+}
+@media (min-width: 1200px) {
+    .payment-address .img {width: 24%}
+}
