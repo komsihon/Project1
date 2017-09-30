@@ -228,7 +228,6 @@
     };
 
     var $epl = $('.edge-panel-left'),
-        $epr = $('.edge-panel-right'),
         $eso = $('.edge-swipe-overlay'),
         isMenuSwipe = false;
     $('body').on('click', '.nav-tabs .tab', function() {
@@ -256,12 +255,11 @@
         }
     }
     try {
+        if ($(window).width() > 768) throw "Pan events not suited here." ;
         $('body').hammer().bind("panstart", function(ev) {
-            isMenuSwipe = ev.gesture.center.x <= 40 && !$eso.is(':visible');
+            isMenuSwipe = ev.gesture.center.x > 0 && ev.gesture.center.x <= 40 && !$eso.is(':visible');
         }).bind("pan", function(ev) {
             if (!isMenuSwipe) return;
-            if (!$eso.is(':visible')) $eso.fadeIn();
-            else return;
             showEdgePanelLeft()
         });
         $eso.hammer().bind("pan", function(ev) {
