@@ -82,13 +82,13 @@
         (function() {
             var txId, checkerId;
             $('#do-pay').click(function () {
-                if (!$(this).hasClass('btn-primary')) return;
-                $(this).removeClass('btn-primary').addClass('btn-default');
                 var phone = $('#phone').val();
                 if (phone.length !== 9 && phone.length !== 12) {
                     alert('Invalid phone number');
                     return;
                 }
+                if (!$(this).hasClass('btn-primary')) return;
+                $(this).removeClass('btn-primary').addClass('btn-default');
                 $('#checkout .spinner').show();
                 $.ajax({
                     url: '{% url 'billing:init_momo_transaction' %}',
