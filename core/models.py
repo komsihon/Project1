@@ -321,6 +321,33 @@ class Service(models.Model):
                 self.app.save()
         super(Service, self).save(using=using, *args, **kwargs)
 
+    def _get_wallet(self, provider):
+        try:
+            wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=self.id, provider=provider)
+        except OperatorWallet.DoesNotExist:
+            wallet = OperatorWallet.objects.using('wallets').create(nonrel_id=self.id, provider=provider)
+        return wallet
+
+    def raise_balance(self, amount, provider=None):
+        from ikwen.billing.mtnmomo.views import MTN_MOMO
+        if not provider:
+            provider = MTN_MOMO
+        wallet = self._get_wallet(provider)
+        with transaction.atomic():
+            wallet.balance += amount
+            wallet.save(using='wallets')
+
+    def lower_balance(self, amount, provider=None):
+        from ikwen.billing.mtnmomo.views import MTN_MOMO
+        if not provider:
+            provider = MTN_MOMO
+        wallet = self._get_wallet(provider)
+        if wallet.balance < amount:
+            raise ValueError("Amount larger than current balance.")
+        with transaction.atomic():
+            wallet.balance -= amount
+            wallet.save(using='wallets')
+
     def update_domain(self, new_domain, is_naked_domain, web_server_config_template):
         """
         Update domain of a service to a new one. Rewrites the web server
@@ -589,32 +616,11 @@ class AbstractConfig(Model):
             base_config = self.get_base_config()
             base_config.save(using=UMBRELLA)
 
-    def _get_wallet(self, provider):
-        try:
-            wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=self.service.id, provider=provider)
-        except OperatorWallet.DoesNotExist:
-            wallet = OperatorWallet.objects.using('wallets').create(nonrel_id=self.service.id, provider=provider)
-        return wallet
-
     def raise_balance(self, amount, provider=None):
-        from ikwen.billing.mtnmomo.views import MTN_MOMO
-        if not provider:
-            provider = MTN_MOMO
-        wallet = self._get_wallet(provider)
-        with transaction.atomic():
-            wallet.balance += amount
-            wallet.save(using='wallets')
+        self.service.raise_balance(amount, provider)
 
     def lower_balance(self, amount, provider=None):
-        from ikwen.billing.mtnmomo.views import MTN_MOMO
-        if not provider:
-            provider = MTN_MOMO
-        wallet = self._get_wallet(provider)
-        if wallet.balance < amount:
-            raise ValueError("Amount larger than current balance.")
-        with transaction.atomic():
-            wallet.balance -= amount
-            wallet.save(using='wallets')
+        self.service.lower_balance(amount, provider)
 
 
 class Config(AbstractConfig):
