@@ -33,6 +33,8 @@ body {color: #545454}
 .cta {font-family: "PT Sans", Lato, sans-serif;font-weight: 700;letter-spacing: 0.5px;text-transform: uppercase;}
 .stretched {height: 100%; width: 100%}
 .errorlist {color: #e74c3c}
+#content .errorlist.phone {padding-left: 18px}
+#content .errorlist.phone li {list-style-type: disc}
 
 .spinner-container {-webkit-animation: rotate 2s linear infinite; animation: rotate 2s linear infinite; z-index: 2}
 .spinner-container .path {
