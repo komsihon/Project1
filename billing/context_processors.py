@@ -1,5 +1,6 @@
-from ikwen.conf.settings import MOMO_SLUG
+from ikwen.billing.orangemoney.views import ORANGE_MONEY
 
+from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.models import PaymentMean
 
 
@@ -9,7 +10,15 @@ def payment_means(request):
     """
     mtn_momo, om, paypal = None, None, None
     try:
-        mtn_momo = PaymentMean.objects.get(slug=MOMO_SLUG)
+        mtn_momo = PaymentMean.objects.get(slug=MTN_MOMO)
+    except PaymentMean.DoesNotExist:
+        pass
+    try:
+        om = PaymentMean.objects.get(slug=ORANGE_MONEY)
+    except PaymentMean.DoesNotExist:
+        pass
+    try:
+        paypal = PaymentMean.objects.get(slug='paypal')
     except PaymentMean.DoesNotExist:
         pass
 
