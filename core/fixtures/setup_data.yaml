@@ -81,9 +81,9 @@
 - model: billing.paymentmean
   pk: 5880870e4fc0c229da8da3d2
   fields:
-    name: Mobile Money
-    slug: jumbopay-momo
-    credentials: '{"api_key":"c18c884c0a3fcc756f81e0b28d636208"}'
+    name: MTN Mobile Money
+    slug: mtn-momo
+    credentials: '{"merchant_email":"merchant@ikwen.com"}'
     action_url_name: billing:momo_set_checkout
     logo: logo.png
     watermark: watermark.png
