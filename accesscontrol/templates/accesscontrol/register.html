@@ -177,15 +177,7 @@
                 })
             }).focus();
             $('#rg-email').blur(testEmail);
-            $('#rg-phone').blur(function () {
-                var phone = $(this).val().trim();
-                if (phone && !/\d+/.test(phone)) {
-                    $('<ul class="errorlist"><li>' + "{% trans "Please use digits only and prepend country code." %}" + '</li><ul>')
-                            .insertAfter('#rg-phone');
-                } else {
-                    $('.form-group.phone .errorlist').hide();
-                }
-            });
+            $('#rg-phone').blur(testPhone);
             function testEmail() {
                 var $email = $('#rg-email');
                 if ($email.val().trim().isValidEmail()) {
@@ -198,9 +190,27 @@
                 $email.focus();
                 return false;
             }
+            function testPhone() {
+                $('.form-group.phone .errorlist').remove();
+                var phone = $('#rg-phone').val().trim();
+                if (phone && !/\d{9,}/.test(phone)) {
+                    $('<ul class="errorlist phone">' +
+                        '<li>' + "{% trans "Please use digits only." %}" + '</li>' +
+                        '<li>' + "{% trans "Prepend country code if you are not in Cameroon." %}" + '</li>' +
+                        '<li>' + "{% trans "DO NOT prepend 00." %}" + '</li>' +
+                        '<ul>').insertAfter('#rg-phone');
+                    return false
+                }
+                return true;
+            }
 
             $('div#register form').submit(function () {
-                if ($('#rg-email').hasClass('required')) return testEmail()
+                if ($('#rg-email').hasClass('required')) {
+                    if (!testEmail()) return false;
+                }
+                if ($('#rg-phone').hasClass('required')) {
+                    return testPhone()
+                }
             });
             {#            var p = $('form#register .country-code').width() + 3,#}
             {#                w = $('form#register .phone').width() - p + 5;#}
