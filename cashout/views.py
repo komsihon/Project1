@@ -31,9 +31,9 @@ def request_cash_out(request, *args, **kwargs):
     method = CashOutMethod.objects.using(UMBRELLA).get(slug=provider)
     business = get_service_instance(using=UMBRELLA)
     try:
-        address = CashOutAddress.objects.using(UMBRELLA).get(method=method)
+        address = CashOutAddress.objects.using(UMBRELLA).get(service=business, method=method)
     except CashOutAddress.DoesNotExist:
-        return HttpResponse(json.dumps({'error': _("No Cash-out address set for this payment method.")}),
+        return HttpResponse(json.dumps({'error': _("No Payment method. Please set one first.")}),
                             'content-type: text/json')
     try:
         address = CashOutRequest.objects.using('wallets').get(service_id=business.id, provider=provider, status=PENDING)
@@ -106,7 +106,7 @@ def manage_payment_address(request, *args, **kwargs):
             address = CashOutAddress.objects.using(UMBRELLA).get(pk=address_id)
         else:
             try:
-                CashOutAddress.objects.using(UMBRELLA).get(method=method)
+                CashOutAddress.objects.using(UMBRELLA).get(service=service, method=method)
                 return HttpResponse(json.dumps({'error': "Cash-out address already exists for this payment method."}), 'content-type: text/json')
             except CashOutAddress.DoesNotExist:
                 address = CashOutAddress()
