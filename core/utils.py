@@ -148,13 +148,11 @@ def add_dumb_column(database, table, column):
 
 def get_mail_content(subject, message=None, template_name='core/mails/notice.html', extra_context=None):
     service = get_service_instance()
-    config = service.config
     html_template = get_template(template_name)
     context = {
         'subject': subject,
         'message': message,
         'service': service,
-        'config': config,
         'year': datetime.now().year
     }
     if extra_context:
