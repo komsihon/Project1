@@ -465,9 +465,8 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months):
         partner_earnings = invoice.amount - ikwen_earnings
         add_database_to_settings(partner.database)
         partner_original = Service.objects.using(partner.database).get(pk=partner.id)
-        partner_profile_original = PartnerProfile.objects.using(partner.database).get(service=partner)
 
-        partner_profile_original.raise_balance(partner_earnings)
+        partner.raise_balance(partner_earnings)
 
         service_partner = Service.objects.using(partner.database).get(pk=service_umbrella.id)
         app_partner = service_partner.app
@@ -527,7 +526,7 @@ def _share_payment_and_set_stats_other(invoice):
         ikwen_earnings += config.ikwen_share_fixed
         service_earnings = invoice.amount - ikwen_earnings  # Earnings of IAO of this website
 
-    config.raise_balance(service_earnings)
+    service.raise_balance(service_earnings)
 
     set_counters(service)
     increment_history_field(service, 'turnover_history', invoice.amount)
@@ -537,13 +536,12 @@ def _share_payment_and_set_stats_other(invoice):
     partner = service.retailer
     if partner:
         partner_umbrella = Service.objects.using(UMBRELLA).get(pk=partner.id)
-        partner_profile_umbrella = PartnerProfile.objects.using(partner.database).get(service=partner.id)
         service_partner = Service.objects.using(partner.database).get(service=partner.id)
         retail_config = ApplicationRetailConfig.objects.using(UMBRELLA).get(partner=partner, app=service.app)
         partner_earnings = ikwen_earnings * (100 - retail_config.ikwen_tx_share_rate) / 100
         ikwen_earnings -= partner_earnings
 
-        partner_profile_umbrella.raise_balance(partner_earnings)
+        partner.raise_balance(partner_earnings)
 
         set_counters(service_partner)
         increment_history_field(service_partner, 'turnover_history', invoice.amount)
