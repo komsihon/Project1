@@ -698,6 +698,7 @@ class DashboardBase(BaseView):
             pass
         context['earnings_report'] = earnings_report
         context['last_cash_out'] = last_cash_out
+        context['CRNCY'] = Currency.active.base()
         return context
 
 
