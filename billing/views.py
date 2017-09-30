@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import logging
 import random
 import string
 from datetime import date, datetime, timedelta
@@ -16,44 +17,33 @@ from django.db.models.loading import get_model
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
 from django.template import Context
 from django.template.loader import get_template
 from django.template.response import TemplateResponse
+from django.utils.decorators import method_decorator
 from django.utils.http import urlquote
 from django.utils.module_loading import import_by_path
 from django.utils.text import slugify
-from django.views.decorators.debug import sensitive_post_parameters
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
-from django.shortcuts import get_object_or_404, render
-from django.utils.decorators import method_decorator
-from django.utils.translation import gettext as _
-from ikwen.billing.orangemoney.views import init_web_payment, ORANGE_MONEY
-
-from ikwen.conf.settings import MOMO_SLUG
-
-from ikwen.billing.jumbopay.views import init_momo_cashout
-
-from ikwen.billing.mtnmomo.views import init_request_payment
-from ikwen.billing.cloud_setup import DeploymentForm, deploy
-
-from ikwen.partnership.models import ApplicationRetailConfig
-
-from ikwen.core.models import Service, Application
-
-from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content
-
-from ikwen.accesscontrol.models import Member, SUDO
+from django.views.decorators.debug import sensitive_post_parameters
 
 from ikwen.accesscontrol.backends import UMBRELLA
-
-from ikwen.core.views import BaseView
+from ikwen.accesscontrol.models import Member, SUDO
+from ikwen.billing.cloud_setup import DeploymentForm, deploy
 from ikwen.billing.models import Invoice, SendingReport, SERVICE_SUSPENDED_EVENT, PaymentMean, Payment, \
     PAYMENT_CONFIRMATION, CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry, MoMoTransaction
+from ikwen.billing.mtnmomo.views import init_request_payment, MTN_MOMO
+from ikwen.billing.orangemoney.views import init_web_payment, ORANGE_MONEY
 from ikwen.billing.utils import get_invoicing_config_instance, get_subscription_model, get_days_count, \
     get_payment_confirmation_message, share_payment_and_set_stats
+from ikwen.core.models import Service, Application
+from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content
+from ikwen.core.views import BaseView
+from ikwen.partnership.models import ApplicationRetailConfig
 
-import logging
 logger = logging.getLogger('ikwen')
 
 subscription_model_name = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
@@ -561,12 +551,9 @@ class MoMoSetCheckout(BaseView):
         context = super(MoMoSetCheckout, self).get_context_data(**kwargs)
         mean = self.request.GET.get('mean')
         if mean:
-            try:
-                payment_mean = PaymentMean.objects.get(slug=mean)
-            except PaymentMean.DoesNotExist:
-                payment_mean = get_object_or_404(PaymentMean, slug=MOMO_SLUG)
+            payment_mean = get_object_or_404(PaymentMean, slug=mean)
         else:
-            payment_mean = get_object_or_404(PaymentMean, slug=MOMO_SLUG)
+            payment_mean = get_object_or_404(PaymentMean, slug=MTN_MOMO)
 
         if getattr(settings, 'DEBUG', False):
             json.loads(payment_mean.credentials)
