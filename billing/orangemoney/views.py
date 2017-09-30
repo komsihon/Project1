@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 from threading import Thread
 
+import math
 import requests
 import time
 from django.conf import settings
@@ -33,7 +34,10 @@ def init_web_payment(request, *args, **kwargs):
     if getattr(settings, 'DEBUG_MOMO', False):
         amount = 1
     else:
-        amount = request.session['amount']
+        amount = int(request.session['amount'])
+        if not getattr(settings, 'OM_FEES_ON_MERCHANT', False):
+            factor = 1 + getattr(settings, 'OM_FEES', 3.5) / 100
+            amount = int(math.ceil(amount * factor))
     model_name = request.session['model_name']
     object_id = request.session['object_id']
     username = request.user.username if request.user.is_authenticated() else None
@@ -45,7 +49,7 @@ def init_web_payment(request, *args, **kwargs):
     notif_url = request.session['notif_url']
     notif_url += '/%d' % momo_tx.id
     data = {'order_id': object_id,
-            'amount': int(amount),
+            'amount': amount,
             'lang': 'fr',
             'reference': service.config.company_name.upper(),
             'return_url': request.session['return_url'],
@@ -105,7 +109,10 @@ def init_web_payment(request, *args, **kwargs):
 
 def check_transaction_status(request):
     api_url = getattr(settings, 'ORANGE_MONEY_API_URL') + '/transactionstatus'
-    amount = request.session['amount']
+    amount = int(request.session['amount'])
+    if not getattr(settings, 'OM_FEES_ON_MERCHANT', False):
+        factor = 1 + getattr(settings, 'OM_FEES', 3.5) / 100
+        amount = int(math.ceil(amount * factor))
     object_id = request.session['object_id']
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     data = {'order_id': object_id,
@@ -117,7 +124,7 @@ def check_transaction_status(request):
         time.sleep(1)
         t1 = datetime.now()
         diff = t1 - t0
-        if diff.seconds >= (10 * 60):
+        if diff.seconds >= (5 * 60):
             break
         try:
             # tx_status_log.info("Checking transaction")
