@@ -370,8 +370,8 @@ class MoMoTransactionAdmin(admin.ModelAdmin):
     search_fields = ('phone',)
     ordering = ('-id', )
     list_filter = ('wallet', 'created_on', 'status', )
-    readonly_fields = ('service_id', 'type', 'phone', 'amount', 'model', 'object_id',
-                       'processor_tx_id', 'task_id', 'message', 'is_running', 'status')
+    readonly_fields = ('service_id', 'type', 'wallet', 'username', 'phone', 'amount', 'model',
+                       'object_id', 'processor_tx_id', 'task_id', 'message', 'is_running', 'status')
 
     def get_queryset(self, request):
         if getattr(settings, 'IS_UMBRELLA', False):
