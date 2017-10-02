@@ -116,7 +116,7 @@ def check_transaction_status(request):
     object_id = request.session['object_id']
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     data = {'order_id': object_id,
-            'amount': int(amount),
+            'amount': amount,
             'pay_token': request.session['pay_token']}
     om = json.loads(PaymentMean.objects.get(slug=ORANGE_MONEY).credentials)
     t0 = datetime.now()
@@ -135,13 +135,16 @@ def check_transaction_status(request):
             if status == 'FAILED':
                 break
             if status == 'SUCCESS':
-                request.session['processor_tx_id'] = resp['txnid']
+                username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
+                logger.debug("Successful OM payment of %dF from %s" % (amount, username))
+                processor_tx_id = resp['txnid']
                 path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
                 momo_after_checkout = import_by_path(path)
                 with transaction.atomic():
                     try:
                         tx_id = request.session['tx_id']
-                        MoMoTransaction.objects.using('wallets').filter(pk=tx_id).update(is_running=False)
+                        MoMoTransaction.objects.using('wallets').filter(pk=tx_id)\
+                            .update(processor_tx_id=processor_tx_id, is_running=False)
                         momo_after_checkout(request, signature=request.session['signature'], tx_id=tx_id)
                     except:
                         logger.error("Orange Money: Error while running callback function", exc_info=True)

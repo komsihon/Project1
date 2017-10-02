@@ -31,13 +31,13 @@ def init_request_payment(request, *args, **kwargs):
                                                          phone=phone, amount=amount, model=model_name,
                                                          object_id=object_id, wallet=MTN_MOMO, username=username)
     if getattr(settings, 'DEBUG', False):
-        request_payment(tx)
+        request_payment(request, tx)
     else:
-        Thread(target=request_payment, args=(tx, )).start()
+        Thread(target=request_payment, args=(request, tx, )).start()
     return HttpResponse(json.dumps({'success': True, 'tx_id': tx.id}), 'content-type: text/json')
 
 
-def request_payment(transaction):
+def request_payment(request, transaction):
     """
     Calls the HTTP MTN Mobile Money API and updates the MoMoTransaction
     status in the database upon completion of the request.
@@ -66,6 +66,8 @@ def request_payment(transaction):
         if resp['StatusCode'] == '100':
             transaction.status = MoMoTransaction.API_ERROR
         else:
+            username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
+            logger.debug("Successful MoMo payment of %dF from %s: %s" % (amount, username, transaction.phone))
             transaction.status = MoMoTransaction.SUCCESS
     else:
         try:
