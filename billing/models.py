@@ -373,6 +373,9 @@ class PaymentMean(Model):
     class Meta:
         db_table = 'ikwen_payment_mean'
 
+    def __unicode__(self):
+        return self.name
+
 
 class MoMoTransaction(Model):
     SUCCESS = 'Success'
