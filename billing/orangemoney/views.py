@@ -108,8 +108,10 @@ def init_web_payment(request, *args, **kwargs):
 
 
 def check_transaction_status(request):
+    username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
     api_url = getattr(settings, 'ORANGE_MONEY_API_URL') + '/transactionstatus'
     amount = int(request.session['amount'])
+    token = request.session['pay_token']
     if not getattr(settings, 'OM_FEES_ON_MERCHANT', False):
         factor = 1 + getattr(settings, 'OM_FEES', 3.5) / 100
         amount = int(math.ceil(amount * factor))
@@ -117,26 +119,27 @@ def check_transaction_status(request):
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     data = {'order_id': object_id,
             'amount': amount,
-            'pay_token': request.session['pay_token']}
+            'pay_token': token}
     om = json.loads(PaymentMean.objects.get(slug=ORANGE_MONEY).credentials)
     t0 = datetime.now()
+    logger.debug("Started checking status of OM payment %s of %dF from %s" % (token, amount, username))
     while True:
         time.sleep(1)
         t1 = datetime.now()
         diff = t1 - t0
         if diff.seconds >= (5 * 60):
+            logger.debug("OM payment %s of %dF from %s timed out after waiting for 5mn" % (token, amount, username))
             break
         try:
-            # tx_status_log.info("Checking transaction")
             headers.update({'Authorization': 'Bearer ' + om['access_token']})
             r = requests.post(api_url, headers=headers, data=json.dumps(data), verify=False, timeout=130)
             resp = r.json()
             status = resp['status']
             if status == 'FAILED':
+                logger.debug("OM payment %s of %dF from %s failed" % (token, amount, username))
                 break
             if status == 'SUCCESS':
-                username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
-                logger.debug("Successful OM payment of %dF from %s" % (amount, username))
+                logger.debug("Successful OM payment %s of %dF from %s" % (token, amount, username))
                 processor_tx_id = resp['txnid']
                 path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
                 momo_after_checkout = import_by_path(path)
