@@ -39,11 +39,11 @@
                         {% endif %}
                     </div>
                     {% if earnings_report.yesterday.change and earnings_report.yesterday.change > 0 %}
-                        <p class="change up">{{ earnings_report.yesterday.change }}
-                            (+{{ earnings_report.yesterday.change_rate|floatformat:CRNCY.precision|intcomma }}%)</p>
+                        <p class="change up">{{ earnings_report.yesterday.change|floatformat:CRNCY.precision|intcomma }}
+                            (+{{ earnings_report.yesterday.change_rate|floatformat:"2" }}%)</p>
                     {% elif earnings_report.yesterday.change and earning.yesterday.change < 0 %}
-                        <p class="change down">{{ earnings_report.yesterday.change }}
-                            ({{ earnings_report.yesterday.change_rate|floatformat:CRNCY.precision|intcomma }}%)</p>
+                        <p class="change down">{{ earnings_report.yesterday.change|floatformat:CRNCY.precision|intcomma }}
+                            ({{ earnings_report.yesterday.change_rate|floatformat:"2" }}%)</p>
                     {% else %}
                         <p class="change text-muted">---</p>
                     {% endif %}
@@ -60,11 +60,11 @@
                         {% endif %}
                     </div>
                     {% if earnings_report.last_week.change and earnings_report.last_week.change > 0 %}
-                        <p class="change up">{{ earnings_report.last_week.change }}
-                            (+{{ earnings_report.last_week.change_rate|floatformat:CRNCY.precision|intcomma }}%)</p>
+                        <p class="change up">{{ earnings_report.last_week.change|floatformat:CRNCY.precision|intcomma }}
+                            (+{{ earnings_report.last_week.change_rate|floatformat:"2" }}%)</p>
                     {% elif earnings_report.last_week.change and earning.last_week.change < 0 %}
-                        <p class="change down">{{ earnings_report.last_week.change }}
-                            ({{ earnings_report.last_week.change_rate|floatformat:CRNCY.precision|intcomma }}%)</p>
+                        <p class="change down">{{ earnings_report.last_week.change|floatformat:CRNCY.precision|intcomma }}
+                            ({{ earnings_report.last_week.change_rate|floatformat:"2" }}%)</p>
                     {% else %}
                         <p class="change text-muted">---</p>
                     {% endif %}
@@ -81,11 +81,11 @@
                         {% endif %}
                     </div>
                     {% if earnings_report.last_28_days.change and earnings_report.last_28_days.change > 0 %}
-                        <p class="change up">{{ earnings_report.last_28_days.change }}
-                            (+{{ earnings_report.last_28_days.change_rate|floatformat:CRNCY.precision|intcomma }}%)</p>
+                        <p class="change up">{{ earnings_report.last_28_days.change|floatformat:CRNCY.precision|intcomma }}
+                            (+{{ earnings_report.last_28_days.change_rate|floatformat:"2" }}%)</p>
                     {% elif earnings_report.last_28_days.change and earning.last_28_days.change < 0 %}
-                        <p class="change down">{{ earnings_report.last_28_days.change }}
-                            ({{ earnings_report.last_28_days.change_rate|floatformat:CRNCY.precision|intcomma }}%)</p>
+                        <p class="change down">{{ earnings_report.last_28_days.change|floatformat:CRNCY.precision|intcomma }}
+                            ({{ earnings_report.last_28_days.change_rate|floatformat:"2" }}%)</p>
                     {% else %}
                         <p class="change text-muted">---</p>
                     {% endif %}
@@ -107,7 +107,7 @@
                     {% if last_cash_out %}
                         <div class="col-xs-6 col-sm-3">
                             <h6 class="text-muted">{% trans "Last payment" %}</h6>
-                            <em class="last-payment">{{ last_cash_out.amount|intcomma }}</em>
+                            <em class="last-payment">{{ last_cash_out.amount|floatformat:CRNCY.precision|intcomma }}</em>
                             <time style="float: left; font-size: 12px; margin-top: -4px">{{ last_cash_out.created_on|date }}</time>
                             <span style="float: left; font-size: 12px; margin-top: -5px">
                                 <span class="hidden-xs" style="float: left; margin: 0 6px">-</span>
