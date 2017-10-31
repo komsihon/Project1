@@ -438,7 +438,7 @@ class Service(models.Model):
             member.save()
 
         app = self.app
-        app.operators_count -= 1
+        app.operators_count = Service.objects.filter(app=app).count() - 1
         app.save()
 
         from pymongo import MongoClient
@@ -448,10 +448,13 @@ class Service(models.Model):
         app_label = config_model_name.split('.')[0]
         model = config_model_name.split('.')[1]
         config_model = get_model(app_label, model)
-        config = config_model.objects.get(service=self)
-        base_config = config.get_base_config()
-        base_config.delete()
-        config.delete()
+        try:
+            config = config_model.objects.get(service=self)
+            base_config = config.get_base_config()
+            base_config.delete()
+            config.delete()
+        except:
+            pass
         self.delete()
 
 
