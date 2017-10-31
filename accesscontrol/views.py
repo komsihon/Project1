@@ -26,7 +26,7 @@ from django.utils.decorators import method_decorator
 from django.utils.http import urlsafe_base64_decode, urlunquote
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
-from django.views.decorators.cache import never_cache
+from django.views.decorators.cache import never_cache, cache_page
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from permission_backend_nonrel.models import UserPermissionList
@@ -511,15 +511,16 @@ def update_password(request, *args, **kwargs):
 class Profile(BaseView):
     template_name = 'accesscontrol/profile.html'
 
-    def get_context_data(self, **kwargs):
+    @method_decorator(cache_page(60 * 5))
+    def get(self, request, *args, **kwargs):
         member_id = kwargs['member_id']
         member = get_object_or_404(Member, pk=member_id)
         context = super(Profile, self).get_context_data(**kwargs)
-        if self.request.user.is_authenticated() and self.request.user.is_iao:
+        if request.user.is_authenticated() and request.user.is_iao:
             rqs = []
             for rq in AccessRequest.objects.filter(member=member, status=AccessRequest.PENDING):
                 rq_service = rq.service
-                if rq_service in self.request.user.collaborates_on:
+                if rq_service in request.user.collaborates_on:
                     add_database_to_settings(rq_service.database)
                     groups = list(Group.objects.using(rq_service.database).exclude(name=SUDO).order_by('name'))
                     groups.append(Group.objects.using(rq_service.database).get(name=SUDO))  # Sudo will appear last
@@ -532,7 +533,7 @@ class Profile(BaseView):
         context['profile_photo_url'] = member.photo.small_url if member.photo.name else ''
         context['profile_cover_url'] = member.cover_image.url if member.cover_image.name else ''
         context['member'] = member
-        return context
+        return render(request, self.template_name, context)
 
 
 class CompanyProfile(BaseView):
@@ -542,7 +543,8 @@ class CompanyProfile(BaseView):
     """
     template_name = 'accesscontrol/profile.html'
 
-    def get_context_data(self, **kwargs):
+    @method_decorator(cache_page(60 * 60))
+    def get(self, request, *args, **kwargs):
         context = super(CompanyProfile, self).get_context_data(**kwargs)
         project_name_slug = kwargs['project_name_slug']
         service = get_object_or_404(Service, project_name_slug=project_name_slug)
@@ -561,19 +563,19 @@ class CompanyProfile(BaseView):
         context['profile_city'] = config.city
         context['profile_photo_url'] = config.logo.url if config.logo.name else ''
         context['profile_cover_url'] = config.cover_image.url if config.cover_image.name else ''
-        if self.request.user.is_authenticated():
+        if request.user.is_authenticated():
             try:
-                AccessRequest.objects.get(member=self.request.user, service=service,
+                AccessRequest.objects.get(member=request.user, service=service,
                                           status=AccessRequest.PENDING)
                 context['is_member'] = True  # Causes the "Join" button not to appear when there's a pending Access Request
             except AccessRequest.DoesNotExist:
                 try:
                     add_database_to_settings(service.database)
-                    Member.objects.using(service.database).get(pk=self.request.user.id)
+                    Member.objects.using(service.database).get(pk=request.user.id)
                     context['is_member'] = True
                 except Member.DoesNotExist:
                     context['is_member'] = False
-        return context
+        return render(request, self.template_name, context)
 
 
 class Community(HybridListView):
