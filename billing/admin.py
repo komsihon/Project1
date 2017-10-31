@@ -360,7 +360,7 @@ class PaymentAdmin(CustomBaseAdmin, ExportMixin):
 
 
 class PaymentMeanAdmin(admin.ModelAdmin):
-    list_display = ('name', 'logo', 'watermark', 'button_img_url')
+    list_display = ('name', 'logo', 'watermark', 'button_img_url', 'is_cashflex')
     search_fields = ('name',)
     prepopulated_fields = {"slug": ("name",)}
 

@@ -358,7 +358,7 @@ class Payment(AbstractPayment):
 class PaymentMean(Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField()
-    logo = models.ImageField(upload_to='ikwen/payment_means')
+    logo = models.ImageField(upload_to='ikwen/payment_means', blank=True, null=True)
     watermark = models.ImageField(upload_to='ikwen/payment_watermarks/', blank=True, null=True)
     button_img_url = models.URLField(blank=True, null=True,
                                      help_text="URL of the button image. That is the image that serves as the "
@@ -369,12 +369,24 @@ class PaymentMean(Model):
                                    help_text="Credentials of this mean as a JSON string.")
     is_main = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    is_cashflex = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'ikwen_payment_mean'
 
     def __unicode__(self):
         return self.name
+
+    def _get_provider_logo(self):
+        if self.is_cashflex:
+            try:
+                bank = Service.objects.using(UMBRELLA).get(project_name_slug=self.slug)
+                return bank.config.logo
+            except:
+                pass
+        else:
+            return self.logo
+    provider_logo = property(_get_provider_logo)
 
 
 class MoMoTransaction(Model):
@@ -436,3 +448,13 @@ class CloudBillingPlan(Model):
 
     def __unicode__(self):
         return self.app.name + ': ' + self.name
+
+
+class BankAccount(Model):
+    member = models.ForeignKey(Member)
+    bank = models.ForeignKey(Service, related_name='+')
+    number = models.CharField(max_length=60)
+    slug = models.CharField(max_length=60)
+
+    class Meta:
+        db_table = 'ikwen_bank_account'

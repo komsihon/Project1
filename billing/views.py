@@ -575,7 +575,10 @@ class MoMoSetCheckout(BaseView):
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         payment_mean = context['payment_mean']
-        signature = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(16)])
+        if getattr(settings, 'UNIT_TESTING', False):
+            signature = 'dumb_signature'
+        else:
+            signature = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(16)])
         request.session['signature'] = signature
         path = getattr(settings, 'MOMO_BEFORE_CASH_OUT')
         momo_before_checkout = import_by_path(path)
