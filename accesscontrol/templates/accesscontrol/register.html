@@ -4,46 +4,7 @@
 {% block page_title %}<title>{{ service.project_name }} - {% trans "Register" %} </title>{% endblock %}
 {% block head_style %}
     {{ block.super }}
-    <style  type="text/css">
-        #navbar .search, #navbar .navbar-right {
-            display: none
-        }
-
-        #content.form form {border: none; padding: 0}
-
-        #terms-warning {
-            color: #999;
-            font-size: 11px
-        }
-
-        #register .brand, #register .title {
-            text-align: center
-        }
-
-        #register .brand img {
-            height: 90px
-        }
-
-        @media (min-width: 415px) {
-            #register .brand {
-                margin-top: 10%
-            }
-
-            #register .brand img {
-                max-width: 142px
-            }
-
-            #register .title {
-                text-align: left
-            }
-        }
-
-        @media (min-width: 768px) {
-            #register .brand img {
-                height: auto
-            }
-        }
-    </style>
+    <link rel='stylesheet' href="{% static 'ikwen/css/register.css' %}" />
 {% endblock %}
 
 {% block content %}
