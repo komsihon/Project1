@@ -54,7 +54,7 @@
                                             <i class="glyphicon glyphicon-search"></i>
                                         </li>
                                         {% if user.is_authenticated %}
-                                            <li>
+                                            <li class="home">
                                                 <a href="{{ settings.IKWEN_CONSOLE_URL }}">
                                                     <i class="glyphicon glyphicon-bell" aria-hidden="true"></i>
                                                     {% if user.personal_notices > 0 %}
@@ -63,7 +63,7 @@
                                                 </a>
                                             </li>
                                             {% if collaborates_on|length >= 1 %}
-                                                <li data-toggle="collapse" data-target="#iao-app-list-xs" aria-expanded="false">
+                                                <li class="app-list" data-toggle="collapse" data-target="#iao-app-list-xs" aria-expanded="false">
                                                     <a href="#"><i class="glyphicon glyphicon-th-large"></i> </a>
                                                 </li>
                                             {% endif %}
@@ -109,9 +109,9 @@
                         </div>
                         <div id="site-menu" class="collapse navbar-collapse">
                             <div class="container-fluid">
-                                <ul class="nav navbar-nav navbar-right{% if settings.IS_CONTENT_VENDOR %} content-vendor{% endif %}" style="margin: 0 -15px 0 0">
+                                <ul class="nav navbar-nav navbar-right" style="margin: 0 -15px 0 0">
                                     {% if user.is_authenticated %}
-                                        <li>
+                                        <li id="user-home">
                                             <a href="{{ settings.IKWEN_CONSOLE_URL }}">
                                                 {% trans "Home" %}
                                                 {% if user.get_notice_count > 0 %}
@@ -120,11 +120,11 @@
                                             </a>
                                         </li>
                                         {% if collaborates_on|length == 1 %}
-                                            <li>
+                                            <li id="user-apps">
                                                 <a href="{{ collaborates_on.0.admin_url }}">{{ collaborates_on.0.project_name }}</a>
                                             </li>
                                         {% elif collaborates_on|length > 1 %}
-                                            <li id="apps" class="dropdown">
+                                            <li id="user-apps" class="dropdown">
                                                 <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Apps</a>
                                                 <ul class="dropdown-menu" aria-labelledby="apps">
                                                     {% for app in collaborates_on %}
