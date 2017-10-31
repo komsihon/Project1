@@ -4,45 +4,12 @@
 {% block page_title %}<title>{% trans "Mobile Money Checkout" %} - {{ service.project_name }} </title>{% endblock %}
 {% block head_style %}
     {{ block.super }}
-    <style  type="text/css">
-        #navbar {background: rgba(0, 0, 0, 0)}
-        #navbar form.search input {display: none}
-        #navbar-search, #navbar .navbar-right {display: none}
-        #content > div {margin: auto}
-        div#checkout {background: rgba(255, 255, 255, .9); border-radius: 3px; clear: both; padding: 10px 20px 30px; width: 300px}
-        #navbar .navbar-brand, #navbar .navbar-brand:hover {display: none}
-
-        @media (max-width: 767px) {
-            #navbar .navbar-header {float: none; text-align: center}
-        }
-
-        @media (min-width: 768px) {
-            div#checkout {width: 380px}
-        }
-
-        @media (min-width: 992px) {
-            #content {margin-top: 3%}
-        }
-
-        div#checkout input {border: 1px solid #bbb;}
-        div#checkout form {padding: 30px}
-        label span {font-weight: normal}
-        #content form .hint {color: #8D96C5; font-size: 14px}
-        #content form ul.errorlist {padding-left: 0}
-        #content form ul.errorlist li {color: #FF0808; list-style-type: none}
-        .momo-warning {background: #f5f5f5; border: 1px solid #8D96C5;border-radius: 3px;color: #4461d6;font-size: 11px;
-            margin-left: -10%;text-align: center;padding: 6px 10px;width: 120%}
-    </style>
+    <link rel='stylesheet' href="{% static 'ikwen/css/momo.css' %}" />
 {% endblock %}
 
 {% block content %}
     <div id="content" class="container">
         <div class="visible-xs" style="float: left; width: 100%; padding: 15px 0"></div>
-        <div style="font-size: 13px">
-            <a href="{{ request.META.HTTP_REFERER }}" class="pull-left">{% trans "Cancel" %}</a>
-            <span class="text-primary pull-right">{{ user.full_name }}</span>
-            <div class="clearfix"></div>
-        </div>
         <div id="checkout">
             <div style="margin-bottom: 45px">
                 <span class="pull-left" style="width: 50%">
@@ -72,7 +39,9 @@
                 <div id="transaction-result" class="text-info"></div>
             </form>
         </div>
-        <div></div>
+        <div style="margin: 45px 15px">
+            <a href="{{ request.META.HTTP_REFERER }}" class="cancel-payment">{% trans "Cancel" %}</a>
+        </div>
         <div class="clear"></div>
     </div>
 {% endblock %}
