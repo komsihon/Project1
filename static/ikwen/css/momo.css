@@ -1,0 +1,36 @@
+/**
+    Document   : momo
+    Created on : Oct 14, 2017, 13:26
+    Author     : Kom Sihon
+    Description:
+        Rules for Mobile Money Checkout page
+*/
+
+#navbar, .navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:hover, .navbar-default .navbar-nav>.open>a:focus {background: #fff}
+#navbar form.search input, #navbar-search, #user-home, #user-apps, #nav-xs {display: none}
+.navbar-default .navbar-brand, #user-menu .glyphicon-user  {color: #888}
+#content > div {margin: auto}
+div#checkout {background: rgba(255, 255, 255, .9); border-radius: 3px; clear: both; padding: 10px 20px 30px; width: 300px}
+#navbar .navbar-brand, #navbar .navbar-brand:hover {display: none}
+
+div#checkout input {border: 1px solid #bbb;}
+div#checkout form {padding: 30px}
+label span {font-weight: normal}
+#content form .hint {color: #8D96C5; font-size: 14px}
+#content form ul.errorlist {padding-left: 0}
+#content form ul.errorlist li {color: #FF0808; list-style-type: none}
+.momo-warning {background: #f5f5f5; border: 1px solid #8D96C5;border-radius: 3px;color: #4461d6;font-size: 11px;
+    margin-left: -10%;text-align: center;padding: 6px 10px;width: 120%}
+.cancel-payment {border: 1px solid; padding: 5px 15px}
+
+@media (max-width: 767px) {
+    #navbar .navbar-header {float: none; text-align: center}
+}
+
+@media (min-width: 768px) {
+    div#checkout {width: 380px}
+}
+
+@media (min-width: 992px) {
+    #content {padding-top: 3%}
+}

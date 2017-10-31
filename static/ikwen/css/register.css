@@ -1,0 +1,45 @@
+/**
+    Document   : register
+    Created on : Oct 25, 2017, 05:05
+    Author     : Kom Sihon
+    Description:
+        Additional display rules for the ikwen register page
+*/
+
+#navbar .search, #navbar .navbar-right {
+    display: none
+}
+#content.form form {border: none; padding: 0}
+
+#terms-warning {
+    color: #999;
+    font-size: 11px
+}
+
+#register .brand, #register .title {
+    text-align: center
+}
+
+#register .brand img {
+    height: 90px
+}
+
+@media (min-width: 415px) {
+    #register .brand {
+        margin-top: 10%
+    }
+
+    #register .brand img {
+        max-width: 142px
+    }
+
+    #register .title {
+        text-align: left
+    }
+}
+
+@media (min-width: 768px) {
+    #register .brand img {
+        height: auto
+    }
+}

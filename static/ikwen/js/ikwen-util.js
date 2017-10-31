@@ -151,7 +151,7 @@
     };
 
     c.setupFilter = function(resultPanelSelector, descriptor, beforeSearch, afterResults) {
-        $('div#admin-nav').on('click', '.choices li', function() {
+        $('#admin-nav').on('click', '.choices li', function () {
             $(this).siblings().removeClass('active');
             $(this).addClass('active');
             if (beforeSearch) beforeSearch();
@@ -160,12 +160,40 @@
             var url = descriptor.endpoint,
                 params = {start: 0, length: 100, format: 'json'},
                 selector = descriptor.resultTplSelector;
-            $('div#admin-nav .filter li.active').each(function() {
-                var paramName = $(this).parent().data('param'),
-                    paramVal = $(this).data('value');
-                params[paramName] = paramVal;
+            $('div#admin-nav .filter li.active').each(function () {
+                var paramName = $(this).parent().data('param');
+                params[paramName] = $(this).data('value');
             });
             grabResults(url, params, resultPanelSelector, selector, call.length, afterResults);
+        });
+    };
+
+    c.setupHTMLResultsFilter = function(descriptor, beforeSearch, afterResults) {
+        $('#admin-content').on('change', '#admin-tools .filter select', function() {
+            var resultPanelSelector = descriptor.resultPanelSelector;
+            if (beforeSearch) beforeSearch();
+            $(resultPanelSelector).find('.empty').hide();
+            $(resultPanelSelector).show().find('.spinner').fadeIn();
+            var url = window.location.pathname,
+                params = {start: 0, length: 100, format: 'html_results'};
+            $('div#admin-tools .filter select').each(function() {
+                var paramName = $(this).prop('name');
+                params[paramName] = $(this).val();
+            });
+            var query = window.location.search,
+                paramString = '';
+            for (var key in params) {
+                paramString += '&' + key + '=' + params[key]
+            }
+            if (query && query !== '?') query += paramString;
+            else query = paramString.substr(1);
+            $(resultPanelSelector).load(url, query, function() {
+                $(resultPanelSelector).find('.spinner').fadeOut();
+                for (var key in params) {
+                    $('#' + key).val(params[key])
+                }
+                if (afterResults) afterResults();
+            });
         });
     };
 
