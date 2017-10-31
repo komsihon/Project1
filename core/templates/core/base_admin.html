@@ -54,21 +54,7 @@
         {% block admin_nav %}
             <div id="admin-nav" class="edge-panel-left">
                 <div class="wrapper">
-                    <div class="stage" {% if filter and filter|length > 0 %}style="margin-left: -100%"{% endif %}>
-                        {% if filter and filter|length > 0 %}
-                            <nav id="filter-nav">
-                                <span style="text-align: right">
-    {#                                {% trans "Menu" %}&nbsp;&nbsp;#}
-                                    <img class="show-filter" src="{% static 'ikwen/img/arrow-right.png' %}" width="18"
-                                         height="18">
-                                </span>
-                                <span>
-                                    <img class="show-menu" src="{% static 'ikwen/img/arrow-left.png' %}" width="18"
-                                         height="18">
-                                    &nbsp;&nbsp;{% trans "Filter" %}
-                                </span>
-                            </nav>
-                        {% endif %}
+                    <div class="stage">
                         <div class="menu">
                             {% block app_admin_nav %}{% endblock %}
                             {% if perms.accesscontrol.sudo %}
@@ -113,27 +99,6 @@
                                 {% endblock %}
                             {% endif %}
                         </div>
-                        {% if filter and filter|length > 0 %}
-                            <ul class="nav nav-pills nav-stacked filter">
-                                {% for elt in filter %}
-                                    <li>
-                                        <a href="javascript:;" data-toggle="collapse"
-                                           data-target="#{{ elt.parameter_name }}" aria-expanded="true">
-                                            {{ elt.title }} <i class="fa fa-fw fa-caret-down"></i>
-                                        </a>
-                                        <ul id="#{{ elt.parameter_name }}" data-param="{{ elt.parameter_name }}"
-                                            class="nav nav-pills nav-stacked collapse in choices" aria-expanded="true"
-                                            style="padding-left: 15px">
-                                            {% for choice in elt.choices %}
-                                                <li data-value="{{ choice.0 }}">
-                                                    <a href="javascript:;">{{ choice.1 }}</a>
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
                         <div class="clear"></div>
                     </div>
                 </div>
@@ -229,8 +194,10 @@
             var filterDescriptor = {
                 endpoint: '{{ request.META.get_full_path }}',
                 resultTplSelector: '#results li.ik-li'
-            };
+            },
+            htmlFilterDescriptor = {resultPanelSelector: '#admin-content .container-fluid'};
             ikwen.setupFilter('#results', filterDescriptor);
+            ikwen.setupHTMLResultsFilter(htmlFilterDescriptor);
             $('footer').appendTo('#admin-nav .wrapper')
         })()
     </script>
