@@ -67,7 +67,7 @@ class CashOutRequest(Model):
     # member = models.ForeignKey('accesscontrol.Member')
     member_id = models.CharField(max_length=24)
     amount = models.IntegerField(default=0)
-    provider = models.CharField(max_length=60,
+    provider = models.CharField(max_length=60, editable=False,
                                 help_text="Wallet operator from which we collected the money. "
                                           "It is actually the slug of the PaymentMean.")
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default=PENDING)

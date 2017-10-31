@@ -33,7 +33,8 @@ class CashoutViewsTest(TestCase):
     def tearDown(self):
         wipe_test_data()
 
-    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102', CACHES=None)
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102',
+                       CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     def test_Payments(self):
         """
         Make sure the url is reachable

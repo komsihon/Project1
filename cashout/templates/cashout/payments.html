@@ -26,7 +26,7 @@
                         {% for wallet in wallets %}
                         <li class="wallet col-xs-12 col-sm-4">
                             <div class="" style="padding-left: 0">
-                                <span class="img" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ wallet.payment_mean.logo.name }})"></span>
+                                <span class="img" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ wallet.payment_mean.provider_logo.name }})"></span>
                                 <span class="balance">
                                     <span class="text-muted">{{ CURRENCY.symbol }}</span>
                                     {{ wallet.balance|floatformat:config.decimal_precision|intcomma }}
@@ -81,7 +81,7 @@
                                             <span class="label label-warning">{% trans "Pending" %}</span>
                                             {% endif %}
                                         </span>
-                                        <span class="pull-right text-muted">{{ config.currency_symbol }} {{ tx.amount|intcomma }}</span>
+                                        <span class="pull-right text-muted">{{ config.currency_symbol }} {{ tx.amount|floatformat:config.decimal_precision|intcomma }}</span>
                                     </li>
                                 {% empty %}
                                     <li>
