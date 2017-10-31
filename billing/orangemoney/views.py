@@ -51,7 +51,7 @@ def init_web_payment(request, *args, **kwargs):
     data = {'order_id': object_id,
             'amount': amount,
             'lang': 'fr',
-            'reference': service.config.company_name.upper(),
+            'reference': request.session.get('merchant_name', service.config.company_name.upper()),
             'return_url': request.session['return_url'],
             'cancel_url': request.session['cancel_url'],
             'notif_url': notif_url}
