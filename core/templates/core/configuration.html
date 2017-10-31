@@ -60,7 +60,8 @@
                     <h2 class="text-has-shade">{{ config.full_name }}</h2>
                 </div>
             </header>
-            <form id="configuration" class="admin-form" method="post" action="{{ request.META.path }}">{% csrf_token %}
+            <form id="configuration" class="admin-form" method="post"
+                  enctype="multipart/form-data" action="{{ request.META.path }}">{% csrf_token %}
                 <input type="hidden" name="id" value="{{ config.id }}" />
                 <input type="hidden" name="company_name_slug" value="{{ config.company_name_slug }}" />
                 {% if config.can_manage_currencies %}
@@ -84,7 +85,7 @@
             $('div#admin-nav .configuration').addClass('active');
             $('.currencies-config').insertAfter('.website h3').show();
             $('.form-row').addClass('form-group');
-            $('.form-row input, .form-row select, .form-row textarea').addClass('form-control input-sm');
+            $('.form-row input:not([type=file]), .form-row select, .form-row textarea').addClass('form-control input-sm');
             $('.form-row textarea').addClass('form-control input-sm');
             {% if messages %}
                 {% for msg in messages %}ikwen.showFloatingNotice('{{ msg }}', '', 6);{% endfor %}
