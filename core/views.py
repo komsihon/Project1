@@ -24,6 +24,7 @@ from django.template.loader import get_template
 from django.utils import translation
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_by_path
+from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.base import TemplateView
@@ -150,8 +151,7 @@ class HybridListView(ListView):
                     return HttpResponse(jsonp, content_type='application/json', **response_kwargs)
                 return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
             else:
-                page_size = 15 if self.request.user_agent.is_mobile else 25
-                paginator = Paginator(queryset, page_size)
+                paginator = Paginator(queryset, self.page_size)
                 page = self.request.GET.get('page')
                 try:
                     objects_page = paginator.page(page)
@@ -162,26 +162,28 @@ class HybridListView(ListView):
                 context['q'] = self.request.GET.get('q')
                 context['objects_page'] = objects_page
                 return render(self.request, self.html_results_template_name, context)
-        elif action == 'delete':
+        else:
+            return super(HybridListView, self).render_to_response(context, **response_kwargs)
+
+    def get(self, request, *args, **kwargs):
+        action = self.request.GET.get('action')
+        if action == 'delete':
             selection = self.request.GET['selection'].split(',')
             deleted = []
             for pk in selection:
-                level = self.model.objects.get(pk=pk)
-                level.delete()
-                deleted.append(pk)
+                try:
+                    obj = self.model.objects.get(pk=pk)
+                    obj.delete()
+                    deleted.append(pk)
+                except:
+                    continue
             response = {
-                'message': "%d level(s) deleted." % len(selection),
+                'message': "%d item(s) deleted." % len(selection),
                 'deleted': deleted
             }
             return HttpResponse(json.dumps(response))
         else:
-            try:
-                # If a notice message is set, add to context and remove from session
-                context['notice_message'] = self.request.session['notice_message']
-                self.request.session['notice_message'] = None
-            except KeyError:
-                pass
-            return super(HybridListView, self).render_to_response(context, **response_kwargs)
+            return super(HybridListView, self).get(request, *args, **kwargs)
 
     def get_search_results(self, queryset, max_chars=None):
         """
@@ -449,7 +451,7 @@ class Configuration(BaseView):
             next_url = reverse('ikwen:configuration')
         config_admin = self.get_config_admin()
         ModelForm = config_admin.get_form(request)
-        form = ModelForm(request.POST, instance=service.config)
+        form = ModelForm(request.POST, request.FILES, instance=service.config)
         if form.is_valid():
             try:
                 currency_code = request.POST['currency_code']
@@ -473,7 +475,6 @@ class Configuration(BaseView):
             cache.delete(service.id + ':config:' + UMBRELLA)
             service.config.save(using=UMBRELLA)
             messages.success(request, _("Configuration successfully updated."))
-            next_url = append_auth_tokens(next_url, request)
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)
@@ -642,6 +643,7 @@ def render_service_deployed_event(event, request):
     return html_template.render(c)
 
 
+@cache_page(60 * 60)
 def get_location_by_ip(request, *args, **kwargs):
     try:
         if getattr(settings, 'LOCAL_DEV', False):

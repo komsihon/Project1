@@ -298,7 +298,7 @@ def calculate_watch_info(history_value_list, duration=0):
 
     history_value_list = history_value_list[:-1]  # Strip the last value as it represents today
     if len(history_value_list) == 0:
-        return None
+        return {'total': 0, 'change': None, 'change_rate': None}
 
     total, total_0, change, change_rate = 0, None, None, None
     if duration == 1:  # When duration is a day, we compare to the same day of the previous week.
