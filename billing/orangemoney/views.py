@@ -6,9 +6,11 @@ import math
 import requests
 import time
 from django.conf import settings
+from django.contrib import messages
 from django.db import transaction
 from django.http import HttpResponse
 from django.http.response import HttpResponseRedirect
+from django.template.defaultfilters import slugify
 from django.utils.module_loading import import_by_path
 from requests.exceptions import SSLError
 
@@ -48,10 +50,11 @@ def init_web_payment(request, *args, **kwargs):
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     notif_url = request.session['notif_url']
     notif_url += '/%d' % momo_tx.id
+    company_name = slugify(service.config.company_name).replace('-', ' ')
     data = {'order_id': object_id,
             'amount': amount,
             'lang': 'fr',
-            'reference': request.session.get('merchant_name', service.config.company_name.upper()),
+            'reference': request.session.get('merchant_name', company_name.upper()),
             'return_url': request.session['return_url'],
             'cancel_url': request.session['cancel_url'],
             'notif_url': notif_url}
@@ -93,18 +96,34 @@ def init_web_payment(request, *args, **kwargs):
             else:
                 momo_tx.status = MoMoTransaction.API_ERROR
                 momo_tx.save()
+                messages.error(request, 'API Error')
+                return HttpResponseRedirect(request.session['cancel_url'])
         except SSLError:
             momo_tx.status = MoMoTransaction.SSL_ERROR
+            messages.error(request, 'SSL Error.')
+            return HttpResponseRedirect(request.session['cancel_url'])
         except Timeout:
             momo_tx.status = MoMoTransaction.TIMEOUT
+            momo_tx.save()
+            messages.error(request, 'Timeout. Orange Money Server is taking too long to respond.')
+            return HttpResponseRedirect(request.session['cancel_url'])
         except RequestException:
             import traceback
             momo_tx.status = MoMoTransaction.REQUEST_EXCEPTION
-            momo_tx.message = traceback.format_exc()
+            msg = traceback.format_exc()
+            momo_tx.message = msg
+            momo_tx.save()
+            messages.error(request, msg)
+            return HttpResponseRedirect(request.session['cancel_url'])
         except:
             import traceback
             momo_tx.status = MoMoTransaction.SERVER_ERROR
-            momo_tx.message = traceback.format_exc()
+            msg = traceback.format_exc()
+            if momo_tx.message:
+                messages.error(request, momo_tx.message)
+            else:
+                messages.error(request, msg)
+            return HttpResponseRedirect(request.session['cancel_url'])
 
 
 def check_transaction_status(request):
