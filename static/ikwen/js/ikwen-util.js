@@ -292,6 +292,8 @@
         });
         $eso.hammer().bind("pan", function(ev) {
             var deltaX = ev.gesture.deltaX;
+            var deltaY = Math.abs(ev.gesture.deltaY);
+            if (deltaY >= 10) return;
             if ($epl.is(':visible')) {
                 if (deltaX > 0) return;
                 $epl.css({marginLeft: deltaX + 'px'})
