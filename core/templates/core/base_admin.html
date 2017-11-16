@@ -152,21 +152,21 @@
                 deleteSelection(selection);
             });
 
-            $('#admin-tools').on('click', '.glyphicon-search', function() {
+            $('#admin-content').on('click', '#admin-tools .glyphicon-search', function() {
                 if ($(window).width() < 768) {
                     $(this).hide();
                     $('div#admin-tools .tool, div#admin-tools .glyphicon').hide();
                     $('.tool.search').show().focus();
                     $('.hide-search').show();
                 }
-            }).on('click', '.glyphicon-filter', function() {
+            }).on('click', '#admin-tools .glyphicon-filter', function() {
                 if ($(window).width() < 768) {
                     $(this).hide();
                     $('div#admin-tools .tool, div#admin-tools .glyphicon').hide();
                     $('.tool.filter').show().find('.widget').click();
                     $('.hide-filter').show()
                 }
-            }).on('click', '.back', function() {
+            }).on('click', '#admin-tools .back', function() {
                 $('div#admin-tools .glyphicon:not(.back)').show();
                 $(this).hide();
                 $('div#admin-tools .tool').hide();
