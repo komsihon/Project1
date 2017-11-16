@@ -37,7 +37,7 @@ div#container.admin {padding-top: 92px;}
 
 #admin-nav > div > div {padding: 0 10px;}
 #admin-nav .wrapper {padding: 20px 0 90px;}
-#admin-nav .stage {width: 200%;padding: 0 0 90px;}
+#admin-nav .stage {width: 100%;padding: 0 0 90px;}
 #admin-nav {background: #fff;left: 0;max-width: 240px;overflow: auto;position: fixed;height: 100%;width: 80%;top: 0;z-index: 1;}
 #admin-nav .divider {border-top: 1px solid #eee;margin: 15px 0;}
 .nav-pills>li>a {padding: 5px 15px;cursor: pointer;font-weight: 700;text-transform: uppercase;color: #666;}
@@ -47,7 +47,7 @@ div#container.admin {padding-top: 92px;}
 
 #filter-nav {padding: 0 10px;}
 #filter-nav span {cursor: pointer; float: left;width: 50%;padding-bottom: 6px;}
-#admin-nav .filter, #admin-nav .menu {float: left;width: 50%;padding: 0 10px;}
+#admin-nav .filter, #admin-nav .menu {float: left;width: 100%;padding: 0 10px;}
 .go-to-website, .go-to-website:hover, .go-to-website:active {color: #888;font-weight: 400;}
 .go-to-website .glyphicon {float: left; font-size: 24px}
 .go-to-website span {float: left;margin-left: 5px;margin-top: 3px;}
