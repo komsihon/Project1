@@ -143,11 +143,11 @@ def check_transaction_status(request):
     t0 = datetime.now()
     logger.debug("Started checking status of OM payment %s of %dF from %s" % (token, amount, username))
     while True:
-        time.sleep(1)
+        time.sleep(2)
         t1 = datetime.now()
         diff = t1 - t0
-        if diff.seconds >= (5 * 60):
-            logger.debug("OM payment %s of %dF from %s timed out after waiting for 5mn" % (token, amount, username))
+        if diff.seconds >= (10 * 60):
+            logger.debug("OM payment %s of %dF from %s timed out after waiting for 10mn" % (token, amount, username))
             break
         try:
             headers.update({'Authorization': 'Bearer ' + om['access_token']})
