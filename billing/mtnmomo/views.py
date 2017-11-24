@@ -63,12 +63,12 @@ def request_payment(request, transaction):
         transaction.processor_tx_id = resp['TransactionID']
         transaction.task_id = resp['ProcessingNumber']
         transaction.message = resp['StatusDesc']
-        if resp['StatusCode'] == '100':
-            transaction.status = MoMoTransaction.API_ERROR
-        else:
+        if resp['StatusCode'] == '01':
             username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
             logger.debug("Successful MoMo payment of %dF from %s: %s" % (amount, username, transaction.phone))
             transaction.status = MoMoTransaction.SUCCESS
+        else:
+            transaction.status = MoMoTransaction.API_ERROR
     else:
         try:
             mtn_momo = json.loads(PaymentMean.objects.get(slug=MTN_MOMO).credentials)
@@ -81,10 +81,10 @@ def request_payment(request, transaction):
             transaction.processor_tx_id = resp['TransactionID']
             transaction.task_id = resp['ProcessingNumber']
             transaction.message = resp['StatusDesc']
-            if resp['StatusCode'] == '100':
-                transaction.status = MoMoTransaction.API_ERROR
-            else:
+            if resp['StatusCode'] == '01':
                 transaction.status = MoMoTransaction.SUCCESS
+            else:
+                transaction.status = MoMoTransaction.API_ERROR
         except KeyError:
             import traceback
             transaction.status = MoMoTransaction.FAILURE
