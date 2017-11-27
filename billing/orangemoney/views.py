@@ -169,7 +169,7 @@ def check_transaction_status(request):
                             .update(processor_tx_id=processor_tx_id, is_running=False)
                         momo_after_checkout(request, signature=request.session['signature'], tx_id=tx_id)
                     except:
-                        logger.error("Orange Money: Error while running callback function", exc_info=True)
+                        logger.error("Orange Money: Error while running callback. User: %s, Amt: %d" % (request.user.username, int(request.session['amount'])), exc_info=True)
                 break
         except:
             logger.error("Orange Money: Failure while querying transaction status", exc_info=True)

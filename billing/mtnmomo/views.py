@@ -82,6 +82,8 @@ def request_payment(request, transaction):
             transaction.task_id = resp['ProcessingNumber']
             transaction.message = resp['StatusDesc']
             if resp['StatusCode'] == '01':
+                username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
+                logger.debug("Successful MoMo payment of %dF from %s: %s" % (amount, username, transaction.phone))
                 transaction.status = MoMoTransaction.SUCCESS
             else:
                 transaction.status = MoMoTransaction.API_ERROR
