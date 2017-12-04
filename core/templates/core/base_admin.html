@@ -150,6 +150,13 @@
             }).on('click', '.ik-li .trash', function() {
                 var selection = $(this).parents('.ik-li').data('id');
                 deleteSelection(selection);
+            }).on('click', '.pagination .page', function() {
+                var query = window.location.search,
+                    page = $(this).data('val');
+                if (query && query !== '?') query += '&format=html_results&page=' + page;
+                else query = 'format=html_results&page=' + page;
+                $('div#results .spinner').fadeIn();
+                $('div#admin-content .stage').load('', query);
             });
 
             $('#admin-content').on('click', '#admin-tools .glyphicon-search', function() {
