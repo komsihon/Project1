@@ -182,7 +182,7 @@
         {% block content %}{% endblock %}
         {% block footer %}
             <footer>
-                &copy; {{ year }} <a href="{{ service.url }}" style="color: #666; text-decoration: none"><strong>{{ config.company_name }}</strong></a>.
+                &copy; {{ year }} <a class="company-name" href="{{ service.url }}"><strong>{{ config.company_name }}</strong></a>.
                 {% trans "All rights reserved." %}
                 {% if config.legal_mentions_url %}
                 - <a href="{{ config.legal_mentions_url }}" style="color: #666; text-decoration: none">{% trans "Legal mentions" %}</a>
