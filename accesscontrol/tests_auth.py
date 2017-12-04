@@ -112,7 +112,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         """
         response = self.client.get(reverse('ikwen:sign_in'))
         self.assertEqual(response.status_code, 200)
-        response = self.client.post(reverse('ikwen:sign_in'), {'username': 'arch', 'password': 'wrong'}, follow=True)
+        response = self.client.post(reverse('ikwen:do_sign_in'), {'username': 'arch', 'password': 'wrong'}, follow=True)
         self.assertIsNotNone(response.context['login_form'])
 
     @override_settings(DATABASES=DATABASES, IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', LOGIN_REDIRECT_URL=None)
@@ -122,7 +122,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         """
         response = self.client.get(reverse('ikwen:sign_in'))
         self.assertEqual(response.status_code, 200)
-        response = self.client.post(reverse('ikwen:sign_in'), {'username': 'member3', 'password': 'admin'}, follow=True)
+        response = self.client.post(reverse('ikwen:do_sign_in'), {'username': 'member3', 'password': 'admin'}, follow=True)
         final = response.redirect_chain[-1]
         location = final[0].strip('/').split('/')[-1]
         self.assertEqual(location, 'console')
@@ -134,7 +134,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         """
         response = self.client.get(reverse('ikwen:sign_in'))
         self.assertEqual(response.status_code, 200)
-        response = self.client.post(reverse('ikwen:sign_in'), {'username': 'member3@ikwen.com', 'password': 'admin'},
+        response = self.client.post(reverse('ikwen:do_sign_in'), {'username': 'member3@ikwen.com', 'password': 'admin'},
                                     follow=True)
         final = response.redirect_chain[-1]
         location = final[0].strip('/').split('/')[-1]
@@ -173,7 +173,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         contact_url = reverse('ikwen:forgotten_password')
         next_url = contact_url + '?p1=v1&p2=v2'
-        origin = reverse('ikwen:sign_in') + '?next=' + urlencode(next_url)
+        origin = reverse('ikwen:do_sign_in') + '?next=' + urlencode(next_url)
         response = self.client.post(origin, {'username': 'arch', 'password': 'admin'}, follow=True)
         final = response.redirect_chain[-1]
         self.assertEqual(final[0], 'http://testserver' + next_url)
@@ -189,9 +189,9 @@ class IkwenAuthTestCase(unittest.TestCase):
         contact_url = reverse('ikwen:forgotten_password')
         next_url = contact_url + '?p1=v1&p2=v2'
         query_string = 'next=' + urlencode(next_url) + '&par1=val1&par2=val2'
-        origin = reverse('ikwen:sign_in') + '?' + query_string
+        origin = reverse('ikwen:do_sign_in') + '?' + query_string
         response = self.client.post(origin, {'username': 'arch', 'password': 'wrong'}, follow=True)
-        self.assertGreaterEqual(response.request['PATH_INFO'].find('/signIn/'), 0)
+        self.assertGreaterEqual(response.request['PATH_INFO'].find('/doSignIn/'), 0)
         self.assertEqual(response.request['QUERY_STRING'], query_string)
         self.assertIsNotNone(response.context['login_form'])
 
@@ -253,7 +253,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         params = unquote(final.query).split('&')
         self.assertGreaterEqual(params.index('p1=v1'), 0)
         self.assertGreaterEqual(params.index('p2=v2'), 0)
-        response = self.client.post(reverse('ikwen:sign_in'), {'username': 'testuser1', 'password': 'secret'}, follow=True)
+        response = self.client.post(reverse('ikwen:do_sign_in'), {'username': 'testuser1', 'password': 'secret'}, follow=True)
         final = response.redirect_chain[-1]
         location = final[0].strip('?').strip('/').split('/')[-1]
         self.assertEqual(location, 'console')

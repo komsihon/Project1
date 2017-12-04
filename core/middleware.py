@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
 
-from ikwen.core.urls import SERVICE_DETAIL, SIGN_IN, SERVICE_EXPIRED, LOAD_EVENT, LOGOUT
+from ikwen.core.urls import SERVICE_DETAIL, SIGN_IN, DO_SIGN_IN, SERVICE_EXPIRED, LOAD_EVENT, LOGOUT
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.core.models import Service
@@ -38,13 +38,13 @@ class ServiceStatusCheckMiddleware(object):
         if service.status != Service.PENDING and service.status != Service.ACTIVE:
             if request.user.is_authenticated() and request.user == service.member:
                 if rm.namespace == 'ikwen':
-                    if rm.url_name in [SERVICE_EXPIRED, SERVICE_DETAIL, LOAD_EVENT, SIGN_IN, LOGOUT]:
+                    if rm.url_name in [SERVICE_EXPIRED, SERVICE_DETAIL, LOAD_EVENT, SIGN_IN, DO_SIGN_IN, LOGOUT]:
                         return
                 query_string = request.META['QUERY_STRING']
                 service_detail_url = reverse('ikwen:' + SERVICE_DETAIL, args=(service.id, )) + '?' + query_string
                 return HttpResponseRedirect(service_detail_url)
             if rm.namespace == 'ikwen':
-                if rm.url_name in [SERVICE_EXPIRED, SERVICE_DETAIL, LOAD_EVENT, SIGN_IN, LOGOUT]:
+                if rm.url_name in [SERVICE_EXPIRED, SERVICE_DETAIL, LOAD_EVENT, SIGN_IN, DO_SIGN_IN, LOGOUT]:
                     return
             return HttpResponseRedirect(reverse('ikwen:' + SERVICE_EXPIRED))
         elif rm.namespace == 'ikwen' and rm.url_name == SERVICE_EXPIRED:

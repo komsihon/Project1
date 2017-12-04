@@ -1,0 +1,282 @@
+{% extends "core/base_bs.html" %}
+{% load i18n static auth_tokens %}
+
+{% block page_title %}<title>{{ service.project_name }} - {% trans "Sign in" %} </title>{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <link rel='stylesheet' href="{% static 'ikwen/css/sign-in.css' %}" />
+{% endblock %}
+
+{% block content %}
+    <div id="content" class="form container">
+        <p class="failure" style="display: none; font-size: 1em; padding: 9px"></p>
+        {% if login_form.errors %}
+            <p class="failure" style="font-size: 1em; padding: 9px">{{ error_message }}</p>
+        {% endif %}
+        {% if messages %}
+            {% for msg in messages %}<p class="msg-tag {{ msg.tags }}" style="font-size: 1em; padding: 9px">{{ msg }}</p>{% endfor %}
+        {% endif %}
+        <div class="welcome">
+            <p style="margin-bottom: 0">{% trans "Welcome, your password is" %}:</p>
+            <p class="default-pwd">{{ pwd }}</p>
+        </div>
+        <div id="stage" class="form-wrapper subtle-shade">
+            <h3 class="login-title">
+                {% if config.logo.name %}
+                    <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}" alt="Logo {{ service.project_name }}"
+                         style="max-height: 40px"/>
+                {% endif %}
+                {% trans "Login" %}
+            </h3>
+            <form id="login" action="{{ action }}" method="post" class="init">{% csrf_token %}
+                <div class="form-group row username">
+                    <label for="username" class="col-sm-5 col-md-4">{% trans "Username or email" %}</label>
+                    <div class="col-sm-7 col-md-8">
+                        <input id="username" class="form-control input-sm" type="text" name="username" value="{{ username }}" autofocus />
+                    </div>
+                </div>
+                <div class="form-group submit-username">
+                    {% if settings.IS_UMBRELLA %}
+                        <button class="btn btn-primary btn-block btn-sm"> {% trans "Submit" %} </button>
+                    {% else %}
+                        <button class="btn btn-primary btn-block btn-sm login-with-ikwen">
+                            <img height="26" />
+                            {% blocktrans %}Login with <strong>ikwen</strong>{% endblocktrans %}
+                        </button>
+                    {% endif %}
+                    <div class="spinner">
+                        <i class="fa fa-circle-o-notch fa-spin fa-2x"></i>
+                    </div>
+                </div>
+                <div class="create-account">
+                    <a href="javascript:;" class="show-change-pwd">{% trans "Change password now" %}</a>
+                    <div class="change-pwd">
+                        <div class="form-group row password2">
+                            <label for="password2" class="col-sm-5 col-md-4">{% trans "Confirm password" %}</label>
+                            <div class="col-sm-7 col-md-8">
+                                <input id="password2" class="form-control input-sm confirm-password" type="password" name="password2" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row email">
+                        <label for="email" class="col-sm-5 col-md-4">{% trans "Email" %}</label>
+                        <div class="col-sm-7 col-md-8">
+                            <input id="email" class="form-control input-sm required" type="email" name="email"/>
+                        </div>
+                    </div>
+                    <div class="form-group row phone">
+                        <label for="phone" class="col-sm-5 col-md-4">{% trans "Phone number" %}</label>
+                        <div class="col-sm-7 col-md-8">
+                            <input id="phone" class="form-control input-sm" type="text" name="phone"/>
+                        </div>
+                    </div>
+                    <div class="form-group row first-name">
+                        <label for="first-name" class="col-sm-5 col-md-4">{% trans "First name" %}</label>
+                        <div class="col-sm-7 col-md-8">
+                            <input id="first-name" class="form-control input-sm" type="text" name="first_name"/>
+                        </div>
+                    </div>
+                    <div class="form-group row last-name">
+                        <label for="last-name" class="col-sm-5 col-md-4">{% trans "Last name" %}</label>
+                        <div class="col-sm-7 col-md-8">
+                            <input id="last-name" class="form-control input-sm" type="text" name="last_name"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row password">
+                    <label for="password" class="col-sm-5 col-md-4">{% trans "Password" %}</label>
+                    <div class="col-sm-7 col-md-8">
+                        <input id="password" class="form-control input-sm" type="password" name="password" />
+                    </div>
+                </div>
+                <div class="terms">
+                    <div class="form-group">
+                        {% if settings.IS_IKWEN %}
+                            <p id="terms-warning">
+                                {% trans "By creating an account you agree our " %} <a
+                                    href="{% url 'ikwen:terms_and_conditions' %}">{% trans "Terms & Conditions" %}</a>
+                            </p>
+                        {% else %}
+                            <p id="terms-warning">
+                            {% url 'ikwen:terms_and_conditions' as ikwen_eula_url %}
+                                {% trans "You are about to create an account managed by" %} <a
+                                    href="{{ settings.IKWEN_BASE_URL }}"
+                                    style="color: #999; text-decoration: underline"><strong>ikwen</strong></a>,
+                                {% trans "on" %} {{ service.project_name }}.
+                                {% trans "By doing so you accept" %} <a
+                                    href="{{ ikwen_eula_url|ikwenize }}"><strong>ikwen</strong> {% trans "Terms & Conditions" %}
+                            </a>, {% trans "as well as" %}
+                                <a href="{{ settings.AGREEMENT_URL }}">{{ service.project_name }} {% trans "Terms & Conditions" %}.</a>
+                            </p>
+                        {% endif %}
+                    </div>
+                    <div class="form-group row">
+                        <div class="checkbox" style="padding-left: 15px">
+                            <label>
+                                <input id="accept-terms" type="checkbox" checked/> {% trans "Yes, I read and accept." %}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group submit">
+                    <button id="cancel" class="btn btn-default btn-sm hidden-xs" type="button"> {% trans "Cancel" %} </button>
+                    <button id="submit" class="btn btn-primary btn-block btn-sm cta" type="submit"> {% trans "Submit" %} </button>
+                    <a class="forgotten-pwd" href="{% url 'ikwen:forgotten_password' %}">{% trans "Forgotten password ?" %}</a>
+                    <div class="clearfix"></div>
+                </div>
+            </form>
+        </div>
+        <div class="clear"></div>
+    </div>
+{% endblock %}
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        {% get_current_language as LANGUAGE_CODE %}
+        (function() {
+            var pwdMinLength = 4; //Length for auto-generated password
+            $(window).on('hashchange', function() {
+                if (location.hash.length < 1) {
+                    $('.form-group.password').insertBefore('.terms').find('label').text("{% trans "Password" %}");
+                    $('#login').addClass('init');
+                    $('#stage').addClass('form-wrapper').removeClass('col-sm-9 col-md-8');
+                    $('#content').removeClass('register');
+                }
+            });
+            $('body').on('click', '.submit-username', checkUsername)
+            .on('click', '.show-change-pwd', function() {
+                $('#password, #password2').val('');
+                $('.change-pwd').css('height', 'auto');
+                pwdMinLength = 6
+            }).on('click', '#cancel', function() {
+                window.history.back();
+            }).on('click', '#accept-terms', function() {
+                if ($(this).prop('checked')) {
+                    $('#submit').removeProp('disabled').removeClass('default')
+                } else $('#submit').prop('disabled', true).addClass('default')
+            });
+            $('#username').keyup(function(e) {
+                if (e.key === ' ') {
+                    var username = $(this).val().trim();
+                    $(this).val(username);
+                }
+            }).blur(testUsername);
+            $('#email').blur(testEmail);
+            $('#phone').blur(testPhone);
+            function testUsername(uname) {
+                $('.form-group.username .errorlist').remove();
+                var $username = $('#username'),
+                    username = $username.val();
+                username = username.replace(/ /g, '');
+                $('#username').val(username);
+                if (uname) username = uname;
+                if (username.length < 3 || /\d{1}/.test(username.substr(0, 1))) {
+                    $('.errorlist.username').remove();
+                    $('<ul class="errorlist username">' +
+                        '<li>' + "{% trans "Please use at least 3 characters." %}" + '</li>' +
+                        '<li>' + "{% trans "Start with a letter." %}" + '</li>' +
+                        '<ul>').insertAfter('#username');
+                    $username.focus();
+                    return false;
+                }
+                return true;
+            }
+            function testEmail() {
+                var $email = $('#email');
+                if ($email.val().isValidEmail()) {
+                    $('.errorlist.email').remove();
+                    return true;
+                }
+                $('.form-group.email .errorlist').remove();
+                $('<ul class="errorlist email"><li>' + "{% trans "Please, enter valid email" %}" + '</li><ul>')
+                        .insertAfter('#email');
+                $email.focus();
+                return false;
+            }
+            function testPhone() {
+                $('.form-group.phone .errorlist').remove();
+                var phone = $('#phone').val().trim();
+                if (phone && !/\d{9,}/.test(phone)) {
+                    $('<ul class="errorlist phone">' +
+                        '<li>' + "{% trans "Please use digits only." %}" + '</li>' +
+                        '<li>' + "{% trans "Prepend country code if you are not in Cameroon." %}" + '</li>' +
+                        '<li>' + "{% trans "DO NOT prepend 00." %}" + '</li>' +
+                        '<ul>').insertAfter('#phone');
+                    return false
+                }
+                return true;
+            }
+            function testPassword() {
+                $('.form-group.password .errorlist, .form-group.password2 .errorlist').remove();
+                var pwd1 = $('#password').val(),
+                    pwd2 = $('#password2').val();
+                if (pwd1.length < pwdMinLength) {
+                    $('<ul class="errorlist password">' +
+                        '<li>' + "{% trans "Password too short. Use at least 6 characters." %}" + '</li>' +
+                        '<ul>').insertAfter('#password');
+                    return false
+                }
+                if (pwd1 !== pwd2) {
+                    $('<ul class="errorlist password">' +
+                        '<li>' + "{% trans "Passwords mismatch! Please check." %}" + '</li>' +
+                        '<ul>').insertAfter('#password2');
+                    return false
+                }
+                return true;
+            }
+            $('#login').submit(function() {
+                if ($('#login').hasClass('init')) {
+                    checkUsername();
+                    return false;
+                }
+                if ($(this).hasClass('register')) {
+                    if (!$('#accept-terms').prop('checked')) return false;
+                    if (!testPassword()) return false;
+                    if ($('#email').hasClass('required')) {
+                        if (!testEmail()) return false;
+                    }
+                    if ($('#phone').hasClass('required')) {
+                        return testPhone()
+                    }
+                }
+            });
+
+            function checkUsername() {
+                var username = $('#username').val();
+                if (!username) return false;
+                if (!testUsername(username)) return false;
+                $('#login .spinner').css('visibility', 'visible');
+                $.ajax({
+                    url: '{% url 'ikwen:sign_in' %}',
+                    data: {username: username},
+                    error: function(req, status, error) {
+                        $('#login .spinner').css('visibility', 'hidden');
+                        $('#content .failure').show().html("{% trans "Oops! An error occurred. Check your internet." %}");
+                    },
+                    success: function(data) {
+                        $('#login .spinner').css('visibility', 'hidden');
+                        $('#login').removeClass('init');
+                        if (data.existing) {
+                            location.hash = 'login';
+                            $('#password').focus();
+                            $('#login').prop('action', "{% url 'ikwen:do_sign_in' %}?{{ request.META.QUERY_STRING }}");
+                        } else {
+                            $('#content').hide().addClass('register').fadeIn();
+                            $('#stage').removeClass('form-wrapper').addClass('col-sm-9 col-md-8');
+                            if (username.isValidEmail()) {
+                                $('#email').val(username);
+                                $('.form-group.email').hide();
+                            }
+                            $('.form-group.password').prependTo('.change-pwd').find('label').text("{% trans "Choose password" %}");
+                            $('.default-pwd').text(data.pwd);
+                            $('#password, #password2').val(data.pwd);
+                            location.hash = 'register';
+                            $('#login').prop('action', "{% url 'ikwen:register' %}?{{ request.META.QUERY_STRING }}");
+                        }
+                    }
+                })
+            }
+        })()
+    </script>
+    {{ config.scripts|safe }}
+{% endblock %}

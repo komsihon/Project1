@@ -8,7 +8,7 @@ from ikwen.flatpages.views import FlatPageList
 
 from ikwen.core.views import get_location_by_ip
 
-from ikwen.accesscontrol.views import SignIn, AccountSetup, update_info, \
+from ikwen.accesscontrol.views import SignIn, SignInMinimal, AccountSetup, update_info, \
     update_password, ForgottenPassword, SetNewPassword, Profile, Community, CompanyProfile, \
     grant_access, request_access, set_collaborator_permissions, move_member_to_group, toggle_member, \
     list_collaborators, MemberList, load_member_detail, AccessRequestList, deny_access, Register, \
@@ -19,6 +19,7 @@ from ikwen.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, \
 
 REGISTER = 'register'
 SIGN_IN = 'sign_in'
+DO_SIGN_IN = 'do_sign_in'
 LOGOUT = 'logout'
 ACCOUNT_SETUP = 'account_setup'
 UPDATE_INFO = 'update_info'
@@ -32,7 +33,8 @@ urlpatterns = patterns(
     '',
     url(r'^logout$', 'django.contrib.auth.views.logout', {'next_page': getattr(settings, "LOGIN_URL")}, name=LOGOUT),
     url(r'^signOut$', 'django.contrib.auth.views.logout', {'next_page': getattr(settings, "LOGIN_URL")}),
-    url(r'^signIn/$', SignIn.as_view(), name=SIGN_IN),
+    url(r'^signIn/$', SignInMinimal.as_view(), name=SIGN_IN),
+    url(r'^doSignIn/$', SignIn.as_view(), name=DO_SIGN_IN),
     url(r'^register/$', Register.as_view(), name=REGISTER),
     url(r'^phoneConfirmation/$', login_required(PhoneConfirmation.as_view()), name=PHONE_CONFIRMATION),
 

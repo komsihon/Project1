@@ -34,9 +34,9 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="rg-password1" class="col-sm-5 col-md-4">{% trans "Choose a password" %}</label>
+                        <label for="rg-password" class="col-sm-5 col-md-4">{% trans "Choose a password" %}</label>
                         <div class="col-sm-6 col-md-6">
-                            <input id="rg-password1" class="form-control input-sm password" type="password"
+                            <input id="rg-password" class="form-control input-sm password" type="password"
                                    name="password"/>
                         </div>
                     </div>
@@ -101,11 +101,11 @@
                     <div class="form-group row">
                         <div class="checkbox" style="padding-left: 15px">
                             <label>
-                                <input type="checkbox" checked/> {% trans "Yes, I read and accept." %}
+                                <input id="accept-terms" type="checkbox" checked/> {% trans "Yes, I read and accept." %}
                             </label>
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="form-group submit row">
                         <div class="col-sm-4 col-md-3 col-sm-offset-7 col-md-offset-7">
                             <button class="btn btn-primary btn-block btn-sm"> {% trans "Submit" %} </button>
                         </div>
@@ -121,10 +121,18 @@
     <script type="text/javascript">
         {% get_current_language as LANGUAGE_CODE %}
         (function () {
-            $('#rg-username').blur(function () {
+            $('#rg-username').keyup(function(e) {
+                if (e.key === ' ') {
+                    var username = $(this).val().trim();
+                    $(this).val(username);
+                }
+            }).blur(function () {
                 var username = $(this).val().trim(),
                     $formGroup = $('.form-group.email'),
                     $email = $('#rg-email');
+                username = username.replace(/ /g, '');
+                $(this).val(username);
+                if (!testUsername(username)) return;
                 if (username.isValidEmail()) {
                     $formGroup.css('overflow', 'hidden').animate({height: 0, marginBottom: 0}, 'normal', 'linear', function() {
                         $email.removeClass('required').val(username).attr('type', 'hidden');
@@ -139,6 +147,27 @@
             }).focus();
             $('#rg-email').blur(testEmail);
             $('#rg-phone').blur(testPhone);
+            $('#accept-terms').click(function() {
+                if ($(this).prop('checked')) {
+                    $('.form-group.submit .btn').removeProp('disabled').removeClass('default')
+                } else $('.form-group.submit .btn').prop('disabled', true).addClass('default')
+            });
+            function testUsername(uname) {
+                $('.form-group.username .errorlist').remove();
+                var $username = $('#rg-username'),
+                    username = $username.val();
+                if (uname) username = uname;
+                if (username.length < 3 || /\d{1}/.test(username.substr(0, 1))) {
+                    $('.errorlist.username').remove();
+                    $('<ul class="errorlist username">' +
+                        '<li>' + "{% trans "Please use at least 3 characters." %}" + '</li>' +
+                        '<li>' + "{% trans "Start with a letter." %}" + '</li>' +
+                        '<ul>').insertAfter('#rg-username');
+                    $username.focus();
+                    return false;
+                }
+                return true;
+            }
             function testEmail() {
                 var $email = $('#rg-email');
                 if ($email.val().trim().isValidEmail()) {
@@ -164,8 +193,27 @@
                 }
                 return true;
             }
+            function testPassword() {
+                var pwd1 = $('#rg-password').val(),
+                    pwd2 = $('#rg-password2').val();
+                if (pwd1 !== pwd2) {
+                    $('<ul class="errorlist password">' +
+                        '<li>' + "{% trans "Passwords mismatch! Please check." %}" + '</li>' +
+                        '<ul>').insertAfter('#rg-password');
+                    return false
+                }
+                if (pwd1.length < 6) {
+                    $('<ul class="errorlist password">' +
+                        '<li>' + "{% trans "Password too short. Use at least 6 characters." %}" + '</li>' +
+                        '<ul>').insertAfter('#rg-password');
+                    return false
+                }
+                return true;
+            }
 
             $('div#register form').submit(function () {
+                if (!$('#accept-terms').prop('checked')) return false;
+                if (!testPassword()) return false;
                 if ($('#rg-email').hasClass('required')) {
                     if (!testEmail()) return false;
                 }
@@ -173,18 +221,6 @@
                     return testPhone()
                 }
             });
-            {#            var p = $('form#register .country-code').width() + 3,#}
-            {#                w = $('form#register .phone').width() - p + 5;#}
-            {#            $('form#register .phone').css({paddingLeft: p, width: w});#}
-            {#            $('form#register').submit(function() {#}
-            {#                var phone = $(this).find('.phone').val();#}
-            {#                if (!/\d{9,}/.test(phone)) {#}
-            {#                    $('div#top-notice-ctnr span').html({% trans "Invalid phone number. Use digits only." %}).addClass('failure');#}
-            {#                    $('#top-notice-ctnr').fadeIn().delay(10000).fadeOut();#}
-            {#                    return false;#}
-            {#                }#}
-            {#                if (phone.charAt(0) == 6 && phone.length == 9) $(this).find('.phone').val('237' + phone)#}
-            {#            })#}
         })()
     </script>
     {{ config.scripts|safe }}

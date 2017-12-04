@@ -43,6 +43,9 @@ from ikwen.core.utils import get_service_instance, get_mail_content, add_databas
 from ikwen.core.utils import send_sms
 from ikwen.core.views import BaseView, HybridListView, IKWEN_BASE_URL
 
+import logging
+logger = logging.getLogger('ikwen')
+
 
 class Register(BaseView):
     template_name = 'accesscontrol/register.html'
@@ -130,8 +133,6 @@ class Register(BaseView):
                             next_url = reverse(next_url_view)
                         else:
                             next_url = ikwenize(reverse('ikwen:console'))
-                msg = _("Registration successful.")
-                messages.success(request, msg)
                 return HttpResponseRedirect(next_url)
             else:
                 msg = _("You already have an account on ikwen with this username. It was created on %s. "
@@ -204,6 +205,33 @@ class SignIn(BaseView):
                                         _("Invalid username/password or account inactive"))
                 context['error_message'] = error_message
             return render(request, 'accesscontrol/sign_in.html', context)
+
+
+class SignInMinimal(SignIn):
+    template_name = 'accesscontrol/sign_in_minimal.html'
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated():
+            super(SignInMinimal, self).get(request, *args, **kwargs)
+        username = request.GET.get('username')
+        if username:
+            try:
+                Member.objects.using(UMBRELLA).get(username=username)
+                response = {'existing': True}
+            except Member.DoesNotExist:
+                try:
+                    Member.objects.using(UMBRELLA).get(email=username)
+                    response = {'existing': True}
+                except Member.DoesNotExist:
+                    try:
+                        Member.objects.using(UMBRELLA).get(phone=username)
+                        response = {'existing': True}
+                    except Member.DoesNotExist:
+                        pwd = ''.join([random.SystemRandom().choice(string.ascii_letters) for _ in range(4)])
+                        response = {'existing': False,
+                                    'pwd': pwd.lower()}
+            return HttpResponse(json.dumps(response), 'content-type: text/json')
+        return super(SignInMinimal, self).get(request, *args, **kwargs)
 
 
 @login_required
@@ -956,20 +984,21 @@ class PhoneConfirmation(BaseView):
                 send_sms(phone, text, script_url=main_link, fail_silently=False)
             except:
                 fallback_link = getattr(settings, 'SMS_FALLBACK_LINK', None)
-                send_sms(phone, text, script_url=fallback_link)
+                send_sms(phone, text, script_url=fallback_link, fail_silently=False)
 
     def get(self, request, *args, **kwargs):
         next_url = getattr(settings, 'LOGIN_REDIRECT_URL', 'home')
-        if request.user.is_authenticated() and request.user.phone_verified:
+        member = request.user
+        if member.is_authenticated() and member.phone_verified:
             return HttpResponseRedirect(reverse(next_url))
-        context = self.get_context_data(**kwargs)
         if getattr(settings, 'DEBUG', False):
             self.send_code(request)
         else:
             try:
                 self.send_code(request)
             except:
-                context['error_message'] = _('Could not send code. Please try again later')
+                logger.error('Failed to submit SMS to %s' % member.phone, exc_info=True)
+                messages.error(request, _('Could not send code. Please try again later'))
         return super(PhoneConfirmation, self).get(request, *args, **kwargs)
 
     def render_to_response(self, context, **response_kwargs):
