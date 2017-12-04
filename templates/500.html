@@ -16,18 +16,14 @@
           <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
     </head>
-    <body>
+    <body class="error-page">
         <div id="content" class="container">
-            <div style="margin-top: 10%; text-align: center">
-                {# TODO: Create a custom 500 icon #}
-                <img src="{% static 'ikwen/img/page-error.png' %}" height="250"/>
-                <div style="padding-top: 30px; text-align: center">
-                    <h2>Error 500. Server issue. Please try again later</h2>
-                </div>
-            </div>
+            <h1>Error 500</h1>
+            <p>Internal Server error.</p>
+            <p>Please try again later or contact administrator.</p>
         </div>
-        <footer style="color: #999; font-size: 12px; margin-top: 45px; text-align: center">
-            &copy; {{ year }} <a href="{{ settings.IKWEN_BASE_URL }}" style="color: #666; text-decoration: none"><strong>ikwen</strong></a>.
+        <footer style="font-size: 12px; margin-top: 45px; text-align: center">
+            &copy; {{ year }} <a class="company-name" href="{{ settings.IKWEN_BASE_URL }}"><strong>ikwen</strong></a>.
             {% trans "All rights reserved." %}
         </footer>
     </body>

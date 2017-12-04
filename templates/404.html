@@ -16,18 +16,14 @@
           <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
     </head>
-    <body>
+    <body class="error-page">
         <div id="content" class="container">
-            <div style="margin-top: 10%; text-align: center">
-                {# TODO: Create a custom 404 icon #}
-                <img src="{% static 'ikwen/img/page-error.png' %}" height="250"/>
-                <div style="padding-top: 30px; text-align: center">
-                    <h2>Error 404. Sorry the requested URL was not found on this server.</h2>
-                </div>
-            </div>
+            <h1>Error 404</h1>
+            <p>Sorry the requested URL was not found on this website.</p>
+            <p>The page might have been moved or deleted.</p>
         </div>
-        <footer style="color: #999; font-size: 12px; margin-top: 45px; text-align: center">
-            &copy; {{ year }} <a href="{{ settings.IKWEN_BASE_URL }}" style="color: #666; text-decoration: none"><strong>ikwen</strong></a>.
+        <footer style="font-size: 12px; margin-top: 45px; text-align: center">
+            &copy; {{ year }} <a class="company-name" href="{{ settings.IKWEN_BASE_URL }}"><strong>ikwen</strong></a>.
             {% trans "All rights reserved." %}
         </footer>
     </body>
