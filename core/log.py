@@ -8,7 +8,7 @@ getLogger = logging.getLogger
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'formatters': {
         'default': {
             'format': '%(asctime)-27s %(message)s'
