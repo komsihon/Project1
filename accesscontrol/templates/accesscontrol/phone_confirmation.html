@@ -10,9 +10,13 @@
         #content > div {margin: auto}
         div#confirmation {background: rgba(255, 255, 255, .9); border-radius: 3px; padding: 1px 20px 30px; width: 300px}
         #navbar .navbar-brand, #navbar .navbar-brand:hover {display: none}
+        .logout {font-size: 13px}
 
         @media (max-width: 767px) {
             #navbar .navbar-header {float: none; text-align: center}
+            #content {padding-top: 15px}
+            .logout {padding-bottom: 20px}
+            div#confirmation {padding: 1px 0 30px}
         }
 
         @media (min-width: 768px) {
@@ -34,10 +38,11 @@
 
 {% block content %}
     <div id="content" class="container">
-        {% if error_message %}
-            <p class="failure" style="font-size: 1em; margin: auto; padding: 9px; width: 360px">{{ error_message }}</p>
+        {% if messages %}
+            {% for msg in messages %}<p class="msg-tag {{ msg.tags }}" style="font-size: 1em; padding: 9px">{{ msg }}</p>{% endfor %}
         {% endif %}
-        <div class="col-xs-12 text-right" style="font-size: 13px">
+        <div class="col-xs-12 text-right logout">
+            <span class="text-muted">{{ user.phone }} - </span>
             <a href="{% url 'ikwen:logout' %}">{% trans "Logout" %}</a>
         </div>
         <div id="confirmation">
