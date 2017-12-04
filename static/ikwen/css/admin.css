@@ -83,7 +83,7 @@ div#container.admin {padding-top: 92px;}
 .currency-list .checkbox:first-of-type {margin: -5px 0 10px 0}
 #stage section {background: #fff;float: left;margin-top: 25px;overflow: hidden;padding: 15px;width: 100%;}
 #stage section h3 {font-size: 21px; font-weight: 700; margin-top: 0}
-footer {text-align: left;padding: 10px;background: #fff;width: 225px;bottom: 0;position: fixed;}
+footer {background: #fff;bottom: 0;margin:0;padding: 10px;position: fixed;text-align: left;width: 239px;}
 footer a {color: #999}
 
 #object-detail {background: #fff;height: 100%;max-width: 270px; position: fixed;right: 0;width: 80%;overflow: auto;}

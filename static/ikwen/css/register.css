@@ -10,6 +10,7 @@
     display: none
 }
 #content.form form {border: none; padding: 0}
+#rg-username {text-transform: lowercase}
 
 #terms-warning {
     color: #999;

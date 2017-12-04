@@ -1,0 +1,55 @@
+/**
+    Document   : sign-in
+    Created on : November 17, 2018, 14:22
+    Author     : Kom Sihon
+    Description:
+        CSS Rules for the minimal sign in page
+*/
+
+#navbar {display: none}
+html, body {height: 100%}
+body {background: #f8f6f6 url(../../ikwen/img/signin-bg.jpg) no-repeat center fixed; background-size: cover}
+#content.form.register {padding-top: 3%}
+#stage {background: #fff; border-radius: 4px; float: none; padding: 0}
+.login-title {border-bottom: 1px solid #eee; margin-top: 0; padding: 1.3em 0 1em; text-align: center}
+.login-title img {border-radius: 4px; height: 40px}
+label span {font-weight: normal}
+.spinner {color: #2c3e50; height: 25px; margin-top: 15px; text-align: center; visibility: hidden}
+.welcome {color: #fff; display: none; font-family: "Lato", "PT Sans", sans-serif; font-size: 1.6em; font-weight: 300; overflow: hidden; text-align: center; }
+.default-pwd {font-size: 2em}
+.show-change-pwd {display: block; margin: -12px 0 15px; text-align: right}
+.change-pwd {height: 0; overflow: hidden; transition: height .3s}
+#content.form form {border: none; margin-top: 0; padding: 15px 30px 40px}
+.form-group.username {height: 0; overflow: hidden; margin-bottom: 0}
+.form-group.password {height: auto; overflow: hidden}
+.form-group.submit-username {display: none}
+#username {text-transform: lowercase}
+#cancel {display: none}
+#content.form.register #cancel {display: block; float: left; width: 180px}
+.login-with-ikwen {font-size: 1em; height: 40px; letter-spacing: .5px; padding: 6px 9px 8px}
+.login-with-ikwen img {content: url(../../ikwen/img/logo_ikwen_symbol_30x30.png); margin: -4px 5px 0 0}
+.login-with-ikwen strong {color: #7ea6ca}
+.forgotten-pwd {float: left; margin-top: 7px}
+.init .col-sm-5, .init .col-md-4, .init .col-sm-7, .init .col-md-8 {padding: 0; width: auto}
+#login > .form-group.password > * {float: none; width: auto}
+.init .row {margin-left: 0; margin-right: 0}
+.init .form-group.username {height: auto; margin-bottom: 15px}
+.init .form-group.username > div {clear: both; float: none}
+.init .form-group.submit-username {display: block}
+.init .form-group.password {height: 0}
+.init .welcome, .create-account, .init .form-group.submit, .terms, .register .forgotten-pwd {display: none}
+.register .welcome, .register .create-account, .register .terms {display: block}
+.register .form-group.username {height: auto; margin-bottom: 15px}
+#terms-warning {font-size: 11px}
+footer, footer .company-name {color: #fff}
+
+@media (min-width: 480px) {
+    #content.form.register #submit {float: right; width: 180px}
+}
+@media (max-width: 767px) {
+    #stage {width: 90%}
+    #content.form form {padding-left: 15px; padding-right: 15px}
+}
+@media (min-width: 992px) {
+    #content.form.register {padding-top: 1.5%}
+}
