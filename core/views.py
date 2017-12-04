@@ -120,50 +120,50 @@ class HybridListView(ListView):
 
     def render_to_response(self, context, **response_kwargs):
         fmt = self.request.GET.get('format')
-        action = self.request.GET.get('action')
-        if fmt:
-            queryset = self.get_queryset()
-            queryset = self.filter_queryset(queryset)
-            start_date = self.request.GET.get('start_date')
-            end_date = self.request.GET.get('end_date')
-            if start_date and end_date:
-                queryset = queryset.filter(created_on__range=(start_date, end_date))
-            elif start_date:
-                queryset = queryset.filter(created_on__gte=start_date)
-            elif end_date:
-                queryset = queryset.filter(created_on__lte=end_date)
-            start = int(self.request.GET.get('start'))
-            length = int(self.request.GET.get('length', self.page_size))
-            limit = start + length
-            queryset = self.get_search_results(queryset, max_chars=4)
-            queryset = queryset.order_by(*self.ajax_ordering)[start:limit]
-            if fmt == 'json':
-                response = []
-                for item in queryset:
-                    try:
-                        response.append(item.to_dict())
-                    except:
-                        continue
-                callback = self.request.GET.get('callback')
-                if callback:
-                    response = {'object_list': response}
-                    jsonp = callback + '(' + json.dumps(response) + ')'
-                    return HttpResponse(jsonp, content_type='application/json', **response_kwargs)
-                return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
-            else:
-                paginator = Paginator(queryset, self.page_size)
-                page = self.request.GET.get('page')
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        if start_date and end_date:
+            queryset = queryset.filter(created_on__range=(start_date, end_date))
+        elif start_date:
+            queryset = queryset.filter(created_on__gte=start_date)
+        elif end_date:
+            queryset = queryset.filter(created_on__lte=end_date)
+        start = int(self.request.GET.get('start', 0))
+        length = int(self.request.GET.get('length', self.page_size))
+        limit = start + length
+        queryset = self.get_search_results(queryset, max_chars=4)
+        queryset = queryset.order_by(*self.ajax_ordering)
+        if fmt == 'json':
+            queryset = queryset[start:limit]
+            response = []
+            for item in queryset:
                 try:
-                    objects_page = paginator.page(page)
-                except PageNotAnInteger:
-                    objects_page = paginator.page(1)
-                except EmptyPage:
-                    objects_page = paginator.page(paginator.num_pages)
-                context['q'] = self.request.GET.get('q')
-                context['objects_page'] = objects_page
-                return render(self.request, self.html_results_template_name, context)
+                    response.append(item.to_dict())
+                except:
+                    continue
+            callback = self.request.GET.get('callback')
+            if callback:
+                response = {'object_list': response}
+                jsonp = callback + '(' + json.dumps(response) + ')'
+                return HttpResponse(jsonp, content_type='application/json', **response_kwargs)
+            return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
         else:
-            return super(HybridListView, self).render_to_response(context, **response_kwargs)
+            paginator = Paginator(queryset, self.page_size)
+            page = self.request.GET.get('page')
+            try:
+                objects_page = paginator.page(page)
+            except PageNotAnInteger:
+                objects_page = paginator.page(1)
+            except EmptyPage:
+                objects_page = paginator.page(paginator.num_pages)
+            context['q'] = self.request.GET.get('q')
+            context['objects_page'] = objects_page
+            if fmt == 'html_results':
+                return render(self.request, self.html_results_template_name, context)
+            else:
+                return super(HybridListView, self).render_to_response(context, **response_kwargs)
 
     def get(self, request, *args, **kwargs):
         action = self.request.GET.get('action')
