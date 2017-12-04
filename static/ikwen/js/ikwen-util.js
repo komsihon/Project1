@@ -428,6 +428,7 @@
         if (winWidth < 768) {
             initContentTabListSwiper()
         } else if (winWidth >= 768) {
+            if (winWidth >= 992) $epl.show().css('margin-left', 0);
             if (!contentTabListSwiper) return;
             contentTabListSwiper.destroy();
             contentTabListSwiper = null;
