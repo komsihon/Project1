@@ -77,7 +77,7 @@
                     $(this).val(username);
                 }
             }).blur(function() {
-                var username = $(this).val().replace(/ /g, '');
+                var username = $(this).val().replace(/ /g, '').toLowerCase();
                 $(this).val(username);
             });
         })()

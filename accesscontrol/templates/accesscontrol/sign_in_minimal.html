@@ -167,7 +167,7 @@
                 $('.form-group.username .errorlist').remove();
                 var $username = $('#username'),
                     username = $username.val();
-                username = username.replace(/ /g, '');
+                username = username.replace(/ /g, '').toLowerCase();
                 $('#username').val(username);
                 if (uname) username = uname;
                 if (username.length < 3 || /\d{1}/.test(username.substr(0, 1))) {

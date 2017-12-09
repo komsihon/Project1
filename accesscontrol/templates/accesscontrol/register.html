@@ -130,7 +130,7 @@
                 var username = $(this).val().trim(),
                     $formGroup = $('.form-group.email'),
                     $email = $('#rg-email');
-                username = username.replace(/ /g, '');
+                username = username.replace(/ /g, '').toLowerCase();
                 $(this).val(username);
                 if (!testUsername(username)) return;
                 if (username.isValidEmail()) {
