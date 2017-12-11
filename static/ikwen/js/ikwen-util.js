@@ -55,6 +55,9 @@
     String.prototype.isValidEmail = function() {
         return /^[a-zA-Z0-9_]+(\.*\-*[a-zA-Z0-9_]+)*\@[a-zA-Z0-9_]+(\-*[a-zA-Z0-9_])*(\.[a-zA-Z0-9_]+)*\.[a-zA-Z]{2,4}$/.test(this)
     };
+    c.getRandomInt = function(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    };
     c.CookieUtil = {
         get: function (name) {
             var cookieName = encodeURIComponent(name) + '=',
