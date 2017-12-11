@@ -1,0 +1,52 @@
+/**
+    Document   : deploy
+    Created on : Dec 11, 2017, 15:29
+    Author     : Kom Sihon
+    Description:
+        Rules for a minimalist deploy page
+*/
+
+#navbar {background: #fff}
+#navbar .navbar-brand {color: #888;font-size: 2em;font-weight: 700;}
+#navbar a {color: #888}
+.navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:hover, .navbar-default .navbar-nav>.open>a:focus {background: #eee}
+.dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {background: #eee}
+#navbar .glyphicon {color: #aaa}
+#content {margin-bottom: 2em; padding-top: 75px; padding-left: 0}
+.page-header {margin: 0 0 1em}
+#navbar .menu-button, #navbar-search {
+    display: none
+}
+.section-title {color: #666; margin: 2em 0 1em}
+.section-title:first-of-type {margin-top: 0}
+.section-title.billing {margin-top: 2em}
+.section-title.choose-theme {margin: 10.5px 0 1em}
+.btn-icon {border: 1px solid; border-radius: 3px; cursor: pointer; font-size: 15px; height: 33px;
+    line-height: 31px; text-align: center; width: 33px}
+.btn-icon.glyphicon-plus {padding-left: 2px}
+@media (max-width: 767px) {
+    input.amount {margin-top: 4px}
+    .btn-icon {float: right; margin: 2px 15px 0 0 }
+}
+.results.customers {background: #fff; position: absolute; z-index: 10}
+#content form ul.errorlist {
+    padding-left: 0
+}
+
+#content form ul.errorlist li {
+    color: #FF0808;
+    list-style-type: none
+}
+
+.theme img {transition: box-shadow .3s}
+.theme:hover img, .theme.active img {box-shadow: 1px 1px 9px 4px rgba(255, 87, 0, 0.42); transition: box-shadow .3s}
+@media (max-width: 767px) {
+    #navbar {background: #f8f6f6}
+    #navbar .navbar-brand {font-size: 1.5em; font-weight: 700}
+    #content {padding-top: 55px;}
+    .page-header {margin: 0.5em 0 0}
+    .dropdown-menu-xs {background: #f8f6f6}
+    .dropdown-menu-xs li {border-bottom: 1px solid #eee;}
+    .theme {margin-top: 1.5em}
+    .section-title.choose-theme {margin-bottom: .5em}
+}
