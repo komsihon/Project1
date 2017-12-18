@@ -36,6 +36,12 @@
                 <input type="hidden" name="page_id" value="{{ page.id }}" />
                 <input type="hidden" name="image_url" id="image_url" value="" />
                 {% include 'core/snippets/model_admin_form.html' %}
+                {% if page %}
+                    <div class="form-group">
+                        <label>{% trans "Page URL" %}:</label>
+                        <a href="{{ service.url }}{% url 'flatpage' page.url %}" target="_blank" class="text-muted">{{ service.url }}{% url 'flatpage' page.url %}</a>
+                    </div>
+                {% endif %}
                 <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
                     <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
                 </div>
