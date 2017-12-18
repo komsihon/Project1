@@ -103,6 +103,9 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 
 .tiles {margin-top: -15px}
 .tiles .ik-li {height: 280px;width: 100%;border-bottom: none;}
+.tiles .ik-li .select {
+    margin: -10px 0 0 -6px;
+}
 .tiles .ik-li > .content {background: #fff;border: 1px solid #eee;padding: 6px;}
 .tiles .ik-li .image {background-size: cover}
 .tiles .ik-li.selected {border: none}
@@ -204,6 +207,9 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     .ik-li.img-lg .image {height: 100px; width: 130px;}
     .ik-li.img-lg .info {margin-left: 10px;width: 160px;}
     .ik-li .meta {display: block}
+    .ik-li .actions .glyphicon, #selection-control .glyphicon {font-size: 21px;margin-left: 15px;}
+    .ik-li .actions .glyphicon:first-child, #selection-control .glyphicon:first-child {margin-left: 0}
+    .ik-li:not(.selected):hover .actions {background: #fff;border-radius: 3px;box-shadow: -1px 1px 7px 3px rgba(0, 0, 0, .1);margin-top: 0;position: absolute;padding: 3px 3px 5px;}
     .input-sm {font-size: 15px}
     #navbar > .container-fluid {padding: 0;}
     .navbar-default .navbar-brand {max-width: 115px;overflow: hidden;}
@@ -270,6 +276,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     #content.container {padding-top: 75px;}
     .edge-panel-right {display: block;margin-right: 0;z-index: 20;}
     .tiles .ik-li {height: 280px;width: 33.33%;}
+    .tiles .ik-li .glyphicon-edit {display: none}
     .nav > .tab > a {padding: 10px 15px}
     .ik-li .date {float: right}
 }

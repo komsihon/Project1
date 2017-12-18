@@ -120,12 +120,6 @@
     {{ block.super }}
     <script>
         (function() {
-            $('nav#filter-nav .show-menu').click(function() {
-                $('div#admin-nav .stage').animate({marginLeft: 0})
-            });
-            $('nav#filter-nav .show-filter').click(function() {
-                $('div#admin-nav .stage').animate({marginLeft: '-100%'})
-            });
             $('#admin-nav, #admin-content, #object-detail').scroll(function() {
                 if ($(this).scrollTop() > 0) {
                     if ($(this).find('.ceil').length > 0) return;
@@ -134,8 +128,9 @@
                     $('#app-nav').removeClass('has-shade')
                 }
             });
-            $('body').on('click', '.ik-li .select', function() {
-                $(this).parents('.ik-li').toggleClass('selected');
+            $('body').on('click', '.ik-li', function() {
+                if ($(this).find('> .select').length <= 0) return;
+                $(this).toggleClass('selected');
                 var id = $(this).data('id'),
                     count = $('.ik-li.selected').length;
                 if (count > 0) {
@@ -150,6 +145,8 @@
             }).on('click', '.ik-li .trash', function() {
                 var selection = $(this).parents('.ik-li').data('id');
                 deleteSelection(selection);
+            }).on('click', '.tiles .ik-li a:not(.glyphicon)', function() {
+                if ($(window).width() < 768) $(this).removeAttr('href');
             }).on('click', '.pagination .page', function() {
                 var query = window.location.search,
                     page = $(this).data('val');
