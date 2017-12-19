@@ -11,7 +11,6 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import Group
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
-from django.db import transaction
 from django.db.models import Q
 from django.db.models.loading import get_model
 from django.http import HttpResponse
@@ -19,12 +18,12 @@ from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.template import Context
+from django.template.defaultfilters import slugify
 from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from django.utils.http import urlquote
 from django.utils.module_loading import import_by_path
-from django.utils.text import slugify
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
@@ -34,14 +33,15 @@ from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, SUDO
 from ikwen.billing.cloud_setup import DeploymentForm, deploy
 from ikwen.billing.models import Invoice, SendingReport, SERVICE_SUSPENDED_EVENT, PaymentMean, Payment, \
-    PAYMENT_CONFIRMATION, CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry, MoMoTransaction
-from ikwen.billing.mtnmomo.views import init_request_payment, MTN_MOMO
+    PAYMENT_CONFIRMATION, CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry, Product, InvoiceItem
+from ikwen.billing.admin import ProductAdmin
+from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.orangemoney.views import init_web_payment, ORANGE_MONEY
 from ikwen.billing.utils import get_invoicing_config_instance, get_subscription_model, get_days_count, \
-    get_payment_confirmation_message, share_payment_and_set_stats
+    get_payment_confirmation_message, share_payment_and_set_stats, get_next_invoice_number
 from ikwen.core.models import Service, Application
 from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content
-from ikwen.core.views import BaseView
+from ikwen.core.views import BaseView, HybridListView, ChangeObjectBase
 from ikwen.partnership.models import ApplicationRetailConfig
 
 logger = logging.getLogger('ikwen')
@@ -70,6 +70,26 @@ class IframeAdmin(BillingBaseView):
         context['model_name'] = model_name
         context['iframe_url'] = iframe_url
         return context
+
+
+class ProductList(HybridListView):
+    model = Product
+    ordering = ('cost', )
+    context_object_name = 'product_list'
+    template_name = 'billing/product_list.html'
+
+
+class ChangeProduct(ChangeObjectBase):
+    model = Product
+    model_admin = ProductAdmin
+    template_name = 'billing/change_product.html'
+
+
+class SubscriptionList(HybridListView):
+    model = Subscription
+    ordering = ('-id', )
+    context_object_name = 'subscription_list'
+    template_name = 'billing/subscription_list.html'
 
 
 class InvoiceList(BillingBaseView):
@@ -107,6 +127,10 @@ class InvoiceDetail(BillingBaseView):
         context = super(InvoiceDetail, self).get_context_data(**kwargs)
         invoice_id = self.kwargs['invoice_id']
         invoice = get_object_or_404(Invoice, pk=invoice_id)
+        subscription = invoice.subscription
+        if not subscription.member:
+            subscription.member = self.request.user
+            subscription.save()
         context['invoice'] = invoice
         context['payment_mean_list'] = list(PaymentMean.objects.filter(is_active=True).order_by('-is_main'))
         if getattr(settings, 'IS_IKWEN', False):
@@ -353,7 +377,7 @@ def toggle_payment_mean(request, *args, **kwargs):
 def set_invoice_checkout(request, *args, **kwargs):
     """
     This function has no URL associated with it.
-     It serves as ikwen setting "MOMO_BEFORE_CHECKOUT"
+    It serves as ikwen setting "MOMO_BEFORE_CHECKOUT"
     """
     if request.user.is_anonymous():
         next_url = reverse('ikwen:sign_in')
@@ -365,17 +389,29 @@ def set_invoice_checkout(request, *args, **kwargs):
     config = service.config
     invoice_id = request.POST['invoice_id']
     try:
-        extra_months = int(request.POST.get('extra_months', ''))
+        extra_months = int(request.POST.get('extra_months', '0'))
     except ValueError:
         extra_months = 0
     invoice = Invoice.objects.get(pk=invoice_id)
-    amount = invoice.amount + invoice.service.monthly_cost * extra_months
+    amount = invoice.amount
+    if extra_months:
+        amount += invoice.service.monthly_cost * extra_months
     if config.__dict__.get('processing_fees_on_customer'):
         amount += config.ikwen_share_fixed
     request.session['amount'] = amount
     request.session['model_name'] = 'billing.Invoice'
     request.session['object_id'] = invoice_id
     request.session['extra_months'] = extra_months
+
+    mean = request.GET.get('mean', MTN_MOMO)
+    request.session['mean'] = mean
+    if mean == MTN_MOMO:
+        request.session['is_momo_payment'] = True
+    elif mean == ORANGE_MONEY:
+        request.session['notif_url'] = service.url
+        request.session['return_url'] = service.url + reverse('billing:invoice_detail', args=(invoice_id, ))
+        request.session['cancel_url'] = service.url + reverse('billing:invoice_detail', args=(invoice_id, ))
+        request.session['is_momo_payment'] = False
 
 
 def confirm_invoice_payment(request, *args, **kwargs):
@@ -416,7 +452,8 @@ def confirm_invoice_payment(request, *args, **kwargs):
     if invoice.is_one_off:
         s.version = Service.FULL
     s.save()
-    share_payment_and_set_stats(invoice, total_months)
+    mean = request.session['mean']
+    share_payment_and_set_stats(invoice, total_months, mean)
     member = request.user
     add_event(service, PAYMENT_CONFIRMATION, member=member, object_id=invoice.id)
     partner = s.retailer
@@ -591,50 +628,11 @@ class MoMoSetCheckout(BaseView):
         return render(request, self.template_name, context)
 
 
-def init_momo_transaction(request, *args, **kwargs):
-    phone = slugify(request.GET['phone'])
-    if phone[:3] == '237':
-        phone = phone[3:]
-    request.session['phone'] = phone
-    return init_request_payment(request, *args, **kwargs)
+class Pricing(HybridListView):
+    queryset = Product.objects.filter(is_active=True)
+    template_name = 'billing/public/pricing.html'
+    context_object_name = 'product_list'
 
 
-@transaction.atomic
-def check_momo_transaction_status(request, *args, **kwargs):
-    tx_id = request.GET['tx_id']
-    tx = MoMoTransaction.objects.using('wallets').get(pk=tx_id)
-
-    # When a MoMoTransaction is created, its status is None or empty string
-    # So perform a double check. First, make sure a status has been set
-    if tx.is_running and tx.status:
-        tx.is_running = False
-        tx.save(using='wallets')
-        if tx.status == MoMoTransaction.SUCCESS:
-            request.session['tx_id'] = tx_id
-            path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
-            momo_after_checkout = import_by_path(path)
-            if getattr(settings, 'DEBUG', False):
-                resp_dict = momo_after_checkout(request, signature=request.session['signature'])
-                return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
-            else:
-                try:
-                    resp_dict = momo_after_checkout(request, signature=request.session['signature'])
-                    return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
-                except:
-                    logger.error("MTN MoMo: Failure while querying transaction status", exc_info=True)
-                    return HttpResponse(json.dumps({'error': 'Unknown server error in AFTER_CASH_OUT'}))
-        resp_dict = {'error': tx.status, 'message': ''}
-        if getattr(settings, 'DEBUG', False):
-            resp_dict['message'] = tx.message
-        elif tx.status == MoMoTransaction.FAILURE:
-            resp_dict['message'] = 'Ooops! You may have refused authorization. Please try again.'
-        elif tx.status == MoMoTransaction.API_ERROR:
-            resp_dict['message'] = 'Your balance may be insufficient. Please check and try again.'
-        elif tx.status == MoMoTransaction.TIMEOUT:
-            resp_dict['message'] = 'MTN Server is taking too long to respond. Please try again later'
-        elif tx.status == MoMoTransaction.REQUEST_EXCEPTION:
-            resp_dict['message'] = 'Could not init transaction with MTN Server. Please try again later'
-        elif tx.status == MoMoTransaction.SERVER_ERROR:
-            resp_dict['message'] = 'Unknown server error. Please try again later'
-        return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
-    return HttpResponse(json.dumps({'running': True}), 'content-type: text/json')
+class Donate(BaseView):
+    template_name = 'billing/public/donate.html'

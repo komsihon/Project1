@@ -6,13 +6,17 @@ from ikwen.billing.paypal.views import SetExpressCheckout
 from ikwen.billing.jumbopay.views import jumbopay_local_api
 
 from ikwen.billing.views import InvoiceList, InvoiceDetail, NoticeMail, change_billing_cycle, list_members, \
-    list_subscriptions, IframeAdmin, PaymentMeanList, set_credentials, toggle_payment_mean, MoMoSetCheckout, DeployCloud, \
-    init_momo_transaction, check_momo_transaction_status
+    list_subscriptions, IframeAdmin, ProductList, ChangeProduct, PaymentMeanList, set_credentials, toggle_payment_mean, \
+    MoMoSetCheckout, DeployCloud, Pricing, Donate
+from ikwen.billing.mtnmomo.views import init_momo_transaction, check_momo_transaction_status
 
 urlpatterns = patterns(
     '',
     url(r'^deployCloud/(?P<app_slug>[-\w]+)/$', permission_required('accesscontrol.sudo')(DeployCloud.as_view()), name='deploy_cloud'),
 
+    url(r'^products/$', login_required(ProductList.as_view()), name='product_list'),
+    url(r'^changeProduct/$', login_required(ChangeProduct.as_view()), name='change_product'),
+    url(r'^changeProduct/(?P<object_id>[-\w]+)$', login_required(ChangeProduct.as_view()), name='change_product'),
     url(r'^invoices/$', login_required(InvoiceList.as_view()), name='invoice_list'),
     url(r'^invoiceDetail/(?P<invoice_id>[-\w]+)/$', login_required(InvoiceDetail.as_view()), name='invoice_detail'),
     url(r'^paymentMeans/$', permission_required('accesscontrol.sudo')(PaymentMeanList.as_view()), name='payment_mean_list'),
@@ -21,6 +25,9 @@ urlpatterns = patterns(
     url(r'^change_billing_cycle$', change_billing_cycle, name='change_billing_cycle'),
     url(r'^list_members$', list_members, name='list_members'),
     url(r'^list_subscriptions$', list_subscriptions, name='list_subscriptions'),
+
+    url(r'^pricing/$', Pricing.as_view(), name='pricing'),
+    url(r'^donate/$', Donate.as_view(), name='donate'),
 
     url(r'^MoMo/setCheckout/$', MoMoSetCheckout.as_view(), name='momo_set_checkout'),
     url(r'^MoMo/initTransaction/$', init_momo_transaction, name='init_momo_transaction'),
