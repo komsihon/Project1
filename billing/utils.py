@@ -436,15 +436,15 @@ def suspend_subscription(subscription):
     subscription.save()
 
 
-def share_payment_and_set_stats(invoice, total_months):
+def share_payment_and_set_stats(invoice, total_months=None, payment_mean_slug='mtn-momo'):
     if getattr(settings, 'IS_IKWEN', False):
         # This is ikwen collecting payment for Invoice of its Cloud apps
-        _share_payment_and_set_stats_ikwen(invoice, total_months)
+        _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug)
     else:
-        _share_payment_and_set_stats_other(invoice)
+        _share_payment_and_set_stats_other(invoice, payment_mean_slug)
 
 
-def _share_payment_and_set_stats_ikwen(invoice, total_months):
+def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug='mtn-momo'):
     service_umbrella = Service.objects.get(pk=invoice.service.id)
     app_umbrella = service_umbrella.app
     ikwen_earnings = invoice.amount
@@ -466,7 +466,7 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months):
         add_database_to_settings(partner.database)
         partner_original = Service.objects.using(partner.database).get(pk=partner.id)
 
-        partner.raise_balance(partner_earnings)
+        partner.raise_balance(partner_earnings, payment_mean_slug)
 
         service_partner = Service.objects.using(partner.database).get(pk=service_umbrella.id)
         app_partner = service_partner.app
@@ -514,7 +514,7 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months):
     increment_history_field(app_umbrella, 'invoice_count_history')
 
 
-def _share_payment_and_set_stats_other(invoice):
+def _share_payment_and_set_stats_other(invoice, payment_mean_slug='mtn-momo'):
     service = get_service_instance()
     service_umbrella = get_service_instance(UMBRELLA)
     config = service_umbrella.config
@@ -526,12 +526,15 @@ def _share_payment_and_set_stats_other(invoice):
         ikwen_earnings += config.ikwen_share_fixed
         service_earnings = invoice.amount - ikwen_earnings  # Earnings of IAO of this website
 
-    service.raise_balance(service_earnings)
+    service.raise_balance(service_earnings, payment_mean_slug)
 
     set_counters(service)
     increment_history_field(service, 'turnover_history', invoice.amount)
     increment_history_field(service, 'earnings_history', service_earnings)
     increment_history_field(service, 'invoice_count_history')
+
+    if ikwen_earnings == 0:
+        return
 
     partner = service.retailer
     if partner:
@@ -541,7 +544,7 @@ def _share_payment_and_set_stats_other(invoice):
         partner_earnings = ikwen_earnings * (100 - retail_config.ikwen_tx_share_rate) / 100
         ikwen_earnings -= partner_earnings
 
-        partner.raise_balance(partner_earnings)
+        partner.raise_balance(partner_earnings, payment_mean_slug)
 
         set_counters(service_partner)
         increment_history_field(service_partner, 'turnover_history', invoice.amount)
