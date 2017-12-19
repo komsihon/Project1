@@ -1,0 +1,81 @@
+{% extends "core/base_bs.html" %}
+{% load i18n staticfiles humanize currency %}
+
+{% block page_title %}<title>{% trans "Pricing" %} - {{ service.project_name }} </title>{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <link rel='stylesheet' href="{% static 'ikwen/css/pricing.css' %}" />
+    {% if config.theme %}
+        <link rel='stylesheet' href="{{ service.app.slug }}/css/{{ config.theme.template.slug }}/{{ config.theme.slug }}.css" />
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div id="content" class="container">
+{#        <div class="text-center">#}
+{#            <img src=""/>#}
+{#        </div>#}
+        <div>
+        {% for product in product_list %}
+            <div class="col-sm-4 col-lg-3">
+                <div class="product">
+                    <h2 class="cost">
+                        <span>{{ product.cost|floatformat:"0"|intcomma }}</span>
+                        <sup class="currency text-muted">XAF{{ CURRENCY.symbol }}</sup>
+                    </h2>
+                    <p class="text-center name">
+                        <strong class="text-muted">{{ product.duration_text }}</strong>
+                    </p>
+                    <div class="description text-muted">
+                        <p>{{ product.short_description|safe }}</p>
+                    </div>
+                    <button class="btn btn-sm btn-warning cta btn-block choose" data-id="{{ product.id }}" data-toggle="modal"
+                            {% if user.is_anonymous %}data-target="#login-to-continue"{% endif %}>{% trans "Buy Now" %}</button>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+    {% include 'billing/snippets/modal_payment_options.html' %}
+    <div class="modal fade" id="login-to-continue" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-info">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{% trans "Sign in" %}</h4>
+                </div>
+                <div class="modal-body">
+                    <p class="col-xs-12" style="margin-bottom: 1em">{% trans "Please sign in to continue" %}</p>
+                    <div class="col-xs-12 col-sm-4 col-md-3 pull-right">
+                        <a href="{% url 'ikwen:sign_in' %}?next={{ request.META.REQUEST_URI }}"
+                           class="btn btn-sm btn-success btn-block do-empty-cart">{% trans "Sign in" %}</a>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-3 pull-right">
+                        <a href="{% url 'ikwen:register' %}?next={{ request.META.REQUEST_URI }}"
+                           class="btn btn-sm btn-warning btn-block">{% trans "Register" %}</a>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            {% if user.is_authenticated %}
+                $('.product .btn').click(function() {
+                    $('#payment-methods').modal('show');
+                    var productId = $(this).data('id');
+                    $('#product-id').val(productId);
+                });
+                $('.payment-method').click(function() {
+                    var actionURL = $(this).data('action-url');
+                    $('form#checkout').attr('action', actionURL).submit();
+                });
+            {% endif %}
+        })()
+    </script>
+    {{ config.scripts|safe }}
+{% endblock %}

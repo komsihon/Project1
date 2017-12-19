@@ -4,6 +4,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from djangotoolbox.fields import ListField, EmbeddedModelField
+from ikwen.core.constants import PENDING
+
 from ikwen.accesscontrol.backends import UMBRELLA
 
 from ikwen.accesscontrol.models import Member
@@ -123,6 +125,10 @@ class Product(Model):
     image = MultiImageField(upload_to=IMAGE_UPLOAD_TO, blank=True, null=True, max_size=800)
     details = models.TextField(blank=True,
                                help_text=_("Detailed description of the product."))
+    is_active = models.BooleanField(default=True,
+                                    help_text=_("Check to make the product active."))
+    is_main = models.BooleanField(default=False,
+                                  help_text=_("Check to make the product active."))
 
     def __unicode__(self):
         from ikwen.billing.utils import get_invoicing_config_instance
@@ -153,7 +159,8 @@ class AbstractSubscription(Model):
                                help_text=_("Client who subscribes to the service."))
     product = models.ForeignKey(getattr(settings, 'BILLING_PRODUCT_MODEL', 'billing.Product'),
                                 related_name='+')
-    monthly_cost = models.FloatField(help_text=_("How much the client must pay per month for the service."))
+    monthly_cost = models.FloatField(blank=True, null=True,
+                                     help_text=_("How much the client must pay per month for the service."))
     billing_cycle = models.CharField(max_length=30, choices=Service.BILLING_CYCLES_CHOICES, blank=True,
                                      help_text=_("The interval after which invoice are sent to client."))
     details = models.TextField(blank=True,
@@ -264,6 +271,18 @@ class Invoice(AbstractInvoice):
                 add_database_to_settings(db)
                 super(Invoice, self).save(using=db, *args, **kwargs)
         super(Invoice, self).save(using=using, *args, **kwargs)
+
+
+class Donation(Model):
+    """
+    A donation offered by a website visitor
+    """
+    member = models.ForeignKey(Member, blank=True, null=True,
+                               help_text="Member who gives if authenticated user.")
+    amount = models.FloatField()
+    message = models.TextField(blank=True,
+                               help_text="Message from the person.")
+    status = models.CharField(max_length=15, default=PENDING)
 
 
 class AbstractInvoiceItem(Model):

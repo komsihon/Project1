@@ -49,6 +49,7 @@ class ProductAdmin(CustomBaseAdmin, ImportExportMixin):
     list_display = ('name', 'short_description', 'cost', )
     search_fields = ('name', )
     readonly_fields = ('created_on', 'updated_on', )
+    fields = ('name', 'short_description', 'cost', 'duration', 'duration_text', 'is_active', )
 
 
 class SubscriptionAdmin(CustomBaseAdmin, ImportExportMixin):

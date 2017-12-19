@@ -1,0 +1,60 @@
+{% extends 'core/app_base_admin.html' %}
+
+{% load i18n humanize staticfiles auth_tokens %}
+
+{% block page_title %}
+<title>{% trans "Products" %} - {{ service.project_name }}</title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <style>
+        #results {clear: both}
+    </style>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>{% trans "Products" %}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content">
+        <div class="container-fluid">
+            <div id="results">
+                <ul class="object-list" style="padding: 20px 0 0 0">
+                {% for product in product_list %}
+                    <li class="ik-li mean" id="{{ product.id }}" data-id="{{ product.id }}">
+                        <div class="info">
+                            <a href="{% url 'billing:change_product' product.id %}" class="name" style="float: left">{{ product.name }}</a>
+                        </div>
+                        <div class="actions">
+                            {% if product.is_active %}
+                                <i class="action glyphicon glyphicon-ok toggle active off" title="{% trans "Deactivate" %}"></i>
+                            {% else %}
+                                <i class="action glyphicon glyphicon-ok toggle active on" title="{% trans "Activate" %}"></i>
+                            {% endif %}
+                            <i class="glyphicon glyphicon-trash trash" title="{% trans "Delete item" %}"></i>
+                        </div>
+                    </li>
+                {% endfor %}
+                </ul>
+                <div class="add-new-tile">
+                    <p>
+                        <span class="search-text"></span>
+                        <a href="{% url 'billing:change_product' %}"
+                           class="btn btn-sm btn-success" style="margin-left: 6px; min-width: 90px">{% trans "Add" %}</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .subscription-plans').addClass('active');
+        })()
+    </script>
+{% endblock %}

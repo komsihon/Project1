@@ -1,0 +1,38 @@
+{% load i18n static %}
+<div class="modal fade" id="payment-methods" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content modal-info">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">{% trans "Pay now" %}</h4>
+            </div>
+            <div class="modal-body">
+                <form id="checkout" method="post">{% csrf_token %}
+                    <input type="hidden" id="product-id" name="product_id" />
+                    <ul class="row">
+                        <li class="col-sm-4 payment-method{% if not config.is_pro_version and not config.allow_cash_payment %} col-sm-offset-2{% endif %}"
+                            data-action-url="{% url mtn_momo.action_url_name %}">
+                            <a style="background: #ffca06" title="{% trans "Pay with MTN Mobile Money" %}">
+                                <img src="{% static 'ikwen/img/logo_mtn_mobile_money.jpg' %}" height="90"/>
+                            </a>
+                        </li>
+                        <li class="col-sm-4 payment-method om"
+                            data-action-url="{% url om.action_url_name %}?mean=orange-money">
+                            <a style="background: #15171e" title="{% trans "Pay with Orange Money" %}">
+                                <img src="{% static 'ikwen/img/logo-OM-200x166.png' %}" height="90" />
+                            </a>
+                        </li>
+                        {% if config.is_pro_version %}
+                            <li class="col-sm-4 payment-method" data-action-url="{{ paypal_action_url }}">
+                                <a href="#" style="border: 1px solid #eee">
+                                    <img src="{% static 'ikwen/img/payment-logo.jpg' %}" height="90" style="width: 100%"/>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </form>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+</div>
