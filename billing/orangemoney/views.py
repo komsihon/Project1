@@ -89,8 +89,6 @@ def init_web_payment(request, *args, **kwargs):
             if resp['status'] == 201:
                 request.session['pay_token'] = resp['pay_token']
                 request.session['notif_token'] = resp['notif_token']
-                momo_tx.status = MoMoTransaction.SUCCESS
-                momo_tx.save()
                 Thread(target=check_transaction_status, args=(request, )).start()
                 return HttpResponseRedirect(resp['payment_url'])
             else:
@@ -166,7 +164,7 @@ def check_transaction_status(request):
                     try:
                         tx_id = request.session['tx_id']
                         MoMoTransaction.objects.using('wallets').filter(pk=tx_id)\
-                            .update(processor_tx_id=processor_tx_id, is_running=False)
+                            .update(processor_tx_id=processor_tx_id, is_running=False, status=MoMoTransaction.SUCCESS)
                         momo_after_checkout(request, signature=request.session['signature'], tx_id=tx_id)
                     except:
                         logger.error("Orange Money: Error while running callback. User: %s, Amt: %d" % (request.user.username, int(request.session['amount'])), exc_info=True)
