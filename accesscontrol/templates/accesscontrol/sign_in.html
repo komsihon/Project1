@@ -73,7 +73,7 @@
         (function() {
             $('#lg-username').keyup(function(e) {
                 if (e.key === ' ') {
-                    var username = $(this).val().trim();
+                    var username = $(this).val().trim().toLowerCase();
                     $(this).val(username);
                 }
             }).blur(function() {

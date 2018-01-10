@@ -10,9 +10,6 @@
 {% block content %}
     <div id="content" class="form container">
         <p class="failure" style="display: none; font-size: 1em; padding: 9px"></p>
-        {% if login_form.errors %}
-            <p class="failure" style="font-size: 1em; padding: 9px">{{ error_message }}</p>
-        {% endif %}
         {% if messages %}
             {% for msg in messages %}<p class="msg-tag {{ msg.tags }}" style="font-size: 1em; padding: 9px">{{ msg }}</p>{% endfor %}
         {% endif %}
@@ -157,7 +154,7 @@
             });
             $('#username').keyup(function(e) {
                 if (e.key === ' ') {
-                    var username = $(this).val().trim();
+                    var username = $(this).val().trim().toLowerCase();
                     $(this).val(username);
                 }
             }).blur(testUsername);
@@ -168,7 +165,7 @@
                 var $username = $('#username'),
                     username = $username.val();
                 username = username.replace(/ /g, '').toLowerCase();
-                $('#username').val(username);
+                $username.val(username);
                 if (uname) username = uname;
                 if (username.length < 3 || /\d{1}/.test(username.substr(0, 1))) {
                     $('.errorlist.username').remove();
@@ -182,8 +179,10 @@
                 return true;
             }
             function testEmail() {
-                var $email = $('#email');
-                if ($email.val().isValidEmail()) {
+                var $email = $('#email'),
+                    email = $email.val().replace(/ /g, '').toLowerCase();
+                $email.val(email);
+                if (email.isValidEmail()) {
                     $('.errorlist.email').remove();
                     return true;
                 }
@@ -195,7 +194,9 @@
             }
             function testPhone() {
                 $('.form-group.phone .errorlist').remove();
-                var phone = $('#phone').val().trim();
+                var $phone = $('#phone'),
+                    phone = $phone.val().replace(/ /g, '');
+                $phone.val(phone);
                 if (phone && !/\d{9,}/.test(phone)) {
                     $('<ul class="errorlist phone">' +
                         '<li>' + "{% trans "Please use digits only." %}" + '</li>' +
@@ -235,14 +236,14 @@
                     if ($('#email').hasClass('required')) {
                         if (!testEmail()) return false;
                     }
-                    if ($('#phone').hasClass('required')) {
+                    if ($('#phone').hasClass('required') || $('#phone').val()) {
                         return testPhone()
                     }
                 }
             });
 
             function checkUsername() {
-                var username = $('#username').val();
+                var username = $('#username').val().toLowerCase();
                 if (!username) return false;
                 if (!testUsername(username)) return false;
                 $('#login .spinner').css('visibility', 'visible');

@@ -169,8 +169,10 @@
                 return true;
             }
             function testEmail() {
-                var $email = $('#rg-email');
-                if ($email.val().trim().isValidEmail()) {
+                var $email = $('#rg-email'),
+                    email = $email.val().replace(/ /g, '').toLowerCase();
+                $email.val(email);
+                if (email.isValidEmail()) {
                     $('.errorlist.email').remove();
                     return true;
                 }
@@ -182,7 +184,9 @@
             }
             function testPhone() {
                 $('.form-group.phone .errorlist').remove();
-                var phone = $('#rg-phone').val().trim();
+                var $phone = $('#rg-phone'),
+                    phone = $phone.val().replace(/ /g, '');
+                $phone.val(phone);
                 if (phone && !/\d{9,}/.test(phone)) {
                     $('<ul class="errorlist phone">' +
                         '<li>' + "{% trans "Please use digits only." %}" + '</li>' +
@@ -217,7 +221,7 @@
                 if ($('#rg-email').hasClass('required')) {
                     if (!testEmail()) return false;
                 }
-                if ($('#rg-phone').hasClass('required')) {
+                if ($('#rg-phone').hasClass('required') || $('#rg-phone').val()) {
                     return testPhone()
                 }
             });
