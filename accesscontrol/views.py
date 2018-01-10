@@ -29,6 +29,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache, cache_page
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
+from django.views.generic import TemplateView
 from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_group
 
@@ -41,13 +42,13 @@ from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
 from ikwen.core.utils import get_service_instance, get_mail_content, add_database_to_settings, add_event
 from ikwen.core.utils import send_sms
-from ikwen.core.views import BaseView, HybridListView, IKWEN_BASE_URL
+from ikwen.core.views import HybridListView, IKWEN_BASE_URL
 
 import logging
 logger = logging.getLogger('ikwen')
 
 
-class Register(BaseView):
+class Register(TemplateView):
     template_name = 'accesscontrol/register.html'
 
     def get(self, request, *args, **kwargs):
@@ -142,12 +143,12 @@ class Register(BaseView):
                     sign_in_url += "?" + query_string
                 return HttpResponseRedirect(sign_in_url)
         else:
-            context = BaseView().get_context_data(**kwargs)
+            context = self.get_context_data(**kwargs)
             context['register_form'] = form
             return render(request, 'accesscontrol/register.html', context)
 
 
-class SignIn(BaseView):
+class SignIn(TemplateView):
     template_name = 'accesscontrol/sign_in.html'
 
     def get(self, request, *args, **kwargs):
@@ -266,11 +267,11 @@ def staff_router(request, *args, **kwargs):
     return HttpResponseRedirect(next_url)
 
 
-class StaffWithoutPermission(BaseView):
+class StaffWithoutPermission(TemplateView):
     template_name = 'accesscontrol/staff_without_permission.html'
 
 
-class ForgottenPassword(BaseView):
+class ForgottenPassword(TemplateView):
     template_name = 'accesscontrol/forgotten_password.html'
 
     def get_context_data(self, **kwargs):
@@ -307,7 +308,7 @@ class ForgottenPassword(BaseView):
                 return render(request, self.template_name, context)
 
 
-class SetNewPassword(BaseView):
+class SetNewPassword(TemplateView):
     """
     View that checks the hash in a password reset link and presents a
     form for entering a new password.
@@ -353,7 +354,7 @@ class SetNewPassword(BaseView):
             return render(request, self.template_name, context)
 
 
-class SetNewPasswordSMSRecovery(BaseView):
+class SetNewPasswordSMSRecovery(TemplateView):
     template_name = 'accesscontrol/set_new_password_sms_recovery.html'
 
     def send_code(self, request, new_code=False):
@@ -470,7 +471,7 @@ def send_welcome_email(member):
     Thread(target=lambda m: m.send(), args=(msg,)).start()
 
 
-class AccountSetup(BaseView):
+class AccountSetup(TemplateView):
     template_name= 'accesscontrol/account.html'
 
 
@@ -536,7 +537,7 @@ def update_password(request, *args, **kwargs):
     )
 
 
-class Profile(BaseView):
+class Profile(TemplateView):
     template_name = 'accesscontrol/profile.html'
 
     @method_decorator(cache_page(60 * 5))
@@ -564,7 +565,7 @@ class Profile(BaseView):
         return render(request, self.template_name, context)
 
 
-class CompanyProfile(BaseView):
+class CompanyProfile(TemplateView):
     """
     Can either be a company profile or an ikwen App description page.
     In the case of an ikwen App. The *Deploy* link will appear.
@@ -582,7 +583,7 @@ class CompanyProfile(BaseView):
             pass
         config = service.config
         context['is_company'] = True
-        context['page_service'] = service  # Updates the service context defined in BaseView
+        context['page_service'] = service  # Updates the service context defined in TemplateView
         context['page_config'] = config
         context['profile_name'] = service.project_name
         context['profile_email'] = config.contact_email
@@ -673,7 +674,7 @@ def list_collaborators(request, *args, **kwargs):
     return HttpResponse(json.dumps(results), content_type='application/json')
 
 
-class AccessRequestList(BaseView):
+class AccessRequestList(TemplateView):
     """
     Lists all Access requests for the admin to process them all from
     a single page rather than going to everyone's profile
@@ -955,7 +956,7 @@ def render_member_joined_event(event, request):
     return html_template.render(c)
 
 
-class PhoneConfirmation(BaseView):
+class PhoneConfirmation(TemplateView):
     template_name = 'accesscontrol/phone_confirmation.html'
 
     def send_code(self, request, new_code=False):
