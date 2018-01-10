@@ -310,7 +310,8 @@
                 $('div#object-detail .empty').show();
                 $('div#object-detail .actions').hide();
             }
-            ikwen.setupSearch('#context-search input', '#results', searchDescriptor, beforeSearch);
+            $('#context-search').unbind();
+            ikwen.setupSearch('#context-search', '#results', searchDescriptor, beforeSearch);
         })()
     </script>
 {% endblock %}
