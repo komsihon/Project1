@@ -1,24 +1,19 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
+import logging
+from datetime import datetime, timedelta
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models import get_model
-from ikwen.partnership.models import PartnerProfile
-
-from ikwen.partnership.models import ApplicationRetailConfig
-
-from ikwen.core.utils import set_counters, increment_history_field, add_database_to_settings
-
-from ikwen.accesscontrol.backends import UMBRELLA
-
-from ikwen.core.models import Service
-
-from ikwen.core.utils import get_service_instance
 from django.utils.translation import gettext as _
 
-from ikwen.billing.models import InvoicingConfig, Invoice, AbstractSubscription
+from ikwen.accesscontrol.backends import UMBRELLA
+from ikwen.billing.models import InvoicingConfig, Invoice, AbstractSubscription, Payment
+from ikwen.core.models import Service, OperatorWallet
+from ikwen.core.utils import get_service_instance
+from ikwen.core.utils import set_counters, increment_history_field, add_database_to_settings
+from ikwen.partnership.models import ApplicationRetailConfig
 
-import logging
 logger = logging.getLogger('ikwen')
 
 
@@ -431,6 +426,34 @@ def get_payment_confirmation_message(payment, member):
     return subject, message, sms
 
 
+def pay_with_wallet_balance(invoice):
+    service = invoice.subscription
+    amount0 = invoice.amount
+    amount = invoice.amount
+    with transaction.atomic():
+        for wallet in OperatorWallet.objects.using('wallets').filter(nonrel_id=invoice.service.id).order_by('-balance'):
+            if wallet.balance >= amount0:
+                service.lower_balance(amount, provider=wallet.provider)
+                share_payment_and_set_stats(invoice, payment_mean_slug=wallet.provider)
+                break
+            else:
+                debit = min(amount, wallet.balance)
+                service.lower_balance(debit, provider=wallet.provider)
+                invoice.amount = debit
+                share_payment_and_set_stats(invoice, payment_mean_slug=wallet.provider)
+                amount -= debit
+                if amount == 0:
+                    break
+    total_months = invoice.months_count
+    days = get_days_count(total_months)
+    service.expiry += timedelta(days=days)
+    service.save()
+    invoice.amount = amount0
+    invoice.status = Invoice.PAID
+    invoice.save()
+    Payment.objects.create(invoice=invoice, method=Payment.WALLET_DEBIT, amount=invoice.amount)
+
+
 def suspend_subscription(subscription):
     subscription.status = AbstractSubscription.SUSPENDED
     subscription.save()
@@ -515,8 +538,8 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug=
 
 
 def _share_payment_and_set_stats_other(invoice, payment_mean_slug='mtn-momo'):
-    service = get_service_instance()
-    service_umbrella = get_service_instance(UMBRELLA)
+    service = get_service_instance(check_cache=False)
+    service_umbrella = get_service_instance(UMBRELLA, check_cache=False)
     config = service_umbrella.config
     if config.__dict__.get('processing_fees_on_customer'):
         ikwen_earnings = config.ikwen_share_fixed
