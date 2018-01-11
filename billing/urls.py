@@ -7,7 +7,8 @@ from ikwen.billing.jumbopay.views import jumbopay_local_api
 
 from ikwen.billing.views import InvoiceList, InvoiceDetail, NoticeMail, change_billing_cycle, list_members, \
     list_subscriptions, IframeAdmin, ProductList, ChangeProduct, PaymentMeanList, set_credentials, toggle_payment_mean, \
-    MoMoSetCheckout, DeployCloud, Pricing, Donate
+    MoMoSetCheckout, DeployCloud, SubscriptionList, ChangeSubscription
+from ikwen.billing.public.views import Pricing, Donate
 from ikwen.billing.mtnmomo.views import init_momo_transaction, check_momo_transaction_status
 
 urlpatterns = patterns(
@@ -17,6 +18,8 @@ urlpatterns = patterns(
     url(r'^products/$', login_required(ProductList.as_view()), name='product_list'),
     url(r'^changeProduct/$', login_required(ChangeProduct.as_view()), name='change_product'),
     url(r'^changeProduct/(?P<object_id>[-\w]+)$', login_required(ChangeProduct.as_view()), name='change_product'),
+    url(r'^subscriptions$', login_required(SubscriptionList.as_view()), name='subscription_list'),
+    url(r'^changeSubscription/(?P<object_id>[-\w]+)$', login_required(ChangeSubscription.as_view()), name='change_subscription'),
     url(r'^invoices/$', login_required(InvoiceList.as_view()), name='invoice_list'),
     url(r'^invoiceDetail/(?P<invoice_id>[-\w]+)/$', login_required(InvoiceDetail.as_view()), name='invoice_detail'),
     url(r'^paymentMeans/$', permission_required('accesscontrol.sudo')(PaymentMeanList.as_view()), name='payment_mean_list'),
