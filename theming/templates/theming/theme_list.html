@@ -31,11 +31,8 @@
                                 <span class="name">{{ theme.name }}</span>
                                 <p class="about">{{ theme.template.name }}</p>
                             </div>
-                            <div class="actions">
-                                <i class="glyphicon glyphicon-cog conf-{{ theme.slug }}" data-toggle="modal" data-target="#conf-{{ theme.slug }}" title="{% trans "Configure" %}"></i>
-                            </div>
-                            <i class="glyphicon glyphicon-ok check{% if theme == config.theme %} active{% endif %}"
-                               title="{% if theme.is_active %}{% trans "Cancel" %}{% else %}{% trans "Activate" %}{% endif %}"></i>
+                            <div class="actions"></div>
+                            <div class="clearfix"></div>
                         </div>
                     </li>
                     {% endif %}
@@ -51,17 +48,6 @@
     <script type="text/javascript">
         (function() {
             $('div#admin-nav .theming').addClass('active');
-            $('#admin-content').on('click', '.ik-li .check', function() {
-                var meanId = $(this).parents('.ik-li').data('id'),
-                    _$check = $(this);
-{#                $.getJSON('{% url 'billing:toggle_payment_mean' %}', {mean_id: meanId}, function(resp) {#}
-{#                    if (resp.error) {#}
-{#                        ikwen.showFloatingNotice(resp.error, '', 5);#}
-{#                        return#}
-{#                    }#}
-{#                    _$check.toggleClass('active');#}
-{#                })#}
-            });
         })()
     </script>
 {% endblock %}
