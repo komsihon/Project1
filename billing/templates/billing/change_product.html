@@ -5,6 +5,35 @@
 <title> {% if product %}{{ product.name }}{% else %}{% trans "New product" %}{% endif %} - {{ service.project_name }} </title>
 {% endblock %}
 
+{% block head_js %}
+    {{ block.super }}
+    <script src="//cdn.tinymce.com/4/tinymce.min.js"></script>
+    <script>
+        (function () {
+            var properties = {
+                selector: '#id_short_description',
+                menubar: false,
+                statusbar: false,
+                height: 150,
+                toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist',
+                plugins: [
+                    'advlist autolink lists link image charmap print preview anchor',
+                    'searchreplace visualblocks code fullscreen',
+                    'insertdatetime media table contextmenu paste code'
+                ],
+                content_css: [
+                    '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+                    '//www.tinymce.com/css/codepen.min.css'
+                ]
+            };
+            if ($(window).width() >= 768) {
+                properties['width'] = 450;
+            }
+            tinymce.init(properties);
+        })()
+    </script>
+{% endblock %}
+
 {% block breadcrumb_location %}
     <li>
         <a href="{% url 'billing:product_list' %}">{% trans "Products" %}</a>
@@ -23,23 +52,7 @@
             {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
             <form id="submit-product" class="admin-form" method="post" action="{{ change_product_url }}">{% csrf_token %}
                 <input type="hidden" name="product_id" value="{{ product.id }}" />
-{#                <input type="hidden" name="image_url" id="image_url" value="" />#}
                 {% include 'core/snippets/model_admin_form.html' %}
-{#                <section class="photos" style="width: 100%">#}
-{#                    <label class="required" style="float: left; width: 100%">{% trans "Cover image" %}</label>#}
-{#                    <div id="upload-container">#}
-{#                        {% if product.image and product.image.name %}#}
-{#                        <div class="image" style="background-image: url('{{ product.image.url }}')">#}
-{#                        {% else %}#}
-{#                        <div class="image">#}
-{#                        {% endif %}#}
-{#                            <span class="progress"></span>#}
-{#                            <div class="uploader"></div>#}
-{#                            {% include 'core/snippets/spinner.html' %}#}
-{#                        </div>#}
-{#                    </div>#}
-{#                    <p class="help clear">{% trans "Nice cover photo to help customer have an idea" %} (640px &times; 426px Recommended)</p>#}
-{#                </section>#}
                 <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
                     <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
                 </div>
@@ -57,9 +70,6 @@
             $('.form-row').addClass('form-group');
             $('.form-row input, .form-row select, .form-row textarea').addClass('form-control input-sm');
             $('.form-row textarea').addClass('form-control input-sm');
-            {% if messages %}
-                {% for msg in messages %}ikwen.showFloatingNotice('{{ msg }}', '', 6);{% endfor %}
-            {% endif %}
         })()
     </script>
 {% endblock %}
