@@ -158,7 +158,12 @@ def check_transaction_status(request):
             if status == 'SUCCESS':
                 logger.debug("Successful OM payment %s of %dF from %s" % (token, amount, username))
                 processor_tx_id = resp['txnid']
-                path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
+                payments_conf = getattr(settings, 'PAYMENTS', None)
+                if payments_conf:
+                    conf = request.session['payment_conf']
+                    path = payments_conf[conf]['after']
+                else:
+                    path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
                 momo_after_checkout = import_by_path(path)
                 with transaction.atomic():
                     try:

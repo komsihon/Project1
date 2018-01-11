@@ -133,7 +133,12 @@ def check_momo_transaction_status(request, *args, **kwargs):
         tx.save(using='wallets')
         if tx.status == MoMoTransaction.SUCCESS:
             request.session['tx_id'] = tx_id
-            path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
+            payments_conf = getattr(settings, 'PAYMENTS', None)
+            if payments_conf:
+                conf = request.session['payment_conf']
+                path = payments_conf[conf]['after']
+            else:
+                path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
             momo_after_checkout = import_by_path(path)
             if getattr(settings, 'DEBUG', False):
                 resp_dict = momo_after_checkout(request, signature=request.session['signature'])
