@@ -1,19 +1,44 @@
 {% load i18n %}
 <div id="admin-tools">
-    <form id="context-search" onsubmit="return false">
+    <form id="admin-tools-form">
         <div>
             <i class="glyphicon glyphicon-search"></i>
             <i class="glyphicon glyphicon-menu-left hide-search back"></i>
-            <input type="text" class="form-input input-sm tool search" placeholder="{% trans "Search" %}"/>
+            <input id="context-search" type="text" placeholder="{% trans "Search" %}" value="{% if q %}{{ q }}{% endif %}"
+                   class="input-sm tool search" data-min-search-chars="2"/>
         </div>
-    </form>
-    <div id="page-navigation" class="text-muted" data-page-index="1" data-page-size="{{ page_size }}">
-        {% if total_objects > page_size %}
-            <div style="padding-top: 5px;"><strong class="start">1</strong> - <strong class="finish">{{ page_size }}</strong> {% trans "of" %} <strong class="total">{{ total_objects }}</strong></div>
-            <div style="margin-left: 10px"><i class="finished back"> < </i><i class="next"> > </i></div>
-        {% else %}
-            <div>{{ total_objects }}/{{ total_objects }}</div>
+        {% if filter %}
+        <div class="filter-trigger">
+            <i class="glyphicon glyphicon-filter"></i>
+            <i class="glyphicon glyphicon-menu-left hide-filter back"></i>
+            {% if filter|length == 1 %}
+                <div class="tool filter">
+                    <label for="order-status" class="sr-only"></label>
+                    <select id="order-status" style="float: left; width: 120px" class="form-control input-sm status widget" name="status">
+                        {% for choice in filter.0.choices %}
+                            <option value="{{ choice.0 }}">{{ choice.1|capfirst }}</option>
+                        {% endfor %}
+                        <option value="">{% trans "All" %}</option>
+                    </select>
+                </div>
+            {% else %}
+                <div class="show-results-filter tool filter btn btn-default btn-sm{% if filter_results %} active{% endif %}">
+                    <div>
+                        <span class="pull-left">{% trans "Filters" %}</span>
+                        <span class="caret pull-right" style="margin: 7px 0 0 5px"></span>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <input type="hidden" id="filter-action" name="action" />
         {% endif %}
-    </div>
+    </form>
+    {% if show_export %}
+    <button class="btn btn-sm btn-success cta pull-right action export" style="border-color: #18bc9c"
+            data-toggle="modal" data-target="#load-product" title="{% trans "Export as Spreadsheet" %}">
+        <i class="glyphicon glyphicon-list-alt"></i>
+        <span class="hidden-xs">{% trans "Export" %}</span>
+    </button>
+    {% endif %}
     <div class="clearfix"></div>
 </div>
