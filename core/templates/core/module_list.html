@@ -1,0 +1,71 @@
+{% extends 'core/app_base_admin.html' %}
+{% load i18n humanize static auth_tokens %}
+
+{% block page_title %}
+<title>{% trans "Modules" %} - {{ service.project_name }}</title>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>{% trans "Modules" %}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content">
+        <div class="container-fluid">
+            <div id="results">
+                <ul class="object-list">
+                {% for module in module_list %}
+                    <li class="ik-li img-lg" id="{{ module.id }}" data-id="{{ module.id }}">
+{#                        <div class="row">#}
+{#                            <div class="col-sm-9 col-lg-10">#}
+{#                                <a href="{% url 'ikwen:change_module' module.id %}" class="name">{{ module.name }}</a>#}
+{#                            </div>#}
+{#                            <div class="col-sm-3 col-lg-2">#}
+{#                                {% if module.is_active %}#}
+{#                                    <button class="btn btn-block btn-sm btn-danger cta">Remove</button>#}
+{#                                {% else %}#}
+{#                                    <button class="btn btn-block btn-sm btn-success cta">Activate</button>#}
+{#                                {% endif %}#}
+{#                            </div>#}
+{#                        </div>#}
+                        {% url 'ikwen:change_module' module.id as module_url %}
+                        {% if module.logo.name %}
+                            <a href="{{ module_url }}" class="image" style="background-image: url({% get_media_prefix %}{{ module.logo.name }})"></a>
+                        {% else %}
+                            <a href="{{ module_url }}" class="image" style="background-image: url({% static 'ikwen/img/no_photo.jpg' %})"></a>
+                        {% endif %}
+                        <div class="info">
+                            <a href="{{ module_url }}">
+                                <span class="name">{{ module.name }}</span>
+                                {% if module.monthly_cost %}
+                                    <span class="text-muted">({{ module.monthly_cost }}/{% trans "month" %})</span>
+                                {% endif %}
+                            </a>
+                            <div class="about">
+                                <p>{{ module.description|safe|truncatewords:50 }}</p>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            {% if module.is_active %}
+                                <i class="action glyphicon glyphicon-ok toggle active off" title="{% trans "Deactivate" %}"></i>
+                            {% else %}
+                                <i class="action glyphicon glyphicon-ok toggle active on" title="{% trans "Activate" %}"></i>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    {% include 'core/snippets/sort_and_actions.html' %}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .modules').addClass('active');
+        })()
+    </script>
+{% endblock %}

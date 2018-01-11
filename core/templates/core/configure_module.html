@@ -1,0 +1,89 @@
+{% extends 'core/app_base_admin.html' %}
+{% load i18n humanize staticfiles auth_tokens %}
+
+{% block page_title %}
+<title> {% if obj %}{{ obj.name }}{% else %}{% trans "New" %}{% endif %} - {{ service.project_name }} </title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <link href="{% static 'ikwen/css/uploader-single.css' %}" media="screen" rel="stylesheet" type="text/css" />
+{% endblock %}
+{% block head_js %}
+    {{ block.super }}
+    <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
+    <script src="//cdn.tinymce.com/4/tinymce.min.js"></script>
+    <script>
+        (function () {
+            var properties = {
+                selector: '#id_content',
+                menubar: false,
+                statusbar: false,
+                height: 300,
+                plugins: [
+                    'advlist autolink lists link image charmap print preview anchor',
+                    'searchreplace visualblocks code fullscreen',
+                    'insertdatetime media table contextmenu paste code'
+                ],
+                toolbar: 'undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table link image media code',
+                insert_button_items: 'charmap anchor insertdatetime',
+                content_css: [
+                    '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+                    '//www.tinymce.com/css/codepen.min.css'
+                ]
+            };
+            if ($(window).width() >= 768) {
+                properties['width'] = 740
+            }
+            tinymce.init(properties);
+        })()
+    </script>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li><a href="{% url 'ikwen:change_module' module.id %}">{{ module.name }}</a></li>
+    <li>{% trans 'Detailed configurations' %}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="change-form">
+        {% url 'ikwen:configure_module' module.id as configure_module_url %}
+        {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
+        <form id="submit-category" class="admin-form" method="post" action="{{ configure_module_url }}">{% csrf_token %}
+            <input type="hidden" name="object_id" value="{{ obj.id }}" />
+            <input type="hidden" name="image_url" id="image_url" value="{% if obj.image.name %}{{ obj.image.url }}{% endif %}" />
+            <div class="container-fluid">
+                {% include 'core/snippets/model_admin_form.html' %}
+                <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
+                    <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .modules').addClass('active');
+            $('.form-row').addClass('form-group');
+            $('.form-row input, .form-row select, .form-row textarea').addClass('form-control input-sm');
+            $('.form-row textarea').addClass('form-control input-sm');
+            $('form#submit-category').submit(function() {
+                return checkInput();
+            });
+            function checkInput() {
+                var check = true;
+                $('input.required').each(function() {
+                    if (!(this).val()) {
+                        ikwen.showFloatingNotice("{% trans "Missing information. Please check." %}", '', 6);
+                        $(this).addClass('verify');
+                        check = false;
+                    }
+                });
+                return check;
+            }
+        })()
+    </script>
+{% endblock %}
