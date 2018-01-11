@@ -1,0 +1,24 @@
+<script>
+    (function() {
+        $(".drag-sort").sortable({
+            placeholder: "sortable-placeholder",
+            forcePlaceholderSize: true,
+            update: function (event, ui) {
+                var sorted = [];
+                $('.object-list li').each(function (i) {
+                    sorted.push($(this).attr('id') + ':' + i)
+                });
+                $.getJSON('', {sorted: sorted.join(',')})
+            }
+        }).disableSelection();
+        $('#admin-content').on('click', '.actions .active.on', function() {
+            var objectId = $(this).parents('.ik-li').data('id');
+            $(this).toggleClass('on off');
+            $.getJSON('', {'action': 'toggle_attribute', 'object_id': objectId, 'attr': 'is_active', 'val': true})
+        }).on('click', '.actions .active.off', function() {
+            var objectId = $(this).parents('.ik-li').data('id');
+            $(this).toggleClass('on off');
+            $.getJSON('', {'action': 'toggle_attribute', 'object_id': objectId, 'attr': 'is_active', 'val': false})
+        });
+    })()
+</script>
