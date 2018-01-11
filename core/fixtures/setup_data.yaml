@@ -45,6 +45,7 @@
     domain: ikwen-service2.com
     database: test_ikwen_service_2
     api_signature: api-signature-2
+    billing_cycle: Monthly
     monthly_cost: 6000
     version: Full
     status: Active
