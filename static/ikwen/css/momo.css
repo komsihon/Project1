@@ -11,7 +11,7 @@
 .navbar-default .navbar-brand, #user-menu .glyphicon-user  {color: #888}
 #content > div {margin: auto}
 div#checkout {background: rgba(255, 255, 255, .9); border-radius: 3px; clear: both; padding: 10px 20px 30px; width: 300px}
-#navbar .navbar-brand, #navbar .navbar-brand:hover {display: none}
+#navbar .navbar-brand, #navbar .navbar-brand:hover {display: none;}
 
 div#checkout input {border: 1px solid #bbb;}
 div#checkout form {padding: 30px}

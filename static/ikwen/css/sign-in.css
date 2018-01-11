@@ -23,7 +23,7 @@ label span {font-weight: normal}
 .form-group.username {height: 0; overflow: hidden; margin-bottom: 0}
 .form-group.password {height: auto; overflow: hidden}
 .form-group.submit-username {display: none}
-#username {text-transform: lowercase}
+#username, #email {text-transform: lowercase}
 #cancel {display: none}
 #content.form.register #cancel {display: block; float: left; width: 180px}
 .login-with-ikwen {font-size: 1em; height: 40px; letter-spacing: .5px; padding: 6px 9px 8px}

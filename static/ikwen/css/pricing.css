@@ -1,0 +1,50 @@
+
+#navbar {background: #f8f6f6;}
+#navbar form.search input, #navbar-search, #user-home, #user-apps, #nav-xs {display: none}
+.navbar-default .navbar-brand, #user-menu .glyphicon-user  {color: #888}
+.bank-accounts {margin-top: -1.5em; padding-left: 0}
+.bank-accounts:empty {display: none}
+.ik-li.bank-account {padding: 9px 15px}
+.alt-account {margin: 1em 0}
+.new-account {overflow: hidden}
+.cancel-payment {border: 1px solid; padding: 5px 15px}
+.terms-payment-notice {margin: 10px 15px; padding: 15px}
+.products {clear: both}
+.cashflex-terms {clear: both; float: left; margin-top: 2em; padding-left: 15px}
+.product {
+    background: #f1f1f1;
+    border: 1px solid #c5c5c5;
+    cursor: pointer;
+    display: block;
+    min-height: 270px;
+    padding: 5px 15px 0;
+    margin-top: 20px;
+}
+.product .name {font-size: 1.2em; text-align: center}
+a.product:hover {text-decoration: none}
+.product .cost {color: #1565C0; font-weight: 700; text-align: center}
+.product .currency {color: #1E88E5; font-size: 15px; font-weight: 400; left: -0.5em; top: -1.5em}
+.product .description {border-top: 1px solid #FF9800;color: #555;font-size: 1em;margin-top: 10px;padding: 15px 8px 0;}
+.product .about {font-size: 15px; height: 40px}
+.product .btn {margin: 40px 0 30px;transition: display .3s;}
+.product:hover .btn {transition: display .3s;}
+
+@media (max-width: 767px) {
+    .product .cost {font-size: 3em}
+    .bank-name {height: 18px; overflow: hidden}
+    .content-tab-list {position: fixed; width: 100%; z-index: 10}
+    .products {margin-top: 40px}
+}
+@media (min-width: 768px) {
+    .bank a {color: #666; float: left; padding: 5px 10px}
+    .nav-tabs > .tab.active > a, .nav-tabs > .tab.active > a:hover, .nav-tabs > .tab.active > a:focus {background: #f8f6f6}
+    .bank-list.single .bank a, .bank-list.single .bank.active a {background: none; border: none}
+    .bank-logo {background: no-repeat center; background-size: cover; border-radius: 3px; float: left; height: 60px; width: 60px}
+    .bank-name {float: left; margin: 12px 0 0 10px; width: 90px}
+    .product .cost {font-size: 2em}
+    .product .currency {font-size: 13px; top: -1.2em}
+}
+@media (min-width: 992px) {
+    .product .cost {font-size: 2.5em; font-weight: 700; text-align: center}
+    .product .currency {font-size: 15px; left: -0.5em; top: -1.5em}
+}

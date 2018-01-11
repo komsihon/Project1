@@ -6,10 +6,11 @@
         Rules for ikwen Admin pages
 */
 
-body {font-size: 13px; overflow: hidden}
+body {font-size: 13px;overflow: hidden;}
 .glyphicon.toggle.on {color: #ccc}
 .glyphicon.toggle.off {color: #33c800}
 .verify {border: 1px solid #e74c3c} /* Highlights form errors (Check performed by javascript) */
+.spinner {background: rgba(255, 255, 255, .6);height: 100%;left: 0;padding-top: 20%;position: fixed;top: 0;width: 100%; z-index: 10000}
 
 #selection-control {
     background: #fff;
@@ -45,6 +46,7 @@ div#container.admin {padding-top: 92px;}
 
 #admin-content {height: 100%;overflow: auto;position: absolute;width: 100%;}
 
+#admin-tools-form div {float: left; margin-right: 10px}
 #filter-nav {padding: 0 10px;}
 #filter-nav span {cursor: pointer; float: left;width: 50%;padding-bottom: 6px;}
 #admin-nav .filter, #admin-nav .menu {float: left;width: 100%;padding: 0 10px;}
@@ -63,10 +65,10 @@ div#container.admin {padding-top: 92px;}
 #admin-tools {padding: 0 15px;clear: both;position: fixed;width: 100%;background: #fff;z-index: 11;}
 #admin-tools input, #admin-tools select, #admin-tools .btn-sm {border: 1px solid #ddd;font-size: 13px;padding-left: 32px;}
 #admin-tools .btn.action .glyphicon {float: left; margin: 1px 10px 0 -20px}
-#context-search {float: left}
-#context-search .glyphicon-search {margin-right: -26px;margin-left: 10px;}
+#admin-tools-form {float: left}
+#admin-tools-form .glyphicon-search {margin-right: -26px;margin-left: 10px;}
 .filter-trigger > .glyphicon-filter {float: left;margin: 8px -24px 0 12px;}
-#context-search .glyphicon-menu-left {display: none}
+#admin-tools-form .glyphicon-menu-left {display: none}
 
 #page-navigation {margin: 30px 0 0;float: right;}
 #page-navigation > div {float: left}
@@ -155,7 +157,7 @@ footer a {color: #999}
     #admin-tools input, #admin-tools select, #admin-tools .btn {border: none;margin-top: -4px;/* width: 200px; */background: none;padding-right: 0;}
     #admin-tools input:focus {outline: none;}
     #admin-tools .btn:active, #admin-tools .btn.active {background: none; color: #545454; box-shadow: none}
-    #context-search .glyphicon-search {
+    #admin-tools-form .glyphicon-search {
         margin: 2px 0 0;
     }
     .filter-trigger > .glyphicon-filter {float: left;margin: 2px 0 0 10px;}
@@ -232,3 +234,4 @@ footer a {color: #999}
 /* Object Details ik-li info width must be overriden */
 #object-detail .ik-li .info {width: auto}
 #delete-theme-logo {color: #ff3030; cursor: pointer; float: right}
+#delete-image {color: #ff3030; cursor: pointer; margin: 0 10px}

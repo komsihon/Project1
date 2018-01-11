@@ -131,20 +131,21 @@
     };
 
     c.setupHTMLResultsSearch = function(inputSelector, resultPanelSelector, descriptors) {
-        $('body').on('keyup', inputSelector, function() {
+        $(inputSelector).keyup(function() {
             var q = $(inputSelector).val(),
-                min = $(resultPanelSelector).data('min-search-chars');
+                min = $(inputSelector).data('min-search-chars');
             if (min) {
-                if (q.length < parseInt(min)) {
+                if (q.length > 0 && q.length < parseInt(min)) {
                     call = [];
                     return;
                 }
             }
-            if (call.length == 0) $(resultPanelSelector).find('.spinner').show();
-            for (var i=0; i<descriptors.length; i++) {
+            // if (call.length == 0) $(resultPanelSelector).find('.spinner').show();
+            var length = descriptors.length;
+            for (var i=0; i<length; i++) {
                 var descriptor = descriptors[i],
                     url = descriptor.endpoint,
-                    query = 'q=' + search + '&format=html_results';
+                    query = 'q=' + q + '&format=html_results';
                 $(resultPanelSelector).load(url, query, function() {
                     $(resultPanelSelector).find('.spinner').fadeOut();
                 });
@@ -183,6 +184,7 @@
                 var paramName = $(this).prop('name');
                 params[paramName] = $(this).val();
             });
+            params['q'] = $('#context-search').val();
             var query = window.location.search,
                 paramString = '';
             for (var key in params) {
