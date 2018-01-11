@@ -26,7 +26,7 @@ from ikwen.billing.utils import get_payment_confirmation_message, get_invoice_ge
     get_invoicing_config_instance, get_days_count, share_payment_and_set_stats
 from ikwen.core.admin import CustomBaseAdmin
 from ikwen.core.models import QueuedSMS, Config, Application, Service, RETAIL_APP_SLUG
-from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, add_event
+from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, add_event, add_database
 from ikwen.partnership.models import ApplicationRetailConfig
 
 Product = get_product_model()
@@ -49,7 +49,7 @@ class ProductAdmin(CustomBaseAdmin, ImportExportMixin):
     list_display = ('name', 'short_description', 'cost', )
     search_fields = ('name', )
     readonly_fields = ('created_on', 'updated_on', )
-    fields = ('name', 'short_description', 'cost', 'duration', 'duration_text', 'is_active', )
+    fields = ('name', 'short_description', 'cost', 'duration', 'duration_text', )
 
 
 class SubscriptionAdmin(CustomBaseAdmin, ImportExportMixin):
@@ -61,12 +61,15 @@ class SubscriptionAdmin(CustomBaseAdmin, ImportExportMixin):
     list_filter = ('status', 'billing_cycle', )
     search_fields = ('member_name', 'member_phone', )
     fieldsets = (
-        (None, {'fields': ('member', 'product', 'monthly_cost', 'billing_cycle', 'details', 'since', )}),
+        (None, {'fields': ('member', 'product', 'monthly_cost', 'billing_cycle', )}),
         (_('Billing'), {'fields': ('status', 'expiry', 'invoice_tolerance', )}),
-        (_('Important dates'), {'fields': ('created_on', 'updated_on', )}),
+        (_('Important dates'), {'fields': ('updated_on', 'since', )}),
     )
-    readonly_fields = ('created_on', 'updated_on', )
-    raw_id_fields = ('member', )
+    if getattr(settings, 'IS_IKWEN', False):
+        readonly_fields = ('created_on', 'updated_on', )
+        raw_id_fields = ('member',)
+    else:
+        readonly_fields = ('member', 'product', 'monthly_cost', 'billing_cycle', 'updated_on', 'since', )
     save_on_top = True
 
     def get_search_results(self, request, queryset, search_term):
@@ -85,14 +88,13 @@ class SubscriptionAdmin(CustomBaseAdmin, ImportExportMixin):
 
     def save_model(self, request, obj, form, change):
         # Send e-mail for manually generated Invoice upon creation
+        super(SubscriptionAdmin, self).save_model(request, obj, form, change)
         if change:
-            super(SubscriptionAdmin, self).save_model(request, obj, form, change)
             return
 
         # Send e-mail only if e-mail is a valid one. It will be agreed that if a client
         # does not have an e-mail. we create a fake e-mail that contains his phone number.
         # So e-mail containing phone number are invalid.
-        super(SubscriptionAdmin, self).save_model(request, obj, form, change)
         member = obj.member
         service = get_service_instance()
         config = service.config
@@ -364,6 +366,25 @@ class PaymentMeanAdmin(admin.ModelAdmin):
     list_display = ('name', 'logo', 'watermark', 'button_img_url', 'is_cashflex')
     search_fields = ('name',)
     prepopulated_fields = {"slug": ("name",)}
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            obj_before = PaymentMean.objects.get(pk=obj.id)
+            for service in Service.objects.all():
+                db = service.database
+                if not db:
+                    continue
+                add_database(db)
+                try:
+                    obj_db = PaymentMean.objects.using(db).get(slug=obj.slug)
+                    if obj_db.credentials == obj_before.credentials:
+                        obj_db.credentials = obj.credentials
+                        obj_db.save(using=db)
+                except PaymentMean.DoesNotExist:
+                    pass
+        else:
+            super(PaymentMeanAdmin, self).save_model(request, obj, form, change)
+
 
 
 class MoMoTransactionAdmin(admin.ModelAdmin):
