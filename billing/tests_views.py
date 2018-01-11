@@ -14,6 +14,7 @@ from ikwen.core.models import OperatorWallet
 
 # Override BILLING_SUBSCRIPTION_MODEL before ikwen.billing.models is loaded
 setattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
+setattr(settings, 'BILLING_INVOICE_ITEM_MODEL', 'billing.InvoiceItem')
 
 from ikwen.accesscontrol.backends import UMBRELLA
 
@@ -92,7 +93,7 @@ class BillingViewsTest(TestCase):
         self.client.login(username='arch', password='admin')
         response = self.client.get(reverse('billing:payment_mean_list'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context['payment_mean_list']), 2)
+        self.assertEqual(len(response.context['payment_mean_list']), 3)
 
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
     def test_set_credentials(self):
@@ -121,3 +122,47 @@ class BillingViewsTest(TestCase):
         self.assertTrue(resp['success'])
         payment_mean = PaymentMean.objects.get(pk='5880870e4fc0c229da8da3d2')
         self.assertFalse(payment_mean.is_active)
+
+    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801', IS_IKWEN=False, DEBUG=True,
+                       EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
+                       IKWEN_CONFIG_MODEL='billing.OperatorProfile',
+                       EMAIL_FILE_PATH='test_emails/billing/', UNIT_TESTING=True,
+                       PAYMENTS={'subscription': {
+                           'before': 'ikwen.billing.collect.product_set_checkout',
+                           'after': 'ikwen.billing.collect.product_do_checkout'}})
+    def test_subscribe_to_plan(self):
+        self.client.login(username='arch', password='admin')
+        response = self.client.post(reverse('billing:momo_set_checkout'),
+                                   {'product_id': '55eb63379c531e012d04b37a', 'payment_conf': 'subscription'})
+        self.assertEqual(response.status_code, 200)
+        # Init payment from Checkout page
+        response = self.client.get(reverse('billing:init_momo_transaction'), data={'phone': '677003321'})
+        json_resp = json.loads(response.content)
+        tx_id = json_resp['tx_id']
+        response = self.client.get(reverse('billing:check_momo_transaction_status'), data={'tx_id': tx_id})
+        self.assertEqual(response.status_code, 200)
+        json_resp = json.loads(response.content)
+        self.assertTrue(json_resp['success'])
+        subscription = Subscription.objects.get(member='56eb6d04b37b3379b531e011', status=Subscription.ACTIVE)
+
+    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
+    def test_SubscriptionList(self):
+        self.client.login(username='arch', password='admin')
+        response = self.client.get(reverse('billing:subscription_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['subscription_list']), 3)
+
+    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
+    def test_ChangeSubscription(self):
+        self.client.login(username='arch', password='admin')
+        response = self.client.get(reverse('billing:change_subscription', args=('56eb6d04b37b3379c531e012',)))
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
+    def test_PricingPage(self):
+        """
+        The pricing page shows all active billing Product
+        """
+        response = self.client.get(reverse('billing:pricing'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['product_list']), 2)
