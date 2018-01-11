@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import re
 from copy import deepcopy
 from datetime import datetime, timedelta, date
@@ -9,6 +10,7 @@ from ajaxuploader.backends.local import LocalUploadBackend
 from django.conf import settings
 from django.contrib.admin import AdminSite
 from django.core.cache import cache
+from django.core.files import File
 from django.db import router
 from django.db.models import F, Model
 from django.db.models.loading import get_model
@@ -18,6 +20,9 @@ from django.template.loader import get_template
 from django.utils import timezone
 
 import logging
+
+from ikwen.core.fields import MultiImageField
+
 logger = logging.getLogger('ikwen')
 
 
@@ -63,17 +68,19 @@ def get_config_model():
     return get_model(app_label, model)
 
 
-def get_service_instance(using='default'):
+def get_service_instance(using='default', check_cache=True):
     """
     Gets the Service currently running on this website in the Service
     local database or from foundation database.
     @param using: database alias to search in
+    @param check_cache: if True, fetch from cache first
     """
     from ikwen.core.models import Service
     service_id = getattr(settings, 'IKWEN_SERVICE_ID')
-    service = cache.get(service_id + ':' + using)
-    if service:
-        return service
+    if check_cache:
+        service = cache.get(service_id + ':' + using)
+        if service:
+            return service
     service = Service.objects.using(using).get(pk=service_id)
     cache.set(service_id + ':' + using, service)
     return service
@@ -242,6 +249,80 @@ class DefaultUploadBackend(LocalUploadBackend):
         name = ''.join(tokens[:-1])
         filename = slugify(name) + '.' + ext
         return super(DefaultUploadBackend, self).update_filename(request, filename, *args, **kwargs)
+
+    def upload_complete(self, request, filename, *args, **kwargs):
+        path = self.UPLOAD_DIR + "/" + filename
+        self._dest.close()
+        model_name = request.GET.get('model_name')
+        object_id = request.GET.get('object_id')
+        if model_name and object_id:
+            s = get_service_instance()
+            image_field_name = request.GET.get('image_field_name', 'image')
+            label_field_name = request.GET.get('label_field_name', 'name')
+            tokens = model_name.split('.')
+            model = get_model(tokens[0], tokens[1])
+            obj = model._default_manager.get(pk=object_id)
+            image_field = obj.__dict__[image_field_name]
+            media_root = getattr(settings, 'MEDIA_ROOT')
+            media_url = getattr(settings, 'MEDIA_URL')
+            try:
+                with open(media_root + path, 'r') as f:
+                    content = File(f)
+                    current_image_path = image_field.path if image_field else None
+                    dir = media_root + obj.UPLOAD_TO
+                    unique_filename = False
+                    filename_suffix = 0
+                    filename_no_extension, extension = os.path.splitext(filename)
+                    label_field = obj.__dict__[label_field_name]
+                    if label_field:
+                        seo_filename_no_extension = slugify(label_field)
+                    else:
+                        seo_filename_no_extension = obj.__class__.__name__.lower()
+                    seo_filename = s.project_name_slug + '_' + seo_filename_no_extension + extension
+                    if os.path.isfile(os.path.join(dir, seo_filename)):
+                        while not unique_filename:
+                            try:
+                                if filename_suffix == 0:
+                                    open(os.path.join(dir, seo_filename))
+                                else:
+                                    open(os.path.join(dir, seo_filename_no_extension + str(filename_suffix) + extension))
+                                filename_suffix += 1
+                            except IOError:
+                                unique_filename = True
+                    if filename_suffix > 0:
+                        seo_filename = seo_filename_no_extension + str(filename_suffix) + extension
+
+                    destination = os.path.join(dir, seo_filename)
+                    if image_field:
+                        image_field.save(destination, content)
+                        if isinstance(image_field, MultiImageField):
+                            url = media_url + image_field.small_name
+                        else:
+                            url = media_url + image_field.name
+                    else:
+                        url = media_url + path
+                try:
+                    if image_field and os.path.exists(media_root + path):
+                        os.unlink(media_root + path)  # Remove file from upload tmp folder
+                except Exception as e:
+                    if getattr(settings, 'DEBUG', False):
+                        raise e
+                if current_image_path:
+                    try:
+                        if os.path.exists(current_image_path):
+                            os.unlink(current_image_path)
+                    except OSError as e:
+                        if getattr(settings, 'DEBUG', False):
+                            raise e
+                return {
+                    'path': url
+                }
+            except IOError as e:
+                if settings.DEBUG:
+                    raise e
+                return {'error': 'File failed to upload. May be invalid or corrupted image file'}
+        else:
+            return super(DefaultUploadBackend, self).upload_complete(request, filename, *args, **kwargs)
 
 
 def increment_history_field(watch_object, history_field, increment_value=1):
