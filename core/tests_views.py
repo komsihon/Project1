@@ -108,8 +108,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', DEBUG=True,
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-                       EMAIL_FILE_PATH='test_emails/core/', UNIT_TESTING=True,
-                       JUMBOPAY_API_URL='https://154.70.100.194/api/sandbox/v2/')
+                       EMAIL_FILE_PATH='test_emails/core/', UNIT_TESTING=True)
     def test_pay_invoice(self):
         """
         Walks all through the payment from choosing the payment mean,
@@ -136,8 +135,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', DEBUG=True,
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-                       EMAIL_FILE_PATH='test_emails/core/', UNIT_TESTING=True,
-                       JUMBOPAY_API_URL='https://154.70.100.194/api/sandbox/v2/')
+                       EMAIL_FILE_PATH='test_emails/core/', UNIT_TESTING=True)
     def test_pay_invoice_with_service_having_retailer(self):
         """
         Walks all through the payment from choosing the payment mean,
@@ -216,8 +214,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', DEBUG=True,
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-                       EMAIL_FILE_PATH='test_emails/core/', UNIT_TESTING=True,
-                       JUMBOPAY_API_URL='https://154.70.100.194/api/sandbox/v2/')
+                       EMAIL_FILE_PATH='test_emails/core/', UNIT_TESTING=True)
     def test_pay_one_off_invoice_with_service_having_retailer(self):
         """
         Walks all through the payment from choosing the payment mean,
