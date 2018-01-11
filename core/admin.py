@@ -119,6 +119,15 @@ class ConsoleEventTypeAdmin(admin.ModelAdmin):
     list_filter = ('app',)
 
 
+class ModuleAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'is_pro', 'url_name', 'homepage_section_renderer',)
+    search_fields = ('name', )
+    if getattr(settings, 'IS_IKWEN', False):
+        fields = ('name', 'slug', 'description', 'url_name', 'homepage_section_renderer', 'is_pro')
+    else:
+        fields = ('title', 'content', 'is_active', )
+
+
 if getattr(settings, 'IS_UMBRELLA', False):
     admin.site.register(Application, ApplicationAdmin)
     admin.site.register(Config, ConfigAdmin)
