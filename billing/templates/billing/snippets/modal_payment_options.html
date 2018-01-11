@@ -9,6 +9,7 @@
             <div class="modal-body">
                 <form id="checkout" method="post">{% csrf_token %}
                     <input type="hidden" id="product-id" name="product_id" />
+                    <input type="hidden" name="payment_conf" value="{% if payment_conf %}{{ payment_conf }}{% else %}default{% endif %}" />
                     <ul class="row">
                         <li class="col-sm-4 payment-method{% if not config.is_pro_version and not config.allow_cash_payment %} col-sm-offset-2{% endif %}"
                             data-action-url="{% url mtn_momo.action_url_name %}">
