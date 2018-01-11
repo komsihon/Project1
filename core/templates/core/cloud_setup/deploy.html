@@ -17,8 +17,8 @@
 {% block content %}
     <div id="content">
         <div class="container">
-            {% if request.GET.msg %}
-                <p class="failure" style="font-size: 1em; padding: 9px">{{ request.GET.msg }}</p>
+            {% if request.GET.msg or form.errors %}
+                <p class="failure" style="font-size: 1em; padding: 9px">{{ form.errors }}</p>
             {% endif %}
         </div>
         <div class="container">
@@ -248,7 +248,7 @@
             </div>
             <div class="container" style="margin-top: 2em">
                 <div class="col-sm-4 col-md-3">
-                    <button class="btn btn-success btn-block"> {% trans "Submit" %} </button>
+                    <button class="btn btn-success btn-block deploy"> {% trans "Submit" %} </button>
                 </div>
             </div>
         </form>
@@ -311,6 +311,9 @@
                     $(this).find('input.title').attr('name', 'item' + i);
                     $(this).find('input.amount').attr('name', 'amount' + i);
                 });
+            }).on('click', '.deploy', function() {
+                if (!$(this).hasClass('btn-success')) return;
+                $(this).removeClass('btn-success').addClass('btn-default');
             });
             $('.results.customers').width($('#customer-name').width());
             {% url 'ikwen:member_list' as list_members_url %}
