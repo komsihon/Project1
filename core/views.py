@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 import json
+import os
 from datetime import datetime, timedelta
 from time import strptime
 
 import requests
 from ajaxuploader.views import AjaxFileUploader
+from currencies.models import Currency
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.admin import helpers
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
-from django.core.files import File
 from django.core.exceptions import ImproperlyConfigured
+from django.core.files import File
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -24,30 +27,24 @@ from django.template.loader import get_template
 from django.utils import translation
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_by_path
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
-from django.contrib.admin import helpers
-from django.utils.translation import gettext as _
-from currencies.models import Currency
-from ikwen.cashout.models import CashOutRequest
 
-from ikwen.accesscontrol.templatetags.auth_tokens import append_auth_tokens
-
-from ikwen.billing.utils import get_invoicing_config_instance, get_billing_cycle_days_count, \
-    get_billing_cycle_months_count, get_subscription_model, refresh_currencies_exchange_rates
-
-from ikwen.billing.models import Invoice
-
+import ikwen.conf.settings
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT
+from ikwen.billing.models import Invoice
+from ikwen.billing.utils import get_invoicing_config_instance, get_billing_cycle_days_count, \
+    get_billing_cycle_months_count, refresh_currencies_exchange_rates
+from ikwen.cashout.models import CashOutRequest
 from ikwen.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, AbstractConfig, Country, \
     OperatorWallet
 from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons, add_database_to_settings, \
     add_database, calculate_watch_info, set_counters, get_model_admin_instance
-import ikwen.conf.settings
 
 try:
     ikwen_service = Service.objects.using(UMBRELLA).get(pk=ikwen.conf.settings.IKWEN_SERVICE_ID)
@@ -55,29 +52,6 @@ try:
 except Service.DoesNotExist:
     IKWEN_BASE_URL = getattr(settings, 'IKWEN_BASE_URL') if getattr(settings, 'DEBUG',
                                                                     False) else ikwen.conf.settings.PROJECT_URL
-
-
-class BaseView(TemplateView):
-    def get_context_data(self, **kwargs):
-        context = super(BaseView, self).get_context_data(**kwargs)
-        context['lang'] = translation.get_language()[:2]
-        context['year'] = datetime.now().year
-        service = get_service_instance()
-        context['service'] = service
-        config = service.config
-        context['config'] = config
-        context['currency_code'] = config.currency_code
-        context['currency_symbol'] = config.currency_symbol
-        return context
-
-    def render_to_response(self, context, **response_kwargs):
-        try:
-            # If a notice message is set, add to context and remove from session
-            context['notice_message'] = self.request.session['notice_message']
-            self.request.session['notice_message'] = None
-        except KeyError:
-            pass
-        return super(BaseView, self).render_to_response(context, **response_kwargs)
 
 
 class HybridListView(ListView):
@@ -111,7 +85,6 @@ class HybridListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(HybridListView, self).get_context_data(**kwargs)
-        context.update(BaseView().get_context_data(**kwargs))
         context[self.context_object_name] = context[self.context_object_name].order_by(*self.ordering)[:self.page_size]
         context['page_size'] = self.page_size
         context['total_objects'] = self.get_queryset().count()
@@ -182,8 +155,34 @@ class HybridListView(ListView):
                 'deleted': deleted
             }
             return HttpResponse(json.dumps(response))
+        elif action == 'toggle_attribute':
+            object_id = request.GET['object_id']
+            attr = request.GET['attr']
+            val = request.GET['val']
+            obj = self.model._default_manager.get(pk=object_id)
+            if val.lower() == 'true':
+                obj.__dict__[attr] = True
+            else:
+                obj.__dict__[attr] = False
+            obj.save()
+            response = {'success': True}
+            return HttpResponse(json.dumps(response), 'content-type: text/json')
+        # Sorting stuffs
+        sorted_keys = request.GET.get('sorted')
+        model_name = request.GET.get('model_name')
+        if model_name:
+            tokens = model_name.split('.')
+            model = get_model(tokens[0], tokens[1])
         else:
-            return super(HybridListView, self).get(request, *args, **kwargs)
+            model = self.model
+        if sorted_keys:
+            for token in sorted_keys.split(','):
+                object_id, order_of_appearance = token.split(':')
+                try:
+                    model.objects.filter(pk=object_id).update(order_of_appearance=order_of_appearance)
+                except:
+                    continue
+        return super(HybridListView, self).get(request, *args, **kwargs)
 
     def get_search_results(self, queryset, max_chars=None):
         """
@@ -217,6 +216,14 @@ class HybridListView(ListView):
                         'parameter_name': filter.parameter_name,
                         'choices': filter.lookups()
                     })
+            else:
+                item_values = set([obj.__dict__[item] for obj in self.get_queryset()])
+                item_values = list(sorted(item_values))
+                options.append({
+                    'title': item.capitalize(),
+                    'parameter_name': item,
+                    'choices': [(val, val) for val in item_values]
+                })
         return options
 
     def filter_queryset(self, queryset):
@@ -224,10 +231,16 @@ class HybridListView(ListView):
             if callable(item):
                 filter = item()
                 queryset = filter.queryset(self.request, queryset)
+            else:
+                kwargs = {}
+                value = self.request.GET.get(item)
+                if value:
+                    kwargs[item] = value
+                    queryset = queryset.filter(**kwargs)
         return queryset
 
 
-class ChangeObjectBase(BaseView):
+class ChangeObjectBase(TemplateView):
     model = None
     model_admin = None
     template_name = None
@@ -250,6 +263,31 @@ class ChangeObjectBase(BaseView):
         context['model_admin_form'] = obj_form
         return context
 
+    def get(self, request, *args, **kwargs):
+        action = request.GET.get('action')
+        if action == 'delete_image':
+            object_id = kwargs.get('object_id')
+            obj = get_object_or_404(self.model, pk=object_id)
+            image_field_name = request.POST.get('image_field_name', 'image')
+            image_field = obj.__dict__[image_field_name]
+            if image_field:
+                try:
+                    os.unlink(obj.__dict__[image_field_name].path)
+                    try:
+                        os.unlink(obj.__dict__[image_field_name].small_path)
+                        os.unlink(obj.__dict__[image_field_name].thumb_path)
+                    except:
+                        pass
+                    obj.__dict__[image_field_name] = ''
+                    obj.save()
+                except:
+                    pass
+            return HttpResponse(
+                json.dumps({'success': True}),
+                content_type='application/json'
+            )
+        return super(ChangeObjectBase, self).get(request, *args, **kwargs)
+
     def post(self, request, *args, **kwargs):
         object_admin = get_model_admin_instance(self.model, self.model_admin)
         object_id = kwargs.get('object_id')
@@ -261,9 +299,30 @@ class ChangeObjectBase(BaseView):
         form = model_form(request.POST, instance=obj)
         if form.is_valid():
             form.save()
-            url_name = obj._meta.app_label + ':' + obj.__class__.__name__.lower() + '_list'
-            next_url = reverse(url_name)
-            request.session['notice'] = obj._meta.verbose_name + ' ' + _('successfully updated')
+            # url_name = obj._meta.app_label + ':' + obj.__class__.__name__.lower() + '_list'
+            image_url = request.POST.get('image_url')
+            if image_url:
+                s = get_service_instance()
+                image_field_name = request.POST.get('image_field_name', 'image')
+                image_field = obj.__dict__[image_field_name]
+                if not image_field.name or image_url != image_field.url:
+                    filename = image_url.split('/')[-1]
+                    media_root = getattr(settings, 'MEDIA_ROOT')
+                    media_url = getattr(settings, 'MEDIA_URL')
+                    image_url = image_url.replace(media_url, '')
+                    try:
+                        with open(media_root + image_url, 'r') as f:
+                            content = File(f)
+                            destination = media_root + obj.UPLOAD_TO + "/" + s.project_name_slug + '_' + filename
+                            image_field.save(destination, content)
+                        os.unlink(media_root + image_url)
+                    except IOError as e:
+                        if getattr(settings, 'DEBUG', False):
+                            raise e
+                        return {'error': 'File failed to upload. May be invalid or corrupted image file'}
+
+            next_url = request.META['HTTP_REFERER']
+            messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj) + '</strong> ' + _('successfully updated'))
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)
@@ -358,7 +417,7 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
 upload_customization_image = AjaxFileUploader(CustomizationImageUploadBackend)
 
 
-class DefaultHome(BaseView):
+class DefaultHome(TemplateView):
     """
     Can be used to set at default Home page for applications that do
     not have a public part. This merely shows the company name, logo
@@ -368,7 +427,7 @@ class DefaultHome(BaseView):
     template_name = 'core/default_home.html'
 
 
-class ServiceDetail(BaseView):
+class ServiceDetail(TemplateView):
     template_name = 'core/service_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -397,7 +456,7 @@ class ServiceDetail(BaseView):
         return context
 
 
-class Configuration(BaseView):
+class Configuration(TemplateView):
     template_name = 'core/configuration.html'
 
     UPLOAD_CONTEXT = 'config'
@@ -418,13 +477,15 @@ class Configuration(BaseView):
         context = super(Configuration, self).get_context_data(**kwargs)
         config_admin = self.get_config_admin()
         ModelForm = config_admin.get_form(self.request)
+        service = get_service_instance()
         if getattr(settings, 'IS_IKWEN', False):
             service_id = kwargs.get('service_id')
             if service_id:
                 service = get_object_or_404(Service, pk=service_id)
                 context['service'] = service
                 context['config'] = service.config
-        form = ModelForm(instance=context['config'])
+
+        form = ModelForm(instance=service.config)
         admin_form = helpers.AdminForm(form, list(config_admin.get_fieldsets(self.request)),
                                        config_admin.get_prepopulated_fields(self.request),
                                        config_admin.get_readonly_fields(self.request))
@@ -501,7 +562,7 @@ def get_queued_sms(request, *args, **kwargs):
     return HttpResponse(json.dumps(response), 'content-type: text/json')
 
 
-class Console(BaseView):
+class Console(TemplateView):
     template_name = 'core/console.html'
 
     def get_context_data(self, **kwargs):
@@ -633,7 +694,6 @@ def render_service_deployed_event(event, request):
                 'service_url': service_deployed.url,
                 'due_date': invoice.due_date,
                 'show_pay_now': invoice.status != Invoice.PAID}
-    from ikwen.conf import settings as ikwen_settings
     data.update({'currency_symbol': currency_symbol,
                  'details_url': IKWEN_BASE_URL + reverse('billing:invoice_detail', args=(invoice.id,)),
                  'amount': invoice.amount,
@@ -664,7 +724,7 @@ def get_location_by_ip(request, *args, **kwargs):
     return HttpResponse(json.dumps(response))
 
 
-class DashboardBase(BaseView):
+class DashboardBase(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(DashboardBase, self).get_context_data(**kwargs)
@@ -704,21 +764,21 @@ class DashboardBase(BaseView):
         return context
 
 
-class LegalMentions(BaseView):
+class LegalMentions(TemplateView):
     template_name = 'core/contact.html'
 
 
-class TermsAndConditions(BaseView):
+class TermsAndConditions(TemplateView):
     template_name = 'core/contact.html'
 
 
-class WelcomeMail(BaseView):
+class WelcomeMail(TemplateView):
     template_name = 'accesscontrol/mails/welcome.html'
 
 
-class BaseExtMail(BaseView):
+class BaseExtMail(TemplateView):
     template_name = 'core/mails/base.html'
 
 
-class ServiceExpired(BaseView):
+class ServiceExpired(TemplateView):
     template_name = 'core/service_expired.html'
