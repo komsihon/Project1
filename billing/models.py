@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -114,7 +115,7 @@ class Product(Model):
     IMAGE_UPLOAD_TO = 'ikwen/billing/product_images'
     name = models.CharField(max_length=100, unique=True, db_index=True,
                             help_text="Name of the product as advertised to the customer.")
-    short_description = models.CharField(max_length=45, blank=True,
+    short_description = models.TextField(blank=True,
                                          help_text=_("Short description understandable by the customer."))
     duration = models.IntegerField(default=30,
                                    help_text="Number of days covered by the cost this product.")
@@ -129,11 +130,12 @@ class Product(Model):
                                     help_text=_("Check to make the product active."))
     is_main = models.BooleanField(default=False,
                                   help_text=_("Check to make the product active."))
+    order_of_appearance = models.IntegerField(default=1)
 
     def __unicode__(self):
-        from ikwen.billing.utils import get_invoicing_config_instance
-        invoicing_config = get_invoicing_config_instance()
-        return u'%s: %s %.2f/month' % (self.name, invoicing_config.currency, self.monthly_cost)
+        from ikwen.core.utils import get_service_instance
+        config = get_service_instance().config
+        return u'%s: %s %.2f/%d days' % (self.name, config.currency_symbol, self.cost, self.duration)
 
     def get_details(self):
         if not self.details:
@@ -148,6 +150,7 @@ class AbstractSubscription(Model):
     PENDING = 'Pending'
     SUSPENDED = 'Suspended'
     CANCELED = 'Canceled'
+    EXPIRED = 'Expired'
     ACTIVE = 'Active'
     STATUS_CHOICES = (
         (PENDING, _('Pending')),
@@ -180,6 +183,12 @@ class AbstractSubscription(Model):
     class Meta:
         abstract = True
 
+    def get_status(self):
+        if self.status != self.EXPIRED and datetime.now() < self.expiry:
+            self.status = self.EXPIRED
+            self.save()
+        return self.status
+
 
 class Subscription(AbstractSubscription):
     """
@@ -187,9 +196,10 @@ class Subscription(AbstractSubscription):
     """
 
     def __unicode__(self):
-        from ikwen.core.utils import get_service_instance
-        config = get_service_instance().config
-        return u'%s: %s %.2f/month' % (self.member.full_name, config.currency_symbol, self.monthly_cost)
+        # from ikwen.core.utils import get_service_instance
+        # config = get_service_instance().config
+        # return u'%s: %s %.2f/month' % (self.member.full_name, config.currency_symbol, self.monthly_cost)
+        return u'%s: %s' % (self.member.full_name, self.product.name)
 
 
 class AbstractInvoice(Model):
@@ -325,6 +335,7 @@ class AbstractPayment(Model):
     BANK_CARD = "BankCard"
     BANK_TRANSFER = "BankTransfer"
     MONEY_TRANSFER = "MoneyTransfer"
+    WALLET_DEBIT = "WalletDebit"
     METHODS_CHOICES = (
         (CASH, _("Cash")),
         (MOBILE_MONEY, "WenCash"),
