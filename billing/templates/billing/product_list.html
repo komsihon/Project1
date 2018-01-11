@@ -21,13 +21,14 @@
     <div id="admin-content">
         <div class="container-fluid">
             <div id="results">
-                <ul class="object-list" style="padding: 20px 0 0 0">
+                <ul class="object-list drag-sort" style="padding: 20px 0 0 0">
                 {% for product in product_list %}
-                    <li class="ik-li mean" id="{{ product.id }}" data-id="{{ product.id }}">
+                    <li class="ik-li product" id="{{ product.id }}" data-id="{{ product.id }}">
                         <div class="info">
-                            <a href="{% url 'billing:change_product' product.id %}" class="name" style="float: left">{{ product.name }}</a>
+                            <a href="{% url 'billing:change_product' product.id %}" class="name"
+                               style="float: left{% if not product.is_active %};color: #888{% endif %}">{{ product.name }}</a>
                         </div>
-                        <div class="actions">
+                        <div class="actions" style="margin-top: 0">
                             {% if product.is_active %}
                                 <i class="action glyphicon glyphicon-ok toggle active off" title="{% trans "Deactivate" %}"></i>
                             {% else %}
@@ -52,6 +53,7 @@
 
 {% block js %}
     {{ block.super }}
+    {% include 'core/snippets/sort_and_actions.html' %}
     <script type="text/javascript">
         (function() {
             $('div#admin-nav .subscription-plans').addClass('active');
