@@ -14,6 +14,7 @@
         <div class="container-fluid">
             {% include 'core/snippets/admin_tools.html' %}
             <div id="results">
+                {% include 'core/snippets/spinner.html' %}
                 <ul class="object-list">
                 {% for plan in plan_list %}
                     {% with app=plan.app %}
