@@ -2,6 +2,8 @@ from django.conf import settings
 from django.conf.urls import patterns, url
 
 from django.contrib.auth.decorators import login_required, permission_required
+from ikwen.core.appmodule.views import ModuleList, ConfigureModule, ChangeModule
+
 from ikwen.flatpages.views import ChangeFlatPage
 
 from ikwen.flatpages.views import FlatPageList
@@ -70,6 +72,9 @@ urlpatterns = patterns(
     url(r'^upload_image$', upload_image, name='upload_image'),
     url(r'^upload_customization_image$', upload_customization_image, name='upload_customization_image'),
     url(r'^reset_notices_counter$', reset_notices_counter, name='reset_notices_counter'),
+    url(r'^modules/$', permission_required('accesscontrol.sudo')(ModuleList.as_view()), name='module_list'),
+    url(r'^module/(?P<object_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(ChangeModule.as_view()), name='change_module'),
+    url(r'^module/(?P<object_id>[-\w]+)/configuration/$', permission_required('accesscontrol.sudo')(ConfigureModule.as_view()), name='configure_module'),
     url(r'^configuration/$', permission_required('accesscontrol.sudo')(Configuration.as_view()), name='configuration'),
     url(r'^configuration/(?P<service_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(Configuration.as_view()), name='configuration'),
     url(r'^serviceDetail/(?P<service_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(ServiceDetail.as_view()), name=SERVICE_DETAIL),
