@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib import admin
-from ikwen.theming.models import Template, Theme
+from ikwen.theming.models import Template, Theme, ThemePreview
 
 
 class TemplateAdmin(admin.ModelAdmin):
@@ -10,14 +10,20 @@ class TemplateAdmin(admin.ModelAdmin):
     list_filter = ('app',)
 
 
+class ThemePreviewInline(admin.TabularInline):
+    model = ThemePreview
+    fields = ('image', )
+
+
 class ThemeAdmin(admin.ModelAdmin):
     if getattr(settings, 'IS_IKWEN', False):
         list_display = ('template', 'name', 'preview',)
         search_fields = ('name',)
         prepopulated_fields = {"slug": ("name",)}
         list_filter = ('template',)
+        inlines = (ThemePreviewInline, )
     else:
-        fields = ('name', )
+        fields = ('name', 'display', )
         readonly_fields = ('name', )
 
 

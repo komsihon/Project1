@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from ikwen.core.models import Model, Application
 
 
@@ -20,6 +21,14 @@ class Template(Model):
 
 class Theme(Model):
     UPLOAD_TO = 'ikwen/theme_logos'
+    COMPACT = 'Compact'
+    COZY = 'Cozy'
+    COMFORTABLE = 'Comfortable'
+    DISPLAY_CHOICES = (
+        (COMPACT, _('Compact')),
+        (COZY, _('Cozy')),
+        (COMFORTABLE, _('Comfortable'))
+    )
     template = models.ForeignKey(Template)
     name = models.CharField(max_length=100,
                             help_text="Name of this theme")
@@ -29,9 +38,16 @@ class Theme(Model):
     logo = models.ImageField(upload_to=UPLOAD_TO, editable=False, blank=True, null=True,
                              help_text="This is not the logo of the theme actually, but the logo of the website "
                                        "when using this theme. User may want different logos for different themes.")
+    display = models.CharField(max_length=30, choices=DISPLAY_CHOICES)
+    cost = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'ikwen_theme'
 
     def __unicode__(self):
         return "%s (%s)" % (str(self.template), self.name)
+
+
+class ThemePreview(Model):
+    theme = models.ForeignKey(Theme)
+    image = models.ImageField(upload_to='ikwen/theme_previews')
