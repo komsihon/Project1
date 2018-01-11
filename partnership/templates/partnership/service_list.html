@@ -7,7 +7,7 @@
 
 {% block head_style %}
     {{ block.super }}
-    <link rel='stylesheet' href="{% static 'ikwen/css/app-retail.css' %}" />
+    <link rel='stylesheet' href="{% static 'ikwen/css/change-form.css' %}" />
     <style>
         #admin-tools {visibility: hidden}
     </style>
@@ -20,10 +20,9 @@
 {% block admin_content %}
     <div id="admin-content">
         <div class="container-fluid">
-{#            {% include 'core/snippets/spinner.html' %}#}
-{#            {% include 'trade/snippets/order_list_results.html' %}#}
             {% include 'core/snippets/admin_tools.html' %}
             <div id="results">
+                {% include 'core/snippets/spinner.html' %}
                 <ul class="object-list">
                 {% for service in service_list %}
                     {% if settings.IS_IKWEN %}
