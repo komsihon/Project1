@@ -7,6 +7,8 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
+from django.views.generic import TemplateView
+
 from ikwen.core.constants import PENDING
 
 from ikwen.accesscontrol.models import Member
@@ -17,9 +19,6 @@ from django.utils.translation import gettext as _
 from threading import Thread
 
 from ikwen.core.utils import get_service_instance, add_event, get_mail_content, get_config_model
-
-from ikwen.core.views import BaseView
-
 from ikwen.core.models import CASH_OUT_REQUEST_EVENT, OperatorWallet, Config, Service
 from ikwen.cashout.models import CashOutRequest, CashOutAddress, CashOutMethod
 
@@ -153,7 +152,7 @@ def render_cash_out_request_paid(event, request):
     return html_template.render(c)
 
 
-class Payments(BaseView):
+class Payments(TemplateView):
     template_name = 'cashout/payments.html'
 
     def get_context_data(self, **kwargs):

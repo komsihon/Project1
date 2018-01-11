@@ -9,15 +9,16 @@ from django.utils.http import urlquote
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
+from django.views.generic import TemplateView
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
 from ikwen.billing.models import CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry
 from ikwen.core.models import Application, Service
 from ikwen.core.utils import get_service_instance, set_counters, calculate_watch_info, rank_watch_objects
-from ikwen.core.views import BaseView, HybridListView, DashboardBase
-from ikwen.partnership.forms import ChangeServiceForm
+from ikwen.core.views import HybridListView, DashboardBase
 from ikwen.partnership.cloud_setup import deploy, DeploymentForm
+from ikwen.partnership.forms import ChangeServiceForm
 
 
 class ApplicationList(HybridListView):
@@ -46,7 +47,7 @@ class ServiceList(HybridListView):
         return Service.objects.exclude(pk=get_service_instance().id)
 
 
-class ChangeService(BaseView):
+class ChangeService(TemplateView):
     template_name = 'partnership/service_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -151,7 +152,7 @@ class Dashboard(DashboardBase):
         return context
 
 
-class DeployCloud(BaseView):
+class DeployCloud(TemplateView):
     template_name = 'core/cloud_setup/deploy.html'
 
     def get_context_data(self, **kwargs):

@@ -2,6 +2,7 @@ import json
 import os
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.admin import helpers
 from django.contrib.auth.decorators import permission_required
 from django.core.files import File
@@ -10,8 +11,10 @@ from django.forms.models import modelform_factory
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
+from django.views.generic import TemplateView
 
 from ikwen.theming.admin import ThemeAdmin
 
@@ -19,7 +22,7 @@ from ikwen.core.utils import get_model_admin_instance, get_service_instance
 
 from ikwen.theming.models import Theme
 
-from ikwen.core.views import BaseView, HybridListView
+from ikwen.core.views import HybridListView
 
 
 class ThemeList(HybridListView):
@@ -28,7 +31,7 @@ class ThemeList(HybridListView):
     context_object_name = 'theme_list'
 
 
-class ConfigureTheme(BaseView):
+class ConfigureTheme(TemplateView):
     template_name = 'theming/configure_theme.html'
 
     def get_context_data(self, **kwargs):
@@ -39,7 +42,7 @@ class ConfigureTheme(BaseView):
         if theme_id:
             theme = get_object_or_404(Theme, pk=theme_id)
         theme_admin = get_model_admin_instance(Theme, ThemeAdmin)
-        ModelForm = modelform_factory(Theme, fields=('name', ))
+        ModelForm = modelform_factory(Theme, fields=('name', 'display', ))
         form = ModelForm(instance=theme)
         theme_form = helpers.AdminForm(form, list(theme_admin.get_fieldsets(self.request)),
                                           theme_admin.get_prepopulated_fields(self.request),
@@ -77,10 +80,8 @@ class ConfigureTheme(BaseView):
                             raise e
                         return {'error': 'File failed to upload. May be invalid or corrupted image file'}
             theme.save()
-            if theme_id:
-                next_url = reverse('theming:configure_theme', args=(theme_id, )) + '?success=yes'
-            else:
-                next_url = reverse('theming:configure_theme') + '?success=yes'
+            messages.success(request, 'Theme ' + _('successfully updated'))
+            next_url = reverse('theming:theme_list')
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)

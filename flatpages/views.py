@@ -10,7 +10,9 @@ from django.utils.decorators import method_decorator
 from django.utils.text import slugify
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
-from ikwen.core.views import BaseView, HybridListView
+from django.views.generic import TemplateView
+
+from ikwen.core.views import HybridListView
 
 from ikwen.flatpages.admin import FlatPageAdmin
 
@@ -41,7 +43,7 @@ class FlatPageList(HybridListView):
         return super(FlatPageList, self).render_to_response(context, **response_kwargs)
 
 
-class ChangeFlatPage(BaseView):
+class ChangeFlatPage(TemplateView):
     template_name = 'flatpages/change_flatpage.html'
 
     def get_context_data(self, **kwargs):
@@ -95,7 +97,7 @@ class ChangeFlatPage(BaseView):
             return render(request, self.template_name, context)
 
 
-class FlatPageView(BaseView):
+class FlatPageView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         url = kwargs['url']
