@@ -1,5 +1,9 @@
 from django.conf import settings
 from django.core.urlresolvers import reverse, NoReverseMatch
+from django.utils import translation
+
+from ikwen.core.models import Module, Service
+
 from ikwen.conf import settings as ikwen_settings
 from ikwen.flatpages.models import FlatPage
 
@@ -26,6 +30,9 @@ def project_settings(request):
     except NoReverseMatch:
         pass
 
+    service = Service.objects.get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
+    config = service.config
+
     return {
         'settings': {
             'DEBUG': getattr(settings, 'DEBUG', False),
@@ -39,5 +46,20 @@ def project_settings(request):
             'LEGAL_MENTIONS_URL': legal_mentions_url,
             'PROJECT_URL': getattr(settings, 'PROJECT_URL', ''),
             'MEMBER_AVATAR': getattr(settings, 'MEMBER_AVATAR', 'ikwen/img/login-avatar.jpg')
-        }
+        },
+        'service': service,
+        'config': config,
+        'lang': translation.get_language()[:2],
+        'currency_code': config.currency_code,
+        'currency_symbol': config.currency_symbol
     }
+
+
+def app_modules(request):
+    """
+    Grabs all active app modules
+    """
+    modules = {}
+    for obj in Module.objects.filter(is_active=True):
+        modules[obj.slug] = obj
+    return modules
