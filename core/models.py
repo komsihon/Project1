@@ -16,6 +16,7 @@ from django.template.loader import get_template
 from django.template import Context
 from django_mongodb_engine.contrib import MongoDBManager
 from djangotoolbox.fields import ListField
+from ikwen.core.fields import MultiImageField
 
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 
@@ -328,6 +329,13 @@ class Service(models.Model):
             wallet = OperatorWallet.objects.using('wallets').create(nonrel_id=self.id, provider=provider)
         return wallet
 
+    def _get_balance(self):
+        balance = 0
+        for wallet in OperatorWallet.objects.using('wallets').filter(nonrel_id=self.id):
+            balance += wallet.balance
+        return balance
+    balance = property(_get_balance)
+
     def raise_balance(self, amount, provider=None):
         from ikwen.billing.mtnmomo.views import MTN_MOMO
         if not provider:
@@ -491,10 +499,10 @@ class AbstractConfig(Model):
                                    help_text=_("More detailed description of your business."))
     slogan = models.CharField(max_length=60, blank=True,
                               help_text=_("Your slogan <em>(60 chars max.)</em>."))
-    currency_code = models.CharField(max_length=5, default='USD',
+    currency_code = models.CharField(max_length=5, default='XAF',
                                      help_text=_("Code of your currency. Eg: <strong>USD, GBP, EUR, XAF,</strong> ..."))
-    currency_symbol = models.CharField(max_length=5, default='$',
-                                       help_text=_("Symbol of your currency, Eg: <strong>$, £, €, F</strong>."))
+    currency_symbol = models.CharField(max_length=5, default='XAF',
+                                       help_text=_("Symbol of your currency, Eg: <strong>$, £, €, XAF</strong>."))
     cash_out_min = models.IntegerField(_("cash-out minimum"), blank=True, null=True,
                                        default=getattr(settings, 'CASH_OUT_MIN', 0),
                                        help_text="Minimum balance that allows cash out.")
@@ -792,6 +800,67 @@ class QueuedSMS(Model):
 
     class Meta:
         db_table = 'ikwen_queued_sms'
+
+
+class Module(Model):
+    """
+    Any application module that might be integrated to 
+    a website. Eg. Blog, Donate, Subscriptions
+    """
+    UPLOAD_TO = 'modules'
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(unique=True)
+    logo = models.ImageField(upload_to=UPLOAD_TO, null=True,
+                             help_text="Logo of the module (100px x 100px).")
+    monthly_cost = models.FloatField(default=0,
+                                     help_text="What user pays monthly for this module.")
+    description = models.TextField(blank=True, null=True)
+    title = models.CharField(max_length=30,
+                             help_text="Title that appears in the menu bar of the website")
+    image = MultiImageField(upload_to=UPLOAD_TO, max_size=800, null=True,
+                            help_text="Image on the module page as the visitor will see it. "
+                                      "Used to decorate or/and give more explanations.")
+    content = models.TextField(blank=True, null=True,
+                               help_text="Text on the module page as the visitor will see it. "
+                                         "Can be used to give some explanations")
+    is_active = models.BooleanField(default=False,
+                                    help_text="Check/Uncheck to turn the module Active/Inactive")
+    is_pro = models.BooleanField(default=True,
+                                 help_text="Designates whether this modules is available "
+                                           "only to PRO version websites")
+    config_model_name = models.CharField(max_length=100, blank=True, null=True,
+                                         help_text="Model name of the config for this module.")
+    config_model_admin = models.CharField(max_length=100, blank=True, null=True,
+                                          help_text="Model Admin of the config for this module.")
+    url_name = models.CharField(max_length=60,
+                                help_text="Django url name of the module "
+                                          "Meaning a name under the form [namespace:]url_name")
+    homepage_section_renderer = models.CharField(max_length=100,
+                                                 help_text="Function that renders the module as "
+                                                           "a homepage section.")
+
+    class Meta:
+        db_table = 'ikwen_module'
+
+    def __unicode__(self):
+        return self.name
+
+    def _get_config_model(self):
+        tokens = self.config_model_name.split('.')
+        model = get_model(tokens[0], tokens[1])
+        return model
+    config_model = property(_get_config_model)
+
+    def _get_config(self):
+        try:
+            return self.config_model._default_manager.all()[0]
+        except IndexError:
+            pass
+    config = property(_get_config)
+
+    def render(self, request=None):
+        renderer = import_by_path(self.homepage_section_renderer)
+        return renderer(self, request)
 
 
 def delete_object_events(sender, **kwargs):
