@@ -1,5 +1,5 @@
-from ikwen.core.views import BaseView
+from django.views.generic import TemplateView
 
 
-class SetExpressCheckout(BaseView):
+class SetExpressCheckout(TemplateView):
     template_name = 'billing/momo_checkout.html'
