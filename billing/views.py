@@ -3,13 +3,10 @@ import json
 import logging
 import random
 import string
-from datetime import date, datetime, timedelta
-from threading import Thread
+from datetime import date
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
-from django.contrib.auth.models import Group
-from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.db.models.loading import get_model
@@ -22,26 +19,27 @@ from django.template.defaultfilters import slugify
 from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
-from django.utils.http import urlquote
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
+from django.views.generic import TemplateView
+
+from ikwen.core.constants import PENDING
 
 from ikwen.accesscontrol.backends import UMBRELLA
-from ikwen.accesscontrol.models import Member, SUDO
+from ikwen.accesscontrol.models import Member
 from ikwen.billing.cloud_setup import DeploymentForm, deploy
-from ikwen.billing.models import Invoice, SendingReport, SERVICE_SUSPENDED_EVENT, PaymentMean, Payment, \
-    PAYMENT_CONFIRMATION, CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry, Product, InvoiceItem
-from ikwen.billing.admin import ProductAdmin
+from ikwen.billing.models import Invoice, SendingReport, SERVICE_SUSPENDED_EVENT, PaymentMean, \
+    CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry, Product
+from ikwen.billing.admin import ProductAdmin, SubscriptionAdmin
 from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.orangemoney.views import init_web_payment, ORANGE_MONEY
-from ikwen.billing.utils import get_invoicing_config_instance, get_subscription_model, get_days_count, \
-    get_payment_confirmation_message, share_payment_and_set_stats, get_next_invoice_number
+from ikwen.billing.utils import get_invoicing_config_instance, get_subscription_model
 from ikwen.core.models import Service, Application
-from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content
-from ikwen.core.views import BaseView, HybridListView, ChangeObjectBase
+from ikwen.core.utils import add_database_to_settings, get_service_instance
+from ikwen.core.views import HybridListView, ChangeObjectBase
 from ikwen.partnership.models import ApplicationRetailConfig
 
 logger = logging.getLogger('ikwen')
@@ -52,7 +50,7 @@ model = subscription_model_name.split('.')[1]
 Subscription = get_model(app_label, model)
 
 
-class BillingBaseView(BaseView):
+class BillingBaseView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(BillingBaseView, self).get_context_data(**kwargs)
         context['invoicing_config'] = get_invoicing_config_instance()
@@ -74,9 +72,32 @@ class IframeAdmin(BillingBaseView):
 
 class ProductList(HybridListView):
     model = Product
-    ordering = ('cost', )
+    ordering = ('order_of_appearance', 'cost', )
     context_object_name = 'product_list'
     template_name = 'billing/product_list.html'
+
+    def get(self, request, *args, **kwargs):
+        action = self.request.GET.get('action')
+        if action == 'delete':
+            selection = self.request.GET['selection'].split(',')
+            deleted = []
+            for pk in selection:
+                try:
+                    obj = Product.objects.get(pk=pk)
+                    if Subscription.objects.filter(product=obj).count() > 0:
+                        response = {'message': "Cannot delete because there are actual subscriptions. "
+                                               "Deactivate instead"}
+                        return HttpResponse(json.dumps(response))
+                    obj.delete()
+                    deleted.append(pk)
+                except:
+                    continue
+            response = {
+                'message': "%d item(s) deleted." % len(selection),
+                'deleted': deleted
+            }
+            return HttpResponse(json.dumps(response))
+        return super(ProductList, self).get(request, *args, **kwargs)
 
 
 class ChangeProduct(ChangeObjectBase):
@@ -86,10 +107,32 @@ class ChangeProduct(ChangeObjectBase):
 
 
 class SubscriptionList(HybridListView):
-    model = Subscription
+    if getattr(settings, 'DEBUG', False):
+        model = Subscription
+    else:
+        queryset = Subscription.objects.exclude(status=PENDING)
     ordering = ('-id', )
+    list_filter = ('status', )
     context_object_name = 'subscription_list'
     template_name = 'billing/subscription_list.html'
+    html_results_template_name = 'billing/snippets/subscription_list_results.html'
+
+    def get_search_results(self, queryset, max_chars=None):
+        search_term = self.request.GET.get('q')
+        if search_term and len(search_term) >= 2:
+            search_term = search_term.lower()
+            word = slugify(search_term)
+            if word:
+                word = word[:4]
+                member_list = list(Member.objects.filter(full_name__icontains=word))
+                queryset = queryset.filter(member__in=member_list)
+        return queryset
+
+
+class ChangeSubscription(ChangeObjectBase):
+    model = Subscription
+    model_admin = SubscriptionAdmin
+    template_name = 'billing/change_subscription.html'
 
 
 class InvoiceList(BillingBaseView):
@@ -312,7 +355,7 @@ def render_billing_event(event, request):
     return html_template.render(c)
 
 
-class PaymentMeanList(BaseView):
+class PaymentMeanList(TemplateView):
     template_name = 'billing/payment_mean_list.html'
 
     def get_context_data(self, **kwargs):
@@ -374,107 +417,7 @@ def toggle_payment_mean(request, *args, **kwargs):
     return HttpResponse(json.dumps({'success': True}), 'content-type: text/json')
 
 
-def set_invoice_checkout(request, *args, **kwargs):
-    """
-    This function has no URL associated with it.
-    It serves as ikwen setting "MOMO_BEFORE_CHECKOUT"
-    """
-    if request.user.is_anonymous():
-        next_url = reverse('ikwen:sign_in')
-        referrer = request.META.get('HTTP_REFERER')
-        if referrer:
-            next_url += '?' + urlquote(referrer)
-        return HttpResponseRedirect(next_url)
-    service = get_service_instance()
-    config = service.config
-    invoice_id = request.POST['invoice_id']
-    try:
-        extra_months = int(request.POST.get('extra_months', '0'))
-    except ValueError:
-        extra_months = 0
-    invoice = Invoice.objects.get(pk=invoice_id)
-    amount = invoice.amount
-    if extra_months:
-        amount += invoice.service.monthly_cost * extra_months
-    if config.__dict__.get('processing_fees_on_customer'):
-        amount += config.ikwen_share_fixed
-    request.session['amount'] = amount
-    request.session['model_name'] = 'billing.Invoice'
-    request.session['object_id'] = invoice_id
-    request.session['extra_months'] = extra_months
-
-    mean = request.GET.get('mean', MTN_MOMO)
-    request.session['mean'] = mean
-    if mean == MTN_MOMO:
-        request.session['is_momo_payment'] = True
-    elif mean == ORANGE_MONEY:
-        request.session['notif_url'] = service.url
-        request.session['return_url'] = service.url + reverse('billing:invoice_detail', args=(invoice_id, ))
-        request.session['cancel_url'] = service.url + reverse('billing:invoice_detail', args=(invoice_id, ))
-        request.session['is_momo_payment'] = False
-
-
-def confirm_invoice_payment(request, *args, **kwargs):
-    """
-    This function has no URL associated with it.
-    It serves as ikwen setting "MOMO_AFTER_CHECKOUT"
-    """
-    service = get_service_instance()
-    config = service.config
-    invoice_id = request.session['object_id']
-    invoice = Invoice.objects.get(pk=invoice_id)
-    invoice.status = Invoice.PAID
-    if config.__dict__.get('processing_fees_on_customer'):
-        invoice.processing_fees = config.ikwen_share_fixed
-    invoice.save()
-    amount = request.session['amount']
-    payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY, amount=amount)
-    s = invoice.service
-    if config.__dict__.get('separate_billing_cycle', True):
-        extra_months = request.session['extra_months']
-        total_months = invoice.months_count + extra_months
-        days = get_days_count(total_months)
-    else:
-        days = invoice.subscription.product.duration
-        total_months = None
-    if s.status == Service.SUSPENDED:
-        invoicing_config = get_invoicing_config_instance()
-        days -= invoicing_config.tolerance  # Catch-up days that were offered before service suspension
-        expiry = datetime.now() + timedelta(days=days)
-        expiry = expiry.date()
-    elif s.expiry:
-        expiry = s.expiry + timedelta(days=days)
-    else:
-        expiry = datetime.now() + timedelta(days=days)
-        expiry = expiry.date()
-    s.expiry = expiry
-    s.status = Service.ACTIVE
-    if invoice.is_one_off:
-        s.version = Service.FULL
-    s.save()
-    mean = request.session['mean']
-    share_payment_and_set_stats(invoice, total_months, mean)
-    member = request.user
-    add_event(service, PAYMENT_CONFIRMATION, member=member, object_id=invoice.id)
-    partner = s.retailer
-    if partner:
-        add_database_to_settings(partner.database)
-        sudo_group = Group.objects.using(partner.database).get(name=SUDO)
-    else:
-        sudo_group = Group.objects.using(UMBRELLA).get(name=SUDO)
-    add_event(service, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
-    if member.email:
-        subject, message, sms_text = get_payment_confirmation_message(payment, member)
-        html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html')
-        sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
-        msg = EmailMessage(subject, html_content, sender, [member.email])
-        msg.content_subtype = "html"
-        Thread(target=lambda m: m.send(), args=(msg,)).start()
-    next_url = service.url + reverse('billing:invoice_detail', args=(invoice.id, ))
-    return {'success': True, 'next_url': next_url}
-
-
-class DeployCloud(BaseView):
+class DeployCloud(TemplateView):
     template_name = 'core/cloud_setup/deploy.html'
 
     def get_context_data(self, **kwargs):
@@ -581,7 +524,7 @@ class NoticeMail(BillingBaseView):
         return context
 
 
-class MoMoSetCheckout(BaseView):
+class MoMoSetCheckout(TemplateView):
     template_name = 'billing/momo_checkout.html'
 
     def get_context_data(self, **kwargs):
@@ -617,7 +560,13 @@ class MoMoSetCheckout(BaseView):
         else:
             signature = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(16)])
         request.session['signature'] = signature
-        path = getattr(settings, 'MOMO_BEFORE_CASH_OUT')
+        payments_conf = getattr(settings, 'PAYMENTS', None)
+        if payments_conf:
+            conf = request.POST.get('payment_conf', 'default').lower().strip()
+            request.session['payment_conf'] = conf
+            path = payments_conf[conf]['before']
+        else:
+            path = getattr(settings, 'MOMO_BEFORE_CASH_OUT')
         momo_before_checkout = import_by_path(path)
         http_resp = momo_before_checkout(request, payment_mean, *args, **kwargs)
         if http_resp:
@@ -626,13 +575,3 @@ class MoMoSetCheckout(BaseView):
             return init_web_payment(request, *args, **kwargs)
         context['amount'] = request.session['amount']
         return render(request, self.template_name, context)
-
-
-class Pricing(HybridListView):
-    queryset = Product.objects.filter(is_active=True)
-    template_name = 'billing/public/pricing.html'
-    context_object_name = 'product_list'
-
-
-class Donate(BaseView):
-    template_name = 'billing/public/donate.html'
