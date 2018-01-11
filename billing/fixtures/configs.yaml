@@ -1,3 +1,11 @@
+- model: billing.operatorprofile
+  fields:
+    service: 54ad2bd9b37b335a18fe5801
+    company_name: ikwen
+    contact_email: contact@ikwen.com
+    logo: logos/some_logo.png
+    is_pro_version: Yes
+
 - model: billing.invoicingconfig
   pk: 56cc6b423350d09453e3b37b
   fields:

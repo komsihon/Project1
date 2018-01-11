@@ -6,6 +6,23 @@
     cost: 5000
     short_description: Cool product for you
 
+- model: billing.product
+  pk: 55eb63379c531e012d04b37b
+  fields:
+    name: Very Cool product
+    duration: 60
+    cost: 9000
+    short_description: Very Cool product for you
+
+- model: billing.product
+  pk: 55eb63379c531e012d04b37c
+  fields:
+    name: Wonderful product
+    duration: 60
+    cost: 11000
+    short_description: Wonderful product for you
+    is_active: No
+
 - model: billing.subscription
   pk: 56eb6d04b37b3379c531e012
   fields:

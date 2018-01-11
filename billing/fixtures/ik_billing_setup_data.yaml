@@ -30,6 +30,11 @@
     logo: logos/some_logo.png
     is_pro_version: Yes
 
+- model: core.module
+  fields:
+    name: Subscriptions
+    slug: module_pricing
+
 - model: core.consoleeventtype
   pk: 56eb3379b531a0104b373bd1
   fields:
@@ -122,6 +127,16 @@
     name: MTN Mobile Money
     slug: mtn-momo
     credentials: '{"merchant_email":"merchant@ikwen.com"}'
+    action_url_name: billing:momo_set_checkout
+    logo: logo.png
+    watermark: watermark.png
+
+- model: billing.paymentmean
+  pk: 5880870e4fc0c2a8da3d29d3
+  fields:
+    name: Orange Money
+    slug: orange-money
+    credentials: {"merchant_key": "huwysk",  "access_token": "token"}
     action_url_name: billing:momo_set_checkout
     logo: logo.png
     watermark: watermark.png
