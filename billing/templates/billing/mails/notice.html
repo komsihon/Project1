@@ -2,10 +2,33 @@
 {% load i18n %}
 
 {% block content %}
-    <p style="color: #888; font-size: 1.35em; line-height: 1.44em; margin-top: 45px; min-height: 180px; padding: 0 15px; text-align: justify"> {# ACTUAL MESSAGE #}
-        {{ message|safe }}
-    </p> {# END MESSAGE #}
+    {% if wallet_debit %}
+        <div style="color: #666; padding: 0 15px">
+            <h1 style="color: #444; font-weight: normal">
+                {% blocktrans %}Thanks for your business with ikwen{% endblocktrans %}
+            </h1>
+            <p>{% blocktrans %}
+                We successfully charged your wallet for your service fees, so you're all set !
+            {% endblocktrans %}</p>
+            <br/>
+            <h2 style="color: #444; font-weight: normal">{% blocktrans with member_name=invoice.subscription.member.full_name %}Summary for {{ member_name }}{% endblocktrans %}</h2>
+            <p style="border-bottom: 1px solid #ddd; padding-bottom: 10px">
+                <span>{% blocktrans with months_count=invoice.months_count exp=invoice.due_date|date %}
+                    Fees for {{ months_count }} month(s), ending on {{ exp }}
+                {% endblocktrans %}</span>
+                <span style="float: right">{{ config.currency_symbol }}{{ invoice.amount }}</span>
+            </p>
+            <p style="color: #555; margin-bottom: 45px">
+                <strong>{% trans "Amount paid" %}</strong>
+                <strong style="float: right">{{ config.currency_symbol }}{{ invoice.amount }}</strong>
+            </p>
+        </div>
+    {% else %}
+        <p style="color: #666; font-size: 1.35em; line-height: 1.44em; margin: 45px 0; min-height: 180px; padding: 0 15px; text-align: justify"> {# ACTUAL MESSAGE #}
+            {{ message|safe }}
+        </p> {# END MESSAGE #}
+    {% endif %}
     {% if invoice_url %}
-        <a href="{{ invoice_url }}" target="_blank" style="background: #16991D; color: #fff; display: block; font-size: 1.35em; font-weight: bold; margin: 15px auto 0; padding: 9px 0; text-align: center; text-decoration: none; width: 240px">{% trans "Pay Now" %}</a>
+        <a href="{{ invoice_url }}" target="_blank" style="background: #136b94; border-radius: 3px; color: #fff; display: block; font-size: 1.35em; font-weight: bold; margin: 15px auto 0; padding: 15px 0; text-align: center; text-decoration: none; width: 280px">{{ cta }}</a>
     {% endif %}
 {% endblock %}
