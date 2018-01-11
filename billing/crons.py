@@ -2,11 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-
-from django.db.models import Q
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
 
+from django.db.models import Q
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -15,6 +13,7 @@ from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
+from django.utils.translation import gettext as _
 from ikwen.accesscontrol.models import SUDO
 
 from ikwen.core.models import Config, QueuedSMS, Service
@@ -23,13 +22,15 @@ from ikwen.core.utils import get_mail_content
 from ikwen.billing.models import Invoice, InvoicingConfig, INVOICES_SENT_EVENT, \
     NEW_INVOICE_EVENT, INVOICE_REMINDER_EVENT, REMINDERS_SENT_EVENT, OVERDUE_NOTICE_EVENT, OVERDUE_NOTICES_SENT_EVENT, \
     SUSPENSION_NOTICES_SENT_EVENT, SERVICE_SUSPENDED_EVENT, SendingReport
-from ikwen.billing.utils import get_invoice_generated_message, get_invoice_reminder_message, get_invoice_overdue_message, \
-    get_service_suspension_message, get_next_invoice_number, get_subscription_model, get_billing_cycle_months_count
+from ikwen.billing.utils import get_invoice_generated_message, get_invoice_reminder_message, \
+    get_invoice_overdue_message, \
+    get_service_suspension_message, get_next_invoice_number, get_subscription_model, get_billing_cycle_months_count, \
+    pay_with_wallet_balance
 
 import logging.handlers
 error_log = logging.getLogger('crons.error')
 error_log.setLevel(logging.ERROR)
-error_file_handler = logging.handlers.RotatingFileHandler('billing_crons.log', 'w', 100000, 4)
+error_file_handler = logging.handlers.RotatingFileHandler('billing_crons.log', 'w', 1000000, 4)
 error_file_handler.setLevel(logging.INFO)
 f = logging.Formatter('%(levelname)-10s %(asctime)-27s %(message)s')
 error_file_handler.setFormatter(f)
@@ -81,31 +82,43 @@ def send_invoices():
         count += 1
         total_amount += amount
         add_event(service, NEW_INVOICE_EVENT, member=member, object_id=invoice.id)
-        print "Event posted to %s's Console" % member.username
+
+        paid_by_wallet_debit = False
+        if getattr(settings, 'IS_IKWEN', False) and subscription.balance >= invoice.amount:
+            pay_with_wallet_balance(invoice)
+            paid_by_wallet_debit = True
+
         subject, message, sms_text = get_invoice_generated_message(invoice)
+
         if member.email:
             invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
-            html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
-                                            extra_context={'invoice_url': invoice_url})
+            if paid_by_wallet_debit:
+                subject = _("Thanks for your payment")
+                invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
+                context = {'wallet_debit': True, 'invoice': invoice, 'config': config,
+                           'invoice_url': invoice_url, 'cta': _("View invoice")}
+                html_content = get_mail_content(subject, '', template_name='billing/mails/notice.html',
+                                                extra_context=context)
+            else:
+                html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+                                                extra_context={'invoice_url': invoice_url, 'cta': _("Pay now")})
             # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
             # to be delivered to Spams because of origin check.
             sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
             msg = EmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
             invoice.last_reminder = timezone.now()
-            print "Sending mail to %s" % member.email
             try:
                 if msg.send():
-                    print "Mail sent to %s" % member.email
-                    invoice.reminders_sent = 1
+                    if not paid_by_wallet_debit:
+                        invoice.reminders_sent = 1
+                        invoice.save()
                 else:
-                    print "Sending mail to %s failed" % member.email
                     error_log.error(u"Invoice #%s generated but mail not sent to %s" % (number, member.email),
                                     exc_info=True)
             except:
-                print "Sending mail to %s failed" % member.email
                 error_log.error(u"Connexion error on Invoice #%s to %s" % (number, member.email), exc_info=True)
-            invoice.save()
+
         if sms_text:
             if member.phone:
                 if config.sms_sending_method == Config.HTTP_API:
@@ -160,7 +173,7 @@ def send_invoice_reminders():
             if member.email:
                 invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
-                                                extra_context={'invoice_url': invoice_url})
+                                                extra_context={'invoice_url': invoice_url, 'cta': _("Pay now")})
                 # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
                 # to be delivered to Spams because of origin check.
                 sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
@@ -232,7 +245,7 @@ def send_invoice_overdue_notices():
             if member.email:
                 invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
-                                                extra_context={'invoice_url': invoice_url})
+                                                extra_context={'invoice_url': invoice_url, 'cta': _("Pay now")})
                 # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
                 # to be delivered to Spams because of origin check.
                 sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
@@ -308,7 +321,7 @@ def suspend_customers_services():
             if member.email:
                 invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
-                                                extra_context={'invoice_url': invoice_url})
+                                                extra_context={'invoice_url': invoice_url, 'cta': _("Pay now")})
                 # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
                 # to be delivered to Spams because of origin check.
                 sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
