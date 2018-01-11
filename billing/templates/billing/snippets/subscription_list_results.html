@@ -1,0 +1,69 @@
+{% load i18n static humanize auth_tokens %}
+<ul class="object-list">
+{% for s10n in objects_page.object_list %} {# s10n = subscription #}
+    <li class="ik-li {{ s10n.status|lower }}" id="{{ s10n.id }}" data-id="{{ s10n.id }}">
+        {% with member=s10n.member %}
+            {% if member %}
+                {% url 'ikwen:profile' member.id as member_url %}
+                <a href="{{ member_url|ikwenize }}" class="image rounded"
+                   style="background-image: url({% if member.photo.name %}{{ settings.IKWEN_MEDIA_URL }}{{ member.photo.small_name }}{% else %}{% static settings.MEMBER_AVATAR %}{% endif %})"></a>
+            {% else %}
+                <a class="image rounded" style="background-image: url({% static settings.MEMBER_AVATAR %})"></a>
+            {% endif %}
+            <div class="info">
+                <a class="name" href="{% url 'billing:change_subscription' s10n.id %}" target="_blank">
+                    <span class="hidden-xs">{{ member.full_name }}</span>
+                    <span class="visible-xs">{{ member.full_name|truncatechars:16 }}</span>
+                </a>
+                <div class="about">
+                    <p style="margin-bottom: 0">
+                        <strong>{% trans "Cost" %}</strong>: {{ config.currency_symbol }} {{ s10n.product.cost|intcomma }}
+                    </p>
+                    <p style="margin-bottom: 0">
+                        <span class="meta" style="margin-right: 10px">
+                            <strong>{% trans "Plan" %}</strong>:
+                            {% url 'billing:change_product' s10n.product.id as product_url %}
+                            <a href="{{ product_url }}">{{ s10n.product.name }}</a>
+                        </span>
+                        <span class="meta">
+                            <strong>{% trans "Duration" %}</strong>:
+                            {{ s10n.product.duration_text }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        {% endwith %}
+        <date class="date text-muted">
+            {{ s10n.created_on|date }}
+            <i class="fa fa-circle text-right color-{{ s10n.status|lower }}"></i>
+        </date>
+    </li>
+{% endfor %}
+</ul>
+{% if objects_page.paginator.num_pages > 1 %}
+<ul class="pagination" style="float: left">
+    {% if objects_page.paginator.num_pages > 10 %}
+        <li class="disabled"><a href="#" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
+    {% endif %}
+    {% for page in objects_page.paginator.page_range %}
+        {% if page <= 10 %}
+            <li class="{% if page == objects_page.number %}active{% endif %}" data-val="{{ page }}">
+                <a href="#">
+                    {{ page }} {% if page == objects_page.number %}<span class="sr-only">(current)</span>{% endif %}
+                </a>
+            </li>
+        {% endif %}
+    {% endfor %}
+    {% if objects_page.paginator.num_pages > 10 %}
+        <li><a href="#" aria-label="Next"><span aria-hidden="true">»</span></a></li>
+    {% endif %}
+</ul>
+{% endif %}
+<div id="page-navigation" class="text-muted">
+    {% if objects_page.paginator.num_pages > 1  %}
+        <p>{% blocktrans with count=objects_page.paginator.count start=objects_page.start_index end=objects_page.end_index %}
+            {{ start }} – {{ end }} of {{ count }} results{% endblocktrans %}</p>
+    {% else %}
+        <p>{% blocktrans with count=objects_page.paginator.count %}{{ count }} results{% endblocktrans %}</p>
+    {% endif %}
+</div>
