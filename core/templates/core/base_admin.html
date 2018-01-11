@@ -82,6 +82,11 @@
                                             </a>
                                         </li>
                                         {% endif %}
+                                        {% if modules %}
+                                        <li role="presentation" class="modules">
+                                            <a href="{% url 'ikwen:module_list' %}">{% trans "Modules" %}</a>
+                                        </li>
+                                        {% endif %}
                                         <li role="presentation" class="configuration">
                                             {% url 'ikwen:configuration' as configuration_url %}
                                             <a href="{{ configuration_url }}">{% trans "Configuration" %}</a>
@@ -118,6 +123,7 @@
 
 {% block js %}
     {{ block.super }}
+    <script src="{% static 'ikwen/js/jquery-ui.js' %}"></script>
     <script>
         (function() {
             $('#admin-nav, #admin-content, #object-detail').scroll(function() {
@@ -187,22 +193,27 @@
             function deleteSelection(selection) {
                 if (!confirm("{% trans "Confirm deletion ?" %}")) return;
                 $('body, div#selection-control .trash').css('cursor', 'wait');
-                $.getJSON(ikwen.deleteEndpoint, {selection: selection}, function(data) {
+                $.getJSON(ikwen.deleteEndpoint, {action: 'delete', selection: selection}, function(data) {
                     $('body, div#selection-control .trash').css('cursor', '');
                     var list = selection.split(',');
-                    for (var i=0; i<data.deleted.length; i++) $('#' + data.deleted[i]).remove();
+                    if (data.deleted) for (var i=0; i<data.deleted.length; i++) $('#' + data.deleted[i]).remove();
                     $('#selection-control').removeClass('visible');
                     ikwen.showFloatingNotice(data.message, '', 6);
                 })
             }
-            var filterDescriptor = {
-                endpoint: '{{ request.META.get_full_path }}',
-                resultTplSelector: '#results li.ik-li'
-            },
-            htmlFilterDescriptor = {resultPanelSelector: '#admin-content .container-fluid'};
+            var searchDescriptor = [{endpoint: '{{ request.path }}'}],
+                filterDescriptor = {
+                    endpoint: '{{ request.META.get_full_path }}',
+                    resultTplSelector: '#results li.ik-li'
+                },
+                htmlFilterDescriptor = {resultPanelSelector: '#results'};
+            ikwen.setupHTMLResultsSearch('#context-search', '#results', searchDescriptor);
             ikwen.setupFilter('#results', filterDescriptor);
             ikwen.setupHTMLResultsFilter(htmlFilterDescriptor);
-            $('footer').appendTo('#admin-nav .wrapper')
+            $('footer').appendTo('#admin-nav .wrapper');
+            {% if messages %}
+                {% for msg in messages %}ikwen.showFloatingNotice('{{ msg|safe }}', '{{ msg.tags }}', 6);{% endfor %}
+            {% endif %}
         })()
     </script>
 {% endblock %}
