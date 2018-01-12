@@ -25,7 +25,7 @@ TESTING = False  # True if running unit tests
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = ['{{ allowed_hosts }}']
+ALLOWED_HOSTS = ['{{ allowed_hosts|safe }}']
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'djangotoolbox',
     'django_user_agents',
+    'currencies',
 
     'ikwen.core',
     'ikwen.cashout',
@@ -60,7 +61,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
     'ikwen.core.middleware.ServiceStatusCheckMiddleware',
-    'ikwen.accesscontrol.middleware.XDomainTokenAuthMiddleware',
+    'ikwen.billing.middleware.CurrenciesRatesMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -71,6 +72,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.static",
     "django.contrib.messages.context_processors.messages",
     'django.core.context_processors.request',
+    'currencies.context_processors.currencies',
     'ikwen.core.context_processors.project_settings',
 
 )
@@ -81,15 +83,17 @@ WSGI_APPLICATION = 'conf.wsgi.application'
 
 if DEBUG or TESTING:
     WALLETS_DB = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '/home/ikwen/ikwen_apps/Umbrella/db.sqlite3',
+        'ENGINE': '',
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': ''
     }
 else:
-    WALLETS_DB = {  # ikwen_kakocase.ikwen_kakocase relational database used to store sensitive objects among which CashOutRequest
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ikwen_wallets',
-        'USER': 'root',
-        'PASSWORD': 'admin'
+    WALLETS_DB = {
+        'ENGINE': '',
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': ''
     }
 
 # Database
@@ -186,8 +190,8 @@ SERVICE_SUSPENSION_ACTION = 'ikwen.billing.utils.suspend_subscription'
 
 #  *******       E-mail CONFIGURATION       *******  #
 
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'ksihon'
-EMAIL_HOST_PASSWORD = 'sendgr1d'
+EMAIL_HOST = ''
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
