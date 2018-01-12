@@ -6,7 +6,7 @@ from django.http.response import HttpResponseForbidden
 from djangotoolbox.admin import admin
 from ikwen.core.utils import generate_favicons
 
-from ikwen.core.models import RETAIL_APP_SLUG
+from ikwen.core.models import RETAIL_APP_SLUG, Module
 
 from ikwen.core.models import Application, Config, Service, ConsoleEventType
 from django.utils.translation import gettext_lazy as _
@@ -133,4 +133,5 @@ if getattr(settings, 'IS_UMBRELLA', False):
     admin.site.register(Config, ConfigAdmin)
     admin.site.register(Service, ServiceAdmin)
     admin.site.register(ConsoleEventType, ConsoleEventTypeAdmin)
+    admin.site.register(Module, ModuleAdmin)
 # admin.site.register(Country, CountryAdmin)
