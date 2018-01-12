@@ -25,6 +25,7 @@ urlpatterns = patterns(
     url(r'^retail/', include('ikwen.partnership.urls', namespace='partnership')),
     url(r'^kakocase/', include('ikwen_kakocase.kakocase.urls', namespace='kakocase')),
     url(r'^shavida/', include('ikwen_shavida.shavida.urls', namespace='shavida')),
+    url(r'^webnode/', include('ikwen_webnode.webnode.urls', namespace='webnode')),
     url(r'^', include('ikwen.core.urls', namespace='ikwen')),
     url(r'^page/(?P<url>[-\w]+)/$', FlatPageView.as_view(), name='flatpage'),
     # url(r'^paypal/', include('paypal.pro.urls', namespace='paypal')),
