@@ -58,13 +58,17 @@
                         <div class="menu">
                             {% block app_admin_nav %}{% endblock %}
                             {% if perms.accesscontrol.sudo %}
-                                <div class="divider"></div>
                                 {% block basic_nav %}
                                     <div class="divider"></div>
                                     <ul class="nav nav-pills nav-stacked">
                                         <li role="presentation" class="flatpages">
                                             {% url 'ikwen:flatpage_list' as flatpage_list_url %}
                                             <a href="{{ flatpage_list_url }}">{% trans "Pages" %}</a>
+                                        </li>
+                                        <li role="presentation" class="theming">
+                                            <a href="{% url 'theming:theme_list' %}">
+                                                {% trans "Theming" %}
+                                            </a>
                                         </li>
                                         <li role="presentation" class="community">
                                             {% url 'ikwen:community' as community_url %}
@@ -82,7 +86,7 @@
                                             </a>
                                         </li>
                                         {% endif %}
-                                        {% if modules %}
+                                        {% if app_modules %}
                                         <li role="presentation" class="modules">
                                             <a href="{% url 'ikwen:module_list' %}">{% trans "Modules" %}</a>
                                         </li>
