@@ -59,7 +59,7 @@ def app_modules(request):
     """
     Grabs all active app modules
     """
-    modules = {}
+    modules = {'app_modules': Module.objects.all().count() > 0}
     for obj in Module.objects.filter(is_active=True):
         modules[obj.slug] = obj
     return modules
