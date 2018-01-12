@@ -24,7 +24,6 @@ from django.shortcuts import render, get_object_or_404
 from django.template import Context
 from django.template.defaultfilters import slugify
 from django.template.loader import get_template
-from django.utils import translation
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
@@ -671,6 +670,7 @@ def load_event_content(request, *args, **kwargs):
 
 
 def render_service_deployed_event(event, request):
+    from ikwen.conf import settings as ikwen_settings
     service = event.service
     database = service.database
     add_database_to_settings(database)
