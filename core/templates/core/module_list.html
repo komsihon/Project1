@@ -30,7 +30,7 @@
 {#                        </div>#}
                         {% url 'ikwen:change_module' module.id as module_url %}
                         {% if module.logo.name %}
-                            <a href="{{ module_url }}" class="image" style="background-image: url({% get_media_prefix %}{{ module.logo.name }})"></a>
+                            <a href="{{ module_url }}" class="image" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ module.logo.name }})"></a>
                         {% else %}
                             <a href="{{ module_url }}" class="image" style="background-image: url({% static 'ikwen/img/no_photo.jpg' %})"></a>
                         {% endif %}
