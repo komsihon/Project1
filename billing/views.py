@@ -180,7 +180,8 @@ class InvoiceDetail(BillingBaseView):
             try:
                 invoice_service = invoice.service
                 context['customer_config'] = invoice_service.config
-                context['vendor'] = invoice_service.retailer.config if invoice_service.retailer else context['config']
+                context['vendor'] = invoice_service.retailer.config if invoice_service.retailer \
+                    else get_service_instance().config
             except:
                 pass
 
