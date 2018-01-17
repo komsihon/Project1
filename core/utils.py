@@ -156,11 +156,13 @@ def add_dumb_column(database, table, column):
 def get_mail_content(subject, message=None, template_name='core/mails/notice.html', extra_context=None):
     service = get_service_instance()
     html_template = get_template(template_name)
+    from ikwen.conf.settings import MEDIA_URL
     context = {
         'subject': subject,
         'message': message,
         'service': service,
-        'year': datetime.now().year
+        'year': datetime.now().year,
+        'IKWEN_MEDIA_URL': MEDIA_URL
     }
     if extra_context:
         context.update(extra_context)
