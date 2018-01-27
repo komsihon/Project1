@@ -111,11 +111,13 @@ def add_database_to_settings(alias, engine='django_mongodb_engine', name=None, u
     @param username: database username
     @param password: database password
     """
+    host = getattr(settings, 'DATABASES')['default'].get('HOST', '127.0.0.1')
     DATABASES = getattr(settings, 'DATABASES')
     if DATABASES.get(alias) is None:
         DATABASES[alias] = {
             'ENGINE': engine,
             'NAME': name if name is not None else alias,
+            'HOST': host
         }
         if username:
             DATABASES[alias]['USERNAME'] = username
