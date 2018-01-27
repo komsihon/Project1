@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.conf import settings
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.utils import translation
@@ -50,6 +52,7 @@ def project_settings(request):
         'service': service,
         'config': config,
         'lang': translation.get_language()[:2],
+        'year': datetime.now().year,
         'currency_code': config.currency_code,
         'currency_symbol': config.currency_symbol
     }
