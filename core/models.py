@@ -375,6 +375,13 @@ class Service(models.Model):
         self.url = self.url.replace(previous_domain, new_domain)
         self.admin_url = self.admin_url.replace(previous_domain, new_domain)
         self.save()
+        db = self.database
+        add_database_to_settings(db)
+        self.save(using=db)
+        if self.retailer:
+            db = self.retailer.database
+            add_database_to_settings(db)
+            self.save(using=db)
 
     def reload_settings(self, settings_template, **kwargs):
         """
@@ -398,7 +405,7 @@ class Service(models.Model):
         fh.close()
         subprocess.call(['touch', self.home_folder + '/conf/wsgi.py'])
 
-    def purge(self, config_model_name):
+    def purge(self, config_model_name, db_host=None):
         """
         Deletes the project totally, together with project files, media and databases
         """
@@ -450,7 +457,9 @@ class Service(models.Model):
         app.save()
 
         from pymongo import MongoClient
-        client = MongoClient('127.0.0.1', 27017)
+        if not db_host:
+            db_host = getattr(settings, 'DATABASES')['default'].get('HOST', '127.0.0.1')
+        client = MongoClient(db_host, 27017)
         client.drop_database(self.database)
 
         app_label = config_model_name.split('.')[0]
