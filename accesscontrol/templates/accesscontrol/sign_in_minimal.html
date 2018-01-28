@@ -261,6 +261,9 @@
                             location.hash = 'login';
                             $('#password').focus();
                             $('#login').prop('action', "{% url 'ikwen:do_sign_in' %}?{{ request.META.QUERY_STRING }}");
+                            if (username.isValidEmail()) {
+                                $('.forgotten-pwd').prop('href', '{% url 'ikwen:forgotten_password' %}' + '?' + 'username=' + username);
+                            }
                         } else {
                             $('#content').hide().addClass('register').fadeIn();
                             $('#stage').removeClass('form-wrapper').addClass('col-sm-9 col-md-8');
