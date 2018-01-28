@@ -1,28 +1,25 @@
 # -*- coding: utf-8 -*-
-
-# import os
-# os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
+import subprocess
+import time
 from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.urlresolvers import reverse
+from django.template.defaultfilters import slugify
 
-from ikwen.flatpages.models import FlatPage
 from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_user_to_group
 
 from ikwen.accesscontrol.models import COMMUNITY
-
 from ikwen.accesscontrol.models import SUDO
-
-from ikwen.billing.models import InvoicingConfig
-
 from ikwen.accesscontrol.backends import UMBRELLA
-from django.template.defaultfilters import slugify
-from ikwen.core.utils import get_config_model
 from ikwen.accesscontrol.models import Member
+from ikwen.billing.models import InvoicingConfig
+from ikwen.core.utils import get_config_model
 from ikwen.core.models import Application, Service
+from ikwen.flatpages.models import FlatPage
+
 
 
 def setup_dev_env(app_name, username, database=None, project_name=None,
@@ -97,6 +94,11 @@ def generate_random_key(length):
 
 def generate_django_secret_key():
     return generate_random_key(50)
+
+
+def reload_server():
+    time.sleep(5)
+    subprocess.call(['sudo', 'service', 'apache2', 'reload'])
 
 
 def get_setup_info(project_name, subdomain, domain=None):
