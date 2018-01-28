@@ -163,6 +163,7 @@ def get_mail_content(subject, message=None, template_name='core/mails/notice.htm
         'subject': subject,
         'message': message,
         'service': service,
+        'config': service.config,
         'year': datetime.now().year,
         'IKWEN_MEDIA_URL': MEDIA_URL
     }
