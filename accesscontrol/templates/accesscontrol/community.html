@@ -35,7 +35,26 @@
 {% block admin_content %}
     <div id="admin-content" class="has-edge-panel-right">
         <div class="container-fluid">
-            {% include 'core/snippets/admin_tools.html' %}
+            {# ADMIN TOOLS: Must be smartly replaced by the standard one #}
+            <div id="admin-tools">
+                <form id="admin-tools-form" onsubmit="return false">
+                    <div>
+                        <i class="glyphicon glyphicon-search"></i>
+                        <i class="glyphicon glyphicon-menu-left hide-search back"></i>
+                        <input id="context-search" type="text" class="form-input input-sm tool search" placeholder="{% trans "Search" %}"/>
+                    </div>
+                </form>
+                <div id="page-navigation" class="text-muted" data-page-index="1" data-page-size="{{ page_size }}">
+                    {% if total_objects > page_size %}
+                        <div style="padding-top: 5px;"><strong class="start">1</strong> - <strong class="finish">{{ page_size }}</strong> {% trans "of" %} <strong class="total">{{ total_objects }}</strong></div>
+                        <div style="margin-left: 10px"><i class="finished back"> < </i><i class="next"> > </i></div>
+                    {% else %}
+                        <div>{{ total_objects }}/{{ total_objects }}</div>
+                    {% endif %}
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            {# END ADMIN TOOLS #}
             <div id="groups" class="content-tab-list ceil">
                 <div class="swiper-container">
                     <div class="nav nav-tabs" role="tablist">
