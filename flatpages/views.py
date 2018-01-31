@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 import json
 
+from django.contrib import messages
 from django.contrib.admin import helpers
 from django.core.urlresolvers import reverse
 from django.forms.models import modelform_factory
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.template.defaultfilters import slugify
 from django.utils.decorators import method_decorator
-from django.utils.text import slugify
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import TemplateView
@@ -16,7 +18,6 @@ from ikwen.core.views import HybridListView
 
 from ikwen.flatpages.admin import FlatPageAdmin
 
-from ikwen.accesscontrol.templatetags.auth_tokens import append_auth_tokens
 from ikwen.flatpages.models import FlatPage
 from ikwen.core.utils import get_model_admin_instance
 
@@ -75,21 +76,23 @@ class ChangeFlatPage(TemplateView):
         if form.is_valid():
             title = form.cleaned_data['title']
             content = form.cleaned_data['content']
+            url = request.POST.get('url')
             if page is None:
                 page = FlatPage()
                 page.url = slugify(title)
             else:
                 if page.url != FlatPage.AGREEMENT and page.url != FlatPage.LEGAL_MENTIONS:
-                    page.url = slugify(title)
+                    page.url = url if url else slugify(title)
             page.title = title
             page.content = content
             page.registration_required = True if request.POST.get('registration_required') else False
             page.save()
             if page_id:
-                next_url = reverse('ikwen:change_flatpage', args=(page_id, )) + '?success=yes'
+                next_url = reverse('ikwen:change_flatpage', args=(page_id, ))
+                messages.success(request, _("Page %s successfully updated." % page.title))
             else:
-                next_url = reverse('ikwen:change_flatpage') + '?success=yes'
-            next_url = append_auth_tokens(next_url, request)
+                next_url = reverse('ikwen:change_flatpage')
+                messages.success(request, _("Page %s successfully created." % page.title))
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)
