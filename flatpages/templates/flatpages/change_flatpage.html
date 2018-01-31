@@ -35,6 +35,10 @@
             <form id="submit-page" class="admin-form" method="post" action="{{ change_flatpage_url|append_auth_tokens:request }}">{% csrf_token %}
                 <input type="hidden" name="page_id" value="{{ page.id }}" />
                 <input type="hidden" name="image_url" id="image_url" value="" />
+                {% if page.url == 'about' %}
+                    {# Explicitly submitting the url field cause it to stay unchanged regardless of page title #}
+                    <input type="hidden" name="url" value="{{ page.url }}" />
+                {% endif %}
                 {% include 'core/snippets/model_admin_form.html' %}
                 {% if page %}
                     <div class="form-group">
