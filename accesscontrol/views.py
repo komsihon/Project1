@@ -221,9 +221,9 @@ class SignInMinimal(SignIn):
                 response = {'existing': True}
             except Member.DoesNotExist:
                 try:
-                    Member.objects.using(UMBRELLA).get(email=username)
+                    Member.objects.using(UMBRELLA).filter(email=username)[0]
                     response = {'existing': True}
-                except Member.DoesNotExist:
+                except IndexError:
                     try:
                         Member.objects.using(UMBRELLA).get(phone=username)
                         response = {'existing': True}
