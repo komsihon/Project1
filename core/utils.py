@@ -258,6 +258,8 @@ class DefaultUploadBackend(LocalUploadBackend):
     def upload_complete(self, request, filename, *args, **kwargs):
         path = self.UPLOAD_DIR + "/" + filename
         self._dest.close()
+        media_root = getattr(settings, 'MEDIA_ROOT')
+        media_url = getattr(settings, 'MEDIA_URL')
         model_name = request.GET.get('model_name')
         object_id = request.GET.get('object_id')
         if model_name and object_id:
@@ -268,8 +270,6 @@ class DefaultUploadBackend(LocalUploadBackend):
             model = get_model(tokens[0], tokens[1])
             obj = model._default_manager.get(pk=object_id)
             image_field = obj.__dict__[image_field_name]
-            media_root = getattr(settings, 'MEDIA_ROOT')
-            media_url = getattr(settings, 'MEDIA_URL')
             try:
                 with open(media_root + path, 'r') as f:
                     content = File(f)
@@ -326,6 +326,17 @@ class DefaultUploadBackend(LocalUploadBackend):
                 if settings.DEBUG:
                     raise e
                 return {'error': 'File failed to upload. May be invalid or corrupted image file'}
+        elif request.GET.get('is_tiny_mce'):
+            tiny_mce_upload_dir = getattr(settings, 'TINY_MCE_UPLOAD_DIR', 'tiny_mce')
+            tiny_mce_root = media_root + tiny_mce_upload_dir
+            if not os.path.exists(tiny_mce_root):
+                os.makedirs(tiny_mce_root)
+            src = media_root + self.UPLOAD_DIR + "/" + filename
+            dst = tiny_mce_root + '/' + filename
+            os.rename(src, dst)
+            return {
+                'path': media_url + tiny_mce_upload_dir + '/' + filename
+            }
         else:
             return super(DefaultUploadBackend, self).upload_complete(request, filename, *args, **kwargs)
 
