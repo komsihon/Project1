@@ -22,6 +22,7 @@ def project_settings(request):
         if getattr(settings, 'DEBUG', False):
             console_uri = console_uri.replace(getattr(settings, 'WSGI_SCRIPT_ALIAS'), '')
 
+    # DEPRECATED ! agreement_page, legal_mentions_page, about_page defined below is now better
     agreement_url, legal_mentions_url = None, None
     try:
         agreement_url = reverse('flatpage', args=(FlatPage.AGREEMENT, ))
@@ -30,6 +31,20 @@ def project_settings(request):
     try:
         legal_mentions_url = reverse('flatpage', args=(FlatPage.LEGAL_MENTIONS, ))
     except NoReverseMatch:
+        pass
+
+    agreement_page, legal_mentions_page, about_page = None, None, None
+    try:
+        agreement_page = FlatPage.objects.get(url=FlatPage.AGREEMENT)
+    except FlatPage.DoesNotExist:
+        pass
+    try:
+        legal_mentions_page = FlatPage.objects.get(url=FlatPage.LEGAL_MENTIONS)
+    except FlatPage.DoesNotExist:
+        pass
+    try:
+        about_page = FlatPage.objects.get(url='about')
+    except FlatPage.DoesNotExist:
         pass
 
     service = Service.objects.get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
@@ -54,7 +69,10 @@ def project_settings(request):
         'lang': translation.get_language()[:2],
         'year': datetime.now().year,
         'currency_code': config.currency_code,
-        'currency_symbol': config.currency_symbol
+        'currency_symbol': config.currency_symbol,
+        'agreement_page': agreement_page,
+        'legal_mentions_page': legal_mentions_page,
+        'about_page': about_page,
     }
 
 
