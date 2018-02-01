@@ -269,16 +269,16 @@ class DefaultUploadBackend(LocalUploadBackend):
             tokens = model_name.split('.')
             model = get_model(tokens[0], tokens[1])
             obj = model._default_manager.get(pk=object_id)
-            image_field = obj.__dict__[image_field_name]
+            image_field = obj.__getattribute__(image_field_name)
             try:
                 with open(media_root + path, 'r') as f:
                     content = File(f)
-                    current_image_path = image_field.path if image_field else None
+                    current_image_path = image_field.path if image_field.name else None
                     dir = media_root + obj.UPLOAD_TO
                     unique_filename = False
                     filename_suffix = 0
                     filename_no_extension, extension = os.path.splitext(filename)
-                    label_field = obj.__dict__[label_field_name]
+                    label_field = obj.__getattribute__(label_field_name)
                     if label_field:
                         seo_filename_no_extension = slugify(label_field)
                     else:
@@ -301,11 +301,11 @@ class DefaultUploadBackend(LocalUploadBackend):
                     if image_field:
                         image_field.save(destination, content)
                         if isinstance(image_field, MultiImageField):
-                            url = media_url + image_field.small_name
+                            url = media_url + obj.UPLOAD_TO + image_field.small_name
                         else:
-                            url = media_url + image_field.name
+                            url = media_url + obj.UPLOAD_TO + image_field.name
                     else:
-                        url = media_url + path
+                        url = media_url + obj.UPLOAD_TO + path
                 try:
                     if image_field and os.path.exists(media_root + path):
                         os.unlink(media_root + path)  # Remove file from upload tmp folder
@@ -314,7 +314,7 @@ class DefaultUploadBackend(LocalUploadBackend):
                         raise e
                 if current_image_path:
                     try:
-                        if os.path.exists(current_image_path):
+                        if destination != current_image_path and os.path.exists(current_image_path):
                             os.unlink(current_image_path)
                     except OSError as e:
                         if getattr(settings, 'DEBUG', False):
