@@ -268,19 +268,16 @@ class ChangeObjectBase(TemplateView):
             object_id = kwargs.get('object_id')
             obj = get_object_or_404(self.model, pk=object_id)
             image_field_name = request.POST.get('image_field_name', 'image')
-            image_field = obj.__dict__[image_field_name]
-            if image_field:
+            image_field = obj.__getattribute__(image_field_name)
+            if image_field.name:
+                os.unlink(image_field.path)
                 try:
-                    os.unlink(obj.__dict__[image_field_name].path)
-                    try:
-                        os.unlink(obj.__dict__[image_field_name].small_path)
-                        os.unlink(obj.__dict__[image_field_name].thumb_path)
-                    except:
-                        pass
-                    obj.__dict__[image_field_name] = ''
-                    obj.save()
+                    os.unlink(image_field.small_path)
+                    os.unlink(image_field.thumb_path)
                 except:
                     pass
+                obj.__setattr__(image_field_name, None)
+                obj.save()
             return HttpResponse(
                 json.dumps({'success': True}),
                 content_type='application/json'
