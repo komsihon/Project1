@@ -572,7 +572,6 @@ class CompanyProfile(TemplateView):
     """
     template_name = 'accesscontrol/profile.html'
 
-    @method_decorator(cache_page(60 * 60))
     def get(self, request, *args, **kwargs):
         context = super(CompanyProfile, self).get_context_data(**kwargs)
         project_name_slug = kwargs['project_name_slug']
