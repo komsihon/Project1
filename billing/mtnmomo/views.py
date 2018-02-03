@@ -38,9 +38,12 @@ def init_request_payment(request, *args, **kwargs):
     object_id = request.session['object_id']
     amount = request.session['amount']
     username = request.user.username if request.user.is_authenticated() else None
-    tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
-                                                         phone=phone, amount=amount, model=model_name,
-                                                         object_id=object_id, wallet=MTN_MOMO, username=username)
+    try:
+        tx = MoMoTransaction.objects.using('wallets').get(object_id=object_id)
+    except MoMoTransaction.DoesNotExist:
+        tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
+                                                             phone=phone, amount=amount, model=model_name,
+                                                             object_id=object_id, wallet=MTN_MOMO, username=username)
     if getattr(settings, 'DEBUG', False):
         request_payment(request, tx)
     else:
@@ -69,7 +72,7 @@ def request_payment(request, transaction):
     elif getattr(settings, 'DEBUG', False):
         mtn_momo = json.loads(PaymentMean.objects.get(slug=MTN_MOMO).credentials)
         data.update({'_email': mtn_momo['merchant_email']})
-        r = requests.get(cashout_url, params=data, verify=False, timeout=180)
+        r = requests.get(cashout_url, params=data, verify=False, timeout=300)
         resp = r.json()
         transaction.processor_tx_id = resp['TransactionID']
         transaction.task_id = resp['ProcessingNumber']
@@ -86,14 +89,15 @@ def request_payment(request, transaction):
         except:
             return HttpResponse("Error, Could not parse MoMo API parameters.")
         try:
+            username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
             data.update({'_email': mtn_momo['merchant_email']})
-            r = requests.get(cashout_url, params=data, verify=False, timeout=130)
+            logger.debug("Initing MoMo payment of %dF from %s: %s" % (amount, username, transaction.phone))
+            r = requests.get(cashout_url, params=data, verify=False, timeout=300)
             resp = r.json()
             transaction.processor_tx_id = resp['TransactionID']
             transaction.task_id = resp['ProcessingNumber']
             transaction.message = resp['StatusDesc']
             if resp['StatusCode'] == '01':
-                username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
                 logger.debug("Successful MoMo payment of %dF from %s: %s" % (amount, username, transaction.phone))
                 transaction.status = MoMoTransaction.SUCCESS
             else:
