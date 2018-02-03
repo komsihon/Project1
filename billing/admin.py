@@ -386,7 +386,6 @@ class PaymentMeanAdmin(admin.ModelAdmin):
             super(PaymentMeanAdmin, self).save_model(request, obj, form, change)
 
 
-
 class MoMoTransactionAdmin(admin.ModelAdmin):
     list_display = ('service', 'phone', 'amount', 'model', 'object_id', 'username', 'created_on', 'status')
     search_fields = ('phone',)
