@@ -439,7 +439,7 @@ class MoMoTransaction(Model):
     phone = models.CharField(max_length=24)
     amount = models.FloatField()
     model = models.CharField(max_length=150)
-    object_id = models.CharField(max_length=24)
+    object_id = models.CharField(unique=True, max_length=24)
     processor_tx_id = models.CharField(max_length=100, blank=True,
                                        help_text="ID of the transaction in the Payment Processor system")
     task_id = models.CharField(max_length=30, blank=True, null=True,
