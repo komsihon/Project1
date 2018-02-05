@@ -57,6 +57,7 @@ def request_payment(request, transaction):
     status in the database upon completion of the request.
     """
     MTN_MOMO_API_URL = getattr(settings, 'MTN_MOMO_API_URL')
+    username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
     if getattr(settings, 'DEBUG_MOMO', False):
         amount = 100
     else:
@@ -78,7 +79,6 @@ def request_payment(request, transaction):
         transaction.task_id = resp['ProcessingNumber']
         transaction.message = resp['StatusDesc']
         if resp['StatusCode'] == '01':
-            username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
             logger.debug("Successful MoMo payment of %dF from %s: %s" % (amount, username, transaction.phone))
             transaction.status = MoMoTransaction.SUCCESS
         else:
@@ -101,29 +101,29 @@ def request_payment(request, transaction):
                 logger.debug("MTN MoMo: Successful payment of %dF from %s: %s" % (amount, username, transaction.phone))
                 transaction.status = MoMoTransaction.SUCCESS
             else:
-                logger.error("MTN MoMo: Transaction failed with message %s" % resp['StatusDesc'])
+                logger.error("MTN MoMo: Transaction of %dF from %s: %s failed with message %s" % (amount, username, transaction.phone, resp['StatusDesc']))
                 transaction.status = MoMoTransaction.API_ERROR
         except KeyError:
             import traceback
             transaction.status = MoMoTransaction.FAILURE
             transaction.message = traceback.format_exc()
-            logger.error("MTN MoMo: Failed to init transaction", exc_info=True)
+            logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, transaction.phone), exc_info=True)
         except SSLError:
             transaction.status = MoMoTransaction.SSL_ERROR
-            logger.error("MTN MoMo: Failed to init transaction", exc_info=True)
+            logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, transaction.phone), exc_info=True)
         except Timeout:
             transaction.status = MoMoTransaction.TIMEOUT
-            logger.error("MTN MoMo: Failed to init transaction", exc_info=True)
+            logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, transaction.phone), exc_info=True)
         except RequestException:
             import traceback
             transaction.status = MoMoTransaction.REQUEST_EXCEPTION
             transaction.message = traceback.format_exc()
-            logger.error("MTN MoMo: Failed to init transaction", exc_info=True)
+            logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, transaction.phone), exc_info=True)
         except:
             import traceback
             transaction.status = MoMoTransaction.SERVER_ERROR
             transaction.message = traceback.format_exc()
-            logger.error("MTN MoMo: Failed to init transaction", exc_info=True)
+            logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, transaction.phone), exc_info=True)
 
     transaction.save(using='wallets')
 
