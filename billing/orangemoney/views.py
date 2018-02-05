@@ -86,7 +86,7 @@ def init_web_payment(request, *args, **kwargs):
         try:
             headers.update({'Authorization': 'Bearer ' + om['access_token']})
             data.update({'merchant_key': om['merchant_key'], 'currency': 'XAF'})
-            logger.debug("Initing OM payment of %dF from %s" % (amount, username))
+            logger.debug("OM: Initiating payment of %dF from %s" % (amount, username))
             r = requests.post(api_url, headers=headers, data=json.dumps(data), verify=False, timeout=130)
             resp = r.json()
             momo_tx.message = resp['message']
@@ -143,13 +143,13 @@ def check_transaction_status(request):
             'pay_token': token}
     om = json.loads(PaymentMean.objects.get(slug=ORANGE_MONEY).credentials)
     t0 = datetime.now()
-    logger.debug("Started checking status of OM payment %s of %dF from %s" % (token, amount, username))
+    logger.debug("OM: Started checking status for payment %s of %dF from %s" % (token, amount, username))
     while True:
         time.sleep(2)
         t1 = datetime.now()
         diff = t1 - t0
         if diff.seconds >= (10 * 60):
-            logger.debug("OM payment %s of %dF from %s timed out after waiting for 10mn" % (token, amount, username))
+            logger.debug("OM: Payment %s of %dF from %s timed out after waiting for 10mn" % (token, amount, username))
             break
         try:
             headers.update({'Authorization': 'Bearer ' + om['access_token']})
@@ -157,10 +157,10 @@ def check_transaction_status(request):
             resp = r.json()
             status = resp['status']
             if status == 'FAILED':
-                logger.debug("OM payment %s of %dF from %s failed" % (token, amount, username))
+                logger.debug("OM: Payment %s of %dF from %s failed" % (token, amount, username))
                 break
             if status == 'SUCCESS':
-                logger.debug("Successful OM payment %s of %dF from %s" % (token, amount, username))
+                logger.debug("OM: Successful payment %s of %dF from %s" % (token, amount, username))
                 processor_tx_id = resp['txnid']
                 payments_conf = getattr(settings, 'PAYMENTS', None)
                 if payments_conf:

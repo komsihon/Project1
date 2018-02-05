@@ -91,16 +91,17 @@ def request_payment(request, transaction):
         try:
             username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
             data.update({'_email': mtn_momo['merchant_email']})
-            logger.debug("Initing MoMo payment of %dF from %s: %s" % (amount, username, transaction.phone))
+            logger.debug("MTN MoMo: Initiating payment of %dF from %s: %s" % (amount, username, transaction.phone))
             r = requests.get(cashout_url, params=data, verify=False, timeout=300)
             resp = r.json()
             transaction.processor_tx_id = resp['TransactionID']
             transaction.task_id = resp['ProcessingNumber']
             transaction.message = resp['StatusDesc']
             if resp['StatusCode'] == '01':
-                logger.debug("Successful MoMo payment of %dF from %s: %s" % (amount, username, transaction.phone))
+                logger.debug("MTN MoMo: Successful payment of %dF from %s: %s" % (amount, username, transaction.phone))
                 transaction.status = MoMoTransaction.SUCCESS
             else:
+                logger.error("MTN MoMo: Transaction failed with message %s" % resp['StatusDesc'])
                 transaction.status = MoMoTransaction.API_ERROR
         except KeyError:
             import traceback
@@ -109,8 +110,10 @@ def request_payment(request, transaction):
             logger.error("MTN MoMo: Failed to init transaction", exc_info=True)
         except SSLError:
             transaction.status = MoMoTransaction.SSL_ERROR
+            logger.error("MTN MoMo: Failed to init transaction", exc_info=True)
         except Timeout:
             transaction.status = MoMoTransaction.TIMEOUT
+            logger.error("MTN MoMo: Failed to init transaction", exc_info=True)
         except RequestException:
             import traceback
             transaction.status = MoMoTransaction.REQUEST_EXCEPTION
