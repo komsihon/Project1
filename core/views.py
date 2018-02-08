@@ -295,12 +295,23 @@ class ChangeObjectBase(TemplateView):
         form = model_form(request.POST, instance=obj)
         if form.is_valid():
             form.save()
-            # url_name = obj._meta.app_label + ':' + obj.__class__.__name__.lower() + '_list'
+            slug_field_name = request.POST.get('slug_field_name', 'slug')
+            try:
+                obj.__getattribute__(slug_field_name)
+                name_field_name = request.POST.get('name_field_name', 'name')
+                try:
+                    name_field = obj.__getattribute__(name_field_name)
+                    obj.__setattr__(slug_field_name, slugify(name_field))
+                    obj.save()
+                except:
+                    pass
+            except:
+                pass
             image_url = request.POST.get('image_url')
             if image_url:
                 s = get_service_instance()
                 image_field_name = request.POST.get('image_field_name', 'image')
-                image_field = obj.__dict__[image_field_name]
+                image_field = obj.__getattribute__(image_field_name)
                 if not image_field.name or image_url != image_field.url:
                     filename = image_url.split('/')[-1]
                     media_root = getattr(settings, 'MEDIA_ROOT')
@@ -318,7 +329,10 @@ class ChangeObjectBase(TemplateView):
                         return {'error': 'File failed to upload. May be invalid or corrupted image file'}
 
             next_url = request.META['HTTP_REFERER']
-            messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj) + '</strong> ' + _('successfully updated'))
+            if object_id:
+                messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj) + '</strong> ' + _('successfully updated'))
+            else:
+                messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj) + '</strong> ' + _('successfully created'))
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)
