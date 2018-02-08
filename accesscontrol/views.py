@@ -577,7 +577,14 @@ class CompanyProfile(TemplateView):
         project_name_slug = kwargs['project_name_slug']
         service = get_object_or_404(Service, project_name_slug=project_name_slug)
         try:
-            context['app'] = Application.objects.get(slug=project_name_slug)
+            app = Application.objects.get(slug=project_name_slug)
+            context['app'] = app
+            try:
+                app_deploy_template = 'apps/%s.html' % app.slug
+                get_template(app_deploy_template)
+                self.template_name = app_deploy_template
+            except:
+                pass
         except Application.DoesNotExist:
             pass
         config = service.config
