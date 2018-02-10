@@ -240,10 +240,10 @@ class IkwenAuthTestCase(unittest.TestCase):
         Config.objects.create(service=service, company_name='Project', contact_email='arch@ikwen.com',  signature='')
         contact_url = reverse('ikwen:forgotten_password')
         origin = reverse('ikwen:register') + '?next=' + urlencode(contact_url + '?p1=v1&p2=v2')
-        response = self.client.post(origin, {'username': 'testuser1', 'password': 'secret', 'password2': 'secret',
+        response = self.client.post(origin, {'username': 'Test.User1@domain.com', 'password': 'secret', 'password2': 'secret',
                                              'phone': '655000001', 'first_name': 'Sah', 'last_name': 'Fogaing'}, follow=True)
-        m1 = Member.objects.using(UMBRELLA).get(username='testuser1')
-        m2 = Member.objects.get(username='testuser1')
+        m1 = Member.objects.using(UMBRELLA).get(username='test.user1@domain.com')
+        m2 = Member.objects.get(email='test.user1@domain.com')
         self.assertEqual(self.client.session['_auth_user_id'], m1.id)  # Test whether user is actually logged in
         self.assertEqual(m1.id, m2.id)
         self.assertEqual(m1.full_name, 'Sah Fogaing')
@@ -253,7 +253,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         params = unquote(final.query).split('&')
         self.assertGreaterEqual(params.index('p1=v1'), 0)
         self.assertGreaterEqual(params.index('p2=v2'), 0)
-        response = self.client.post(reverse('ikwen:do_sign_in'), {'username': 'testuser1', 'password': 'secret'}, follow=True)
+        response = self.client.post(reverse('ikwen:do_sign_in'), {'username': 'test.user1@domain.com', 'password': 'secret'}, follow=True)
         final = response.redirect_chain[-1]
         location = final[0].strip('?').strip('/').split('/')[-1]
         self.assertEqual(location, 'console')
