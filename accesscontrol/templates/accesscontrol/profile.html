@@ -177,7 +177,7 @@
                             </div>
                         {% elif app.is_public and app.deployment_url_name %}
                             <div class="actions">
-                                <a id="deploy" class="btn btn-sm" href="{% url app.deployment_url_name app.slug %}">{% trans "DEPLOY" %}</a>
+                                <a id="deploy" class="btn btn-sm" href="{% url app.deployment_url_name %}">{% trans "DEPLOY" %}</a>
                             </div>
                         {% endif %}
                     </section>
