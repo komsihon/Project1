@@ -31,8 +31,7 @@
             {% if form.errors and settings.DEBUG %} <div class="alert alert-danger"> {{ form.errors }}</div> {% endif %}
             {% if error %} <div class="alert alert-danger"> {{ error }}</div> {% endif %}
         </div>
-        <form action="{% url app.deployment_url_name app.slug %}" method="post" class="form-horizontal">
-            {% csrf_token %}
+        <form method="post" class="form-horizontal">{% csrf_token %}
             <input type="hidden" name="app_id" value="{{ app.id }}" />
             {% if not settings.IS_IKWEN %}
                 <input type="hidden" name="partner_id" value="{{ service.id }}" />
