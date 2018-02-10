@@ -217,11 +217,11 @@ class SignInMinimal(SignIn):
         username = request.GET.get('username')
         if username:
             try:
-                Member.objects.using(UMBRELLA).get(username=username)
+                Member.objects.using(UMBRELLA).get(username__iexact=username)
                 response = {'existing': True}
             except Member.DoesNotExist:
                 try:
-                    Member.objects.using(UMBRELLA).filter(email=username)[0]
+                    Member.objects.using(UMBRELLA).filter(email__iexact=username)[0]
                     response = {'existing': True}
                 except IndexError:
                     try:
