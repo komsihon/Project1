@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
+import subprocess
+from threading import Thread
 
 from django.conf import settings
+from django.core.mail import EmailMessage
 from django.http.response import HttpResponseForbidden
 from djangotoolbox.admin import admin
-from ikwen.core.utils import generate_favicons
+from ikwen.core.utils import generate_favicons, get_mail_content, get_service_instance
 
 from ikwen.core.models import RETAIL_APP_SLUG, Module
 
@@ -67,6 +70,7 @@ class ServiceAdmin(admin.ModelAdmin):
                        'total_turnover', 'total_earnings', 'total_transaction_earnings', 'total_custom_service_earnings',
                        'total_invoice_earnings', 'total_transaction_count', 'total_cash_out',
                        'total_invoice_count', 'total_custom_service_count', 'total_cash_out_count')
+    actions = ['reload_projects']
 
     def save_model(self, request, obj, form, change):
         if obj.app.slug == RETAIL_APP_SLUG and not change:
@@ -79,7 +83,31 @@ class ServiceAdmin(admin.ModelAdmin):
             is_pro_version = True if request.POST.get('is_pro_version') else False
             deploy(obj.app, member, project_name, monthly_cost, billing_cycle, domain, is_pro_version)
         else:
+            before = Service.objects.get(pk=obj.id)
             super(ServiceAdmin, self).save_model(request, obj, form, change)
+            if before.domain != obj.domain:
+                service = get_service_instance()
+                new_domain = obj.domain
+                obj.domain = before.domain
+                obj.update_domain(new_domain)
+                obj.reload_settings(obj.settings_template)
+                subject = _("Your domain name was changed")
+                html_content = get_mail_content(subject, template_name='core/mails/domain_updated.html',
+                                               extra_context={'website': obj})
+                sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
+                # msg = EmailMessage(subject, html_content, sender, [obj.member.email])
+                msg = EmailMessage(subject, html_content, sender, ['rsihon@gmail.com'])
+                msg.content_subtype = "html"
+                msg.bcc = ['contact@ikwen.com']
+                Thread(target=lambda m: m.send(), args=(msg,)).start()
+
+    def reload_projects(self, request, queryset):
+        for service in queryset:
+            try:
+                subprocess.call(['touch', '%s/conf/wsgi.py' % service.home_folder])
+            except Exception as e:
+                print e.message
+
 
 if getattr(settings, 'IS_IKWEN', False):
     _list_display = ('service', 'company_name', 'short_description', 'contact_email', 'contact_phone')
