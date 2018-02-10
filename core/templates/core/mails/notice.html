@@ -2,10 +2,10 @@
 {% load i18n %}
 
 {% block content %}
-    <p style="color: #888; font-size: 1.35em; line-height: 1.44em; margin-top: 45px; min-height: 180px; padding: 0 15px; text-align: justify"> {# ACTUAL MESSAGE #}
+    <p style="color: #888; font-size: 1.35em; line-height: 1.44em; margin: 45px 0; min-height: 180px; padding: 0 15px; text-align: justify"> {# ACTUAL MESSAGE #}
         {{ message|safe }}
     </p> {# END MESSAGE #}
     {% if cta_url %}
-        <a href="{{ cta_url }}" target="_blank" style="background: #16991D; color: #fff; display: block; font-size: 1.35em; font-weight: bold; margin: auto; padding: 9px 0; text-align: center; text-decoration: none; width: 240px">{{ cta_text }}</a>
+        <a href="{{ cta_url }}" target="_blank" style="background: #136b94; color: #fff; display: block; font-size: 1.35em; margin: auto; padding: 15px 0; text-align: center; text-decoration: none; width: 280px">{{ cta_text }}</a>
     {% endif %}
 {% endblock %}

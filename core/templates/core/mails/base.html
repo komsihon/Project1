@@ -60,7 +60,7 @@
                             {% endif %}
                         </ul>
                     </nav>
-                    <div style="color: #888; float: right; font-size: .9em; margin-top: 1px; text-align: right">
+                    <div style="color: #888; float: right; font-size: .9em; padding: 1px 0 10px; text-align: right">
                         &copy; {{ year }} <a href="{{ service.url }}" style="color: #666; text-decoration: none"><strong>{{ config.company_name }}</strong></a>.
                         {% trans "All rights reserved." %}
                         {% if config.legal_mentions_url %}
@@ -68,10 +68,7 @@
                         {% endif %}
                     </div>
                     {% if service.project_name != 'ikwen' %}
-                    <div style="color: #888; border-top: solid 1px #DDD; clear: both; float: right; font-size: .9em; margin-top: 6px; padding-top: 3px; text-align: right; width: 100%">
-{#                        {% blocktrans %}#}
-{#                            This is an <a href="http://www.ikwen.com">Ikwen &reg; </a> powered <a href="http://www.nodevtrend.org">NoDev</a> website.#}
-{#                        {% endblocktrans %}#}
+                    <div style="color: #888; border-top: solid 1px #DDD; clear: both; float: right; font-size: .9em; margin-top: 6px; padding: 3px 0 15px; text-align: right; width: 100%">
                         {% blocktrans %}
                             Powered by <a href="http://www.ikwen.com" style="color: #666; text-decoration: none"><strong>ikwen</strong></a> &reg;.
                         {% endblocktrans %}

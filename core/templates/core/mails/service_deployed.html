@@ -44,9 +44,9 @@
                     <span>{{ config.currency_symbol }} {{ invoice.amount|intcomma }}</span>
                 </div>
             </div>
-            <a href="{{ invoice_url }}" target="_blank" style="background: #16991D; color: #fff; display: block; font-size: 1.35em; font-weight: bold; margin: 15px auto 0; padding: 9px 0; text-align: center; text-decoration: none; width: 240px">{% trans "Pay Now" %}</a>
+            <a href="{{ invoice_url }}" target="_blank" style="background: #136b94; border-radius: 3px; color: #fff; display: block; font-size: 1.35em; margin: 45px auto 0; padding: 15px 0; text-align: center; text-decoration: none; width: 280px">{% trans "Pay Now" %}</a>
         </div>
-        <p style="clear: both; padding-top: 2em">{% blocktrans with company_name=config.company_name %}Thank you for your business with {{ company_name }}.{% endblocktrans %}</p>
+        <p style="clear: both; padding: 2em 0">{% blocktrans with company_name=config.company_name %}Thank you for your business with {{ company_name }}.{% endblocktrans %}</p>
     </div>
     {% endwith %}
 {% endblock %}

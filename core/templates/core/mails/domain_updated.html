@@ -1,0 +1,17 @@
+{% extends 'core/mails/base.html' %}
+{% load i18n humanize %}
+
+{% block content %}
+    {% with config=service.config %}
+    <div style="color: #777; font: normal 1.35em 'Open Sans', 'Helvetica Neue', Lato, Verdana, Arial, sans-serif; line-height: 1.44em; margin-top: 45px; min-height: 180px; padding: 0 15px; text-align: justify">
+        Hey {{ website.member.first_name }},
+        <br><br>
+        {% blocktrans with domain=website.domain %}
+            Your domain name was moved to <em style="color: #888">{{ domain }}</em>
+        {% endblocktrans %}
+        <div style="clear: both; margin-top: 3em">
+            <a href="{{ website.url }}" target="_blank" style="background: #136b94; border-radius: 3px; color: #fff; display: block; font-size: 1.35em; margin: 45px auto 0; padding: 15px 0; text-align: center; text-decoration: none; width: 280px">{% trans "Visit your website" %}</a>
+        </div>
+    </div>
+    {% endwith %}
+{% endblock %}
