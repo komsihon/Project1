@@ -1,5 +1,5 @@
 {% extends "core/base_bs.html" %}
-{% load i18n static %}
+{% load i18n static auth_tokens %}
 
 {% block page_title %}<title>{{ service.project_name }} - {% trans "Sign in" %} </title>{% endblock %}
 {% block head_style %}
@@ -54,7 +54,8 @@
                             {% blocktrans %}Login with <strong>ikwen</strong>{% endblocktrans %}
                         </button>
                     {% endif %}
-                    <a style="float: left; margin-top: 7px" href="{% url 'ikwen:forgotten_password' %}">{% trans "Forgotten password ?" %}</a>
+                    {% url 'ikwen:forgotten_password' as forgotten_password_url %}
+                    <a style="float: left; margin-top: 7px" href="{{ forgotten_password_url|ikwenize }}">{% trans "Forgotten password ?" %}</a>
                 </div>
             </form>
             <div style="clear: both; padding-top: 15px; text-align: center">
