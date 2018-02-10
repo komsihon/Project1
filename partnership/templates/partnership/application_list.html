@@ -38,7 +38,7 @@
                         </div>
                         <div class="actions">
                             {% if app.deployment_url_name %}
-                            <a href="{% url app.deployment_url_name app.slug %}">
+                            <a href="{% url app.deployment_url_name %}">
                                 <i class="glyphicon glyphicon-cloud-upload" title="{% trans "Deploy Cloud" %}"></i>
                             </a>
                             {% endif %}
