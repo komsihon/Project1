@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import subprocess
+from threading import Thread
+
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.humanize.templatetags.humanize import naturaltime
@@ -16,10 +18,10 @@ from django.template.loader import get_template
 from django.template import Context
 from django_mongodb_engine.contrib import MongoDBManager
 from djangotoolbox.fields import ListField
+
+from ikwen.conf.settings import STATIC_ROOT, STATIC_URL, MEDIA_ROOT, MEDIA_URL
 from ikwen.core.fields import MultiImageField
-
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
-
 from ikwen.core.utils import add_database_to_settings, to_dict, get_service_instance, get_config_model
 
 
@@ -178,6 +180,8 @@ class Service(models.Model):
     project_name_slug = models.SlugField(unique=True)
     home_folder = models.CharField(max_length=150, blank=True, null=True,
                                    help_text="The absolute path to website home folder on the server")
+    settings_template = models.CharField(max_length=255, blank=True, null=True,
+                                         help_text="Template name for generating actual settings of this service")
     database = models.CharField(max_length=150, blank=True)
     domain_type = models.CharField(max_length=15, blank=True, choices=DOMAIN_TYPE_CHOICES)
     domain = models.CharField(max_length=100, unique=True, blank=True, null=True)
@@ -356,12 +360,14 @@ class Service(models.Model):
             wallet.balance -= amount
             wallet.save(using='wallets')
 
-    def update_domain(self, new_domain, is_naked_domain, web_server_config_template):
+    def update_domain(self, new_domain, is_naked_domain=True, web_server_config_template=None):
         """
         Update domain of a service to a new one. Rewrites the web server
         config file and reloads it.
         """
         previous_domain = self.domain
+        if not web_server_config_template:
+            web_server_config_template = '%s/cloud_setup/apache.conf.html' % self.app.slug
         apache_tpl = get_template(web_server_config_template)
         apache_context = Context({'is_naked_domain': is_naked_domain, 'domain': new_domain, 'ikwen_name': self.project_name_slug})
         fh = open(self.home_folder + '/apache.conf', 'w')
@@ -369,7 +375,8 @@ class Service(models.Model):
         fh.close()
         subprocess.call(['sudo', 'unlink', '/etc/apache2/sites-enabled/' + previous_domain + '.conf'])
         subprocess.call(['sudo', 'ln', '-sf', self.home_folder + '/apache.conf', '/etc/apache2/sites-enabled/' + new_domain + '.conf'])
-        subprocess.call(['sudo', 'service', 'apache2', 'reload'])
+        from ikwen.core.tools import reload_server
+        Thread(target=reload_server).start()
 
         self.domain = new_domain
         self.url = self.url.replace(previous_domain, new_domain)
@@ -383,12 +390,11 @@ class Service(models.Model):
             add_database_to_settings(db)
             self.save(using=db)
 
-    def reload_settings(self, settings_template, **kwargs):
+    def reload_settings(self, settings_template=None, **kwargs):
         """
         Recreate the settings file from settings template and touches
         the WSGI file to cause the server to reload the changes.
         """
-        from ikwen.conf.settings import STATIC_ROOT, STATIC_URL, MEDIA_ROOT, MEDIA_URL
         from ikwen.core.tools import generate_django_secret_key
 
         secret_key = generate_django_secret_key()
@@ -399,6 +405,8 @@ class Service(models.Model):
              'static_root': STATIC_ROOT, 'static_url': STATIC_URL, 'media_root': media_root, 'media_url': media_url,
              'allowed_hosts': allowed_hosts, 'debug': getattr(settings, 'DEBUG', False)}
         c.update(kwargs)
+        if not settings_template:
+            settings_template = '%s/cloud_setup/settings.html' % self.app.slug
         settings_tpl = get_template(settings_template)
         fh = open(self.home_folder + '/conf/settings.py', 'w')
         fh.write(settings_tpl.render(Context(c)))
@@ -411,7 +419,6 @@ class Service(models.Model):
         """
         import os
         import shutil
-        from ikwen.conf.settings import MEDIA_ROOT
         from ikwen.accesscontrol.models import Member
         from ikwen.accesscontrol.backends import UMBRELLA
         media_root = MEDIA_ROOT + self.project_name_slug + '/'
