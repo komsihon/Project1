@@ -4,6 +4,7 @@ import subprocess
 from threading import Thread
 
 from django.conf import settings
+from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.http.response import HttpResponseForbidden
 from djangotoolbox.admin import admin
@@ -14,7 +15,8 @@ from ikwen.core.models import RETAIL_APP_SLUG, Module
 from ikwen.core.models import Application, Config, Service, ConsoleEventType
 from django.utils.translation import gettext_lazy as _
 
-__author__ = 'Kom Sihon'
+import logging
+logger = logging.getLogger('ikwen')
 
 
 class CustomBaseAdmin(admin.ModelAdmin):
@@ -70,7 +72,7 @@ class ServiceAdmin(admin.ModelAdmin):
                        'total_turnover', 'total_earnings', 'total_transaction_earnings', 'total_custom_service_earnings',
                        'total_invoice_earnings', 'total_transaction_count', 'total_cash_out',
                        'total_invoice_count', 'total_custom_service_count', 'total_cash_out_count')
-    actions = ['reload_projects']
+    actions = ['reload_projects', 'reload_settings']
 
     def save_model(self, request, obj, form, change):
         if obj.app.slug == RETAIL_APP_SLUG and not change:
@@ -95,18 +97,46 @@ class ServiceAdmin(admin.ModelAdmin):
                 html_content = get_mail_content(subject, template_name='core/mails/domain_updated.html',
                                                extra_context={'website': obj})
                 sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
-                # msg = EmailMessage(subject, html_content, sender, [obj.member.email])
-                msg = EmailMessage(subject, html_content, sender, ['rsihon@gmail.com'])
+                msg = EmailMessage(subject, html_content, sender, [obj.member.email])
                 msg.content_subtype = "html"
                 msg.bcc = ['contact@ikwen.com']
                 Thread(target=lambda m: m.send(), args=(msg,)).start()
 
     def reload_projects(self, request, queryset):
+        failed = []
         for service in queryset:
             try:
                 subprocess.call(['touch', '%s/conf/wsgi.py' % service.home_folder])
-            except Exception as e:
-                print e.message
+            except:
+                failed.append(service.project_name_slug)
+                msg = "Failed to reload project %s" % service.project_name_slug
+                logger.error(msg, exc_info=True)
+        if len(failed) == 0:
+            messages.success(request, "Projects successfully reloaded.")
+        else:
+            if len(failed) == 1:
+                messages.error(request, "%s project failed to reload. Check error log" % failed[0])
+            else:
+                msg = "%s and %d other project failed to reload. Check error log" % (failed[0], len(failed) - 1)
+                messages.error(request, msg)
+
+    def reload_settings(self, request, queryset):
+        failed = []
+        for service in queryset:
+            try:
+                service.reload_settings()
+            except:
+                failed.append(service.project_name_slug)
+                msg = "Failed to reload settings for project %s" % service.project_name_slug
+                logger.error(msg, exc_info=True)
+        if len(failed) == 0:
+            messages.success(request, "Projects settings successfully reloaded.")
+        else:
+            if len(failed) == 1:
+                messages.error(request, "%s project settings failed to reload. Check error log" % failed[0])
+            else:
+                msg = "%s and %d other project settings failed to reload. Check error log" % (failed[0], len(failed) - 1)
+                messages.error(request, msg)
 
 
 if getattr(settings, 'IS_IKWEN', False):
