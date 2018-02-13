@@ -71,18 +71,17 @@ def request_cash_out(request, *args, **kwargs):
             ikwen_service = Service.objects.using(UMBRELLA).get(pk=IKWEN_SERVICE_ID)
         retailer = business.retailer
         if retailer:
-            retailer_config = Config.objects.using(UMBRELLA).get(service=retailer)
-            sender = '%s <no-reply@%s>' % (retailer_config.company_name, retailer.domain)
             vendor = retailer
         else:
-            sender = 'ikwen <no-reply@ikwen.com>'
             vendor = ikwen_service
+        vendor_config = Config.objects.using(UMBRELLA).get(service=vendor)
+        sender = '%s <no-reply@%s>' % (vendor_config.company_name, vendor.domain)
 
         add_event(vendor, CASH_OUT_REQUEST_EVENT, member=iao, object_id=cor.id)
         subject = _("Cash-out request on %s" % business.project_name)
         html_content = get_mail_content(subject, '', template_name='cashout/mails/request_notice.html',
                                         extra_context={'cash_out_request': cor, 'business': business,
-                                                       'service': vendor, 'config': vendor.config})
+                                                       'service': vendor, 'config': vendor_config})
         msg = EmailMessage(subject, html_content, sender, [iao.email])
         msg.bcc = ['k.sihon@ikwen.com', 'contact@ikwen.com']
         msg.content_subtype = "html"
