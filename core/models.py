@@ -406,7 +406,10 @@ class Service(models.Model):
              'allowed_hosts': allowed_hosts, 'debug': getattr(settings, 'DEBUG', False)}
         c.update(kwargs)
         if not settings_template:
-            settings_template = '%s/cloud_setup/settings.html' % self.app.slug
+            if self.settings_template:
+                settings_template = self.settings_template
+            else:
+                settings_template = '%s/cloud_setup/settings.html' % self.app.slug
         settings_tpl = get_template(settings_template)
         fh = open(self.home_folder + '/conf/settings.py', 'w')
         fh.write(settings_tpl.render(Context(c)))
