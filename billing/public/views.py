@@ -10,11 +10,6 @@ from ikwen.core.views import HybridListView
 
 logger = logging.getLogger('ikwen')
 
-subscription_model_name = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
-app_label = subscription_model_name.split('.')[0]
-model = subscription_model_name.split('.')[1]
-Subscription = get_model(app_label, model)
-
 
 class Pricing(HybridListView):
     """
