@@ -1,4 +1,5 @@
 import json
+import traceback
 from threading import Thread
 
 import requests
@@ -96,15 +97,15 @@ def request_payment(request, transaction):
             resp = r.json()
             transaction.processor_tx_id = resp['TransactionID']
             transaction.task_id = resp['ProcessingNumber']
-            transaction.message = resp['StatusDesc']
             if resp['StatusCode'] == '01':
                 logger.debug("MTN MoMo: Successful payment of %dF from %s: %s" % (amount, username, transaction.phone))
                 transaction.status = MoMoTransaction.SUCCESS
+                transaction.message = 'OK'
             else:
                 logger.error("MTN MoMo: Transaction of %dF from %s: %s failed with message %s" % (amount, username, transaction.phone, resp['StatusDesc']))
                 transaction.status = MoMoTransaction.API_ERROR
+                transaction.message = resp['StatusDesc']
         except KeyError:
-            import traceback
             transaction.status = MoMoTransaction.FAILURE
             transaction.message = traceback.format_exc()
             logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, transaction.phone), exc_info=True)
@@ -115,12 +116,10 @@ def request_payment(request, transaction):
             transaction.status = MoMoTransaction.TIMEOUT
             logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, transaction.phone), exc_info=True)
         except RequestException:
-            import traceback
             transaction.status = MoMoTransaction.REQUEST_EXCEPTION
             transaction.message = traceback.format_exc()
             logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, transaction.phone), exc_info=True)
         except:
-            import traceback
             transaction.status = MoMoTransaction.SERVER_ERROR
             transaction.message = traceback.format_exc()
             logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, transaction.phone), exc_info=True)
@@ -155,6 +154,8 @@ def check_momo_transaction_status(request, *args, **kwargs):
                     resp_dict = momo_after_checkout(request, signature=request.session['signature'])
                     return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
                 except:
+                    tx.message = traceback.format_exc()
+                    tx.save(using='wallets')
                     logger.error("MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (request.user.username, int(request.session['amount'])), exc_info=True)
                     return HttpResponse(json.dumps({'error': 'Unknown server error in AFTER_CASH_OUT'}))
         resp_dict = {'error': tx.status, 'message': ''}

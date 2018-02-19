@@ -1,4 +1,5 @@
 import json
+import traceback
 from datetime import datetime
 from threading import Thread
 
@@ -133,6 +134,7 @@ def check_transaction_status(request):
     api_url = getattr(settings, 'ORANGE_MONEY_API_URL') + '/transactionstatus'
     amount = int(request.session['amount'])
     token = request.session['pay_token']
+    tx_id = request.session['tx_id']
     if not getattr(settings, 'OM_FEES_ON_MERCHANT', False):
         factor = 1 + getattr(settings, 'OM_FEES', 3.5) / 100
         amount = int(math.ceil(amount * factor))
@@ -149,6 +151,8 @@ def check_transaction_status(request):
         t1 = datetime.now()
         diff = t1 - t0
         if diff.seconds >= (10 * 60):
+            MoMoTransaction.objects.using('wallets').filter(pk=tx_id)\
+                .update(is_running=False, status=MoMoTransaction.DROPPED)
             logger.debug("OM: Payment %s of %dF from %s timed out after waiting for 10mn" % (token, amount, username))
             break
         try:
@@ -158,6 +162,8 @@ def check_transaction_status(request):
             status = resp['status']
             if status == 'FAILED':
                 logger.debug("OM: Payment %s of %dF from %s failed" % (token, amount, username))
+                MoMoTransaction.objects.using('wallets').filter(pk=tx_id)\
+                    .update(message=resp['message'], is_running=False, status=MoMoTransaction.FAILURE)
                 break
             if status == 'SUCCESS':
                 logger.debug("OM: Successful payment %s of %dF from %s" % (token, amount, username))
@@ -171,12 +177,17 @@ def check_transaction_status(request):
                 momo_after_checkout = import_by_path(path)
                 with transaction.atomic():
                     try:
-                        tx_id = request.session['tx_id']
                         MoMoTransaction.objects.using('wallets').filter(pk=tx_id)\
-                            .update(processor_tx_id=processor_tx_id, is_running=False, status=MoMoTransaction.SUCCESS)
-                        momo_after_checkout(request, signature=request.session['signature'], tx_id=tx_id)
+                            .update(processor_tx_id=processor_tx_id, message='OK', is_running=False, status=MoMoTransaction.SUCCESS)
                     except:
-                        logger.error("Orange Money: Error while running callback. User: %s, Amt: %d" % (request.user.username, int(request.session['amount'])), exc_info=True)
+                        logger.error("Orange Money: Could not mark transaction as Successful. User: %s, Amt: %d" % (request.user.username, int(request.session['amount'])), exc_info=True)
+                    else:
+                        try:
+                            momo_after_checkout(request, signature=request.session['signature'], tx_id=tx_id)
+                        except:
+                            MoMoTransaction.objects.using('wallets').filter(pk=tx_id)\
+                                .update(message=traceback.format_exc())
+                            logger.error("Orange Money: Error while running callback. User: %s, Amt: %d" % (request.user.username, int(request.session['amount'])), exc_info=True)
                 break
         except:
             logger.error("Orange Money: Failure while querying transaction status", exc_info=True)
