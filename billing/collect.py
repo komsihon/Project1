@@ -192,7 +192,7 @@ def donation_set_checkout(request, *args, **kwargs):
     service = get_service_instance()
     member = request.user
     amount = float(request.POST['amount'])
-    message = request.POST['message']
+    message = request.POST.get('message')
     if member.is_authenticated() and not request.POST.get('anonymous_donation'):
         donation = Donation.objects.create(member=member, amount=amount, message=message)
     else:
