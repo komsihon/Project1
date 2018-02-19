@@ -290,7 +290,7 @@ class Donation(Model):
     member = models.ForeignKey(Member, blank=True, null=True,
                                help_text="Member who gives if authenticated user.")
     amount = models.FloatField()
-    message = models.TextField(blank=True,
+    message = models.TextField(blank=True, null=True,
                                help_text="Message from the person.")
     status = models.CharField(max_length=15, default=PENDING)
 
@@ -422,6 +422,7 @@ class PaymentMean(Model):
 class MoMoTransaction(Model):
     SUCCESS = 'Success'
     FAILURE = 'Failure'
+    DROPPED = 'Dropped'
     REQUEST_EXCEPTION = 'RequestException'
     TIMEOUT = 'Timeout'
     API_ERROR = 'APIError'
@@ -448,14 +449,14 @@ class MoMoTransaction(Model):
     is_running = models.BooleanField(default=True)
     status = models.CharField(max_length=30, blank=True, null=True)
 
-    def _get_service(self):
-        return Service.objects.using(UMBRELLA).get(pk=self.service_id)
-    service = property(_get_service)
-
     class Meta:
         db_table = 'ikwen_momo_transaction'
         verbose_name = 'MoMo Transaction'
         verbose_name_plural = 'MoMo Transactions'
+
+    def _get_service(self):
+        return Service.objects.using(UMBRELLA).get(pk=self.service_id)
+    service = property(_get_service)
 
 
 class CloudBillingPlan(Model):
