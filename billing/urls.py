@@ -5,7 +5,7 @@ from ikwen.billing.paypal.views import SetExpressCheckout
 
 from ikwen.billing.jumbopay.views import jumbopay_local_api
 
-from ikwen.billing.views import InvoiceList, InvoiceDetail, NoticeMail, change_billing_cycle, list_members, \
+from ikwen.billing.views import InvoiceList, InvoiceDetail, change_billing_cycle, list_members, \
     list_subscriptions, IframeAdmin, ProductList, ChangeProduct, PaymentMeanList, set_credentials, toggle_payment_mean, \
     MoMoSetCheckout, DeployCloud, SubscriptionList, ChangeSubscription
 from ikwen.billing.public.views import Pricing, Donate
@@ -40,8 +40,6 @@ urlpatterns = patterns(
     url(r'^JumboPayAPI/(?P<op>[-\w]+)$', jumbopay_local_api, name='jumbopay_local_api'),  # For Unit Tests only
 
     url(r'^paypal/setCheckout/$', SetExpressCheckout.as_view(), name='paypal_set_checkout'),
-
-    url(r'^noticeMail$', NoticeMail.as_view()),
 
     url(r'^(?P<model_name>[-\w]+)/$', login_required(IframeAdmin.as_view()), name='iframe_admin'),
     url(r'^(?P<app_name>[-\w]+)/(?P<model_name>[-\w]+)/$', login_required(IframeAdmin.as_view()), name='iframe_admin'),

@@ -32,7 +32,7 @@ from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
 from ikwen.billing.cloud_setup import DeploymentForm, deploy
 from ikwen.billing.models import Invoice, SendingReport, SERVICE_SUSPENDED_EVENT, PaymentMean, \
-    CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry, Product
+    CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry, Product, MoMoTransaction
 from ikwen.billing.admin import ProductAdmin, SubscriptionAdmin
 from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.orangemoney.views import init_web_payment, ORANGE_MONEY
@@ -511,18 +511,6 @@ class DeployCloud(TemplateView):
             context = self.get_context_data(**kwargs)
             context['form'] = form
             return render(request, 'core/cloud_setup/deploy.html', context)
-
-
-class NoticeMail(BillingBaseView):
-    """
-    Preview of invoing system notice mails
-    """
-    template_name = 'billing/mails/notice.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(NoticeMail, self).get_context_data(**kwargs)
-        context['invoice_url'] = 'some_url'
-        return context
 
 
 class MoMoSetCheckout(TemplateView):
