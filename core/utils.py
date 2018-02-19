@@ -32,8 +32,12 @@ def to_dict(var):
     except AttributeError:
         return var
     for key in dict_var.keys():
-        if key[0] == '_' or type(dict_var[key]) is datetime or type(dict_var[key]) is date:
+        if key[0] == '_':
             del(dict_var[key])
+        elif type(dict_var[key]) is datetime:
+            dict_var[key] = dict_var[key].strftime('%Y-%m-%d %H:%M:%S')
+        elif type(dict_var[key]) is date:
+            dict_var[key] = dict_var[key].strftime('%Y-%m-%d')
         elif type(dict_var[key]) is list:
             try:
                 dict_var[key] = [item.to_dict() for item in dict_var[key]]
@@ -301,11 +305,11 @@ class DefaultUploadBackend(LocalUploadBackend):
                     if image_field:
                         image_field.save(destination, content)
                         if isinstance(image_field, MultiImageField):
-                            url = media_url + obj.UPLOAD_TO + image_field.small_name
+                            url = media_url + obj.UPLOAD_TO + "/" + image_field.small_name
                         else:
-                            url = media_url + obj.UPLOAD_TO + image_field.name
+                            url = media_url + obj.UPLOAD_TO + "/" + image_field.name
                     else:
-                        url = media_url + obj.UPLOAD_TO + path
+                        url = media_url + obj.UPLOAD_TO + "/" + image_field.name
                 try:
                     if image_field and os.path.exists(media_root + path):
                         os.unlink(media_root + path)  # Remove file from upload tmp folder
