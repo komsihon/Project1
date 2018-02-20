@@ -21,7 +21,7 @@ from django.utils import timezone
 
 import logging
 
-from ikwen.core.fields import MultiImageField
+from ikwen.core.fields import MultiImageFieldFile
 
 logger = logging.getLogger('ikwen')
 
@@ -304,12 +304,13 @@ class DefaultUploadBackend(LocalUploadBackend):
                     destination = os.path.join(dir, seo_filename)
                     if image_field:
                         image_field.save(destination, content)
-                        if isinstance(image_field, MultiImageField):
-                            url = media_url + obj.UPLOAD_TO + "/" + image_field.small_name
+                        if isinstance(image_field, MultiImageFieldFile):
+                            url = media_url + image_field.small_name
                         else:
-                            url = media_url + obj.UPLOAD_TO + "/" + image_field.name
+                            url = media_url + image_field.name
                     else:
-                        url = media_url + obj.UPLOAD_TO + "/" + image_field.name
+                        os.rename(media_root + path, destination)
+                        url = media_url + obj.UPLOAD_TO + "/" + seo_filename
                 try:
                     if image_field and os.path.exists(media_root + path):
                         os.unlink(media_root + path)  # Remove file from upload tmp folder
