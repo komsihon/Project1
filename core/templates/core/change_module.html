@@ -55,6 +55,7 @@
         <form id="submit-category" class="admin-form" method="post" action="{{ change_module_url }}">{% csrf_token %}
             <input type="hidden" name="object_id" value="{{ obj.id }}" />
             <input type="hidden" name="image_url" id="image_url" value="{% if obj.image.name %}{{ obj.image.url }}{% endif %}" />
+            <input type="hidden" name="slug_field_name" value="unchanged" /> {# Causes the slug not be changed by the default save method #}
             <div class="container-fluid">
                 {% include 'core/snippets/model_admin_form.html' %}
                 {% with model_name='core.Module' image=obj.image image_field_name='image' label_field_name='title' img_help_text='Cover image: 600px x 400px' %}
