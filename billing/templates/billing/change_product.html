@@ -48,9 +48,8 @@
 {% block admin_content %}
     <div id="admin-content" class="change-form">
         <div class="container-fluid">
-            {% url 'billing:change_product' as change_product_url %}
             {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
-            <form id="submit-product" class="admin-form" method="post" action="{{ change_product_url }}">{% csrf_token %}
+            <form id="submit-product" class="admin-form" method="post">{% csrf_token %}
                 <input type="hidden" name="product_id" value="{{ product.id }}" />
                 {% include 'core/snippets/model_admin_form.html' %}
                 <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
