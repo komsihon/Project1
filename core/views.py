@@ -243,6 +243,7 @@ class ChangeObjectBase(TemplateView):
     model = None
     model_admin = None
     template_name = None
+    object_list_url = None  # Django url name of the object list page
     context_object_name = 'obj'
 
     def get_context_data(self, **kwargs):
@@ -328,7 +329,13 @@ class ChangeObjectBase(TemplateView):
                             raise e
                         return {'error': 'File failed to upload. May be invalid or corrupted image file'}
 
-            next_url = request.META['HTTP_REFERER']
+            if self.object_list_url:
+                next_url = reverse(self.object_list_url)
+            else:
+                try:
+                    next_url = reverse('%s:%s_list' % (obj._meta.app_label, obj._meta.model_name))
+                except:
+                    next_url = request.META['HTTP_REFERER']
             if object_id:
                 messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj) + '</strong> ' + _('successfully updated'))
             else:
