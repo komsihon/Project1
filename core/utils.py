@@ -596,7 +596,7 @@ def as_matrix(object_list, col_length, strict=False):
     if len(object_list) == 0:
         return []
     rows = len(object_list) / col_length
-    if not strict:
+    if not strict and len(object_list) % col_length > 0:
         rows += 1
     matrix = []
     for i in range(rows):
