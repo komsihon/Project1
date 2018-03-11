@@ -28,13 +28,13 @@ from ikwen.billing.utils import get_invoice_generated_message, get_invoice_remin
     pay_with_wallet_balance
 
 import logging.handlers
-error_log = logging.getLogger('crons.error')
-error_log.setLevel(logging.ERROR)
-error_file_handler = logging.handlers.RotatingFileHandler('billing_crons.log', 'w', 1000000, 4)
-error_file_handler.setLevel(logging.INFO)
+logger = logging.getLogger('crons.error')
+logger.setLevel(logging.DEBUG)
+logger_handler = logging.handlers.RotatingFileHandler('billing_crons.log', 'w', 1000000, 4)
+logger_handler.setLevel(logging.INFO)
 f = logging.Formatter('%(levelname)-10s %(asctime)-27s %(message)s')
-error_file_handler.setFormatter(f)
-error_log.addHandler(error_file_handler)
+logger_handler.setFormatter(f)
+logger.addHandler(logger_handler)
 
 Subscription = get_subscription_model()
 
@@ -51,12 +51,12 @@ def send_invoices():
     try:
         connection.open()
     except:
-        error_log.error(u"Connexion error", exc_info=True)
+        logger.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
     reminder_date_time = now + timedelta(days=invoicing_config.gap)
     subscription_qs = Subscription.objects.filter(status=Subscription.ACTIVE,
                                                   monthly_cost__gt=0, expiry=reminder_date_time.date())
-    print "%d Service candidate for invoice issuance." % subscription_qs.count()
+    logger.debug("%d Service candidate for invoice issuance." % subscription_qs.count())
     for subscription in subscription_qs:
         if getattr(settings, 'IS_IKWEN', False):
             if subscription.version == Service.FREE:
@@ -87,6 +87,7 @@ def send_invoices():
         if getattr(settings, 'IS_IKWEN', False) and subscription.balance >= invoice.amount:
             pay_with_wallet_balance(invoice)
             paid_by_wallet_debit = True
+            logger.debug("Invoice for %s paid by wallet debit" % subscription.domain)
 
         subject, message, sms_text = get_invoice_generated_message(invoice)
 
@@ -110,14 +111,15 @@ def send_invoices():
             invoice.last_reminder = timezone.now()
             try:
                 if msg.send():
+                    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
                     if not paid_by_wallet_debit:
                         invoice.reminders_sent = 1
                         invoice.save()
                 else:
-                    error_log.error(u"Invoice #%s generated but mail not sent to %s" % (number, member.email),
-                                    exc_info=True)
+                    logger.error(u"Invoice #%s generated but mail not sent to %s" % (number, member.email),
+                                 exc_info=True)
             except:
-                error_log.error(u"Connexion error on Invoice #%s to %s" % (number, member.email), exc_info=True)
+                logger.error(u"Connexion error on Invoice #%s to %s" % (number, member.email), exc_info=True)
 
         if sms_text:
             if member.phone:
@@ -152,7 +154,7 @@ def send_invoice_reminders():
     try:
         connection.open()
     except:
-        error_log.error(u"Connexion error", exc_info=True)
+        logger.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
     invoice_qs = Invoice.objects.filter(status=Invoice.PENDING, due_date__gte=now.date(), last_reminder__isnull=False)
     print "%d invoice(s) candidate for reminder." % invoice_qs.count()
@@ -187,10 +189,10 @@ def send_invoice_reminders():
                         invoice.reminders_sent += 1
                     else:
                         print "Sending mail to %s failed" % member.email
-                        error_log.error(u"Reminder mail for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
+                        logger.error(u"Reminder mail for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
                 except:
                     print "Sending mail to %s failed" % member.email
-                    error_log.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
+                    logger.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
                 invoice.save()
             if sms_text:
                 if member.phone:
@@ -219,7 +221,7 @@ def send_invoice_overdue_notices():
     try:
         connection.open()
     except:
-        error_log.error(u"Connexion error", exc_info=True)
+        logger.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
     invoice_qs = Invoice.objects.filter(Q(status=Invoice.PENDING) | Q(status=Invoice.OVERDUE),
                                         due_date__lt=now, overdue_notices_sent__lt=3)
@@ -259,10 +261,10 @@ def send_invoice_overdue_notices():
                         invoice.overdue_notices_sent += 1
                     else:
                         print "Sending mail to %s failed" % member.email
-                        error_log.error(u"Overdue notice for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
+                        logger.error(u"Overdue notice for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
                 except:
                     print "Sending mail to %s failed" % member.email
-                    error_log.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
+                    logger.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
                 invoice.save()
             if sms_text:
                 if member.phone:
@@ -292,7 +294,7 @@ def suspend_customers_services():
     try:
         connection.open()
     except:
-        error_log.error(u"Connexion error", exc_info=True)
+        logger.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
     deadline = now - timedelta(days=invoicing_config.tolerance)
     invoice_qs = Invoice.objects.filter(due_date__lte=deadline, status=Invoice.OVERDUE)
@@ -312,7 +314,7 @@ def suspend_customers_services():
             try:
                 action(subscription)
             except:
-                error_log.error("Error while processing subscription %s" % str(subscription), exc_info=True)
+                logger.error("Error while processing subscription %s" % str(subscription), exc_info=True)
                 continue
             member = subscription.member
             add_event(service, SERVICE_SUSPENDED_EVENT, member=member, object_id=invoice.id)
@@ -333,10 +335,10 @@ def suspend_customers_services():
                         print "Mail sent to %s" % member.email
                     else:
                         print "Sending mail to %s failed" % member.email
-                        error_log.error(u"Notice of suspension for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
+                        logger.error(u"Notice of suspension for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
                 except:
                     print "Sending mail to %s failed" % member.email
-                    error_log.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
+                    logger.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
             if sms_text:
                 if member.phone:
                     if config.sms_sending_method == Config.HTTP_API:
@@ -359,4 +361,4 @@ if __name__ == "__main__":
         send_invoice_overdue_notices()
         suspend_customers_services()
     except:
-        error_log.error(u"Fatal error occured", exc_info=True)
+        logger.error(u"Fatal error occured", exc_info=True)
