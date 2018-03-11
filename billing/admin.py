@@ -13,7 +13,6 @@ from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext_lazy as _
-from ikwen.billing.orangemoney.views import UNKNOWN_PHONE
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from import_export.admin import ImportExportMixin, ExportMixin
@@ -28,6 +27,7 @@ from ikwen.core.admin import CustomBaseAdmin
 from ikwen.core.models import QueuedSMS, Config, Application, Service, RETAIL_APP_SLUG
 from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, add_event, add_database
 from ikwen.partnership.models import ApplicationRetailConfig
+from import_export import resources, fields
 
 Product = get_product_model()
 subscription_model_name = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
@@ -237,6 +237,10 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
             s.save()
             share_payment_and_set_stats(invoice, invoice.months_count)
 
+            if s.retailer:
+                db = s.retailer.database
+                Service.objects.using(db).filter(pk=s.id).update(expiry=s.expiry, status=s.status, version=s.version)
+
             sudo_group = Group.objects.using(UMBRELLA).get(name=SUDO)
             add_event(service, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
             add_event(service, PAYMENT_CONFIRMATION, member=member, object_id=invoice.id)
@@ -384,6 +388,45 @@ class PaymentMeanAdmin(admin.ModelAdmin):
                     pass
         else:
             super(PaymentMeanAdmin, self).save_model(request, obj, form, change)
+
+
+class MoMoTransactionResource(resources.ModelResource):
+    operator = fields.Field(column_name='Operator')
+    app = fields.Field(column_name='App')
+    phone = fields.Field(column_name='Phone')
+    amount = fields.Field(column_name='Amount')
+    user_id = fields.Field(column_name='User ID')
+    created_on = fields.Field(column_name='Date')
+    status = fields.Field(column_name='Status')
+
+    class Meta:
+        model = MoMoTransaction
+        fields = ('created_on', 'operator', 'app', 'phone', 'amount', 'user_id', 'status')
+        export_order = ('operator', 'app', 'phone', 'amount', 'user_id', 'created_on', 'status', )
+
+    def dehydrate_created_on(self, tx):
+        return tx.created_on.strftime('%Y-%m-%d %H:%M%S')
+
+    def dehydrate_operator(self, tx):
+        return tx.wallet
+
+    def dehydrate_app(self, tx):
+        try:
+            return Service.objects.get(pk=tx.service_id).project_name
+        except:
+            return 'Kakocase'
+
+    def dehydrate_phone(self, tx):
+        return tx.phone
+
+    def dehydrate_amount(self, tx):
+        return tx.amount
+
+    def dehydrate_user_id(self, tx):
+        return tx.username
+
+    def dehydrate_status(self, tx):
+        return tx.status
 
 
 class MoMoTransactionAdmin(admin.ModelAdmin):
