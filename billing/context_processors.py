@@ -26,5 +26,5 @@ def payment_means(request):
         'mtn_momo': mtn_momo,
         'om': om,
         'paypal': paypal,
-        'payment_mean_list': PaymentMean.objects.filter(is_active=True)
+        'payment_mean_list': list(PaymentMean.objects.filter(is_active=True))
     }
