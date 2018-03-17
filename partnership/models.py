@@ -1,10 +1,11 @@
 from django.db import models
+from ikwen.theming.models import Theme
 
 from ikwen.core.models import Model, Service, Application, AbstractConfig
 
 
 class PartnerProfile(AbstractConfig):
-    pass
+    theme = models.ForeignKey(Theme, blank=True, null=True, related_name='+')
 
 
 class ApplicationRetailConfig(Model):
