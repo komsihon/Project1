@@ -31,4 +31,40 @@
             <a href="{{ service_list_url }}">{% trans "Services" %}</a>
         </li>
     </ul>
+    <div class="divider"></div>
+    <ul class="nav nav-pills nav-stacked">
+        <li role="presentation" class="homepage">
+            {% url 'web:banner_list' as banner_list_url %}
+            <a href="{{ banner_list_url }}">{% trans "Homepage" %}</a>
+        </li>
+        <li role="presentation" class="menus">{% url 'web:smart_category_list' as smart_category_list_url %}
+            <a href="{{ smart_category_list_url }}">{% trans "Menus" %}</a>
+        </li>
+        <li role="presentation" class="items">{% url 'items:item_list' as product_url %}
+            <a href="{{ product_url }} ">{% trans "Items" %}</a>
+        </li>
+        {% if module_blog.is_active %}
+        <li role="presentation" class="blog">
+            <a href="javascript:;" data-toggle="collapse" data-target="#blog"
+               aria-expanded="true" style="padding-right: 0;"> {% trans "Blog" %}
+                <i class="fa fa-fw fa-caret-down"></i>
+            </a>
+            <ul id="blog" class="nav nav-pills nav-stacked collapse" aria-expanded="true"
+                style="padding-left: 15px">
+                <li class="blog-categories">{% url 'blog:list_category' as category_list_url %}
+                    <a href="{{ category_list_url }}">{% trans "Blog categories" %}</a>
+                </li>
+                <li class="posts">
+                    <a href="{% url 'blog:list_post' %}">{% trans "Posts" %}</a>
+                </li>
+
+                <li class="comments">
+                    <a href="{% url 'blog:list_comment' %}">{% trans "Comments" %}</a>
+
+                </li>
+
+            </ul>
+        </li>
+        {% endif %}
+    </ul>
 {% endblock %}
