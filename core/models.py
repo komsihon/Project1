@@ -475,13 +475,20 @@ class Service(models.Model):
         app_label = config_model_name.split('.')[0]
         model = config_model_name.split('.')[1]
         config_model = get_model(app_label, model)
+        retailer = self.retailer
+        if retailer:
+            add_database_to_settings(retailer.database)
         try:
             config = config_model.objects.get(service=self)
             base_config = config.get_base_config()
             base_config.delete()
+            if retailer:
+                config_model.objects.using(retailer.database).get(service=self).delete()
             config.delete()
         except:
             pass
+        if retailer:
+            Service.objects.using(retailer.database).get(project_name_slug=self.project_name_slug).delete()
         self.delete()
 
 
