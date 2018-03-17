@@ -22,6 +22,7 @@ else:
         (_('Company'), {'fields': ('company_name', 'short_description', 'slogan', 'description')}),
         (_('Address & Contact'), {'fields': ('contact_email', 'contact_phone', 'address', 'country', 'city')}),
         (_('Mailing'), {'fields': ('welcome_message', 'signature', )}),
+        (_('External scripts'), {'fields': ('scripts', )}),
     ]
 
 
