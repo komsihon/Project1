@@ -10,6 +10,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.generic import TemplateView
+from ikwen.theming.models import Theme
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
@@ -158,12 +159,11 @@ class DeployCloud(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(DeployCloud, self).get_context_data(**kwargs)
         context['billing_cycles'] = Service.BILLING_CYCLES_CHOICES
-        app_slug = kwargs['app_slug']
-        app = Application.objects.using(UMBRELLA).get(slug=app_slug)
+        app = Application.objects.using(UMBRELLA).get(slug='ikwen-retail')
         context['app'] = app
         billing_plan_list = CloudBillingPlan.objects.using(UMBRELLA).filter(app=app)
         if billing_plan_list.count() == 0:
-            setup_months_count = 3
+            setup_months_count = 12
             context['ikwen_setup_cost'] = app.base_monthly_cost * setup_months_count
             context['ikwen_monthly_cost'] = app.base_monthly_cost
             context['setup_months_count'] = setup_months_count
@@ -222,13 +222,15 @@ class DeployCloud(TemplateView):
                     i += 1
                 except:
                     break
+            theme = Theme.objects.using(UMBRELLA).get(slug='dreamer')
+            theme.display = Theme.COZY
             if getattr(settings, 'DEBUG', False):
                 service = deploy(app, customer, project_name, billing_plan,
-                                 monthly_cost, billing_cycle, invoice_entries)
+                                 monthly_cost, theme, billing_cycle, invoice_entries)
             else:
                 try:
                     service = deploy(app, customer, project_name, billing_plan,
-                                     monthly_cost, billing_cycle, invoice_entries)
+                                     monthly_cost, theme, billing_cycle, invoice_entries)
                 except Exception as e:
                     context = self.get_context_data(**kwargs)
                     context['error'] = e.message
