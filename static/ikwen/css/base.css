@@ -37,7 +37,8 @@ body {color: #545454}
 #content .errorlist.username li, #content .errorlist.phone li {list-style-type: disc}
 
 .payment-method {display: block;cursor: pointer;margin-bottom: 1em;}
-.payment-method a {display: block; text-align: center}
+.payment-method .logo {display: block; text-align: center}
+.om-instructions {display: none; margin-top: 10px;}
 
 .spinner-container {-webkit-animation: rotate 2s linear infinite; animation: rotate 2s linear infinite; z-index: 2}
 .spinner-container .path {
@@ -149,7 +150,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 #navbar .glyphicon {color: #fff;cursor: pointer;font-size: 18px;}
 #navbar .back {display: none;float:left;font-size: 24px;margin: 12px 15px 0 10px;}
 .navbar-default .navbar-brand {padding: 18px 0 0 0;margin-left: 10px;}
- #navbar .navbar-header {height: 55px;overflow: hidden}
+#navbar .navbar-header {height: 55px;overflow: hidden}
 #navbar-search {
     display: none;
     background: #fff;
