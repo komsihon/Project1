@@ -9,31 +9,23 @@
             <div class="modal-body">
                 <form id="checkout" method="post">{% csrf_token %}
                     <input type="hidden" id="product-id" name="product_id" />
-                    <input type="hidden" id="donation-amount" name="amount" />
                     <input type="hidden" name="payment_conf" value="{% if payment_conf %}{{ payment_conf }}{% else %}default{% endif %}" />
                     <ul class="row">
-                        <li class="col-sm-4 payment-method{% if not config.is_pro_version and not config.allow_cash_payment %} col-sm-offset-2{% endif %}">
-                            <a title="{% trans "Pay with MTN Mobile Money" %}" data-action-url="{% url mtn_momo.action_url_name %}"
-                               class="logo continue" style="background: #ffca06">
+                        <li class="col-sm-4 payment-method{% if not config.is_pro_version and not config.allow_cash_payment %} col-sm-offset-2{% endif %}"
+                            {% if mtn_momo %}data-action-url="{% url mtn_momo.action_url_name %}{% endif %}">
+                            <a class="logo" style="background: #ffca06" title="{% trans "Pay with MTN Mobile Money" %}">
                                 <img src="{% static 'ikwen/img/logo_mtn_mobile_money.jpg' %}" height="90"/>
                             </a>
                         </li>
-                        <li class="col-sm-4 payment-method om">
-                            <a class="logo" title="{% trans "Pay with Orange Money" %}" style="background: #15171e">
+                        <li class="col-sm-4 payment-method om"
+                            {% if om %}data-action-url="{% url om.action_url_name %}?mean=orange-money{% endif %}">
+                            <a class="logo" style="background: #15171e" title="{% trans "Pay with Orange Money" %}">
                                 <img src="{% static 'ikwen/img/logo-OM-200x166.png' %}" height="90" />
                             </a>
-                            <div class="om-instructions">
-                                <p>
-                                    {% blocktrans %}Tapez <strong style="color: #f13e00">#150*4*4#</strong> et suivez les instructions.{% endblocktrans %}
-                                </p>
-                                <a class="continue" data-action-url="{% url om.action_url_name %}?mean=orange-money">
-                                    {% trans "Continue" %}
-                                </a>
-                            </div>
                         </li>
                         {% if config.is_pro_version and paypal %}
                             <li class="col-sm-4 payment-method" data-action-url="{% url paypal.action_url_name %}?mean=paypal">
-                                <a href="#" style="border: 1px solid #eee">
+                                <a class="logo" href="#" style="border: 1px solid #eee">
                                     <img src="{% static 'ikwen/img/payment-logo.jpg' %}" height="90" style="width: 100%"/>
                                 </a>
                             </li>
