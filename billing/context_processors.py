@@ -10,15 +10,15 @@ def payment_means(request):
     """
     mtn_momo, om, paypal = None, None, None
     try:
-        mtn_momo = PaymentMean.objects.get(slug=MTN_MOMO)
+        mtn_momo = PaymentMean.objects.get(slug=MTN_MOMO, is_active=True)
     except PaymentMean.DoesNotExist:
         pass
     try:
-        om = PaymentMean.objects.get(slug=ORANGE_MONEY)
+        om = PaymentMean.objects.get(slug=ORANGE_MONEY, is_active=True)
     except PaymentMean.DoesNotExist:
         pass
     try:
-        paypal = PaymentMean.objects.get(slug='paypal')
+        paypal = PaymentMean.objects.get(slug='paypal', is_active=True)
     except PaymentMean.DoesNotExist:
         pass
 
