@@ -371,7 +371,7 @@ class PaymentMeanList(TemplateView):
                     mean.is_active = False
                     mean.save()
             payment_mean_list.append(mean)
-        context['payment_mean_list'] = payment_mean_list
+        context['payment_mean_list_all'] = payment_mean_list
         return context
 
 

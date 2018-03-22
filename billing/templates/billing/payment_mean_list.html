@@ -22,7 +22,7 @@
         <div class="container-fluid">
             <div id="results">
                 <ul class="object-list" style="padding: 20px 0 0 0">
-                {% for mean in payment_mean_list %}
+                {% for mean in payment_mean_list_all %}
                     <li class="ik-li mean" id="{{ mean.id }}" data-id="{{ mean.id }}"
                             {% for key, value in mean.credentials.items  %}data-{{ key }}="{{ value }}"{% endfor %}>
                         <i class="glyphicon glyphicon-ok check{% if mean.is_active %} active{% endif %}"
