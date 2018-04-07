@@ -4,7 +4,7 @@ from django.contrib.auth.models import BaseUserManager, AbstractUser, Group
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.datetime_safe import strftime
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as _, get_language
 from django_mongodb_engine.contrib import RawQueryMixin
 from djangotoolbox.fields import ListField
 from ikwen.core.utils import add_event
@@ -98,6 +98,7 @@ class Member(AbstractUser):
     phone = models.CharField(max_length=30, db_index=True, blank=True, null=True)
     gender = models.CharField(max_length=15, blank=True, null=True)
     dob = models.DateField(blank=True, null=True)
+    language = models.CharField(max_length=10, blank=True, null=True, default=get_language)
     photo = MultiImageField(upload_to=PROFILE_UPLOAD_TO, blank=True, null=True, max_size=600, small_size=200, thumb_size=100)
     cover_image = models.ImageField(upload_to=COVER_UPLOAD_TO, blank=True, null=True)
     entry_service = models.ForeignKey(Service, blank=True, null=True, related_name='+',
@@ -186,8 +187,8 @@ class Member(AbstractUser):
             db = s.database
             add_database_to_settings(db)
             Member.objects.using(db).filter(pk=self.id)\
-                .update(email=self.email, phone=self.phone,
-                        first_name=self.first_name, last_name=self.last_name, gender=self.gender)
+                .update(email=self.email, phone=self.phone, gender=self.gender, first_name=self.first_name,
+                        last_name=self.last_name, full_name=self.first_name + ' ' + self.last_name)
 
     def propagate_password_change(self, new_password):
         for s in self.get_services():
