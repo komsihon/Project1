@@ -2,7 +2,7 @@
 {% load i18n humanize staticfiles %}
 
 {% block page_title %}
-<title> ikwen - {% trans "Account cloud_setup" %} </title>
+<title> ikwen - {% trans "Account Setup" %} </title>
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
@@ -36,7 +36,7 @@
 {% block header %}
     {{ block.super }}
     <div class="container-fluid">
-        {% trans "Account cloud_setup" %}
+        {% trans "Account Setup" %}
     </div>
 {% endblock %}
 
@@ -49,7 +49,7 @@
                         <p class="message" style="display: none"></p>
                     </div>
                     <header>
-                        <span> {% trans "About you" context 'Account cloud_setup identity' %} </span>
+                        <span> {% trans "About you" context 'Account Setup identity' %} </span>
                         <span class="icon" style="background-position: -177px 0"></span>
                     </header>
                     <div class="row detail">
