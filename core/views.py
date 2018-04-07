@@ -88,6 +88,7 @@ class HybridListView(ListView):
         context['page_size'] = self.page_size
         context['total_objects'] = self.get_queryset().count()
         context['filter'] = self.get_filter()
+        context['verbose_name_plural'] = self.get_queryset().model._meta.verbose_name_plural
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -260,6 +261,8 @@ class ChangeObjectBase(TemplateView):
                                      model_admin.get_prepopulated_fields(self.request),
                                      model_admin.get_readonly_fields(self.request))
         context[self.context_object_name] = obj
+        obj.verbose_name = obj._meta.verbose_name
+        obj.verbose_name_plural = obj._meta.verbose_name_plural
         context['model_admin_form'] = obj_form
         return context
 
