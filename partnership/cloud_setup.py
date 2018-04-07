@@ -16,6 +16,7 @@ from django.template.loader import get_template
 from ikwen.theming.models import Template, Theme
 
 from ikwen.billing.mtnmomo.views import MTN_MOMO
+from ikwen.billing.orangemoney.views import ORANGE_MONEY
 from permission_backend_nonrel.models import UserPermissionList, GroupPermissionList
 
 from ikwen.accesscontrol.models import SUDO, Member
@@ -181,17 +182,15 @@ def deploy(app, member, project_name, billing_plan, monthly_cost, theme,
 
     # Copy payment means to local database
     for mean in PaymentMean.objects.using(UMBRELLA).all():
-        if mean.slug == 'paypal':
-            mean.action_url_name = 'shopping:paypal_set_checkout'
         if mean.slug == MTN_MOMO:
             mean.is_main = True
             mean.is_active = True
+        elif mean.slug == ORANGE_MONEY:
+            mean.is_main = False
+            mean.is_active = True
         else:
             mean.is_main = False
-            if is_pro_version:
-                mean.is_active = True
-            else:
-                mean.is_active = False
+            mean.is_active = False
         mean.save(using=database)
         logger.debug("PaymentMean %s created in database: %s" % (mean.slug, database))
 
@@ -217,7 +216,8 @@ def deploy(app, member, project_name, billing_plan, monthly_cost, theme,
     obj_list.group_fk_list.append(new_sudo_group.id)
     obj_list.save(using=database)
 
-    OperatorWallet.objects.using('wallets').create(nonrel_id=service.id)
+    OperatorWallet.objects.using('wallets').create(nonrel_id=service.id, provider=MTN_MOMO)
+    OperatorWallet.objects.using('wallets').create(nonrel_id=service.id, provider=ORANGE_MONEY)
     mail_signature = "%s<br>" \
                      "<a href='%s'>%s</a>" % (project_name, 'http://' + domain, domain)
     config = PartnerProfile(service=service, is_pro_version=is_pro_version, theme=theme,
