@@ -70,6 +70,7 @@ def request_payment(request, transaction):
         transaction.processor_tx_id = 'tx_1'
         transaction.task_id = 'task_1'
         transaction.message = 'Success'
+        transaction.is_running = True
         transaction.status = MoMoTransaction.SUCCESS
     elif getattr(settings, 'DEBUG', False):
         mtn_momo = json.loads(PaymentMean.objects.get(slug=MTN_MOMO).credentials)
