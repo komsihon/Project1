@@ -11,6 +11,11 @@
 }
 #content.form form {border: none; padding: 0}
 #rg-username {text-transform: lowercase}
+.dob .col-xs-4 {padding: 0 5px}
+.dob .col-xs-4:first-of-type {padding-left: 15px}
+.dob .col-xs-4:last-of-type {padding-right: 15px}
+.dob .errorlist {margin: -13px 0 0;text-align: right;}
+.why-dob {display: block; font-size: 11px; margin: -12px 0 10px 0; text-align: right}
 
 #terms-warning {
     color: #999;
