@@ -3,6 +3,7 @@ import json
 import random
 import string
 from threading import Thread
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib import messages
@@ -51,6 +52,15 @@ logger = logging.getLogger('ikwen')
 class Register(TemplateView):
     template_name = 'accesscontrol/register.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(Register, self).get_context_data(**kwargs)
+        context['range_1_31'] = range(1, 32)
+        context['range_1_12'] = range(1, 13)
+        max_year = datetime.now().year - 17
+        min_year = max_year - 80
+        context['year_list'] = range(max_year, min_year, -1)
+        return context
+
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated():
             next_url = request.REQUEST.get('next')
@@ -73,6 +83,13 @@ class Register(TemplateView):
             email = form.cleaned_data.get('email', '').strip().lower()
             first_name = form.cleaned_data.get('first_name', '').strip()
             last_name = form.cleaned_data.get('last_name', '').strip()
+            try:
+                year = request.POST['year']
+                month = request.POST['month']
+                day = request.POST['day']
+                dob = datetime(int(year), int(month), int(day))
+            except:
+                dob = None
             sign_in_url = reverse('ikwen:register')
             query_string = request.META.get('QUERY_STRING')
             try:
@@ -105,7 +122,7 @@ class Register(TemplateView):
                         register_url += "?" + query_string
                     return HttpResponseRedirect(register_url)
                 Member.objects.create_user(username=username, phone=phone, email=email, password=password,
-                                           first_name=first_name, last_name=last_name)
+                                           first_name=first_name, last_name=last_name, dob=dob)
                 member = authenticate(username=username, password=password)
                 login(request, member)
                 events = getattr(settings, 'IKWEN_REGISTER_EVENTS', ())
@@ -210,6 +227,15 @@ class SignIn(TemplateView):
 
 class SignInMinimal(SignIn):
     template_name = 'accesscontrol/sign_in_minimal.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(SignInMinimal, self).get_context_data(**kwargs)
+        context['range_1_31'] = range(1, 32)
+        context['range_1_12'] = range(1, 13)
+        max_year = datetime.now().year - 17
+        min_year = max_year - 80
+        context['year_list'] = range(max_year, min_year, -1)
+        return context
 
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated():
