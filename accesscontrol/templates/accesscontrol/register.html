@@ -78,6 +78,9 @@
                             {{ register_form.name.errors }}
                         </div>
                     </div>
+                    {% if settings.REGISTER_WITH_DOB %}
+                        {% include "accesscontrol/snippets/dob_widget.html" %}
+                    {% endif %}
                     <div class="form-group row">
                         {% if settings.IS_IKWEN %}
                             <p id="terms-warning" class="col-sm-11 col-md-10">
@@ -214,6 +217,17 @@
                 }
                 return true;
             }
+            function checkDOB() {
+                var day = parseInt($('#day').val()),
+                    month = parseInt($('#month').val()),
+                    year = parseInt($('#year').val()),
+                    d = new Date(year + '/' + month + '/' + day);
+                if (!(d.getDate() === day && d.getMonth() === (month - 1) && d.getFullYear() === year)) {
+                    $('<p class="errorlist">{% trans "Invalid date. Please check." %}</p>').appendTo('#dob');
+                    return false;
+                }
+                return true;
+            }
 
             $('div#register form').submit(function () {
                 if (!$('#accept-terms').prop('checked')) return false;
@@ -222,9 +236,14 @@
                     if (!testEmail()) return false;
                 }
                 if ($('#rg-phone').hasClass('required') || $('#rg-phone').val()) {
-                    return testPhone()
+                    if (!testPhone()) return false;
                 }
+                {% if settings.REGISTER_WITH_DOB %}
+                    return checkDOB();
+                {% endif %}
             });
+            $('#dob').removeClass('col-sm-7 col-md-8').addClass('col-sm-6 col-md-6')
+            $('.why-dob').addClass('col-sm-11 col-md-10')
         })()
     </script>
     {{ config.scripts|safe }}
