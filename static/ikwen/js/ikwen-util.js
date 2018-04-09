@@ -123,6 +123,14 @@
                     url = descriptor.endpoint,
                     params = {q: q, start: 0, length: 10, format: 'json'},
                     selector = descriptor.resultTplSelector;
+                var maxLength = descriptor.maxLength;
+                if (maxLength) {
+                    try {
+                        params.max_length = maxLength();
+                    } catch (e) {
+                        params.max_length = maxLength
+                    }
+                }
                 grabResults(url, params, resultPanelSelector, selector, call.length, afterResults, descriptor.jsonp);
                 call.push(q);
                 // TODO: Manage multiple descriptors and sectioned results
