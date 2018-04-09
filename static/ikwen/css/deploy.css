@@ -28,7 +28,7 @@
     input.amount {margin-top: 4px}
     .btn-icon {float: right; margin: 2px 15px 0 0 }
 }
-.results.customers {background: #fff; position: absolute; z-index: 10}
+.results.customers {background: #fff; height: 320px; overflow: auto; position: absolute; z-index: 10}
 #content form ul.errorlist {
     padding-left: 0
 }

@@ -97,6 +97,7 @@ class HybridListView(ListView):
         queryset = self.filter_queryset(queryset)
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
+        max_chars = self.request.GET.get('max_chars', 4)
         if start_date and end_date:
             queryset = queryset.filter(created_on__range=(start_date, end_date))
         elif start_date:
@@ -106,7 +107,7 @@ class HybridListView(ListView):
         start = int(self.request.GET.get('start', 0))
         length = int(self.request.GET.get('length', self.page_size))
         limit = start + length
-        queryset = self.get_search_results(queryset, max_chars=4)
+        queryset = self.get_search_results(queryset, max_chars=max_chars)
         queryset = queryset.order_by(*self.ajax_ordering)
         if fmt == 'json':
             queryset = queryset[start:limit]

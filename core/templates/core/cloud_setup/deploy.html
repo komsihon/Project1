@@ -314,12 +314,18 @@
                 if (!$(this).hasClass('btn-success')) return;
                 $(this).removeClass('btn-success').addClass('btn-default');
             });
-            $('.results.customers').width($('#customer-name').width());
+            $('.results.customers').css('width', $('#customer-name').css('width'));
             {% url 'ikwen:member_list' as list_members_url %}
             var searchDescriptor = [{
                 endpoint: '{{ list_members_url|ikwenize }}',
                 resultTplSelector: '.results.customers li.member',
-                jsonp: true
+                jsonp: true,
+                maxLength: function() {
+                    // The max number of characters that will be taken into consideration
+                    // in the string typed by user to do the search. Characters above that
+                    // limit will be ignored.
+                    return Math.max($('#customer-name').val().length - 2, 4);
+                }
             }];
             $('#customer-name').focusout(function() {$('.results.customers').fadeOut()});
             ikwen.setupSearch('#customer-name', '.results.customers', searchDescriptor);
