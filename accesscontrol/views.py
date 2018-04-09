@@ -254,9 +254,7 @@ class SignInMinimal(SignIn):
                         Member.objects.using(UMBRELLA).get(phone=username)
                         response = {'existing': True}
                     except Member.DoesNotExist:
-                        pwd = ''.join([random.SystemRandom().choice(string.ascii_letters) for _ in range(4)])
-                        response = {'existing': False,
-                                    'pwd': pwd.lower()}
+                        response = {'existing': False}
             return HttpResponse(json.dumps(response), 'content-type: text/json')
         return super(SignInMinimal, self).get(request, *args, **kwargs)
 

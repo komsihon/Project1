@@ -300,8 +300,6 @@
                                 $('.form-group.email').hide();
                             }
                             $('.form-group.password').prependTo('.create-account').find('label').text("{% trans "Choose a password" %}");
-                            $('.default-pwd').text(data.pwd);
-                            $('#password, #password2').val(data.pwd);
                             location.hash = 'register-step1';
                             $('#auth').prop('action', "{% url 'ikwen:register' %}?{{ request.META.QUERY_STRING }}");
                         }
