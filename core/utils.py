@@ -179,18 +179,19 @@ def get_mail_content(subject, message=None, template_name='core/mails/notice.htm
 
 def send_sms(recipient, text, label=None, script_url=None, fail_silently=True):
     # label is made of 10 first characters of company name without space
+    if not (recipient and text):
+        return
     config = get_service_instance().config
     if not label:
-        label = config.company_name.split(' ')[0][:10]
-        label = urlencode(label)
+        label = config.company_name.strip()
+        if len(label) > 15:
+            label = label.split(' ')[0][:15]
+        label = slugify(label)
+        label = ''.join([tk.capitalize() for tk in label.split('-') if tk])
     if not script_url:
         script_url = config.sms_api_script_url
-    username = config.sms_api_username
-    password = config.sms_api_password
-    if script_url and username and password:
-        url = script_url.replace('$username', username)\
-            .replace('$password', password)\
-            .replace('$label', urlencode(label))\
+    if script_url:
+        url = script_url.replace('$label', urlencode(label))\
             .replace('$recipient', recipient)\
             .replace('$text', urlencode(text))
         base_url = url.split('?')[0]
