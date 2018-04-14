@@ -48,7 +48,7 @@
                         </div>
                     </div>
                     <div class="form-group row email" style="height: 0; margin-bottom: 0; overflow: hidden">
-                        <label for="rg-email" class="col-sm-5 col-md-4">Email</label>
+                        <label for="rg-email" class="col-sm-5 col-md-4">{% trans "E-mail" %}</label>
                         <div class="col-sm-6 col-md-6">
                             <input id="rg-email" class="form-control input-sm email" type="text" name="email"/>
                             {{ register_form.email.errors }}
@@ -156,77 +156,73 @@
                 } else $('.form-group.submit .btn').prop('disabled', true).addClass('default')
             });
             function testUsername(uname) {
-                $('.form-group.username .errorlist').remove();
+                $('.errorlist.username').remove();
                 var $username = $('#rg-username'),
                     username = $username.val();
                 if (uname) username = uname;
-                if (username.length < 3 || /\d{1}/.test(username.substr(0, 1))) {
-                    $('.errorlist.username').remove();
-                    $('<ul class="errorlist username">' +
-                        '<li>' + "{% trans "Please use at least 3 characters." %}" + '</li>' +
-                        '<li>' + "{% trans "Start with a letter." %}" + '</li>' +
-                        '<ul>').insertAfter('#rg-username');
-                    $username.focus();
-                    return false;
-                }
-                return true;
+                if (username.length >= 3 && /[a-z]{1}/.test(username.substr(0, 1))) return true;
+                $('<ul class="errorlist username">' +
+                    '<li>' + "{% trans "Please use at least 3 characters." %}" + '</li>' +
+                    '<li>' + "{% trans "Start with a letter." %}" + '</li>' +
+                    '<ul>').insertAfter('#rg-username');
+                $username.focus();
+                return false;
             }
             function testEmail() {
+                $('.errorlist.email').remove();
                 var $email = $('#rg-email'),
                     email = $email.val().replace(/ /g, '').toLowerCase();
                 $email.val(email);
-                if (email.isValidEmail()) {
-                    $('.errorlist.email').remove();
-                    return true;
-                }
-                $('.form-group.email .errorlist').remove();
+                if (email.isValidEmail()) return true;
                 $('<ul class="errorlist email"><li>' + "{% trans "Please, enter valid email" %}" + '</li><ul>')
                         .insertAfter('#rg-email');
                 $email.focus();
                 return false;
             }
             function testPhone() {
-                $('.form-group.phone .errorlist').remove();
+                $('.errorlist.phone').remove();
                 var $phone = $('#rg-phone'),
                     phone = $phone.val().replace(/ /g, '');
                 $phone.val(phone);
-                if (phone && !/\d{9,}/.test(phone)) {
-                    $('<ul class="errorlist phone">' +
-                        '<li>' + "{% trans "Please use digits only." %}" + '</li>' +
-                        '<li>' + "{% trans "Prepend country code if you are not in Cameroon." %}" + '</li>' +
-                        '<li>' + "{% trans "DO NOT prepend 00." %}" + '</li>' +
-                        '<ul>').insertAfter('#rg-phone');
-                    return false
-                }
-                return true;
+                if (phone && phone.substr(0, 2) !== '00' && /\d{9,}/.test(phone)) return true;
+                $('<ul class="errorlist phone">' +
+                    '<li>' + "{% trans "Please use digits only." %}" + '</li>' +
+                    '<li>' + "{% trans "Prepend country code if you are not in Cameroon." %}" + '</li>' +
+                    '<li>' + "{% trans "DO NOT prepend 00." %}" + '</li>' +
+                    '<ul>').insertAfter('#rg-phone');
+                $phone.focus();
+                return false;
             }
             function testPassword() {
-                var pwd1 = $('#rg-password').val(),
+                $('.errorlist.password').remove();
+                var $pwd1 = $('#rg-password'),
+                    pwd1 = $pwd1.val(),
                     pwd2 = $('#rg-password2').val();
                 if (pwd1 !== pwd2) {
                     $('<ul class="errorlist password">' +
                         '<li>' + "{% trans "Passwords mismatch! Please check." %}" + '</li>' +
                         '<ul>').insertAfter('#rg-password');
+                    $pwd1.focus();
                     return false
                 }
                 if (pwd1.length < 6) {
                     $('<ul class="errorlist password">' +
                         '<li>' + "{% trans "Password too short. Use at least 6 characters." %}" + '</li>' +
                         '<ul>').insertAfter('#rg-password');
+                    $pwd1.focus();
                     return false
                 }
                 return true;
             }
             function checkDOB() {
+                $('.errorlist.dob').remove();
                 var day = parseInt($('#day').val()),
                     month = parseInt($('#month').val()),
                     year = parseInt($('#year').val()),
                     d = new Date(year + '/' + month + '/' + day);
-                if (!(d.getDate() === day && d.getMonth() === (month - 1) && d.getFullYear() === year)) {
-                    $('<p class="errorlist">{% trans "Invalid date. Please check." %}</p>').appendTo('#dob');
-                    return false;
-                }
-                return true;
+                if (d.getDate() === day && d.getMonth() === (month - 1) && d.getFullYear() === year) return true;
+                $('<p class="errorlist dob">{% trans "Invalid date. Please check." %}</p>').appendTo('#dob');
+                return false;
             }
 
             $('div#register form').submit(function () {
