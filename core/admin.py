@@ -91,7 +91,8 @@ class ServiceAdmin(admin.ModelAdmin):
                 service = get_service_instance()
                 new_domain = obj.domain
                 obj.domain = before.domain
-                obj.update_domain(new_domain)
+                is_naked_domain = True if request.POST['domain_type'] == Service.MAIN else False
+                obj.update_domain(new_domain, is_naked_domain)
                 obj.reload_settings(obj.settings_template)
                 subject = _("Your domain name was changed")
                 html_content = get_mail_content(subject, template_name='core/mails/domain_updated.html',
