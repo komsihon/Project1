@@ -576,10 +576,8 @@ class AbstractConfig(Model):
     sms_api_script_url = models.CharField(max_length=255, blank=True, verbose_name=_("Script URL"),
                                           help_text=_("Model of SMS script url with parameters values written as <strong>$parameter</strong>. "
                                                       "They will be replaced when sending. "
-                                                      "Eg: <em>http://smsapi.org/?user_param=<strong>$username</strong>&password_param=<strong>$password</strong>"
+                                                      "Eg: <em>http://smsapi.org/?user=<strong>&lt;APIUsername&gt;</strong>&password=<strong>&lt;APIPassword&gt;</strong>"
                                                       "&sender_param=<strong>$label</strong>&recipient_param=<strong>$recipient</strong>&text_param=<strong>$text</strong></em>"))
-    sms_api_username = models.CharField(max_length=100, blank=True)
-    sms_api_password = models.CharField(max_length=100, blank=True)
     is_pro_version = models.BooleanField(_("pro version"), default=False,
         help_text=_("Standard version uses <strong>ikwen</strong> payment accounts (PayPal, MobileMoney, "
                     "BankCard, etc.) and collects user's money upon purchases. He can later request a Cash-out and "
