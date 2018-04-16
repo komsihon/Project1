@@ -309,7 +309,7 @@
                     year = parseInt($('#year').val()),
                     d = new Date(year + '/' + month + '/' + day);
                 if (d.getDate() === day && d.getMonth() === (month - 1) && d.getFullYear() === year) return true;
-                $('<p class="errorlist dob">{% trans "Invalid date. Please check." %}</p>').appendTo('#dob');
+                $('<p class="errorlist dob">' + "{% trans "Invalid date. Please check." %}" + '</p>').appendTo('#dob');
                 return false;
             }
         })()
