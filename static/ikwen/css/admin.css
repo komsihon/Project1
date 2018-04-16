@@ -29,7 +29,7 @@ body {font-size: 13px;overflow: hidden;}
     float: left;height: 24px;opacity: .5; width: 24px;}
 #selection-control .select-count {float: left; margin-left: 30px}
 #selection-control .actions {float: right}
-#app-nav {border-bottom: 1px solid #eee;border-top: 1px solid #eee;font-weight: 700;height: 45px;margin-top: 47px;padding-top: 10px;position: fixed;width: 100%;z-index: 12;}
+#app-nav {background: #fff; border-bottom: 1px solid #eee;border-top: 1px solid #eee;font-weight: 700;height: 45px;margin-top: 47px;padding-top: 10px;position: fixed;width: 100%;z-index: 12;}
 #app-nav .app-name {display: none}
 #app-nav .app-logo {float: left;height: 30px;width: 30px;margin-right: 5px;}
 #app-nav .breadcrumb {background: none;float: left;padding-top: 5px;padding-left: 0;}
