@@ -152,7 +152,7 @@
                     <div class="empty">
                         {% trans "Click on a member in the list to view and manage." %}
                     </div>
-                    <div class="actions" style="display: none">
+                    <div class="actions" style="display: none; padding-bottom: 200px">
                         <h3 class="main-title">{% trans "Permissions" %}</h3>
                         <div class="container-fluid">
                             <div id="permissions">
@@ -161,7 +161,7 @@
                                         <div class="form-group">
                                             <div class="checkbox">
                                                 <label>
-                                                    <input type="checkbox" id="{{ perm.id }}" value="{{ perm.id }}" /> {{ perm.name }}
+                                                    <input type="checkbox" id="{{ perm.id }}" value="{{ perm.id }}" /> {% trans perm.name %}
                                                 </label>
                                             </div>
                                         </div>
