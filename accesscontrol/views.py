@@ -839,7 +839,7 @@ def set_collaborator_permissions(request, *args, **kwargs):
             # member can manipulate the object in the django admin app. This
             # because ikwen admin can sometimes embed django admin in iframe.
             ct = perm.content_type
-            django_perms = Permission.objects.filter(content_type=ct)
+            django_perms = Permission.objects.filter(content_type=ct).exclude(codename__istartswith='ik_')
             for perm in django_perms:
                 add_permission_to_user(perm, member)
         member.is_staff = True
