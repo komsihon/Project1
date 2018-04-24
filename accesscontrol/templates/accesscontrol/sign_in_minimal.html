@@ -209,6 +209,12 @@
                 username = username.replace(/ /g, '').toLowerCase();
                 $username.val(username);
                 if (uname) username = uname;
+                if (username.indexOf('@') > 0) {
+                    if (username.isValidEmail()) return true;
+                    $('<ul class="errorlist username"><li>' + "{% trans "Please, enter valid email" %}" + '</li></ul>')
+                            .insertAfter('#username');
+                    return false
+                }
                 if (username.length >= 3 && /[a-z]{1}/.test(username.substr(0, 1))) return true;
                 $('<ul class="errorlist username">' +
                     '<li>' + "{% trans "Please use at least 3 characters." %}" + '</li>' +
