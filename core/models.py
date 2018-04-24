@@ -379,8 +379,8 @@ class Service(models.Model):
         Thread(target=reload_server).start()
 
         self.domain = new_domain
-        self.url = self.url.replace(previous_domain, new_domain)
-        self.admin_url = self.admin_url.replace(previous_domain, new_domain)
+        self.url = self.url.replace('http://' + previous_domain, 'http://' + new_domain)
+        self.admin_url = self.admin_url.replace('http://' + previous_domain, 'http://' + new_domain)
         self.save()
         db = self.database
         add_database_to_settings(db)
