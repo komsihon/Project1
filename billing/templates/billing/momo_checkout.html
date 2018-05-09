@@ -129,6 +129,12 @@
                 $('#transaction-result').removeClass('text-danger').addClass('text-info')
                         .text("{% trans "Good! Please confirm transaction on your phone." %}");
             }
+            window.addEventListener("beforeunload", function (e) {
+                if (!localStorage.get('txId')) return undefined;
+                var confirmation = "{% trans "You have a running transaction. Leaving now may cause it to fail." %}";
+                (e || window.event).returnValue = confirmation; //Gecko + IE
+                return confirmation; //Gecko + Webkit, Safari, Chrome etc.
+            });
         })()
     </script>
     {{ config.scripts|safe }}
