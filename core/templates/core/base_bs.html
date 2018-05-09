@@ -44,39 +44,61 @@
                                     <span class="icon-bar"></span>
                                 </div>
                                 {% block header_brand %}
-                                    <a class="navbar-brand" href="{{ service.url }}">
+                                    <a class="navbar-brand hidden-xs" href="{{ service.url }}">
                                         <strong>{{ service.project_name }}</strong>
                                     </a>
+                                    <strong class="navbar-brand visible-xs">{{ service.project_name }}</strong>
                                 {% endblock %}
-                                <nav class="visible-xs pull-right">
-                                    <ul id="nav-xs">
-                                        <li class="show-search">
-                                            <i class="glyphicon glyphicon-search"></i>
-                                        </li>
-                                        {% if user.is_authenticated %}
-                                            <li class="home">
-                                                <a href="{{ settings.IKWEN_CONSOLE_URL }}">
-                                                    <i class="glyphicon glyphicon-bell" aria-hidden="true"></i>
-                                                    {% if user.personal_notices > 0 %}
-                                                        <span class="label label-danger">{{ user.personal_notices }}</span>
-                                                    {% endif %}
+                                {% block site_menu_xs %}
+                                    <nav class="visible-xs pull-right">
+                                        <ul class="nav-xs nav navbar-nav navbar-right">
+                                            <li class="show-search">
+                                                <a href="#">
+                                                    <i class="glyphicon glyphicon-search"></i>
                                                 </a>
                                             </li>
-                                            {% if collaborates_on|length >= 1 %}
-                                                <li class="app-list" data-toggle="collapse" data-target="#iao-app-list-xs" aria-expanded="false">
-                                                    <a href="#"><i class="glyphicon glyphicon-th-large"></i> </a>
+                                            {% if user.is_authenticated %}
+                                                <li class="home">
+                                                    <a href="{{ settings.IKWEN_CONSOLE_URL }}">
+                                                        <i class="glyphicon glyphicon-bell" aria-hidden="true"></i>
+                                                        {% if user.personal_notices > 0 %}
+                                                            <span class="label label-danger">{{ user.personal_notices }}</span>
+                                                        {% endif %}
+                                                    </a>
+                                                </li>
+                                                {% if collaborates_on|length >= 1 %}
+                                                    <li class="dropdown">
+                                                        <a id="apps-xs" class="dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                            <i class="glyphicon glyphicon-th-large"></i>
+                                                        </a>
+                                                        <ul class="dropdown-menu" aria-labelledby="apps-xs" style="right: -39px">
+                                                            {% for app in collaborates_on %}
+                                                                <li><a href="{{ app.admin_url }}">{{ app.project_name }}</a></li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </li>
+                                                {% endif %}
+                                                <li class="dropdown">
+                                                    <a id="user-menu-xs" class="dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                        <i class="glyphicon glyphicon-user"></i>
+                                                    </a>
+                                                    <ul class="dropdown-menu" aria-labelledby="user-menu-xs">
+                                                        <li style="padding: 3px 20px"> {{ user.get_short_name }} </li>
+                                                        <li role="separator" class="divider"></li>
+                                                        <li>
+                                                            <a href="{{ account_setup_url|ikwenize }}">{% trans "Account setup" %}</a>
+                                                        </li>
+                                                        <li><a href="{% url "ikwen:logout" %}">{% trans "Logout" %}</a> </li>
+                                                    </ul>
+                                                </li>
+                                            {% else %}
+                                                <li>
+                                                    <a href="{% url 'ikwen:sign_in' %}" style="float: left">{% trans "Login" %}</a>
                                                 </li>
                                             {% endif %}
-                                            <li data-toggle="collapse" data-target="#user-menu-xs" aria-expanded="false">
-                                                <a href="#"><i class="glyphicon glyphicon-user"></i> </a>
-                                            </li>
-                                        {% else %}
-                                            <li>
-                                                <a href="{% url 'ikwen:sign_in' %}" style="float: left">{% trans "Login" %}</a>
-                                            </li>
-                                        {% endif %}
-                                    </ul>
-                                </nav>
+                                        </ul>
+                                    </nav>
+                                {% endblock %}
                             </div>
                         </div>
                         <div id="navbar-search" class="navbar-form navbar-left">
@@ -107,73 +129,55 @@
                                 <div class="clearfix"></div>
                             </div>
                         </div>
-                        <div id="site-menu" class="collapse navbar-collapse">
-                            <div class="container-fluid">
-                                <ul class="nav navbar-nav navbar-right" style="margin: 0 -15px 0 0">
-                                    {% if user.is_authenticated %}
-                                        <li id="user-home">
-                                            <a href="{{ settings.IKWEN_CONSOLE_URL }}">
-                                                {% trans "Home" %}
-                                                {% if user.get_notice_count > 0 %}
-                                                    <span class="label label-danger" style="margin-top: -18px">{{ user.get_notice_count }}</span>
-                                                {% endif %}
-                                            </a>
-                                        </li>
-                                        {% if collaborates_on|length == 1 %}
-                                            <li id="user-apps">
-                                                <a href="{{ collaborates_on.0.admin_url }}">{{ collaborates_on.0.project_name }}</a>
+                        {% block site_menu %}
+                            <div id="site-menu" class="collapse navbar-collapse">
+                                <div class="container-fluid">
+                                    <ul class="nav navbar-nav navbar-right" style="margin: 0 -15px 0 0">
+                                        {% if user.is_authenticated %}
+                                            <li id="user-home">
+                                                <a href="{{ settings.IKWEN_CONSOLE_URL }}">
+                                                    {% trans "Home" %}
+                                                    {% if user.get_notice_count > 0 %}
+                                                        <span class="label label-danger" style="margin-top: -18px">{{ user.get_notice_count }}</span>
+                                                    {% endif %}
+                                                </a>
                                             </li>
-                                        {% elif collaborates_on|length > 1 %}
-                                            <li id="user-apps" class="dropdown">
-                                                <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Apps</a>
-                                                <ul class="dropdown-menu" aria-labelledby="apps">
-                                                    {% for app in collaborates_on %}
-                                                        <li><a href="{{ app.admin_url }}">{{ app.project_name }}</a></li>
-                                                    {% endfor %}
+                                            {% if collaborates_on|length == 1 %}
+                                                <li id="user-apps">
+                                                    <a href="{{ collaborates_on.0.admin_url }}">{{ collaborates_on.0.project_name }}</a>
+                                                </li>
+                                            {% elif collaborates_on|length > 1 %}
+                                                <li id="user-apps" class="dropdown">
+                                                    <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Apps</a>
+                                                    <ul class="dropdown-menu" aria-labelledby="apps">
+                                                        {% for app in collaborates_on %}
+                                                            <li><a href="{{ app.admin_url }}">{{ app.project_name }}</a></li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </li>
+                                            {% endif %}
+                                            <li id="user-menu" class="dropdown">
+                                                <a class="icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="glyphicon glyphicon-user"></i>
+                                                </a>
+                                                <ul class="dropdown-menu" aria-labelledby="user-menu">
+                                                    <li style="padding: 3px 20px"> {{ user.get_short_name }} </li>
+                                                    <li role="separator" class="divider"></li>
+                                                    <li>
+                                                        <a href="{{ account_setup_url|ikwenize }}">{% trans "Account setup" %}</a>
+                                                    </li>
+                                                    <li><a href="{% url "ikwen:logout" %}">{% trans "Logout" %}</a> </li>
                                                 </ul>
                                             </li>
+                                        {% else %}
+                                            <li class="hidden-xs">
+                                                <a href="{% url 'ikwen:sign_in' %}" class="cta">{% trans "Login" %}</a>
+                                            </li>
                                         {% endif %}
-                                        <li id="user-menu" class="dropdown">
-                                            <a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                <i class="glyphicon glyphicon-user"></i>
-                                            </a>
-                                            <ul class="dropdown-menu" aria-labelledby="user-menu">
-                                                <li style="padding: 3px 20px"> {{ user.get_short_name }} </li>
-                                                <li role="separator" class="divider"></li>
-                                                <li>
-                                                    <a href="{{ account_setup_url|ikwenize }}">{% trans "Account setup" %}</a>
-                                                </li>
-                                                <li><a href="{% url "ikwen:logout" %}">{% trans "Logout" %}</a> </li>
-                                            </ul>
-                                        </li>
-                                    {% else %}
-                                        <li class="hidden-xs">
-                                            <a href="{% url 'ikwen:sign_in' %}" class="cta">{% trans "Login" %}</a>
-                                        </li>
-                                    {% endif %}
-                                </ul>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div id="user-menu-xs" class="dropdown-menu-xs collapse">
-                            <div class="container-fluid">
-                                <ul class="nav navbar-nav">
-                                    <li> <a style="font-weight: 700">{{ user.get_short_name }}</a> </li>
-                                    <li>
-                                        <a href="{{ account_setup_url|ikwenize }}">{% trans "Account setup" %}</a>
-                                    </li>
-                                    <li><a href="{% url "ikwen:logout" %}">{% trans "Logout" %}</a> </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div id="iao-app-list-xs" class="dropdown-menu-xs collapse">
-                            <div class="container-fluid">
-                                <ul class="nav navbar-nav">
-                                    {% for app in collaborates_on %}
-                                        <li><a href="{{ app.admin_url }}">{{ app.project_name }}</a></li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
+                        {% endblock %}
                     </div>
                 </nav>
             {% endwith %}
