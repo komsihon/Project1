@@ -65,30 +65,26 @@ class HybridListView(ListView):
     """
     page_size = int(getattr(settings, 'HYBRID_LIST_PAGE_SIZE', '25'))
     search_field = 'name'
-    ordering = ('-created_on', )
+    ordering = ('-id', )
     list_filter = ()
-    ajax_ordering = ('-created_on', )
-    html_results_template_name = None
-
-    def get_queryset(self):
-        if self.queryset is not None:
-            queryset = self.queryset
-            if hasattr(queryset, '_clone'):
-                queryset = queryset._clone()
-        elif self.model is not None:
-            queryset = self.model._default_manager.all()
-        else:
-            raise ImproperlyConfigured("'%s' must define 'queryset' or 'model'"
-                                       % self.__class__.__name__)
-        return queryset
+    ajax_ordering = ('-id', )
+    template_name = 'core/object_list_base.html'
+    html_results_template_name = 'core/snippets/object_list_results.html'
+    change_object_url_name = None
 
     def get_context_data(self, **kwargs):
         context = super(HybridListView, self).get_context_data(**kwargs)
-        context[self.context_object_name] = context[self.context_object_name].order_by(*self.ordering)[:self.page_size]
+        context_object_name = self.get_context_object_name(self.object_list)
+        context[context_object_name] = context[context_object_name].order_by(*self.ordering)[:self.page_size]
         context['page_size'] = self.page_size
         context['total_objects'] = self.get_queryset().count()
         context['filter'] = self.get_filter()
-        context['verbose_name_plural'] = self.get_queryset().model._meta.verbose_name_plural
+        meta = self.get_queryset().model._meta
+        context['verbose_name'] = meta.verbose_name
+        context['verbose_name_plural'] = meta.verbose_name_plural
+        if not self.change_object_url_name:
+            self.change_object_url_name = '%s:change_%s' % (meta.app_label, meta.model_name)
+        context['change_object_url_name'] = self.change_object_url_name
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -140,9 +136,9 @@ class HybridListView(ListView):
                 return super(HybridListView, self).render_to_response(context, **response_kwargs)
 
     def get(self, request, *args, **kwargs):
-        action = self.request.GET.get('action')
+        action = request.GET.get('action')
         if action == 'delete':
-            selection = self.request.GET['selection'].split(',')
+            selection = request.GET['selection'].split(',')
             deleted = []
             for pk in selection:
                 try:
@@ -244,26 +240,33 @@ class HybridListView(ListView):
 class ChangeObjectBase(TemplateView):
     model = None
     model_admin = None
-    template_name = None
     object_list_url = None  # Django url name of the object list page
+    template_name = 'core/change_object_base.html'
     context_object_name = 'obj'
+
+    def get_object(self, **kwargs):
+        object_id = kwargs.get('object_id')  # May be overridden with the one from GET data
+        object_id = self.request.GET.get('object_id', object_id)
+        if object_id:
+            return get_object_or_404(self.model, pk=object_id)
 
     def get_context_data(self, **kwargs):
         context = super(ChangeObjectBase, self).get_context_data(**kwargs)
-        object_id = kwargs.get('object_id')  # May be overridden with the one from GET data
-        object_id = self.request.GET.get('object_id', object_id)
-        obj = None
-        if object_id:
-            obj = get_object_or_404(self.model, pk=object_id)
         model_admin = get_model_admin_instance(self.model, self.model_admin)
         ModelForm = modelform_factory(self.model, fields=self.model_admin.fields)
-        form = ModelForm(instance=obj)
+        obj = self.get_object(**kwargs)
+        if obj:
+            form = ModelForm(instance=obj)
+        else:
+            form = ModelForm(instance=self.model())
         obj_form = helpers.AdminForm(form, list(model_admin.get_fieldsets(self.request)),
                                      model_admin.get_prepopulated_fields(self.request),
                                      model_admin.get_readonly_fields(self.request))
         context[self.context_object_name] = obj
-        obj.verbose_name = obj._meta.verbose_name
-        obj.verbose_name_plural = obj._meta.verbose_name_plural
+        context['obj'] = obj  # Base template recognize the context object only with the name 'obj'
+        context['verbose_name'] = self.model()._meta.verbose_name
+        context['verbose_name_plural'] = self.model()._meta.verbose_name_plural
+        context['object_list_url'] = self.get_object_list_url(self.request, obj)
         context['model_admin_form'] = obj_form
         return context
 
@@ -333,22 +336,28 @@ class ChangeObjectBase(TemplateView):
                             raise e
                         return {'error': 'File failed to upload. May be invalid or corrupted image file'}
 
-            if self.object_list_url:
-                next_url = reverse(self.object_list_url)
-            else:
-                try:
-                    next_url = reverse('%s:%s_list' % (obj._meta.app_label, obj._meta.model_name))
-                except:
-                    next_url = request.META['HTTP_REFERER']
+            next_url = self.get_object_list_url(request, obj, *args, **kwargs)
             if object_id:
-                messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj) + '</strong> ' + _('successfully updated'))
+                messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj).decode('utf8') + '</strong> ' + _('successfully updated'))
             else:
-                messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj) + '</strong> ' + _('successfully created'))
+                messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj).decode('utf8') + '</strong> ' + _('successfully created'))
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)
             context['errors'] = form.errors
             return render(request, self.template_name, context)
+
+    def get_object_list_url(self, request, obj, *args, **kwargs):
+        if self.object_list_url:
+            next_url = reverse(self.object_list_url)
+        else:
+            try:
+                if obj is None:
+                    obj = self.model()
+                next_url = reverse('%s:%s_list' % (obj._meta.app_label, obj._meta.model_name))
+            except:
+                next_url = request.META['HTTP_REFERER']
+        return next_url
 
 
 upload_image = AjaxFileUploader(DefaultUploadBackend)
@@ -662,7 +671,7 @@ def list_projects(request, *args, **kwargs):
     queryset = Service.objects.using(UMBRELLA).filter(is_public=True)
     word = slugify(q)[:4]
     if word:
-        queryset = queryset.filter(project_name__icontains=word)
+        queryset = queryset.filter(project_name_slug__icontains=word)
 
     projects = []
     for s in queryset.order_by('project_name')[:6]:
