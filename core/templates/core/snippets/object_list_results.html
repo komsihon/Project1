@@ -1,0 +1,33 @@
+{% load i18n static humanize %}
+<ul class="object-list list-group">
+    {% for obj in objects_page.object_list %}
+    {% url change_object_url_name obj.id as obj_url %}
+    <li class="ik-li list-group-item {{ obj.status }}" id="{{ obj.id }}" data-id="{{ obj.id }}">
+        <a href="{{ obj_url }}">{{ obj }}</a>
+        <div class="actions">
+            <i class="glyphicon glyphicon-trash trash" title="{% trans "Delete item" %}"></i>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% if objects_page.paginator.num_pages > 1 %}
+<ul class="pagination">
+    <li class="disabled"><a href="#" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
+    {% for page in objects_page.paginator.page_range %}
+        <li class="page{% if page == objects_page.number %} active{% endif %}" data-val="{{ page }}">
+            <a href="#">
+                {{ page }} {% if page == objects_page.number %}<span class="sr-only">(current)</span>{% endif %}
+            </a>
+        </li>
+    {% endfor %}
+    <li><a href="#" aria-label="Next"><span aria-hidden="true">»</span></a></li>
+</ul>
+{% endif %}
+<div id="page-navigation" class="text-muted">
+    {% if objects_page.paginator.num_pages > 1 %}
+        <p>{% blocktrans with count=objects_page.paginator.count start=objects_page.start_index end=objects_page.end_index %}
+            {{ start }} – {{ end }} of {{ count }} results{% endblocktrans %}</p>
+    {% else %}
+        <p>{% blocktrans with count=objects_page.paginator.count %}{{ count }} results{% endblocktrans %}</p>
+    {% endif %}
+</div>

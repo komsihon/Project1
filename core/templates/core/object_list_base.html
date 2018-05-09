@@ -1,0 +1,63 @@
+{% extends "core/app_base_admin.html" %}
+{% load i18n humanize staticfiles admin_list %}
+
+{% block page_title %}
+<title> {{ verbose_name_plural|capfirst }} - {{ service.project_name }} </title>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>{{ verbose_name_plural|capfirst }}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content">
+        <div class="container-fluid stage">
+            <div id="admin-tools" class="ceil bottom-shade-xs">
+                <form id="admin-tools-form" onsubmit="return false">
+                    <div>
+                        <i class="glyphicon glyphicon-search"></i>
+                        <i class="glyphicon glyphicon-menu-left hide-search back"></i>
+                        <input type="text" id="context-search" class="tool search form-input input-sm" placeholder="{% blocktrans %}Search {{ verbose_name }}{% endblocktrans %}"/>
+                    </div>
+                    {% if filter and filter|length > 0 %}
+                        <div class="filter-trigger">
+                            <i class="glyphicon glyphicon-filter"></i>
+                            <i class="glyphicon glyphicon-menu-left hide-filter back"></i>
+                            {% for elt in filter %}
+                            <div class="tool filter">
+                                <label for="{{ elt.parameter_name }}" class="sr-only">{% trans elt.title %}</label>
+                                <select id="{{ elt.parameter_name }}" style="float: left; width: 120px" class="form-control input-sm {{ elt.parameter_name }} widget" name="{{ elt.parameter_name }}">
+                                    <option value="">{% trans "All" %}</option>
+                                    {% for choice in elt.choices %}
+                                        <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </form>
+                {% url change_object_url_name as change_object_url %}
+                <a href="{{ change_object_url }}" class="btn btn-sm btn-success cta pull-right action" style="border-color: #18bc9c"
+                        title="{% trans "Add new classroom" %}">
+                    <i class="glyphicon glyphicon-plus"></i>
+                    <span class="hidden-xs">{% trans "Add" %}</span>
+                </a>
+                <div class="clearfix"></div>
+            </div>
+            <div id="results">
+                {% include 'core/snippets/spinner.html' %}
+                {% include 'core/snippets/object_list_results.html' %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .{{ verbose_name_plural|slugify }}').addClass('active');
+        })()
+    </script>
+{% endblock %}

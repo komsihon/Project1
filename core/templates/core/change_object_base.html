@@ -1,0 +1,43 @@
+{% extends 'core/app_base_admin.html' %}
+{% load i18n humanize staticfiles auth_tokens %}
+
+{% block page_title %}
+<title> {% if obj %}{{ obj }}{% else %}{% trans "New" %}{% endif %} - {{ service.project_name }} </title>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>
+        <a href="{{ object_list_url }}">{{ verbose_name_plural|capfirst }}</a>
+    </li>
+    {% if obj %}
+        <li>{{ obj }}</li>
+    {% else %}
+        <li>{% trans 'New' %}</li>
+    {% endif %}
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="change-form">
+        <div class="container-fluid">
+            {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
+            <form class="admin-form" method="post">{% csrf_token %}
+                {% include 'core/snippets/model_admin_form.html' %}
+                <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
+                    <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .{{ verbose_name_plural|slugify }}').addClass('active');
+            $('.form-row').addClass('form-group');
+            $('.form-row input, .form-row select, .form-row textarea').addClass('form-control input-sm');
+            $('.form-row textarea').addClass('form-control input-sm');
+        })()
+    </script>
+{% endblock %}
