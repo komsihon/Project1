@@ -303,15 +303,13 @@ class DefaultUploadBackend(LocalUploadBackend):
                         seo_filename = seo_filename_no_extension + str(filename_suffix) + extension
 
                     destination = os.path.join(dir, seo_filename)
-                    if image_field:
-                        image_field.save(destination, content)
-                        if isinstance(image_field, MultiImageFieldFile):
-                            url = media_url + image_field.small_name
-                        else:
-                            url = media_url + image_field.name
+                    if not os.path.exists(dir):
+                        os.makedirs(dir)
+                    image_field.save(destination, content)
+                    if isinstance(image_field, MultiImageFieldFile):
+                        url = media_url + image_field.small_name
                     else:
-                        os.rename(media_root + path, destination)
-                        url = media_url + obj.UPLOAD_TO + "/" + seo_filename
+                        url = media_url + image_field.name
                 try:
                     if image_field and os.path.exists(media_root + path):
                         os.unlink(media_root + path)  # Remove file from upload tmp folder
