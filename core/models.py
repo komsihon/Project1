@@ -209,6 +209,7 @@ class Service(models.Model):
     updated_on = models.DateTimeField(default=timezone.now, auto_now_add=True)
     retailer = models.ForeignKey('self', blank=True, null=True, related_name='+')
 
+    community_history = ListField(editable=False)
     turnover_history = ListField(editable=False)
     earnings_history = ListField(editable=False)
     transaction_earnings_history = ListField(editable=False)
