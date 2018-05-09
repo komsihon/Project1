@@ -70,8 +70,9 @@ def request_payment(request, transaction):
         transaction.processor_tx_id = 'tx_1'
         transaction.task_id = 'task_1'
         transaction.message = 'Success'
-        transaction.is_running = True
+        transaction.is_running = False
         transaction.status = MoMoTransaction.SUCCESS
+        request.session['next_url'] = 'http://nextUrl'
     elif getattr(settings, 'DEBUG', False):
         mtn_momo = json.loads(PaymentMean.objects.get(slug=MTN_MOMO).credentials)
         data.update({'_email': mtn_momo['merchant_email']})
@@ -80,6 +81,7 @@ def request_payment(request, transaction):
         transaction.processor_tx_id = resp['TransactionID']
         transaction.task_id = resp['ProcessingNumber']
         transaction.message = resp['StatusDesc']
+        transaction.is_running = False
         if resp['StatusCode'] == '01':
             logger.debug("Successful MoMo payment of %dF from %s: %s" % (amount, username, transaction.phone))
             transaction.status = MoMoTransaction.SUCCESS
@@ -101,6 +103,24 @@ def request_payment(request, transaction):
             if resp['StatusCode'] == '01':
                 logger.debug("MTN MoMo: Successful payment of %dF from %s: %s" % (amount, username, transaction.phone))
                 transaction.status = MoMoTransaction.SUCCESS
+                payments_conf = getattr(settings, 'PAYMENTS', None)
+                if payments_conf:
+                    conf = request.session['payment_conf']
+                    path = payments_conf[conf]['after']
+                else:
+                    path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
+                momo_after_checkout = import_by_path(path)
+                if getattr(settings, 'DEBUG', False):
+                    resp_dict = momo_after_checkout(request, signature=request.session['signature'])
+                    request.session['next_url'] = resp_dict['next_url']
+                else:
+                    try:
+                        resp_dict = momo_after_checkout(request, signature=request.session['signature'])
+                        request.session['next_url'] = resp_dict['next_url']
+                    except:
+                        transaction.message = traceback.format_exc()
+                        transaction.save(using='wallets')
+                        logger.error("MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (request.user.username, int(request.session['amount'])), exc_info=True)
                 transaction.message = 'OK'
             else:
                 logger.error("MTN MoMo: Transaction of %dF from %s: %s failed with message %s" % (amount, username, transaction.phone, resp['StatusDesc']))
@@ -134,31 +154,11 @@ def check_momo_transaction_status(request, *args, **kwargs):
     tx = MoMoTransaction.objects.using('wallets').get(pk=tx_id)
 
     # When a MoMoTransaction is created, its status is None or empty string
-    # So perform a double check. First, make sure a status has been set
-    if tx.is_running and tx.status:
-        tx.is_running = False
-        tx.save(using='wallets')
+    # So perform a check first to make sure a status has been set
+    if tx.status:
         if tx.status == MoMoTransaction.SUCCESS:
-            request.session['tx_id'] = tx_id
-            payments_conf = getattr(settings, 'PAYMENTS', None)
-            if payments_conf:
-                conf = request.session['payment_conf']
-                path = payments_conf[conf]['after']
-            else:
-                path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
-            momo_after_checkout = import_by_path(path)
-            if getattr(settings, 'DEBUG', False):
-                resp_dict = momo_after_checkout(request, signature=request.session['signature'])
-                return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
-            else:
-                try:
-                    resp_dict = momo_after_checkout(request, signature=request.session['signature'])
-                    return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
-                except:
-                    tx.message = traceback.format_exc()
-                    tx.save(using='wallets')
-                    logger.error("MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (request.user.username, int(request.session['amount'])), exc_info=True)
-                    return HttpResponse(json.dumps({'error': 'Unknown server error in AFTER_CASH_OUT'}))
+            resp_dict = {'success': True, 'next_url': request.session['next_url']}
+            return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
         resp_dict = {'error': tx.status, 'message': ''}
         if getattr(settings, 'DEBUG', False):
             resp_dict['message'] = tx.message
