@@ -41,7 +41,8 @@ from ikwen.accesscontrol.models import Member, AccessRequest, ACCESS_REQUEST_EVE
     SUDO, ACCESS_GRANTED_EVENT, COMMUNITY, WELCOME_EVENT
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
-from ikwen.core.utils import get_service_instance, get_mail_content, add_database_to_settings, add_event
+from ikwen.core.utils import get_service_instance, get_mail_content, add_database_to_settings, add_event, set_counters, \
+    increment_history_field
 from ikwen.core.utils import send_sms
 from ikwen.core.views import HybridListView, IKWEN_BASE_URL
 
@@ -135,6 +136,8 @@ class Register(TemplateView):
                 if not getattr(settings, 'IS_IKWEN', False):
                     service = get_service_instance()
                     add_event(service, WELCOME_EVENT, member)
+                    set_counters(service)
+                    increment_history_field(service, 'community_history')
                 send_welcome_email(member)
                 next_url = request.REQUEST.get('next')
                 if next_url:
@@ -797,6 +800,8 @@ def grant_access(request, *args, **kwargs):
         pass
     add_event(rq_service, WELCOME_EVENT, member=rq_member, object_id=rq.id)
     add_event(rq_service, ACCESS_GRANTED_EVENT, member=rq_service.member, object_id=rq.id)
+    set_counters(rq_service)
+    increment_history_field(rq_service, 'community_history')
     subject = _("You were added to %s community" % rq_service.project_name)
     message = _("Hi %(member_name)s,<br><br>You were added to <b>%(project_name)s</b> community.<br><br>"
                 "Thanks for joining us." % {'member_name': rq_member.first_name,
