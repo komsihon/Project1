@@ -30,20 +30,18 @@
         .update-result {position: absolute; width: 500px}
         .update-result .message {margin: -15px auto 0; width: 360px}
         section form label {font-size: 14px; font-weight: normal; margin-right: 15px; text-align: right; width: 180px}
+        @media (max-width: 991px) {
+            #content {padding-top: 70px}
+            .content-title {margin-top: 0}
+        }
     </style>
-{% endblock %}
-
-{% block header %}
-    {{ block.super }}
-    <div class="container-fluid">
-        {% trans "Account Setup" %}
-    </div>
 {% endblock %}
 
 {% block content %}
     <div id="content" class="container">
-        <div class="row">
-            <div class="col-md-6">
+        <h4 class="content-title" style="padding: 0 15px">{% trans "Account Setup" %}</h4>
+        <div id="stage">
+            <div class="col-md-6 card-xs">
                 <section class="identity">
                     <div class="update-result">
                         <p class="message" style="display: none"></p>
@@ -136,10 +134,10 @@
     {#                    </div>#}
     {#                </div>#}
     {#                {% endif %}#}
-                    <div class="clear"></div>
+                    <div class="clearfix"></div>
                 </section>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 card-xs">
                 <section class="security">
                     <div class="update-result">
                         <p class="message" style="display: none"></p>
@@ -170,11 +168,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="clear"></div>
+                    <div class="clearfix"></div>
                 </section>
             </div>
         </div>
-        <div class="clear"></div>
+        <div class="clearfix"></div>
     </div>
 {% endblock %}
 {% block js %}

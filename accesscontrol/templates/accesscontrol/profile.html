@@ -49,9 +49,10 @@
 {% endblock %}
 
 {% block header_brand %}
-<strong class="navbar-header">
-    <a class="navbar-brand" href="{{ settings.IKWEN_BASE_URL }}">ikwen</a>
-</strong>
+    <a class="navbar-brand hidden-xs" href="{{ settings.IKWEN_BASE_URL }}">
+        <strong>ikwen</strong>
+    </a>
+    <strong class="navbar-brand visible-xs">ikwen</strong>
 {% endblock %}
 
 {% block content %}
