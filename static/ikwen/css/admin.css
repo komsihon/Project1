@@ -79,6 +79,10 @@ div#container.admin {padding-top: 92px;}
 .change-form label {font-weight: 400}
 .change-form label.required {font-weight: 700}
 
+#results {padding-top: 15px}
+.list-group-item {border-left: none; border-right: none; border-radius: 0}
+.list-group-item .actions {bottom: 12px; position: absolute; right: 20px}
+
 .checkbox-row input[type=checkbox] {float: left;width: 20px;}
 .checkbox-row label {margin: 10px 0 0 10px}
 .currency-list {border: 1px solid #ddd; background: #fff; border-radius: 3px; float: left;margin: 5px 0 15px; padding-top: 15px}
