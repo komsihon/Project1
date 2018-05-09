@@ -175,8 +175,8 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 #navbar-results .ik-li .about {height: 35px;margin-bottom: 0;overflow: hidden;}
 
 
-.nav-xs > li {float: left;}
-.nav-xs {padding: 0;margin: 0}
+#nav-xs > li {float: left;}
+#nav-xs {padding: 0;margin: 0}
 #site-menu {background: #2c3e50;padding: 0;}
 .glyphicon + .label {margin: -15px 0 0 12px;position: absolute;}
 
@@ -216,13 +216,13 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     .ik-li .actions .glyphicon:first-child, #selection-control .glyphicon:first-child {margin-left: 0}
     .ik-li:not(.selected):hover .actions {background: #fff;border-radius: 3px;box-shadow: -1px 1px 7px 3px rgba(0, 0, 0, .1);margin-top: 0;position: absolute;padding: 3px 3px 5px;}
     .input-sm {font-size: 15px}
-    .nav-xs.navbar-nav>li>a {padding: 16px 12px;float: left;}
-    .nav-xs.navbar-nav>li:first-child>a {padding-left: 0}
+    #nav-xs.navbar-nav>li>a {padding: 16px 12px;float: left;}
+    #nav-xs.navbar-nav>li:first-child>a {padding-left: 0}
     .navbar-default .navbar-brand {margin-left: 0; max-width: 115px;overflow: hidden;}
     .navbar-default .navbar-brand > * {float: left; width: 300%}
     .container-fluid > strong.navbar-header {float: left;margin-left: 0;}
     #navbar > .container-fluid {padding: 0}
-    .nav-xs.navbar-nav .open .dropdown-menu {
+    #nav-xs.navbar-nav .open .dropdown-menu {
         background-color: #fff;
         border: 1px solid #dedede;
         border-radius: 4px;
@@ -232,7 +232,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
         margin-top: -5px;
         position: absolute;
     }
-    .navbar-default .nav-xs.navbar-nav .open .dropdown-menu>li>a {color: #545454;line-height: 27px}
+    .navbar-default #nav-xs.navbar-nav .open .dropdown-menu>li>a {color: #545454;line-height: 27px}
     .navbar-right .dropdown-menu {left: auto;right: 3px;top: 10px;}
     #navbar-results {border-top: 1px solid #eee}
     .nav-tabs.swiper-wrapper {background: #f8f6f6; border-bottom: none}
