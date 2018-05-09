@@ -14,7 +14,7 @@ urlpatterns = patterns(
     url(r'^kakocase/', include('ikwen_kakocase.kakocase.urls', namespace='kakocase')),
     url(r'^shavida/', include('ikwen_shavida.shavida.urls', namespace='shavida')),
     url(r'^blog/', include('ikwen_webnode.blog.urls', namespace='blog')),
-    url(r'^marketing/', include('ikwen_webnode.web.urls', namespace='web')),
+    url(r'^web/', include('ikwen_webnode.web.urls', namespace='web')),
     url(r'^items/', include('ikwen_webnode.items.urls', namespace='items')),
 
     url(r'^billing/', include('ikwen.billing.urls', namespace='billing')),
