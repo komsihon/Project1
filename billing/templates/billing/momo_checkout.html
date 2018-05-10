@@ -75,7 +75,9 @@
                         {# Keep the transaction locally so that we can keep on cheking it even if page reloads #}
                         {# This is particularly useful for smartphones. They tend to reload pages when we reopen #}
                         {# the browser. #}
-                        localStorage.setItem('txId', txId);
+                        var expires = (new Date()).getTime() + 300000;
+                        expires = new Date(expires);
+                        ikwen.CookieUtil.set('txId', txId, expires);
                         setTimeout(startTransactionStatusChecker, 5000)
                     }
                 })
@@ -87,7 +89,7 @@
                         data: {tx_id: txId},
                         error: function() {
                             $('#checkout .spinner').hide();
-                            localStorage.removeItem('txId');
+                            ikwen.CookieUtil.unset('txId');
                             clearInterval(checkerId);
                             $('#transaction-result').removeClass('text-info').addClass('text-danger')
                                     .text("{% trans "Unknow server error" %}");
@@ -96,7 +98,7 @@
                         success: function(data) {
                             if (data.running) return;
                             $('#checkout .spinner').hide();
-                            localStorage.removeItem('txId');
+                            ikwen.CookieUtil.unset('txId');
                             clearInterval(checkerId);
                             if (data.error) {
                                 var notice = data.error;
@@ -121,8 +123,8 @@
             This block ensures that we will resume the checking of the transaction
             started before we left the browser.
             {% endcomment %}
-            if (localStorage.getItem('txId')) {
-                txId = localStorage.getItem('txId');
+            if (ikwen.CookieUtil.get('txId')) {
+                txId = ikwen.CookieUtil.get('txId');
                 startTransactionStatusChecker();
                 $('#do-pay').removeClass('btn-primary').addClass('btn-default');
                 $('#checkout .spinner').show();
@@ -130,7 +132,7 @@
                         .text("{% trans "Good! Please confirm transaction on your phone." %}");
             }
             window.addEventListener("beforeunload", function (e) {
-                if (!localStorage.get('txId')) return undefined;
+                if (!ikwen.CookieUtil.get('txId')) return undefined;
                 var confirmation = "{% trans "You have a running transaction. Leaving now may cause it to fail." %}";
                 (e || window.event).returnValue = confirmation; //Gecko + IE
                 return confirmation; //Gecko + Webkit, Safari, Chrome etc.
