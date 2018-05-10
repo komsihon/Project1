@@ -110,7 +110,7 @@
                             if (data.success) {
                                 $('#transaction-result').removeClass('text-info text-danger').addClass('alert alert-success')
                                         .text("{% trans "Transaction successful, you will be redirected." %}");
-                                window.location = data.next_url
+                                window.location = data.return_url
                             }
                         }
                     });

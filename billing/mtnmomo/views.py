@@ -112,12 +112,10 @@ def request_payment(request, transaction):
                     path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
                 momo_after_checkout = import_by_path(path)
                 if getattr(settings, 'DEBUG', False):
-                    resp_dict = momo_after_checkout(request, signature=request.session['signature'])
-                    request.session['next_url'] = resp_dict['next_url']
+                    momo_after_checkout(request, signature=request.session['signature'])
                 else:
                     try:
-                        resp_dict = momo_after_checkout(request, signature=request.session['signature'])
-                        request.session['next_url'] = resp_dict['next_url']
+                        momo_after_checkout(request, signature=request.session['signature'])
                     except:
                         transaction.message = traceback.format_exc()
                         transaction.save(using='wallets')
@@ -158,7 +156,7 @@ def check_momo_transaction_status(request, *args, **kwargs):
     # So perform a check first to make sure a status has been set
     if tx.status:
         if tx.status == MoMoTransaction.SUCCESS:
-            resp_dict = {'success': True, 'next_url': request.session['next_url']}
+            resp_dict = {'success': True, 'return_url': request.session['return_url']}
             return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
         resp_dict = {'error': tx.status, 'message': ''}
         if getattr(settings, 'DEBUG', False):

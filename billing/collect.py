@@ -63,13 +63,9 @@ def set_invoice_checkout(request, *args, **kwargs):
 
     mean = request.GET.get('mean', MTN_MOMO)
     request.session['mean'] = mean
-    if mean == MTN_MOMO:
-        request.session['is_momo_payment'] = True
-    elif mean == ORANGE_MONEY:
-        request.session['notif_url'] = service.url
-        request.session['return_url'] = service.url + reverse('billing:invoice_detail', args=(invoice_id, ))
-        request.session['cancel_url'] = service.url + reverse('billing:invoice_detail', args=(invoice_id, ))
-        request.session['is_momo_payment'] = False
+    request.session['notif_url'] = service.url  # Orange Money only
+    request.session['cancel_url'] = service.url + reverse('billing:invoice_detail', args=(invoice_id, )) # Orange Money only
+    request.session['return_url'] = service.url + reverse('billing:invoice_detail', args=(invoice_id, ))
 
 
 def confirm_invoice_payment(request, *args, **kwargs):
@@ -128,8 +124,7 @@ def confirm_invoice_payment(request, *args, **kwargs):
         msg = EmailMessage(subject, html_content, sender, [member.email])
         msg.content_subtype = "html"
         Thread(target=lambda m: m.send(), args=(msg,)).start()
-    next_url = service.url + reverse('billing:invoice_detail', args=(invoice.id, ))
-    return {'success': True, 'next_url': next_url}
+    return HttpResponseRedirect(request.session['return_url'])
 
 
 def product_set_checkout(request, *args, **kwargs):
@@ -153,13 +148,9 @@ def product_set_checkout(request, *args, **kwargs):
 
     mean = request.GET.get('mean', MTN_MOMO)
     request.session['mean'] = mean
-    if mean == MTN_MOMO:
-        request.session['is_momo_payment'] = True
-    elif mean == ORANGE_MONEY:
-        request.session['notif_url'] = service.url
-        request.session['return_url'] = service.url + reverse('billing:pricing')
-        request.session['cancel_url'] = service.url + reverse('billing:pricing')
-        request.session['is_momo_payment'] = False
+    request.session['notif_url'] = service.url # Orange Money only
+    request.session['cancel_url'] = service.url + reverse('billing:pricing') # Orange Money only
+    request.session['return_url'] = reverse('billing:invoice_detail', args=(invoice.id, ))
 
 
 def product_do_checkout(request, *args, **kwargs):
@@ -184,8 +175,7 @@ def product_do_checkout(request, *args, **kwargs):
         msg.content_subtype = "html"
         Thread(target=lambda m: m.send(), args=(msg,)).start()
     messages.success(request, _("Successful payment. Your subscription is now active."))
-    next_url = service.url + reverse('billing:invoice_detail', args=(invoice.id, ))
-    return {'success': True, 'next_url': next_url}
+    return HttpResponseRedirect(request.session['return_url'])
 
 
 def donation_set_checkout(request, *args, **kwargs):
@@ -203,13 +193,9 @@ def donation_set_checkout(request, *args, **kwargs):
 
     mean = request.GET.get('mean', MTN_MOMO)
     request.session['mean'] = mean
-    if mean == MTN_MOMO:
-        request.session['is_momo_payment'] = True
-    elif mean == ORANGE_MONEY:
-        request.session['notif_url'] = service.url
-        request.session['return_url'] = service.url + reverse('billing:donate')
-        request.session['cancel_url'] = service.url + reverse('billing:donate')
-        request.session['is_momo_payment'] = False
+    request.session['notif_url'] = service.url # Orange Money only
+    request.session['cancel_url'] = service.url + reverse('billing:donate') # Orange Money only
+    request.session['return_url'] = service.url + reverse('billing:donate')
 
 
 def donation_do_checkout(request, *args, **kwargs):
@@ -230,5 +216,4 @@ def donation_do_checkout(request, *args, **kwargs):
     #     msg.content_subtype = "html"
     #     Thread(target=lambda m: m.send(), args=(msg,)).start()
     messages.success(request, _("Successful payment. Thank you soooo much for your donation."))
-    next_url = service.url + reverse('billing:donate')
-    return {'success': True, 'next_url': next_url}
+    return HttpResponseRedirect(request.session['return_url'])
