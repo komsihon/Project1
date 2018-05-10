@@ -138,7 +138,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 .inner-shade {box-shadow: inset 0 1px 3px rgba(0, 0, 0, .15);}
 .subtle-shade {box-shadow: 0 1px 4px 0 rgba(0, 0, 0, .15);}
 #navbar {height: 55px;min-height: 50px;position: fixed;width: 100%;}
-.menu-button {float: left;padding: 20px 10px 0 10px;}
+.menu-button {float: left;padding: 20px 10px 0 20px;}
 .icon-bar {
     background: #fff;
     display: block;
@@ -218,7 +218,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     .input-sm {font-size: 15px}
     #nav-xs.navbar-nav>li>a {padding: 16px 12px;float: left;}
     #nav-xs.navbar-nav>li:first-child>a {padding-left: 0}
-    .navbar-default .navbar-brand {margin-left: 0; max-width: 115px;overflow: hidden;}
+    .navbar-default .navbar-brand {margin-left: 5px;max-width: 100px;overflow: hidden;}
     .navbar-default .navbar-brand > * {float: left; width: 300%}
     .container-fluid > strong.navbar-header {float: left;margin-left: 0;}
     #navbar > .container-fluid {padding: 0}
