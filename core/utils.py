@@ -438,6 +438,42 @@ def get_value_list(csv_or_sequence):
     return [float(val.strip()) for val in csv_or_sequence.split(',')]
 
 
+def slice_watch_objects(klass, duration=0, time_field='last_payment_on'):
+    """
+    Gets a slice of watch objects which time_field match the duration
+    Eg:
+        # `slice_watch_object(Customer)` returns a list of Customer which
+        last_payment_on ranges between today 00:00 and now()
+
+        # `slice_watch_object(Customer, 1)` returns a list of Customer which
+        last_payment_on ranges between yesterday 00:00 and yesterday 23:59
+
+        # `slice_watch_object(Customer, 7)` returns a list of Customer which
+        last_payment_on ranges between last_week 00:00 and yesterday 23:59
+    """
+    now = datetime.now()
+    midnight = datetime(now.year, now.month, now.day, 0, 0)
+    yesterday = now - timedelta(days=1)
+    yesterday_end = datetime(yesterday.year, yesterday.month, yesterday.day, 23, 59, 59)
+    if duration == 0:
+        kwargs = {time_field + '__gte': midnight}
+        queryset = klass._default_manager.filter(**kwargs)
+    elif duration == 1:
+        range_start = datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0)
+        kwargs = {time_field + '__range': (range_start, yesterday_end)}
+        queryset = klass._default_manager.filter(**kwargs)
+    else:
+        days_back = duration + 1
+        period_start = now - timedelta(days=days_back)
+        range_start = datetime(period_start.year, period_start.month, period_start.day, 0, 0)
+        kwargs = {time_field + '__range': (range_start, yesterday_end)}
+        queryset = klass._default_manager.filter(**kwargs)
+    object_list = list(queryset)
+    for obj in object_list:
+        set_counters(obj)
+    return object_list
+
+
 def rank_watch_objects(watch_object_list, history_field, duration=0):
     def _cmp(x, y):
         if x.total > y.total:
