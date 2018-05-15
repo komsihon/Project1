@@ -25,7 +25,7 @@
 #cards {clear: both}
 #stage .card {background: #fff;float: left;margin-top: 25px;overflow: hidden;padding: 15px;width: 100%;}
 #stage .card h3 {font-size: 16px;font-weight: 700;margin-top: 0;}
-#stage .card h3 a {color: #555;}
+#stage .card h3 a {color: #323d65;}
 #stage .card h3 img {margin-right: 6px}
 #stage .card > div:first-of-type h4 {margin: 0 0 .5em;}
 
@@ -79,7 +79,8 @@
     #stage {width: 820px}
 }
 
-#stage .card h4 { /*color: #666;*/
+#stage .card h4 {
+    color: #4b5573;
     font-size: 17px;
     margin-top: 30px;
 }

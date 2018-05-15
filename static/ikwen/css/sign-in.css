@@ -8,7 +8,7 @@
 
 #navbar {display: none}
 html, body {height: 100%}
-body {background: #f8f6f6 url(../../ikwen/img/signin-bg.jpg) no-repeat center fixed; background-size: cover}
+body {background: #f8f6f6 url(../../ikwen/img/signin-bg.jpg) no-repeat center fixed;background: #eaeaea;background-size: cover;}
 #content.form.register {padding-top: 3%}
 #stage {background: #fff; border-radius: 4px; float: none; padding: 0}
 .login-title, .register-title {border-bottom: 1px solid #eee; margin-top: 0; padding: 1.3em 0 1em; text-align: center}
@@ -27,9 +27,9 @@ label span {font-weight: normal}
 #username, #email {text-transform: lowercase}
 #cancel.btn {float: left; width: 180px}
 #content.register #continue.btn, #content.register #submit.btn {float: right; width: 180px}
-.login-with-ikwen {font-size: 1em; height: 40px; letter-spacing: .5px; padding: 6px 9px 8px}
+.login-with-ikwen {font-size: 1em;height: 40px;letter-spacing: .5px;padding: 6px 9px 8px;}
 .login-with-ikwen img {content: url(../../ikwen/img/logo_ikwen_symbol_30x30.png); margin: -4px 5px 0 0}
-.login-with-ikwen strong {color: #7ea6ca}
+.login-with-ikwen strong {/* color: #54c5ff; */font-weight: 700;}
 .forgotten-pwd {float: left; margin-top: 7px}
 .init .col-sm-5, .init .col-md-4, .init .col-sm-7, .init .col-md-8 {padding: 0; width: auto}
 #auth > .form-group.password > * {float: none; width: auto}
@@ -57,7 +57,6 @@ label span {font-weight: normal}
 .register .form-group.username {height: auto; margin-bottom: 15px}
 select#month {text-transform: capitalize}
 #terms-warning {font-size: 11px}
-footer, footer .company-name {color: #fff}
 
 @media (min-width: 480px) {
     #content.form.register #submit {float: right; width: 180px}
