@@ -221,7 +221,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     #nav-xs.navbar-nav>li:first-child>a {padding-left: 0}
     .navbar-default .navbar-brand {margin-left: 0;max-width: 100px;overflow: hidden;}
     .navbar-default .navbar-brand > * {float: left; width: 300%}
-    .letter-i {float: none}
+    .navbar-default .navbar-brand .letter-i {float: none}
     .container-fluid > strong.navbar-header {float: left;margin-left: 0;}
     #navbar > .container-fluid {padding: 0}
     #nav-xs.navbar-nav .open .dropdown-menu {
