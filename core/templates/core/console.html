@@ -186,8 +186,9 @@
                 loadingCards = false;
             $(window).scroll(function() {
                 if (dataSourceEmpty || loadingCards) return;
-                var scrollTop = $(this).scrollTop();
-                if ($(document).height() - $(this).height() - scrollTop <= $('footer').height()) {
+                var scrollTop = $(this).scrollTop(),
+                    threshold = Math.max($('footer').height(), 60);
+                if ($(document).height() - $(this).height() - scrollTop <= threshold) {
                     loadingCards = true;
                     var start = $('div#cards .card').length,
                         $col1 = $('.events-col1'),
