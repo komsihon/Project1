@@ -381,34 +381,23 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
                 if img_upload_context == Configuration.UPLOAD_CONTEXT:
                     service_id = request.GET['service_id']
                     service = Service.objects.get(pk=service_id)
-                    # service = get_service_instance()
                     config = service.config
                     if usage == 'profile':
                         current_image_path = config.logo.path if config.logo.name else None
-                        destination = media_root + AbstractConfig.LOGO_UPLOAD_TO + "/" + filename
+                        destination = ikwen_settings.MEDIA_ROOT + AbstractConfig.LOGO_UPLOAD_TO + "/" + filename
                         config.logo.save(destination, content)
                         url = ikwen_settings.MEDIA_URL + config.logo.name
                         src = config.logo.path
                         generate_favicons(src)
                     else:
                         current_image_path = config.cover_image.path if config.cover_image.name else None
-                        destination = media_root + AbstractConfig.COVER_UPLOAD_TO + "/" + filename
+                        destination = ikwen_settings.MEDIA_ROOT + AbstractConfig.COVER_UPLOAD_TO + "/" + filename
                         config.cover_image.save(destination, content)
                         url = ikwen_settings.MEDIA_URL + config.cover_image.name
-                        src = config.cover_image.path
                     cache.delete(service.id + ':config:')
                     cache.delete(service.id + ':config:default')
                     cache.delete(service.id + ':config:' + UMBRELLA)
                     config.save(using=UMBRELLA)
-                    dst = src.replace(media_root, ikwen_settings.MEDIA_ROOT)
-                    dst_folder = '/'.join(dst.split('/')[:-1])
-                    if not os.path.exists(dst_folder):
-                        os.makedirs(dst_folder)
-                    try:
-                        os.rename(src, dst)
-                    except Exception as e:
-                        if getattr(settings, 'DEBUG', False):
-                            raise e
                 else:
                     member_id = request.GET['member_id']
                     member = Member.objects.get(pk=member_id)
