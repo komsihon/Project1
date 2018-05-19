@@ -13,6 +13,7 @@ from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
+from django.utils.log import AdminEmailHandler
 from django.utils.translation import gettext as _
 from ikwen.accesscontrol.models import SUDO
 
@@ -30,11 +31,15 @@ from ikwen.billing.utils import get_invoice_generated_message, get_invoice_remin
 import logging.handlers
 logger = logging.getLogger('crons.error')
 logger.setLevel(logging.DEBUG)
-logger_handler = logging.handlers.RotatingFileHandler('billing_crons.log', 'w', 1000000, 4)
-logger_handler.setLevel(logging.INFO)
+file_handler = logging.handlers.RotatingFileHandler('billing_crons.log', 'w', 1000000, 4)
+file_handler.setLevel(logging.INFO)
 f = logging.Formatter('%(levelname)-10s %(asctime)-27s %(message)s')
-logger_handler.setFormatter(f)
-logger.addHandler(logger_handler)
+file_handler.setFormatter(f)
+email_handler = AdminEmailHandler()
+email_handler.setLevel(logging.ERROR)
+email_handler.setFormatter(f)
+logger.addHandler(file_handler)
+logger.addHandler(email_handler)
 
 Subscription = get_subscription_model()
 
