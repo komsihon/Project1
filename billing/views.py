@@ -390,13 +390,16 @@ def set_credentials(request, *args, **kwargs):
     credentials = request.GET['credentials']
     payment_mean = PaymentMean.objects.get(pk=mean_id)
     try:
-        json.loads(credentials.strip())
+        credentials = json.loads(credentials.strip())
+        cleaned = {}
+        for key, val in credentials.items():
+            cleaned[key] = val.strip()
     except:
         return HttpResponse(
             json.dumps({'error': "Invalid credentials. Could not be parsed successfully"}),
             'content-type: text/json'
         )
-    payment_mean.credentials = credentials
+    payment_mean.credentials = json.dumps(cleaned)
     payment_mean.save()
     return HttpResponse(json.dumps({'success': True}), 'content-type: text/json')
 
