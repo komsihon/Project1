@@ -344,6 +344,7 @@ class AbstractPayment(Model):
         (BANK_CARD, _("Bank card")),
         (BANK_TRANSFER, _("Bank transfer")),
         (MONEY_TRANSFER, _("Money transfer")),
+        (WALLET_DEBIT, _("Wallet debit")),
     )
     method = models.CharField(max_length=60, choices=METHODS_CHOICES)
     amount = models.PositiveIntegerField()
