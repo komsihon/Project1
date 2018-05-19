@@ -275,22 +275,23 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
             )
             use_distinct = False
         except ValueError:
-            members = list(Member.objects.filter(full_name__icontains=search_term.lower()))
-            # Subscriptions should have been fetched this way:
-            #
-            # subscriptions = list(Subscription.objects.filter(member__in=members))
-            #
-            # but it causes an error when Subscription is an ikwen.core.models.Service
-            #
-            # AttributeError: 'RelatedObject' object has no attribute 'get_internal_type'
-            #
-            # TODO: Search and fix the issue above
-            subscriptions = []
-            for member in members:
-                subscriptions.extend(list(Subscription.objects.filter(member=member)))
-            queryset = self.get_queryset(request).filter(
-                Q(subscription__in=subscriptions) | Q(number__icontains=search_term.lower())
-            )
+            if search_term:
+                members = list(Member.objects.filter(full_name__icontains=search_term.lower()))
+                # Subscriptions should have been fetched this way:
+                #
+                # subscriptions = list(Subscription.objects.filter(member__in=members))
+                #
+                # but it causes an error when Subscription is an ikwen.core.models.Service
+                #
+                # AttributeError: 'RelatedObject' object has no attribute 'get_internal_type'
+                #
+                # TODO: Search and fix the issue above
+                subscriptions = []
+                for member in members:
+                    subscriptions.extend(list(Subscription.objects.filter(member=member)))
+                queryset = self.get_queryset(request).filter(
+                    Q(subscription__in=subscriptions) | Q(number__icontains=search_term.lower())
+                )
             use_distinct = False
         return queryset, use_distinct
 
