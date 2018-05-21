@@ -55,6 +55,11 @@
     String.prototype.isValidEmail = function() {
         return /^[a-zA-Z0-9_]+(\.*\-*[a-zA-Z0-9_]+)*\@[a-zA-Z0-9_]+(\-*[a-zA-Z0-9_])*(\.[a-zA-Z0-9_]+)*\.[a-zA-Z]{2,4}$/.test(this)
     };
+    if(typeof(String.prototype.trim) === "undefined") {
+        String.prototype.trim = function() {
+            return String(this).replace(/^\s+|\s+$/g, '');
+        };
+    }
     c.getRandomInt = function(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
     };
