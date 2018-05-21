@@ -3,6 +3,7 @@ from datetime import datetime
 from django.conf import settings
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.utils import translation
+from django.utils.formats import get_format
 
 from ikwen.core.models import Module, Service
 
@@ -50,6 +51,8 @@ def project_settings(request):
     service = Service.objects.get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
     config = service.config
 
+    lang = translation.get_language()
+    use_l10n = getattr(settings, 'USE_L10N', False)
     return {
         'settings': {
             'DEBUG': getattr(settings, 'DEBUG', False),
@@ -63,11 +66,13 @@ def project_settings(request):
             'AGREEMENT_URL': agreement_url,
             'LEGAL_MENTIONS_URL': legal_mentions_url,
             'PROJECT_URL': getattr(settings, 'PROJECT_URL', ''),
-            'MEMBER_AVATAR': getattr(settings, 'MEMBER_AVATAR', 'ikwen/img/login-avatar.jpg')
+            'MEMBER_AVATAR': getattr(settings, 'MEMBER_AVATAR', 'ikwen/img/login-avatar.jpg'),
+            'DECIMAL_SEPARATOR': get_format('DECIMAL_SEPARATOR', lang, use_l10n=use_l10n),
+            'THOUSAND_SEPARATOR': get_format('THOUSAND_SEPARATOR', lang, use_l10n=use_l10n)
         },
         'service': service,
         'config': config,
-        'lang': translation.get_language()[:2],
+        'lang': lang[:2],
         'year': datetime.now().year,
         'currency_code': config.currency_code,
         'currency_symbol': config.currency_symbol,
