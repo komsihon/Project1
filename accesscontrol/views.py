@@ -893,12 +893,15 @@ def move_member_to_group(request, *args, **kwargs):
     Member.objects.filter(pk=member_id).update(collaborates_on_fk_list=collaborates_on_fk_list)
     Member.objects.using(UMBRELLA).filter(pk=member_id).update(collaborates_on_fk_list=collaborates_on_fk_list)
 
-    for grp in Group.objects.exclude(name__in=[COMMUNITY, SUDO]):
+    group_fk_list = list(set(member_umbrella.group_fk_list))
+    for grp in Group.objects.exclude(name=COMMUNITY):
         try:
-            member_umbrella.group_fk_list.remove(grp.id)
+            group_fk_list.remove(grp.id)
         except ValueError:
             pass
-    member_umbrella.group_fk_list.append(group.id)
+    group_fk_list.append(group.id)
+    group_fk_list.sort()
+    member_umbrella.group_fk_list = group_fk_list
     member_umbrella.save(using=UMBRELLA)
     return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
