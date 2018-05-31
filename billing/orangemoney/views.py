@@ -41,6 +41,8 @@ def init_web_payment(request, *args, **kwargs):
         if not getattr(settings, 'OM_FEES_ON_MERCHANT', False):
             factor = 1 + getattr(settings, 'OM_FEES', 3.5) / 100
             amount = int(math.ceil(amount * factor))
+            if amount % 50 != 0:
+                amount = (amount / 50 + 1) * 50
     model_name = request.session['model_name']
     object_id = request.session['object_id']
     username = request.user.username if request.user.is_authenticated() else None
@@ -138,6 +140,8 @@ def check_transaction_status(request):
     if not getattr(settings, 'OM_FEES_ON_MERCHANT', False):
         factor = 1 + getattr(settings, 'OM_FEES', 3.5) / 100
         amount = int(math.ceil(amount * factor))
+        if amount % 50 != 0:
+            amount = (amount / 50 + 1) * 50
     object_id = request.session['object_id']
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     data = {'order_id': object_id,
