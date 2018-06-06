@@ -85,9 +85,12 @@ class ServiceAdmin(admin.ModelAdmin):
             is_pro_version = True if request.POST.get('is_pro_version') else False
             deploy(obj.app, member, project_name, monthly_cost, billing_cycle, domain, is_pro_version)
         else:
-            before = Service.objects.get(pk=obj.id)
+            try:
+                before = Service.objects.get(pk=obj.id)
+            except Service.DoesNotExist:
+                before = None
             super(ServiceAdmin, self).save_model(request, obj, form, change)
-            if before.domain != obj.domain:
+            if before and before.domain != obj.domain:
                 service = get_service_instance()
                 new_domain = obj.domain
                 obj.domain = before.domain
