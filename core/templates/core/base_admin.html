@@ -157,9 +157,10 @@
                     $('div#selection-control .select-count .value').text(count);
                 }
                 else $('#selection-control').removeClass('visible');
-            }).on('click', '.ik-li .trash', function() {
-                var selection = $(this).parents('.ik-li').data('id');
-                deleteSelection(selection);
+            }).on('click', '.list-group-item .trash, .ik-li .trash', function() {
+                var selection = $(this).parents('.ik-li').data('id'),
+                    modelName = $(this).parents('.ik-li').data('model-name');
+                deleteSelection(selection, modelName);
             }).on('click', '.pagination .page', function() {
                 var query = window.location.search,
                     page = $(this).data('val');
@@ -197,10 +198,12 @@
                 var selection = $('#selection-control').data('selection');
                 deleteSelection(selection);
             });
-            function deleteSelection(selection) {
+            function deleteSelection(selection, modelName) {
                 if (!confirm("{% trans "Confirm deletion ?" %}")) return;
                 $('body, div#selection-control .trash').css('cursor', 'wait');
-                $.getJSON(ikwen.deleteEndpoint, {action: 'delete', selection: selection}, function(data) {
+                var params = {action: 'delete', selection: selection};
+                if (modelName) params.model_name = modelName;
+                $.getJSON(ikwen.deleteEndpoint, params, function(data) {
                     $('body, div#selection-control .trash').css('cursor', '');
                     var list = selection.split(',');
                     if (data.deleted) for (var i=0; i<data.deleted.length; i++) $('#' + data.deleted[i]).remove();
