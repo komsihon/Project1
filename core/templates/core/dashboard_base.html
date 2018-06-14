@@ -93,31 +93,82 @@
                 </div>
             </div>
             {% if perms.accesscontrol.sudo and not config.is_pro_version or settings.DEBUG %}
-                <h5 class="section-title">
-                    <span>{% trans "Payments" %} <span class="text-muted">({{ CRNCY.code }})</span></span>
-                </h5>
-                <div class="row payments">
-                    <div class="col-xs-6 col-sm-4">
-                        <h6 class="text-muted">{% trans "Balance" %}</h6>
-                        <em class="balance">{{ balance|floatformat:CRNCY.precision|intcomma }}</em>
-                        <div>
-                            <a href="{% url 'cashout:home' %}">{% trans "Payment details" %}</a>
+                <div class="payments">
+                    <h5 class="section-title">
+                        <span>{% trans "Payments" %} <span class="text-muted">({{ CRNCY.code }})</span></span>
+                    </h5>
+                    <div class="row">
+                        <div class="col-xs-6 col-sm-4">
+                            <h6 class="text-muted">{% trans "Balance" %}</h6>
+                            <em class="balance">{{ balance|floatformat:CRNCY.precision|intcomma }}</em>
+                            <div>
+                                <a href="{% url 'cashout:home' %}">{% trans "Payment details" %}</a>
+                            </div>
                         </div>
+                        {% if last_cash_out %}
+                            <div class="col-xs-6 col-sm-3">
+                                <h6 class="text-muted">{% trans "Last payment" %}</h6>
+                                <em class="last-payment">{{ last_cash_out.amount|floatformat:CRNCY.precision|intcomma }}</em>
+                                <time style="float: left; font-size: 12px; margin-top: -4px">{{ last_cash_out.created_on|date }}</time>
+                                <span style="float: left; font-size: 12px; margin-top: -5px">
+                                    <span class="hidden-xs" style="float: left; margin: 0 6px">-</span>
+                                    <a href="{% url 'cashout:home' %}" style="float: left; width: auto">{% trans "View payments" %}</a>
+                                </span>
+                            </div>
+                        {% endif %}
                     </div>
-                    {% if last_cash_out %}
-                        <div class="col-xs-6 col-sm-3">
-                            <h6 class="text-muted">{% trans "Last payment" %}</h6>
-                            <em class="last-payment">{{ last_cash_out.amount|floatformat:CRNCY.precision|intcomma }}</em>
-                            <time style="float: left; font-size: 12px; margin-top: -4px">{{ last_cash_out.created_on|date }}</time>
-                            <span style="float: left; font-size: 12px; margin-top: -5px">
-                                <span class="hidden-xs" style="float: left; margin: 0 6px">-</span>
-                                <a href="{% url 'cashout:home' %}" style="float: left; width: auto">{% trans "View payments" %}</a>
-                            </span>
-                        </div>
-                    {% endif %}
                 </div>
             {% endif %}
-            {% block performances %}{% endblock %}
+            {% block performances %}
+            <div class="section-title performances">
+                <div>
+                    <span style="float: left">{% trans "Performances" %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-</span>
+                    <div class="dropdown" style="cursor: pointer; float: left; margin-left: 15px">
+                        <span class="dropdown-toggle" id="period" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <span class="target">{% trans "Today" %}</span>
+                            <span class="caret"></span>
+                        </span>
+                        <ul id="performances-period" class="dropdown-menu" aria-labelledby="period">
+                            <li data-target="today" style="display: none"><a>{% trans "Today" %}</a></li>
+                            <li data-target="yesterday"><a>{% trans "Yesterday" %}</a></li>
+                            <li data-target="last_week"><a>{% trans "Last week" %}</a></li>
+                            <li data-target="last_28_days"><a>{% trans "Last 28 days" %}</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            <div class="row performances" style="clear: both">
+                <div class="col-sm-6">
+                    <div>
+                        <header>
+                            <h5>{{ transactions_count_title|safe }}</h5>
+                            <div class="clear"></div>
+                        </header>
+                        <div>
+                            <em class="report today">{{ transactions_report.today.count|intcomma }}</em>
+                            <em class="report yesterday tpl">{{ transactions_report.yesterday.count|intcomma }}</em>
+                            <em class="report last_week tpl">{{ transactions_report.last_week.count|intcomma }}</em>
+                            <em class="report last_28_days tpl">{{ transactions_report.last_28_days.count|intcomma }}</em>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div>
+                        <header>
+                            <h5>{{ transactions_avg_revenue_title|safe }}</h5>
+                            <div class="clear"></div>
+                        </header>
+                        <div>
+                            <em class="report today">{{ CRNCY.symbol }} {{ transactions_report.today.aepo|floatformat:CRNCY.precision|intcomma }}</em>
+                            <em class="report yesterday tpl">{{ CRNCY.symbol }} {{ transactions_report.yesterday.aepo|floatformat:CRNCY.precision|intcomma }}</em>
+                            <em class="report last_week tpl">{{ CRNCY.symbol }} {{ transactions_report.last_week.aepo|floatformat:CRNCY.precision|intcomma }}</em>
+                            <em class="report last_28_days tpl">{{ CRNCY.symbol }} {{ transactions_report.last_28_days.aepo|floatformat:CRNCY.precision|intcomma }}</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endblock %}
         </div>
     </div>
 {% endblock %}
