@@ -38,8 +38,8 @@
                     {% endif %}
                 </form>
                 {% url change_object_url_name as change_object_url %}
-                <a href="{{ change_object_url }}" class="btn btn-sm btn-success cta pull-right action" style="border-color: #18bc9c"
-                        title="{% trans "Add new classroom" %}">
+                <a href="{{ change_object_url }}" class="btn btn-sm btn-success cta add pull-right action" style="border-color: #18bc9c"
+                        title="{% trans "Add new " %} {{ verbose_name }}">
                     <i class="glyphicon glyphicon-plus"></i>
                     <span class="hidden-xs">{% trans "Add" %}</span>
                 </a>
@@ -55,6 +55,7 @@
 
 {% block js %}
     {{ block.super }}
+    {% include 'core/snippets/sort_and_actions.html' %}
     <script type="text/javascript">
         (function() {
             $('div#admin-nav .{{ verbose_name_plural|slugify }}').addClass('active');
