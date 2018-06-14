@@ -231,10 +231,10 @@
                             $('.edge-panel-right').addClass('has-shade').appendTo('.edge-swipe-overlay');
                         } else if (winWidth >= 768) {
                             $('#navbar-search').insertBefore('#site-menu');
-                            $('.edge-panel-right').removeClass('has-shade').appendTo('.edge-panel-right-container').show();
+                            $('.edge-panel-right').css('margin-right', 0).removeClass('has-shade').appendTo('.edge-panel-right-container').show();
                         }
                         if (winWidth >= 992) {
-                            $('.edge-panel-left').removeClass('has-shade').appendTo('.edge-panel-left-container').show();
+                            $('.edge-panel-left').css('margin-left', 0).removeClass('has-shade').appendTo('.edge-panel-left-container').show();
                         } else {
                             $('.edge-panel-left').addClass('has-shade').appendTo('.edge-swipe-overlay');
                         }
