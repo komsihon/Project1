@@ -4,7 +4,19 @@
     {% url change_object_url_name obj.id as obj_url %}
     <li class="ik-li list-group-item {{ obj.status }}" id="{{ obj.id }}" data-id="{{ obj.id }}">
         <a href="{{ obj_url }}">{{ obj }}</a>
+        {% with obj_details=obj.get_obj_details %}
+            {% if obj_details %}
+                <div class="text-muted">{{ obj_details }}</div>
+            {% endif %}
+        {% endwith %}
         <div class="actions">
+            {% if has_is_active_field %}
+                {% if obj.is_active %}
+                    <i class="action glyphicon glyphicon-ok toggle active off" title="{% trans "Deactivate" %}"></i>
+                {% else %}
+                    <i class="action glyphicon glyphicon-ok toggle active on" title="{% trans "Activate" %}"></i>
+                {% endif %}
+            {% endif %}
             <i class="glyphicon glyphicon-trash trash" title="{% trans "Delete item" %}"></i>
         </div>
     </li>
