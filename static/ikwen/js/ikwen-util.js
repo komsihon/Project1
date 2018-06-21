@@ -128,12 +128,12 @@
                     url = descriptor.endpoint,
                     params = {q: q, start: 0, length: 10, format: 'json'},
                     selector = descriptor.resultTplSelector;
-                var maxLength = descriptor.maxLength;
-                if (maxLength) {
+                var maxChars = descriptor.maxChars;  // The maximum number of chars to take into consideration
+                if (maxChars) {
                     try {
-                        params.max_length = maxLength();
+                        params.max_chars = maxChars();
                     } catch (e) {
-                        params.max_length = maxLength
+                        params.max_chars = maxChars
                     }
                 }
                 grabResults(url, params, resultPanelSelector, selector, call.length, afterResults, descriptor.jsonp);
@@ -295,7 +295,7 @@
     function processHash() {
         if (location.hash.length < 1) {
             hideEdgePanelLeft();
-            if ($(window).width() < 768) {
+            if ($(window).width() < 768 || $('.edge-panel-right').hasClass('always-docked')) {
                 hideEdgePanelRight();
             }
         }
