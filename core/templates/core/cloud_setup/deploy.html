@@ -320,11 +320,11 @@
                 endpoint: '{{ list_members_url|ikwenize }}',
                 resultTplSelector: '.results.customers li.member',
                 jsonp: true,
-                maxLength: function() {
+                maxChars: function() {
                     // The max number of characters that will be taken into consideration
                     // in the string typed by user to do the search. Characters above that
                     // limit will be ignored.
-                    return Math.max($('#customer-name').val().length - 2, 4);
+                    return Math.max($('#customer-name').val().length, 4);
                 }
             }];
             $('#customer-name').focusout(function() {$('.results.customers').fadeOut()});
