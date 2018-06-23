@@ -55,7 +55,7 @@
                         <span>{{ earnings_report.last_week.total|floatformat:CRNCY.precision|intcomma }}</span>
                         {% if earnings_report.last_week.change and earnings_report.last_week.change > 0 %}
                             <div class="arrow up"></div>
-                        {% elif earnings_report.last_week.change and earning.last_week.change < 0 %}
+                        {% elif earnings_report.last_week.change and earnings_report.last_week.change < 0 %}
                             <div class="arrow down"></div>
                         {% endif %}
                     </div>
