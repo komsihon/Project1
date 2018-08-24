@@ -19,7 +19,7 @@ from django.template import Context
 from django_mongodb_engine.contrib import MongoDBManager
 from djangotoolbox.fields import ListField
 
-from ikwen.conf.settings import STATIC_ROOT, STATIC_URL, MEDIA_ROOT, MEDIA_URL
+from ikwen.conf.settings import STATIC_ROOT, STATIC_URL, CLUSTER_MEDIA_ROOT, CLUSTER_MEDIA_URL
 from ikwen.core.fields import MultiImageField
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.utils import add_database_to_settings, to_dict, get_service_instance, get_config_model
@@ -34,8 +34,8 @@ RETAIL_APP_SLUG = 'ikwen-retail'  # Slug of the 'ikwen App retail' Application
 
 
 class Model(models.Model):
-    created_on = models.DateTimeField(default=timezone.now, editable=False)
-    updated_on = models.DateTimeField(default=timezone.now, auto_now=True)
+    created_on = models.DateTimeField(default=timezone.now, editable=False, db_index=True)
+    updated_on = models.DateTimeField(default=timezone.now, auto_now=True, db_index=True)
 
     def get_from(self, db):
         add_database_to_settings(db)
@@ -66,7 +66,7 @@ class AbstractWatchModel(Model):
 
 
 class Application(AbstractWatchModel):
-    LOGOS_FOLDER = 'ikwen/app_logos'
+    LOGOS_FOLDER = 'app_logos'
 
     PENDING = 'Pending'
     SUBMITTED = 'Submitted'
@@ -282,11 +282,7 @@ class Service(models.Model):
     def _get_config(self):
         config_model = get_config_model()
         db = router.db_for_read(self.__class__, instance=self)
-        config = cache.get(self.id + ':config:' + db)
-        if config:
-            return config
         config = config_model.objects.using(db).get(service=self)
-        cache.set(self.id + ':config:' + db, config)
         return config
     config = property(_get_config)
 
@@ -400,8 +396,8 @@ class Service(models.Model):
 
         secret_key = generate_django_secret_key()
         allowed_hosts = '"%s", "www.%s"' % (self.domain, self.domain)
-        media_root = MEDIA_ROOT + self.project_name_slug + '/'
-        media_url = MEDIA_URL + self.project_name_slug + '/'
+        media_root = CLUSTER_MEDIA_ROOT + self.project_name_slug + '/'
+        media_url = CLUSTER_MEDIA_URL + self.project_name_slug + '/'
         c = {'secret_key': secret_key, 'ikwen_name': self.project_name_slug, 'service': self,
              'static_root': STATIC_ROOT, 'static_url': STATIC_URL, 'media_root': media_root, 'media_url': media_url,
              'allowed_hosts': allowed_hosts, 'debug': getattr(settings, 'DEBUG', False)}
@@ -425,7 +421,7 @@ class Service(models.Model):
         import shutil
         from ikwen.accesscontrol.models import Member
         from ikwen.accesscontrol.backends import UMBRELLA
-        media_root = MEDIA_ROOT + self.project_name_slug + '/'
+        media_root = CLUSTER_MEDIA_ROOT + self.project_name_slug + '/'
         apache_alias = '/etc/apache2/sites-enabled/' + self.domain + '.conf'
         if os.path.exists(media_root):
             shutil.rmtree(media_root)
@@ -503,8 +499,8 @@ class AbstractConfig(Model):
         (HTTP_API, _('HTTP API')),
         (GSM_MODEM, _('GSM Modem')),
     )
-    LOGO_UPLOAD_TO = 'ikwen/configs/logos'
-    COVER_UPLOAD_TO = 'ikwen/configs/cover_images'
+    LOGO_UPLOAD_TO = 'configs/logos'
+    COVER_UPLOAD_TO = 'configs/cover_images'
     service = models.OneToOneField(Service, related_name='+')
     balance = models.FloatField(_("balance"), default=0)
     company_name = models.CharField(max_length=60, verbose_name=_("Website / Company name"),

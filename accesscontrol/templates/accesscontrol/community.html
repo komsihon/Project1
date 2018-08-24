@@ -80,19 +80,21 @@
                     {% include 'core/snippets/spinner.html' %}
                     <ul class="people object-list">
                     {% for obj in nonrel_perm_list %}
-                        <li id="{{ obj.user.id }}" class="member {{ obj.user.get_status }}" data-id="{{ obj.user.id }}" data-status="{{ obj.user.get_status }}"
+                        {% with user=obj.user %}
+                        <li id="{{ user.id }}" class="member {{ user.get_status }}" data-id="{{ user.id }}" data-status="{{ user.get_status }}"
                             data-permissions="{% for perm in obj.permission_fk_list %},{{ perm }}{% endfor %}">
-                            {% url 'ikwen:profile' obj.user.id as member_url %}
-                        {% if obj.user.photo and obj.user.photo.name %}
-                            <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ obj.user.photo.small_name }})"></a>
+                            {% url 'ikwen:profile' user.id as member_url %}
+                        {% if user.photo and user.photo.name %}
+                            <a href="{{ member_url|ikwenize }}" class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ user.photo.small_name }})"></a>
                         {% else %}
-                            <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
+                            <a href="{{ member_url|ikwenize }}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
                         {% endif %}
                             <div class="info">
-                                <a href="{{ member_url|ikwenize|append_auth_tokens:request }}" class="full_name">{{ obj.user.full_name }}</a>
-                                <p class="about">{{ obj.user.phone }}, {{ obj.user.email }}</p>
+                                <a href="{{ member_url|ikwenize }}" class="full_name">{{ user.full_name }}</a>
+                                <p class="about">{{ user.phone }}, {{ user.email }}</p>
                             </div>
                         </li>
+                        {% endwith %}
                     {% endfor %}
                         <li class="member tpl" style="display: none">
                             <a class="photo bg-img target_url"></a>

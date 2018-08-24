@@ -63,6 +63,7 @@ def project_settings(request):
             'IKWEN_BASE_URL': IKWEN_BASE_URL,
             'IKWEN_CONSOLE_URL': IKWEN_BASE_URL + console_uri,
             'IKWEN_MEDIA_URL': ikwen_settings.MEDIA_URL,
+            'CLUSTER_MEDIA_URL': ikwen_settings.CLUSTER_MEDIA_URL,
             'AGREEMENT_URL': agreement_url,
             'LEGAL_MENTIONS_URL': legal_mentions_url,
             'PROJECT_URL': getattr(settings, 'PROJECT_URL', ''),

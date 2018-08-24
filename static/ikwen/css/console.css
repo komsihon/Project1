@@ -22,14 +22,23 @@
     width: 100%;
     overflow: hidden;
 }
-#cards {clear: both}
+.console-menu {float: left;height: 350px;margin-top: 15px;width: 280px;}
+.console-menu .ik-li {background: none}
+.console-menu .ik-li .title {font-size: 17px}
+.console-menu .image.rounded {border-radius: 25px;height: 50px;width: 50px;}
+.threshold-reached {background: #2cb100;border: 3px solid #f6f6f6;border-radius: 8px;height: 16px;margin-left: 40px;position: absolute;font-size: 13px;width: 16px;}
 #stage .card {background: #fff;float: left;margin-top: 25px;overflow: hidden;padding: 15px;width: 100%;}
 #stage .card h3 {font-size: 16px;font-weight: 700;margin-top: 0;}
 #stage .card h3 a {color: #323d65;}
 #stage .card h3 img {margin-right: 6px}
 #stage .card > div:first-of-type h4 {margin: 0 0 .5em;}
 
+.coupon-img {cursor: pointer}
+#coupon-detail img {cursor: pointer; height: 180px}
+
 @media (max-width: 767px) {
+    .edge-panel-left {background: #f4f4f4}
+    .edge-panel-left .logo {background: #fff; margin-top: -20px; padding: 25px 0}
     #cards > .row {margin: 0}
     #cards, .events-col1, .events-col2 {padding: 0;}
     #stage .card {padding: 10px}
@@ -40,6 +49,7 @@
     #banner .photo {height: 142px; margin: 79px auto; width: 142px}
     #banner .name {font-size: 21px;text-align: center;}
     #banner .photo .upload-image {margin: 108px 0 0 -4px; width: 142px}
+    #cards {float: right;width: 450px;}
 }
 
 #banner .progress {
@@ -61,7 +71,7 @@
 }
 #banner:hover > .upload-image, #banner .photo:hover .upload-image {display: block}
 @media (min-width: 476px) {
-    #banner .frame {float: left; overflow: hidden; width: 240px}
+    #banner .frame {float: left;overflow: hidden;width: 300px;}
 
     #banner h2 {
         float: left;
@@ -69,14 +79,15 @@
         margin: 240px 0 0 30px;
     }
 }
-#cover nav {}
 #stage {float: left;width: 100%;}
 @media (min-width: 992px) {
     #stage {width: 730px}
     #stage .container-fluid {padding: 0}
+    #cards {width: 430px;}
 }
 @media (min-width: 1200px) {
     #stage {width: 820px}
+    #cards {width: 520px;}
 }
 
 #stage .card h4 {
@@ -85,7 +96,7 @@
     margin-top: 30px;
 }
 #stage .card h4 a.more {color: #0069c3;float: right;font-size: 13px}
-#stage .card .event-media {background-size: cover; float: left; height: 260px; margin: 1em 0; width: 100%}
+#stage .card .event-media {background-size: cover;float: left;height: 320px;margin: 1em 0;width: 100%;}
 
 #stage .card .content {
     margin-top: 15px
@@ -113,28 +124,52 @@
 .card-tile .more {background: rgba(0, 0, 0, .6);color: #fff;text-align: center;float: left;}
 .card-tile .more .main {font-size: 2em;margin: 1.3em 0 0;}
 .card-tile .more .sub {font-size: .8em}
+.tile-1 {height: 100%;width: 50%;margin: 0 25%;}
 .tile-2 {height: 100%; width: 50%}
 .tile-3-1 {height: 100%;width: 66%;}
 .tile-3-2 {height: 50%; width: 34%}
+.coupon-event {background-size: cover;float: left;height: 240px;margin: 0 0 1em;width: 100%;}
+.coupon-event.count-3 {height: 300px}
+.coupon-tile {background: no-repeat center;background-size: auto;border: 1px solid #fff;float: left;overflow: hidden;}
+.coupon-tile .more {background: rgba(0, 0, 0, .6);color: #fff;text-align: center;float: left;}
+.coupon-tile .more .main {font-size: 2em;margin: 2em 0 0;}
+.coupon-tile .more .sub {font-size: .8em}
+.coupon-tile.tile-2 {height: 100%; width: 50%}
+.coupon-tile.tile-3-1 {height: 100%;width: 60%;}
+.coupon-tile.tile-3-2 {height: 50%;width: 40%;}
+.coupon-tile .coupon-count {margin: 0 0 0 10px; position: absolute}
 .card-signature {border-top: 1px dashed #ddd; clear: both; margin-top: 5px; padding-top: 10px}
-.card-signature .photo {border-radius: 50%; float: left; overflow: hidden; width: 15%}
+.card-signature .photo {border-radius: 50%;float: left;overflow: hidden;width: 12%;}
 .card-signature .member-info {float: left; padding-left: .8em; width: 84%}
 .card-signature .member-name {margin-top: 15px}
-#about ul {margin: 0; padding: 0}
-#about ul li {list-style-type: none; line-height: 25px}
-#about ul li label {width: 90px}
-#about .actions {float: right; margin-top: 15px}
-#about .actions .btn {width: 150px;}
-.notice-cnsl .img {background: no-repeat center;background-size: cover;margin: auto;width: 100%}
-
+.profile-about ul {margin: 0; padding: 0}
+.profile-about ul li {list-style-type: none; line-height: 25px}
+.profile-about ul li label {width: 90px}
+.profile-about .actions {float: right; margin-top: 15px}
+.profile-about .actions .btn {width: 150px;}
+.card-ul h3 {color: #323d65;font-size: 18px;margin-bottom: 15px;}
+.card-li {font-size: 13px}
+.card-li .cover {background: no-repeat center;background-size: cover;margin: auto;width: 100%}
+.card-li .cover img {border-radius: 4px;float: left;margin: 10px;}
+.card-li .img {background: no-repeat center; background-size: cover; height: 180px}
+.card-li .btn {font-weight: 600}
+.join-successful {color: #57b21b; display: none; font-size: 30px; height: 35px; line-height: 32px}
 .access-request .member-name {font-weight: 700;}
+.disc.coupon {background: #e84735;border-radius: 13px;color: #fff;float: left;font-size: 15px;height: 26px;line-height: 24px;margin: -5px 5px 0 0;text-align: center;width: 26px;}
+@media (min-width: 375px) {
+    .coupon-event.count-3 {height: 340px;}
+}
+@media (min-width: 425px) {
+    .coupon-event.count-3 {height: 370px;}
+}
 @media (max-width: 767px) {
     .access-request .logo img {float: left; width: 33px}
     .access-request .member-name {float: left;margin-left: 15px;}
     .access-request .details {clear: both;padding-top: 10px;}
     .access-request .details .groups button {width: 160px}
     .access-request .deny-access {float: right}
-    .notice-cnsl .img {height: 120px;}
+    .card-ul .swiper-slide {padding: 0 10px; width: 45%}
+    .card-li .cover {height: 135px;}
 }
 @media (min-width: 768px) {
     .access-request .logo {float: left;text-align: center;width: 108px;}
@@ -142,7 +177,8 @@
     .access-request .member-name {margin-top: 15px;}
     .access-request .logo h4 {float: none; margin-left: 0}
     .access-request .details {clear: none;float: left;margin-left: 15px;padding-top: 0;width: 540px;}
-    .notice-cnsl .img {height: 135px}
+    .card-ul .swiper-slide {max-width: 180px; width: 35%}
+    .card-li .cover {height: 160px;}
 }
 @media (min-width: 992px) {
     #cover {max-width: 820px;}
@@ -156,6 +192,8 @@
     #ad-space-right > div {position: fixed; width: 190px}
 }
 @media (min-width: 1200px) {
+    .coupon-event.count-3 {height: 400px;}
+    .coupon-tile .more .main {margin-top: 2.5em}
     #ad-space-right > div {width: 240px}
 }
 

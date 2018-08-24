@@ -157,10 +157,11 @@
                     $('div#selection-control .select-count .value').text(count);
                 }
                 else $('#selection-control').removeClass('visible');
-            }).on('click', '.list-group-item .trash, .ik-li .trash', function() {
-                var selection = $(this).parents('.ik-li').data('id'),
-                    modelName = $(this).parents('.ik-li').data('model-name');
-                deleteSelection(selection, modelName);
+            }).on('click', 'li .trash', function() {
+                var selection = $(this).parents('li').data('id'),
+                    modelName = $(this).parents('li').data('model-name'),
+                    deleteEndpoint = $(this).parents('ul').data('delete-endpoint');
+                deleteSelection(selection, modelName, deleteEndpoint);
             }).on('click', '.pagination .page', function() {
                 var query = window.location.search,
                     page = $(this).data('val');
@@ -198,12 +199,13 @@
                 var selection = $('#selection-control').data('selection');
                 deleteSelection(selection);
             });
-            function deleteSelection(selection, modelName) {
+            function deleteSelection(selection, modelName, deleteEndpoint) {
                 if (!confirm("{% trans "Confirm deletion ?" %}")) return;
                 $('body, div#selection-control .trash').css('cursor', 'wait');
-                var params = {action: 'delete', selection: selection};
+                var params = {action: 'delete', selection: selection},
+                endpoint = deleteEndpoint ? deleteEndpoint : ikwen.deleteEndpoint;
                 if (modelName) params.model_name = modelName;
-                $.getJSON(ikwen.deleteEndpoint, params, function(data) {
+                $.getJSON(endpoint, params, function(data) {
                     $('body, div#selection-control .trash').css('cursor', '');
                     var list = selection.split(',');
                     if (data.deleted) for (var i=0; i<data.deleted.length; i++) $('#' + data.deleted[i]).remove();
@@ -220,7 +222,7 @@
             ikwen.setupHTMLResultsSearch('#context-search', '#results', searchDescriptor);
             ikwen.setupFilter('#results', filterDescriptor);
             ikwen.setupHTMLResultsFilter(htmlFilterDescriptor);
-            $('footer').appendTo('#admin-nav .wrapper');
+            $('footer').appendTo('#admin-nav .wrapper').show();
             {% if messages %}
                 {% for msg in messages %}ikwen.showFloatingNotice('{{ msg|safe }}', '{{ msg.tags }}', 6);{% endfor %}
             {% endif %}

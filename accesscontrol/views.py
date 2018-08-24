@@ -35,16 +35,20 @@ from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_group
 
 from ikwen.accesscontrol.backends import UMBRELLA
+from ikwen.accesscontrol.utils import send_welcome_email
 from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SMSPasswordResetForm, SetPasswordForm, \
     SetPasswordFormSMSRecovery
-from ikwen.accesscontrol.models import Member, AccessRequest, ACCESS_REQUEST_EVENT, \
+from ikwen.accesscontrol.models import Member, AccessRequest, \
     SUDO, ACCESS_GRANTED_EVENT, COMMUNITY, WELCOME_EVENT
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
 from ikwen.core.utils import get_service_instance, get_mail_content, add_database_to_settings, add_event, set_counters, \
     increment_history_field
 from ikwen.core.utils import send_sms
-from ikwen.core.views import HybridListView, IKWEN_BASE_URL
+from ikwen.core.views import HybridListView
+
+from ikwen.rewarding.models import Coupon, CumulatedCoupon, Reward, CROperatorProfile
+from ikwen.rewarding.utils import reward_member
 
 import logging
 logger = logging.getLogger('ikwen')
@@ -133,12 +137,14 @@ class Register(TemplateView):
                 import ikwen.conf.settings as ikwen_settings
                 ikwen_service = Service.objects.using(UMBRELLA).get(pk=ikwen_settings.IKWEN_SERVICE_ID)
                 add_event(ikwen_service, WELCOME_ON_IKWEN_EVENT, member)
+                reward_pack_list = None
                 if not getattr(settings, 'IS_IKWEN', False):
                     service = get_service_instance()
                     add_event(service, WELCOME_EVENT, member)
                     set_counters(service)
                     increment_history_field(service, 'community_history')
-                send_welcome_email(member)
+                    reward_pack_list = reward_member(service, member, Reward.JOIN)
+                send_welcome_email(member, reward_pack_list)
                 next_url = request.REQUEST.get('next')
                 if next_url:
                     # Remove next_url from the original query_string
@@ -472,32 +478,6 @@ class SetNewPasswordSMSRecovery(TemplateView):
             return render(request, self.template_name, context)
 
 
-def send_welcome_email(member):
-    """
-    Sends welcome email upon registration of a Member. The default message can
-    be edited from the admin in Config.welcome_message
-    Following strings in the message will be replaced as such:
-
-    $member_name  -->  member.first_name
-
-    @param member: Member object to whom message is sent
-    """
-    service = get_service_instance()
-    config = service.config
-    subject = _("Welcome to %s" % service.project_name)
-    if config.welcome_message:
-        message = config.welcome_message.replace('$member_name', member.first_name)
-    else:
-        message = _("Welcome %(member_name)s,<br><br>"
-                    "Your registration was successful and you can now enjoy our service.<br><br>"
-                    "Thank you." % {'member_name': member.first_name})
-    html_content = get_mail_content(subject, message, template_name='accesscontrol/mails/welcome.html')
-    sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
-    msg = EmailMessage(subject, html_content, sender, [member.email])
-    msg.content_subtype = "html"
-    Thread(target=lambda m: m.send(), args=(msg,)).start()
-
-
 class AccountSetup(TemplateView):
     template_name= 'accesscontrol/account.html'
 
@@ -614,6 +594,7 @@ class CompanyProfile(TemplateView):
                 pass
         except Application.DoesNotExist:
             pass
+
         config = service.config
         context['is_company'] = True
         context['page_service'] = service  # Updates the service context defined in TemplateView
@@ -625,18 +606,39 @@ class CompanyProfile(TemplateView):
         context['profile_city'] = config.city
         context['profile_photo_url'] = config.logo.url if config.logo.name else ''
         context['profile_cover_url'] = config.cover_image.url if config.cover_image.name else ''
-        if request.user.is_authenticated():
-            try:
-                AccessRequest.objects.get(member=request.user, service=service,
-                                          status=AccessRequest.PENDING)
-                context['is_member'] = True  # Causes the "Join" button not to appear when there's a pending Access Request
-            except AccessRequest.DoesNotExist:
+        try:
+            cr_profile = CROperatorProfile.objects.get(service=service, is_active=True)
+        except CROperatorProfile.DoesNotExist:
+            pass
+        else:
+            coupon_qs = Coupon.objects.filter(service=service, status=Coupon.APPROVED, is_active=True)
+            if request.user.is_authenticated():
                 try:
-                    add_database_to_settings(service.database)
-                    Member.objects.using(service.database).get(pk=request.user.id)
-                    context['is_member'] = True
-                except Member.DoesNotExist:
-                    context['is_member'] = False
+                    AccessRequest.objects.get(member=request.user, service=service,
+                                              status=AccessRequest.PENDING)
+                    context['is_member'] = True  # Causes the "Join" button not to appear when there's a pending Access Request
+                except AccessRequest.DoesNotExist:
+                    try:
+                        add_database_to_settings(service.database)
+                        Member.objects.using(service.database).get(pk=request.user.id)
+                        context['is_member'] = True
+                    except Member.DoesNotExist:
+                        context['is_member'] = False
+                coupon_list = []
+                for coupon in coupon_qs:
+                    try:
+                        cumul = CumulatedCoupon.objects.get(coupon=coupon, member=request.user)
+                        coupon.count = cumul.count
+                        coupon.ratio = float(cumul.count) / coupon.heap_size * 100
+                    except CumulatedCoupon.DoesNotExist:
+                        coupon.count = 0
+                        coupon.ratio = 0
+                    coupon_list.append(coupon)
+            else:
+                coupon_list = coupon_qs
+            context['url'] = getattr(settings, 'PROJECT_URL') + reverse('ikwen:company_profile', args=(project_name_slug, ))
+            context['cr_profile'] = cr_profile
+            context['coupon_list'] = coupon_list
         return render(request, self.template_name, context)
 
 
@@ -670,7 +672,7 @@ class MemberList(HybridListView):
     template_name = 'accesscontrol/member_list.html'
     context_object_name = 'customer_list'
     model = Member
-    search_field = 'full_name'
+    search_field = 'tags'
     ordering = ('first_name', '-id', )
     ajax_ordering = ('first_name', '-id', )
     page_size = 2
@@ -729,91 +731,79 @@ class AccessRequestList(TemplateView):
 
 @login_required  # The user must be logged in to ikwen and not his own service, this view runs on ikwen
 def request_access(request, *args, **kwargs):
-    service_id = request.GET['service_id']
-    format = request.GET.get('format')
-    service = Service.objects.get(pk=service_id)
-    member = Member.objects.get(pk=request.user.id)
-    try:
-        AccessRequest.objects.get(member=member, service=service)
-    except AccessRequest.DoesNotExist:
-        rq = AccessRequest.objects.create(member=member, service=service)
-        subject = _("Request to join")
-        message = _("Hi %(iao_name)s,<br><br>%(member_name)s requested to join you on "
-                    "<b>%(project_name)s</b>.<br><br>" % {'iao_name': service.member.first_name,
-                                                          'member_name': member.full_name,
-                                                          'project_name': service.project_name})
-        add_event(service, ACCESS_REQUEST_EVENT, member=service.member, object_id=rq.id)
-        html_content = get_mail_content(subject, message, template_name='core/mails/notice.html',
-                                        extra_context={'cta_text': _("View"),
-                                                       'cta_url': IKWEN_BASE_URL + reverse('ikwen:profile', args=(member.id, ))})
-        sender = '%s <%s>' % ('ikwen', 'no-reply@ikwen.com')
-        msg = EmailMessage(subject, html_content, sender, [service.member.email])
-        # msg = EmailMessage(subject, html_content, sender, ['nouty1931@rhyta.com'])  # Testing
-        msg.content_subtype = "html"
-        Thread(target=lambda m: m.send(), args=(msg, )).start()
-    if format == 'json':
-        return HttpResponse(json.dumps({'success': True}), content_type='application/json')
-    else:
-        next_url = service.get_profile_url()
-        return HttpResponseRedirect(next_url + '?successfulRequest=yes')
+    """
+    Deprecated, replaced by mere join()
+    """
 
 
 @login_required   # The user must be logged in to ikwen and not his own service, this view runs on ikwen
 def grant_access(request, *args, **kwargs):
-    if not request.user.is_iao:
-        # TODO: Verify that IA0 is actually the owner of the service for which the request is made
-        return HttpResponseForbidden('Only IA0 May grant access')
-    request_id = request.GET['request_id']
-    group_id = request.GET.get('group_id')
-    rq = AccessRequest.objects.get(pk=request_id)
-    rq_member = rq.member
-    rq_service = rq.service
-    count = Member.objects.raw_query({'collaborates_on_fk_list': {'$elemMatch': {'$eq': rq_service.id}}}).count()
-    if count > Community.MAX:
-        response = {'error': "Maximum of %d collaborators reached" % Community.MAX}
-        return HttpResponse(json.dumps(response), content_type='application/json')
-    database = rq_service.database
-    add_database_to_settings(database)
-    group = Group.objects.using(database).get(pk=group_id)
-    rq.member.customer_on_fk_list.append(rq_service.id)
-    if group.name != COMMUNITY:
-        rq_member.collaborates_on_fk_list.append(rq_service.id)
-    rq_member.group_fk_list.append(group.id)
-    rq_member.save()
+    """
+    Deprecated, replaced by mere join()
+    """
 
-    if group.name != COMMUNITY:
-        rq_member.is_staff = True
-    if group.name == SUDO:
-        rq_member.is_superuser = True
-    rq_member.is_iao = False
-    rq_member.save(using=database)
-    member = Member.objects.using(database).get(pk=rq_member.id)  # Reload from local database to avoid database router error
-    obj_list, created = UserPermissionList.objects.using(database).get_or_create(user=member)
-    obj_list.group_fk_list.append(group.id)
-    obj_list.save(using=database)
-    rq.status = AccessRequest.CONFIRMED
-    rq.group_name = group.name
-    rq.save()
+
+@login_required   # The user must be logged in to ikwen and not his own service, this view runs on ikwen
+def join(request, *args, **kwargs):
+    service_id = request.GET['service_id']
+    format = request.GET.get('format')
+    service = Service.objects.get(pk=service_id)
+    member = request.user
+    if service_id in member.customer_on_fk_list:
+        if format == 'json':
+            return HttpResponse(json.dumps({'success': True}), content_type='application/json')
+        else:
+            next_url = service.get_profile_url()
+            notice = _("You were added to our community. Thank you for joining us.")
+            messages.success(request, notice)
+            return HttpResponseRedirect(next_url)
     try:
-        ConsoleEvent.objects.get(member=request.user, object_id=rq.id).delete()
-    except ConsoleEvent.DoesNotExist:
-        pass
-    add_event(rq_service, WELCOME_EVENT, member=rq_member, object_id=rq.id)
-    add_event(rq_service, ACCESS_GRANTED_EVENT, member=rq_service.member, object_id=rq.id)
-    set_counters(rq_service)
-    increment_history_field(rq_service, 'community_history')
-    subject = _("You were added to %s community" % rq_service.project_name)
-    message = _("Hi %(member_name)s,<br><br>You were added to <b>%(project_name)s</b> community.<br><br>"
-                "Thanks for joining us." % {'member_name': rq_member.first_name,
-                                            'project_name': rq_service.project_name})
-    html_content = get_mail_content(subject, message, template_name='core/mails/notice.html',
-                                    extra_context={'cta_text': _("Join"),
-                                                   'cta_url': rq_service.admin_url})
-    sender = '%s <no-reply@%s>' % (rq_service.project_name, rq_service.domain)
-    msg = EmailMessage(subject, html_content, sender, [rq_member.email])
+        rq = AccessRequest.objects.get(member=member, service=service)
+    except AccessRequest.DoesNotExist:
+        rq = AccessRequest.objects.create(member=member, service=service)
+    db = service.database
+    add_database_to_settings(db)
+    group = Group.objects.using(db).get(name=COMMUNITY)
+    member.customer_on_fk_list.append(service.id)
+    if group.id not in member.group_fk_list:
+        member.group_fk_list.append(group.id)
+    member.save()
+    member.is_staff = False
+    member.is_superuser = False
+    member.is_iao = False
+    member.save(using=db)
+    member = Member.objects.using(db).get(pk=member.id)  # Reload from local database to avoid database router error
+    obj_list, created = UserPermissionList.objects.using(db).get_or_create(user=member)
+    obj_list.group_fk_list.append(group.id)
+    obj_list.save(using=db)
+    add_event(service, WELCOME_EVENT, member=member, object_id=rq.id)
+    add_event(service, ACCESS_GRANTED_EVENT, member=service.member, object_id=rq.id)
+    set_counters(service)
+    increment_history_field(service, 'community_history')
+    reward_pack_list = reward_member(service, member, Reward.JOIN)
+    subject = _("You just joined %s community" % service.project_name)
+    if reward_pack_list:
+        template_name = 'rewarding/mails/community_welcome_pack.html'
+        message = ''
+    else:
+        template_name = 'accesscontrol/mails/community_welcome.html'
+        message = _("Hi %(member_name)s,<br><br>You were added to <b>%(project_name)s</b> community.<br><br>"
+                    "Thanks for joining us." % {'member_name': member.first_name,
+                                                'project_name': service.project_name})
+    html_content = get_mail_content(subject, message, template_name=template_name,
+                                    extra_context={'reward_pack_list': reward_pack_list,
+                                                   'joined_service': service, 'joined_logo': service.config.logo})
+    sender = 'ikwen <no-reply@ikwen.com>'
+    msg = EmailMessage(subject, html_content, sender, [member.email])
     msg.content_subtype = "html"
     Thread(target=lambda m: m.send(), args=(msg, )).start()
-    return HttpResponse(json.dumps({'success': True}), content_type='application/json')
+    if format == 'json':
+        return HttpResponse(json.dumps({'success': True}), content_type='application/json')
+    else:
+        next_url = service.get_profile_url()
+        notice = _("You were added to our community. Thank you for joining us.")
+        messages.success(request, notice)
+        return HttpResponseRedirect(next_url)
 
 
 @login_required   # The user must be logged in to ikwen and not his own service, this view runs on ikwen

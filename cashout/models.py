@@ -20,7 +20,7 @@ class CashOutMethod(Model):
     # The type of method helps determine the algorithm to call to actually
     # perform the operation in the cashout.views.request_cash_out method
     type = models.CharField(max_length=30, blank=True, choices=Payment.METHODS_CHOICES)
-    image = models.ImageField(upload_to='ikwen/cashout_methods',
+    image = models.ImageField(upload_to='cashout_methods',
                               blank=getattr(settings, 'DEBUG', False),
                               null=getattr(settings, 'DEBUG', False))
     is_active = models.BooleanField("active", default=True)

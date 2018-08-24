@@ -21,7 +21,6 @@ from ikwen.core.models import Application, Service
 from ikwen.flatpages.models import FlatPage
 
 
-
 def setup_dev_env(app_name, username, database=None, project_name=None,
                   project_url=None, admin_url=None, base_monthly_cost=0):
     try:

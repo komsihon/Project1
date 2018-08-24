@@ -1,5 +1,5 @@
 {% extends "accesscontrol/profile.html" %}
-{% load i18n humanize staticfiles auth_tokens %}
+{% load i18n humanize static auth_tokens %}
 
 {% block page_title %}
 <title> Console - ikwen </title>
@@ -21,13 +21,7 @@
             #cover nav li {width: 160px}
             #cover nav li:last-child {border-right: 1px solid #ddd}
         }
-        @media (max-width: 767px) {
-            #access-requests > .container-fluid {padding: 0}
-            #access-requests .swiper-slide {width: 40%}
-        }
-        @media (min-width: 768px) {
-            #access-requests .swiper-slide {max-width: 150px; width: 30%}
-        }
+        #communities-suggestions .card h3 {color: #323d65; font-size: 18px; margin-bottom: 15px}
     </style>
 {% endblock %}
 
@@ -83,36 +77,82 @@
                 <h2 class="text-has-shade name hidden-xs">{{ member.full_name }}</h2>
             </div>
         </header>
-        {% for service, event_list in access_request_events.items %}
-            <div id="access-requests">
-                <div class="{{ service.project_name_slug }} card subtle-shade">
-                    <h3>
-                        {% if service.config.logo.name %}
-                            <img src="{{ service.config.logo.url }}" width="30"/>
-                        {% endif %}
-                        <a href="{{ service.url }}" style="cursor: pointer">{{ service.project_name }}</a>
-                    </h3>
-                    <h4 style="margin-top: 0">
-                        {% trans "Request to join" %}
-                        {% if event_list|length > 4 and event_list.0.event_type.target_url_name %}
-                            {% url event_list.0.event_type.target_url_name as target_url %}
-                            <a class="more" href="{{ target_url|append_auth_tokens:request }}">
-                                {% trans "See all" %} ({{ event_list|length }})
-                            </a>
-                        {% endif %}
-                    </h4>
-                    <div class="row AccessRequest">
-                        <div class="row swiper-container" style="margin-top: 5px">
-                            <div class="swiper-wrapper">
-                                {% for event in event_list %} {{ event.render|safe }} {% endfor %}
-                            </div>
+        {% if suggestion_list|length > 0 %}
+        <div id="communities-suggestions" class="card-ul">
+            <div class="card subtle-shade">
+                <h3>{% trans "Top communities" %}</h3>
+                <div class="row AccessRequest">
+                    <div class="row swiper-container" style="margin-top: 5px">
+                        <div class="swiper-wrapper">
+                            {% for service in suggestion_list %}
+                                {% with config=service.config %}
+                                <div class="col-xs-6 col-sm-4 card-li swiper-slide" style="text-align: center">
+                                    <a href="{% url 'ikwen:company_profile' service.project_name_slug %}">
+                                        {% if config.cover_image.name %}
+                                            <div class="cover" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ config.cover_image.name }})">
+                                                <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}" alt="{{ config.company_name }} logo" width="30" />
+                                            </div>
+                                        {% else %}
+                                            <div class="cover" style="background-image: url({% static 'ikwen/img/default-cover-company.jpg' %})">
+                                                <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}" alt="{{ config.company_name }} logo" width="30" />
+                                            </div>
+                                        {% endif %}
+                                        <p style="height:30px; margin-top: 5px">{{ config.company_name|truncatewords:2 }}</p>
+                                    </a>
+                                    <button class="btn btn-block btn-primary btn-sm join-community" data-service-id="{{ service.id }}">
+                                        <img src="{% static 'ikwen/img/Join_button_white.svg' %}" height="15" style="margin: -4px 5px 0 0" />
+                                        {% trans "Join" %}
+                                    </button>
+                                    <div class="join-successful"> <i class="fa fa-check"></i> </div>
+                                </div>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                        <div class="swiper-button-next has-shade">
+                            <i class="fa fa-angle-right"></i>
+                        </div>
+                        <div class="swiper-button-prev has-shade">
+                            <i class="fa fa-angle-left"></i>
                         </div>
                     </div>
                 </div>
             </div>
-        {% endfor %}
-        <div id="cards">
-            <div class="row">
+        </div>
+        {% endif %}
+        <div>
+            <div class="menu console-menu hidden-xs">
+                <h4 class="text-muted">
+                    <div class="disc coupon">
+                        <i class="fa fa-ticket"></i>
+                    </div>
+                    {% trans "My collection" %}
+                </h4>
+                <ul style="padding: 0">
+{#                    {% for summary in coupon_summary_list %}#}
+{#                        {% with service=summary.service %}#}
+{#                        <li class="ik-li">#}
+{#                            <a href="{% url 'ikwen:company_profile' service.project_name_slug %}">#}
+{#                                <div class="image rounded" style="background-image: url({% get_media_prefix %}{{ service.config.logo.name }})">#}
+{#                                    {% if summary.threshold_reached %}#}
+{#                                        <i class="threshold-reached"></i>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+{#                                <div class="info">#}
+{#                                    <span class="title">{{ service.project_name }}</span>#}
+{#                                    <p class="about">{{ summary.count }} {% trans "Coupons" %}</p>#}
+{#                                </div>#}
+{#                                <div class="clearfix"></div>#}
+{#                            </a>#}
+{#                        </li>#}
+{#                        {% endwith %}#}
+{#                    {% empty %}#}
+                        <li class="ik-li no-coupon">
+                            <img src="{% static 'ikwen/img/empty-box.png' %}" class="img-responsive" />
+                        </li>
+{#                    {% endfor %}#}
+                </ul>
+            </div>
+            <div id="cards">
                 <div class="tpl card subtle-shade">
                     <h3>
                         <img width="30" />
@@ -127,20 +167,29 @@
                         </div>
                     </div>
                 </div>
-                {% if event_list|length == 0 %}
-                    <div class="col-xs-12">
-                        <div class="card empty subtle-shade">
-                            <div>
-                                <h4>{% trans "No event" %}</h4>
+                <div>
+                {% for event in event_list %}
+                    {% with service=event.service event_type=event.event_type %}
+                    <div id="{{ event.id }}" class="{{ service.project_name_slug }} card subtle-shade" data-base-url="{{ service.url }}">
+                        <h3>
+                            {% if service.config.logo.name %}
+                                <img src="{{ service.config.logo.url }}" width="30" />
+                            {% endif %}
+                            <a href="{{ service.url }}">{{ service.project_name }}</a>
+                            <time>{{ event.created_on|naturaltime }}</time>
+                        </h3>
+                        <div class="{{ event_type.codename }}">
+                            <div class="content row">
+                                <div class="loading"{% if event_type.min_height %}
+                                 style="min-height: {{ event_type.min_height }}px; line-height: {{ event_type.min_height }}px"{% endif %}>
+                                    <p class="dots">...</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                {% endif %}
-                {% if request.user_agent.is_mobile %}
-                    {% include 'core/snippets/console_event_list_mobile.html' %}
-                {% else %}
-                    {% include 'core/snippets/console_event_list.html' %}
-                {% endif %}
+                    {% endwith %}
+                {% endfor %}
+                </div>
             </div>
         </div>
     </div>
@@ -150,19 +199,17 @@
     {{ block.super }}
     <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
     {% include 'core/snippets/banner_and_pp_uploader.html' %}
+    {% include 'accesscontrol/snippets/request_management.html' %}
     <script>
         (function() {
-            var accessRequestSwiper = new Swiper('#access-requests .swiper-container', {
+            var suggestionSwiper = new Swiper('#communities-suggestions .swiper-container', {
                 slidesPerView: 'auto',
+                spaceBetween: 15,
+                nextButton: '.swiper-button-next',
+                prevButton: '.swiper-button-prev',
                 breakpoints: {
-                    10000: {
-                        nextButton: '.swiper-button-next',
-                        prevButton: '.swiper-button-prev',
-                        spaceBetween: 15
-                    },
                     767: {
-                        nextButton: '.swiper-button-next',
-                        prevButton: '.swiper-button-prev'
+                        spaceBetween: 0
                     }
                 }
             });
@@ -178,7 +225,6 @@
                         return
                     }
                     _$card.find('.content').html(res.html);
-                    ikwen.appendAuthTokens('#' + eventId)
                 });
                 _$card.addClass('loaded');
             }
@@ -190,12 +236,7 @@
                     threshold = Math.max($('footer').height(), 60);
                 if ($(document).height() - $(this).height() - scrollTop <= threshold) {
                     loadingCards = true;
-                    var start = $('div#cards .card').length,
-                        $col1 = $('.events-col1'),
-                        $col2 = $('.events-col2'),
-                        col1Height = $col1.height(),
-                        col2Height = $col2.height();
-                    var colCycle = col1Height > col2Height ? [$col2, $col1] : [$col1, $col2];
+                    var start = $('div#cards .card').length;
                     $.getJSON('{% url 'ikwen:console' %}', {start: start, format: 'json'}, function(events) {
                         if (events.length == 0) {
                             dataSourceEmpty = true;
@@ -210,7 +251,7 @@
                             $card.find('img').attr('src', event.project_logo_url);
                             $card.find('time').text(event.created_on);
                             if (event.min_height) $card.find('.loading').css({minHeight: event.min_height + 'px', lineHeight: event.min_height + 'px'});
-                            colCycle[i%2].append($card);
+                            $('#cards').append($card);
                             loadCardContent(event.id);
                         }
                         loadingCards = false;

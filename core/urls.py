@@ -12,7 +12,7 @@ from ikwen.core.views import get_location_by_ip
 
 from ikwen.accesscontrol.views import SignIn, SignInMinimal, AccountSetup, update_info, \
     update_password, ForgottenPassword, SetNewPassword, Profile, Community, CompanyProfile, \
-    grant_access, request_access, set_collaborator_permissions, move_member_to_group, toggle_member, \
+    join, set_collaborator_permissions, move_member_to_group, toggle_member, \
     list_collaborators, MemberList, load_member_detail, AccessRequestList, deny_access, Register, \
     StaffWithoutPermission, staff_router, PhoneConfirmation, SetNewPasswordSMSRecovery
 from ikwen.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, \
@@ -49,8 +49,7 @@ urlpatterns = patterns(
     url(r'^setNewPasswordSMSRecovery/$', SetNewPasswordSMSRecovery.as_view(), name='set_new_password_sms_recovery'),
 
     url(r'^profile/(?P<member_id>[-\w]+)/$', login_required(Profile.as_view()), name='profile'),
-    url(r'^request_access$', request_access, name='request_access'),
-    url(r'^grant_access_to_collaborator$', grant_access, name='grant_access'),
+    url(r'^join$', join, name='join'),
     url(r'^set_collaborator_permissions$', set_collaborator_permissions, name='set_collaborator_permissions'),
     url(r'^move_member_to_group$', move_member_to_group, name='move_member_to_group'),
     url(r'^accessRequests/$', login_required(AccessRequestList.as_view()), name='access_request_list'),
@@ -83,8 +82,8 @@ urlpatterns = patterns(
 
     url(r'^error909/$', ServiceExpired.as_view(), name='service_expired'),
     url(r'^get_queued_sms$', get_queued_sms, name='get_queued_sms'),
-    url(r'^legalMentions$', LegalMentions.as_view(), name='legal_mentions'),
-    url(r'^termsAndConditions$', TermsAndConditions.as_view(), name='terms_and_conditions'),
+    url(r'^legal-mentions$', LegalMentions.as_view(), name='legal_mentions'),
+    url(r'^terms-and-conditions$', TermsAndConditions.as_view(), name='terms_and_conditions'),
 
     url(r'^(?P<project_name_slug>[-\w]+)/$', CompanyProfile.as_view(), name='company_profile'),
 

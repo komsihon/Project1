@@ -118,8 +118,11 @@ def confirm_invoice_payment(request, *args, **kwargs):
         sudo_group = Group.objects.using(UMBRELLA).get(name=SUDO)
     add_event(service, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
     if member.email:
+        invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
         subject, message, sms_text = get_payment_confirmation_message(payment, member)
-        html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html')
+        html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+                                        extra_context={'member_name': member.first_name, 'invoice': invoice,
+                                                       'cta': _("View invoice"), 'invoice_url': invoice_url})
         sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
         msg = EmailMessage(subject, html_content, sender, [member.email])
         msg.content_subtype = "html"
@@ -168,8 +171,11 @@ def product_do_checkout(request, *args, **kwargs):
     service = get_service_instance()
     config = service.config
     if member.email:
+        invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
         subject, message, sms_text = get_payment_confirmation_message(payment, member)
-        html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html')
+        html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+                                        extra_context={'member_name': member.first_name, 'invoice': invoice,
+                                                       'cta': _("View invoice"), 'invoice_url': invoice_url})
         sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
         msg = EmailMessage(subject, html_content, sender, [member.email])
         msg.content_subtype = "html"

@@ -201,6 +201,7 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
         instance = None
         for instance in instances:
             if isinstance(instance, Payment):
+                total_amount += instance.amount
                 if instance.cashier:
                     # Instances with non null cashier are those that previously existed.
                     # setting them to None allows to ignore them at the end of the loop
@@ -209,7 +210,6 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
                     continue
                 instance.cashier = request.user
                 instance.save()
-                total_amount += instance.amount
         if instance:
             # TODO: Check if the last payment is newly added
             # Notice email is sent only for the last saved Payment,
@@ -472,7 +472,7 @@ class PartnerListFilter(admin.SimpleListFilter):
 
 class CloudBillingPlanAdmin(admin.ModelAdmin):
     list_display = ('app', 'partner', 'name', 'setup_cost', 'setup_months_count', 'monthly_cost',
-                    'tx_share_fixed', 'tx_share_rate', 'is_pro_version')
+                    'tx_share_fixed', 'tx_share_rate', 'is_active', 'is_pro_version')
     search_fields = ('app', 'name', )
     list_filter = ('app', PartnerListFilter, )
 

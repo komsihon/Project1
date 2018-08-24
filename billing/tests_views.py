@@ -87,13 +87,7 @@ class BillingViewsTest(TestCase):
         self.client.login(username='arch', password='admin')
         response = self.client.get(reverse('billing:payment_mean_list'))
         self.assertEqual(response.status_code, 200)
-
-    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
-    def test_PaymentMeanList(self):
-        self.client.login(username='arch', password='admin')
-        response = self.client.get(reverse('billing:payment_mean_list'))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context['payment_mean_list']), 3)
+        self.assertEqual(len(response.context['payment_mean_list_all']), 3)
 
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
     def test_set_credentials(self):

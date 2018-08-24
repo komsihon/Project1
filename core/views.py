@@ -12,7 +12,6 @@ from django.contrib import messages
 from django.contrib.admin import helpers
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
-from django.core.exceptions import ImproperlyConfigured
 from django.core.files import File
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.urlresolvers import reverse
@@ -44,6 +43,7 @@ from ikwen.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent
     OperatorWallet
 from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons, add_database_to_settings, \
     add_database, calculate_watch_info, set_counters, get_model_admin_instance
+from ikwen.rewarding.models import CouponSummary, CROperatorProfile
 
 try:
     ikwen_service = Service.objects.using(UMBRELLA).get(pk=ikwen.conf.settings.IKWEN_SERVICE_ID)
@@ -79,9 +79,14 @@ class HybridListView(ListView):
         context['page_size'] = self.page_size
         context['total_objects'] = self.get_queryset().count()
         context['filter'] = self.get_filter()
-        meta = self.get_queryset().model._meta
+        model = self.get_queryset().model
+        meta = model._meta
         context['verbose_name'] = meta.verbose_name
         context['verbose_name_plural'] = meta.verbose_name_plural
+        try:
+            context['has_is_active_field'] = model().is_active
+        except AttributeError:
+            pass
         if not self.change_object_url_name:
             self.change_object_url_name = '%s:change_%s' % (meta.app_label, meta.model_name)
         context['change_object_url_name'] = self.change_object_url_name
@@ -137,12 +142,18 @@ class HybridListView(ListView):
 
     def get(self, request, *args, **kwargs):
         action = request.GET.get('action')
+        model_name = request.GET.get('model_name')
+        if model_name:
+            tokens = model_name.split('.')
+            model = get_model(tokens[0], tokens[1])
+        else:
+            model = self.model
         if action == 'delete':
             selection = request.GET['selection'].split(',')
             deleted = []
             for pk in selection:
                 try:
-                    obj = self.model.objects.get(pk=pk)
+                    obj = model.objects.get(pk=pk)
                     obj.delete()
                     deleted.append(pk)
                 except:
@@ -156,7 +167,7 @@ class HybridListView(ListView):
             object_id = request.GET['object_id']
             attr = request.GET['attr']
             val = request.GET['val']
-            obj = self.model._default_manager.get(pk=object_id)
+            obj = model._default_manager.get(pk=object_id)
             if val.lower() == 'true':
                 obj.__dict__[attr] = True
             else:
@@ -166,12 +177,6 @@ class HybridListView(ListView):
             return HttpResponse(json.dumps(response), 'content-type: text/json')
         # Sorting stuffs
         sorted_keys = request.GET.get('sorted')
-        model_name = request.GET.get('model_name')
-        if model_name:
-            tokens = model_name.split('.')
-            model = get_model(tokens[0], tokens[1])
-        else:
-            model = self.model
         if sorted_keys:
             for token in sorted_keys.split(','):
                 object_id, order_of_appearance = token.split(':')
@@ -193,7 +198,7 @@ class HybridListView(ListView):
         search_term = self.request.GET.get('q')
         if search_term and len(search_term) >= 2:
             search_term = search_term.lower()
-            word = slugify(search_term)
+            word = slugify(search_term).replace('-', ' ')
             if max_chars:
                 word = word[:max_chars]
             if word:
@@ -266,7 +271,7 @@ class ChangeObjectBase(TemplateView):
         context['obj'] = obj  # Base template recognize the context object only with the name 'obj'
         context['verbose_name'] = self.model()._meta.verbose_name
         context['verbose_name_plural'] = self.model()._meta.verbose_name_plural
-        context['object_list_url'] = self.get_object_list_url(self.request, obj)
+        context['object_list_url'] = self.get_object_list_url(self.request, obj, **kwargs)
         context['model_admin_form'] = obj_form
         return context
 
@@ -296,7 +301,7 @@ class ChangeObjectBase(TemplateView):
         object_admin = get_model_admin_instance(self.model, self.model_admin)
         object_id = kwargs.get('object_id')
         if object_id:
-            obj = get_object_or_404(self.model, pk=object_id)
+            obj = self.get_object(**kwargs)
         else:
             obj = self.model()
         model_form = object_admin.get_form(request)
@@ -324,18 +329,18 @@ class ChangeObjectBase(TemplateView):
                     filename = image_url.split('/')[-1]
                     media_root = getattr(settings, 'MEDIA_ROOT')
                     media_url = getattr(settings, 'MEDIA_URL')
-                    image_url = image_url.replace(media_url, '')
+                    path = image_url.replace(media_url, '')
                     try:
-                        with open(media_root + image_url, 'r') as f:
+                        with open(media_root + path, 'r') as f:
                             content = File(f)
                             destination = media_root + obj.UPLOAD_TO + "/" + s.project_name_slug + '_' + filename
                             image_field.save(destination, content)
-                        os.unlink(media_root + image_url)
+                        os.unlink(media_root + path)
                     except IOError as e:
                         if getattr(settings, 'DEBUG', False):
                             raise e
                         return {'error': 'File failed to upload. May be invalid or corrupted image file'}
-
+            self.after_save(request, obj, *args, **kwargs)
             next_url = self.get_object_list_url(request, obj, *args, **kwargs)
             if object_id:
                 messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj).decode('utf8') + '</strong> ' + _('successfully updated'))
@@ -358,6 +363,12 @@ class ChangeObjectBase(TemplateView):
             except:
                 next_url = request.META['HTTP_REFERER']
         return next_url
+
+    def after_save(self, request, obj, *args, **kwargs):
+        """
+        Run after the form is successfully saved
+        in the post() function
+        """
 
 
 upload_image = AjaxFileUploader(DefaultUploadBackend)
@@ -411,6 +422,7 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
                         destination = media_root + Member.COVER_UPLOAD_TO + "/" + filename
                         member.cover_image.save(destination, content)
                         url = ikwen_settings.MEDIA_URL + member.cover_image.name
+                    member.propagate_changes()
             try:
                 if os.path.exists(media_root + path):
                     os.unlink(media_root + path)
@@ -594,26 +606,35 @@ class Console(TemplateView):
             length = 20
         else:
             length = 30
+        join = self.request.GET.get('join')
         context['member'] = member
         context['profile_name'] = member.full_name
         context['profile_photo_url'] = member.photo.small_url if member.photo.name else ''
         context['profile_cover_url'] = member.cover_image.url if member.cover_image.name else ''
 
-        type_access_request = ConsoleEventType.objects.get(codename=ACCESS_REQUEST_EVENT)
-        access_request_events = {}
+        now = datetime.now()
         member_services = member.get_services()
-        for service in member_services:
-            request_event_list = list(ConsoleEvent.objects
-                                      .filter(event_type=type_access_request, member=member, service=service)
-                                      .order_by('-id'))
-            if len(request_event_list) > 0:
-                access_request_events[service] = request_event_list
-
-        event_list = ConsoleEvent.objects.exclude(event_type=type_access_request) \
-                         .filter(Q(member=member) | Q(group_id__in=member.group_fk_list) |
+        active_operators = CROperatorProfile.objects.filter(service__in=member_services, expiry__gt=now, is_active=True)
+        active_cr_services = [op.service for op in active_operators]
+        suggestion_list = []
+        join_service = None
+        if join:
+            try:
+                join_service = Service.objects.get(project_name_slug=join)
+                CROperatorProfile.objects.get(service=join_service, expiry__gt=now, is_active=True)
+                suggestion_list.append(join_service)
+            except CROperatorProfile.DoesNotExist:
+                pass
+        suggested_operators = CROperatorProfile.objects.exclude(service__in=member_services).filter(expiry__gt=now, is_active=True)
+        suggestion_list = [op.service for op in suggested_operators.order_by('-id')[:9]]
+        if join_service and join_service not in suggestion_list and join_service not in member_services:
+            suggestion_list.insert(0, join_service)
+        coupon_summary_list = member.couponsummary_set.filter(service__in=active_cr_services)
+        event_list = ConsoleEvent.objects.filter(Q(member=member) | Q(group_id__in=member.group_fk_list) |
                                  Q(group_id__isnull=True, member__isnull=True, service__in=member_services)).order_by('-id')[:length]
-        context['access_request_events'] = access_request_events
         context['event_list'] = event_list
+        context['suggestion_list'] = suggestion_list
+        context['coupon_summary_list'] = coupon_summary_list
         context['is_console'] = True  # console.html extends profile.html, so this helps differentiates in templates
         return context
 
@@ -746,6 +767,9 @@ def get_location_by_ip(request, *args, **kwargs):
 
 class DashboardBase(TemplateView):
 
+    transactions_count_title = _("Transactions")
+    transactions_avg_revenue_title = _('ARPT <i class="text-muted">Avg. Eearning Per Transaction</i>')
+
     def get_context_data(self, **kwargs):
         context = super(DashboardBase, self).get_context_data(**kwargs)
         service = get_service_instance()
@@ -760,6 +784,39 @@ class DashboardBase(TemplateView):
             'yesterday': earnings_yesterday,
             'last_week': earnings_last_week,
             'last_28_days': earnings_last_28_days
+        }
+
+        tx_count_today = calculate_watch_info(service.transaction_count_history)
+        tx_count_yesterday = calculate_watch_info(service.transaction_count_history, 1)
+        tx_count_last_week = calculate_watch_info(service.transaction_count_history, 7)
+        tx_count_last_28_days = calculate_watch_info(service.transaction_count_history, 28)
+
+        # AEPT stands for Average Earning Per Transaction
+        aept_today = earnings_today['total'] / tx_count_today['total'] if tx_count_today['total'] else 0
+        aept_yesterday = earnings_yesterday['total'] / tx_count_yesterday['total']\
+            if tx_count_yesterday and tx_count_yesterday['total'] else 0
+        aept_last_week = earnings_last_week['total'] / tx_count_last_week['total']\
+            if tx_count_last_week and tx_count_last_week['total'] else 0
+        aept_last_28_days = earnings_last_28_days['total'] / tx_count_last_28_days['total']\
+            if tx_count_last_28_days and tx_count_last_28_days['total'] else 0
+
+        transactions_report = {
+            'today': {
+                'count': tx_count_today['total'] if tx_count_today else 0,
+                'aepo': '%.2f' % aept_today,  # AEPO: Avg Earning Per Order
+            },
+            'yesterday': {
+                'count': tx_count_yesterday['total'] if tx_count_yesterday else 0,
+                'aepo': '%.2f' % aept_yesterday,  # AEPO: Avg Earning Per Order
+            },
+            'last_week': {
+                'count': tx_count_last_week['total'] if tx_count_last_week else 0,
+                'aepo': '%.2f' % aept_last_week,  # AEPO: Avg Earning Per Order
+            },
+            'last_28_days': {
+                'count': tx_count_last_28_days['total'] if tx_count_last_28_days else 0,
+                'aepo': '%.2f' % aept_last_28_days,  # AEPO: Avg Earning Per Order
+            }
         }
 
         qs = CashOutRequest.objects.using('wallets').filter(service_id=service.id, status=CashOutRequest.PAID).order_by('-id')
@@ -779,6 +836,9 @@ class DashboardBase(TemplateView):
         except:
             pass
         context['earnings_report'] = earnings_report
+        context['transactions_report'] = transactions_report
+        context['transactions_count_title'] = self.transactions_count_title
+        context['transactions_avg_revenue_title'] = self.transactions_avg_revenue_title
         context['last_cash_out'] = last_cash_out
         context['CRNCY'] = Currency.active.base()
         return context
@@ -793,7 +853,7 @@ class TermsAndConditions(TemplateView):
 
 
 class WelcomeMail(TemplateView):
-    template_name = 'accesscontrol/mails/welcome.html'
+    template_name = 'accesscontrol/mails/community_welcome.html'
 
 
 class BaseExtMail(TemplateView):

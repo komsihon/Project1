@@ -136,7 +136,7 @@
   fields:
     name: Orange Money
     slug: orange-money
-    credentials: {"merchant_key": "huwysk",  "access_token": "token"}
+    credentials: '{"merchant_key": "huwysk",  "access_token": "token"}'
     action_url_name: billing:momo_set_checkout
     logo: logo.png
     watermark: watermark.png

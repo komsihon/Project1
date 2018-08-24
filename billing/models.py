@@ -112,7 +112,7 @@ class Product(Model):
     """
     Any product a customer may subscribe to
     """
-    IMAGE_UPLOAD_TO = 'ikwen/billing/product_images'
+    IMAGE_UPLOAD_TO = 'billing/product_images'
     name = models.CharField(max_length=100, unique=True, db_index=True,
                             help_text="Name of the product as advertised to the customer.")
     short_description = models.TextField(blank=True,
@@ -218,6 +218,7 @@ class AbstractInvoice(Model):
     )
     number = models.CharField(max_length=10)
     amount = models.PositiveIntegerField()
+    paid = models.PositiveIntegerField(default=0)
     processing_fees = models.PositiveIntegerField(default=0)
     months_count = models.IntegerField(blank=not getattr(settings, 'SEPARATE_BILLING_CYCLE', True),
                                        null=not getattr(settings, 'SEPARATE_BILLING_CYCLE', True),
@@ -233,7 +234,7 @@ class AbstractInvoice(Model):
     last_overdue_notice = models.DateTimeField(blank=True, null=True,
                                                help_text=_("Last time the overdue notice was sent to client."))
     status = models.CharField(choices=INVOICE_STATUS_CHOICES, max_length=30, default=PENDING)
-    is_one_off = models.BooleanField(default=False)
+    is_one_off = models.BooleanField(default=not getattr(settings, 'SEPARATE_BILLING_CYCLE', True))
     entries = ListField(EmbeddedModelField('InvoiceEntry'))
 
     class Meta:
@@ -241,6 +242,9 @@ class AbstractInvoice(Model):
 
     def __unicode__(self):
         return _("Invoice No. ") + self.number
+
+    def get_to_be_paid(self):
+        return self.amount - self.paid
 
 
 class Invoice(AbstractInvoice):
@@ -308,6 +312,11 @@ class InvoiceItem(AbstractInvoiceItem):
 
 
 class IkwenInvoiceItem(AbstractInvoiceItem):
+    """
+    Represents an InvoiceItem that can be retailed by
+    a partner. In this case, price is the amount expected
+    by ikwen, while amount is what end user actually pays
+    """
     price = models.FloatField(default=0)
 
 
@@ -372,11 +381,7 @@ class Payment(AbstractPayment):
         The replication is made by adding the actual Service database to DATABASES in settings and calling
         save(using=database).
         """
-        using = kwargs.get('using')
-        if using:
-            del(kwargs['using'])
-        else:
-            using = 'default'
+        using = kwargs.pop('using', 'default')
         if getattr(settings, 'IS_IKWEN', False):
             # If we are on ikwen itself, replicate the update on the current Service database
             db = self.invoice.subscription.__dict__.get('database')
@@ -389,8 +394,8 @@ class Payment(AbstractPayment):
 class PaymentMean(Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField()
-    logo = models.ImageField(upload_to='ikwen/payment_means', blank=True, null=True)
-    watermark = models.ImageField(upload_to='ikwen/payment_watermarks/', blank=True, null=True)
+    logo = models.ImageField(upload_to='payment_means', blank=True, null=True)
+    watermark = models.ImageField(upload_to='payment_watermarks/', blank=True, null=True)
     button_img_url = models.URLField(blank=True, null=True,
                                      help_text="URL of the button image. That is the image that serves as the "
                                                "button on which the user will click to checkout.")
@@ -441,7 +446,7 @@ class MoMoTransaction(Model):
     phone = models.CharField(max_length=24)
     amount = models.FloatField()
     model = models.CharField(max_length=150)
-    object_id = models.CharField(unique=True, max_length=24)
+    object_id = models.CharField(unique=True, max_length=60)
     processor_tx_id = models.CharField(max_length=100, blank=True,
                                        help_text="ID of the transaction in the Payment Processor system")
     task_id = models.CharField(max_length=30, blank=True, null=True,
@@ -465,6 +470,7 @@ class CloudBillingPlan(Model):
     partner = models.ForeignKey(Service, related_name='+', blank=True, null=True,
                                 help_text="Retailer this billing plan applies to.")
     name = models.CharField(max_length=60)
+    is_active = models.BooleanField(default=True)
     is_pro_version = models.BooleanField(default=False)
     max_objects = models.IntegerField(default=100)
     tx_share_fixed = models.FloatField(help_text="Fixed amount ikwen collects per transaction "

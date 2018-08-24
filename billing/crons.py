@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
 
 from django.db.models import Q
@@ -22,11 +23,13 @@ from ikwen.core.utils import get_service_instance, send_sms, add_event
 from ikwen.core.utils import get_mail_content
 from ikwen.billing.models import Invoice, InvoicingConfig, INVOICES_SENT_EVENT, \
     NEW_INVOICE_EVENT, INVOICE_REMINDER_EVENT, REMINDERS_SENT_EVENT, OVERDUE_NOTICE_EVENT, OVERDUE_NOTICES_SENT_EVENT, \
-    SUSPENSION_NOTICES_SENT_EVENT, SERVICE_SUSPENDED_EVENT, SendingReport
+    SUSPENSION_NOTICES_SENT_EVENT, SERVICE_SUSPENDED_EVENT, SendingReport, IkwenInvoiceItem, InvoiceEntry
 from ikwen.billing.utils import get_invoice_generated_message, get_invoice_reminder_message, \
     get_invoice_overdue_message, \
     get_service_suspension_message, get_next_invoice_number, get_subscription_model, get_billing_cycle_months_count, \
     pay_with_wallet_balance
+from ikwen.partnership.models import ApplicationRetailConfig
+from ikwen.rewarding.models import CROperatorProfile
 
 import logging.handlers
 logger = logging.getLogger('crons.error')
@@ -48,8 +51,8 @@ def send_invoices():
     """
     This cron task simply sends the Invoice *invoicing_gap* days before Subscription *expiry*
     """
-    service = get_service_instance()
-    config = service.config
+    vendor = get_service_instance()
+    config = vendor.config
     now = datetime.now()
     invoicing_config = InvoicingConfig.objects.all()[0]
     connection = mail.get_connection()
@@ -82,11 +85,36 @@ def send_invoices():
             if val is not None:  # Returning a not None value cancels the generation of a new Invoice for this Service
                 continue
 
-        invoice = Invoice.objects.create(subscription=subscription, amount=amount,
-                                         number=number, due_date=subscription.expiry, months_count=months_count)
+        entries = []
+        if type(subscription) is Service:
+            partner = subscription.retailer
+            if partner:
+                retail_config = ApplicationRetailConfig.objects.get(partner=partner, app=subscription.app)
+                ikwen_price = retail_config.ikwen_monthly_cost
+            else:
+                ikwen_price = subscription.monthly_cost
+            hosting = IkwenInvoiceItem(label=_('Website hosting'), price=ikwen_price, amount=subscription.monthly_cost)
+            short_description = _("Project %s" % subscription.domain)
+            entry = InvoiceEntry(item=hosting, short_description=short_description, quantity=months_count, total=amount)
+            entries = [entry]
+            try:
+                cr_op_profile = CROperatorProfile.objects.get(service=subscription, is_active=True)
+                if cr_op_profile.monthly_cost > 0:
+                    plan = cr_op_profile.plan
+                    cr_monthly_cost = cr_op_profile.monthly_cost
+                    cr_item = IkwenInvoiceItem(label=_('Continuous Rewarding'), price=cr_monthly_cost, amount=cr_monthly_cost)
+                    short_description = plan.name
+                    cr_amount = months_count * cr_monthly_cost
+                    amount += cr_amount
+                    entry = InvoiceEntry(item=cr_item, short_description=short_description, quantity=months_count, total=cr_amount)
+                    entries.append(entry)
+            except CROperatorProfile.DoesNotExist:
+                pass
+        invoice = Invoice.objects.create(subscription=subscription, amount=amount, number=number,
+                                         due_date=subscription.expiry, months_count=months_count, entries=entries)
         count += 1
         total_amount += amount
-        add_event(service, NEW_INVOICE_EVENT, member=member, object_id=invoice.id)
+        add_event(vendor, NEW_INVOICE_EVENT, member=member, object_id=invoice.id)
 
         paid_by_wallet_debit = False
         if getattr(settings, 'IS_IKWEN', False) and subscription.balance >= invoice.amount:
@@ -97,21 +125,27 @@ def send_invoices():
         subject, message, sms_text = get_invoice_generated_message(invoice)
 
         if member.email:
-            invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
+            invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
             if paid_by_wallet_debit:
                 subject = _("Thanks for your payment")
-                invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
+                invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
                 context = {'wallet_debit': True, 'invoice': invoice, 'config': config,
-                           'invoice_url': invoice_url, 'cta': _("View invoice")}
-                html_content = get_mail_content(subject, '', template_name='billing/mails/notice.html',
+                           'member_name': member.first_name, 'invoice_url': invoice_url, 'cta': _("View invoice")}
+                html_content = get_mail_content(subject, '', template_name='billing/mails/wallet_debit_notice.html',
                                                 extra_context=context)
             else:
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
-                                                extra_context={'invoice_url': invoice_url, 'cta': _("Pay now")})
+                                                extra_context={'invoice_url': invoice_url, 'cta': _("Pay now"),
+                                                               'currency': config.currency_symbol, 'service': vendor,
+                                                               'config': config, 'logo': config.logo,
+                                                               'project_name': vendor.project_name,
+                                                               'company_name': config.company_name})
             # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
             # to be delivered to Spams because of origin check.
-            sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
+            sender = '%s <no-reply@%s>' % (config.company_name, vendor.domain)
             msg = EmailMessage(subject, html_content, sender, [member.email])
+            if paid_by_wallet_debit:
+                msg.bcc = ['k.sihon@ikwen.com']
             msg.content_subtype = "html"
             invoice.last_reminder = timezone.now()
             try:
@@ -144,15 +178,15 @@ def send_invoices():
         if count > 0:
             report = SendingReport.objects.create(count=count, total_amount=total_amount)
             sudo_group = Group.objects.get(name=SUDO)
-            add_event(service, INVOICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
+            add_event(vendor, INVOICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
 
 
 def send_invoice_reminders():
     """
     This cron task sends Invoice reminder notice to the client if unpaid
     """
-    service = get_service_instance()
-    config = service.config
+    vendor = get_service_instance()
+    config = vendor.config
     now = datetime.now()
     invoicing_config = InvoicingConfig.objects.all()[0]
     connection = mail.get_connection()
@@ -168,22 +202,29 @@ def send_invoice_reminders():
         if getattr(settings, 'IS_IKWEN', False):
             if subscription.version == Service.FREE:
                 continue
+            if subscription.retailer:
+                vendor = subscription.retailer
+                config = vendor.config
         diff = now - invoice.last_reminder
         if diff.days == invoicing_config.reminder_delay:
             print "Processing invoice for Service %s" % str(invoice.subscription)
             count += 1
             total_amount += invoice.amount
             member = invoice.subscription.member
-            add_event(service, INVOICE_REMINDER_EVENT, member=member, object_id=invoice.id)
-            print "Event posted to %s's Console" % member.username
+            add_event(vendor, INVOICE_REMINDER_EVENT, member=member, object_id=invoice.id)
             subject, message, sms_text = get_invoice_reminder_message(invoice)
             if member.email:
-                invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
+                invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
-                                                extra_context={'invoice_url': invoice_url, 'cta': _("Pay now")})
+                                                extra_context={'member_name': member.first_name, 'invoice': invoice,
+                                                               'invoice_url': invoice_url, 'cta': _("Pay now"),
+                                                               'currency': config.currency_symbol, 'service': vendor,
+                                                               'config': config, 'logo': config.logo,
+                                                               'project_name': vendor.project_name,
+                                                               'company_name': config.company_name})
                 # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
                 # to be delivered to Spams because of origin check.
-                sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
+                sender = '%s <no-reply@%s>' % (config.company_name, vendor.domain)
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
                 invoice.last_reminder = timezone.now()
@@ -211,15 +252,15 @@ def send_invoice_reminders():
         if count > 0:
             report = SendingReport.objects.create(count=count, total_amount=total_amount)
             sudo_group = Group.objects.get(name=SUDO)
-            add_event(service, REMINDERS_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
+            add_event(vendor, REMINDERS_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
 
 
 def send_invoice_overdue_notices():
     """
     This cron task sends notice of Invoice overdue
     """
-    service = get_service_instance()
-    config = service.config
+    vendor = get_service_instance()
+    config = vendor.config
     now = timezone.now()
     invoicing_config = InvoicingConfig.objects.all()[0]
     connection = mail.get_connection()
@@ -236,6 +277,9 @@ def send_invoice_overdue_notices():
         if getattr(settings, 'IS_IKWEN', False):
             if subscription.version == Service.FREE:
                 continue
+            if subscription.retailer:
+                vendor = subscription.retailer
+                config = vendor.config
         if invoice.last_overdue_notice:
             diff = now - invoice.last_overdue_notice
         else:
@@ -246,16 +290,20 @@ def send_invoice_overdue_notices():
             count += 1
             total_amount += invoice.amount
             member = invoice.subscription.member
-            add_event(service, OVERDUE_NOTICE_EVENT, member=member, object_id=invoice.id)
-            print "Event posted to %s's Console" % member.username
+            add_event(vendor, OVERDUE_NOTICE_EVENT, member=member, object_id=invoice.id)
             subject, message, sms_text = get_invoice_overdue_message(invoice)
             if member.email:
-                invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
+                invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
-                                                extra_context={'invoice_url': invoice_url, 'cta': _("Pay now")})
+                                                extra_context={'member_name': member.first_name, 'invoice': invoice,
+                                                               'invoice_url': invoice_url, 'cta': _("Pay now"),
+                                                               'currency': config.currency_symbol, 'service': vendor,
+                                                               'config': config, 'logo': config.logo,
+                                                               'project_name': vendor.project_name,
+                                                               'company_name': config.company_name})
                 # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
                 # to be delivered to Spams because of origin check.
-                sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
+                sender = '%s <no-reply@%s>' % (config.company_name, vendor.domain)
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
                 invoice.last_overdue_notice = timezone.now()
@@ -283,7 +331,7 @@ def send_invoice_overdue_notices():
         if count > 0:
             report = SendingReport.objects.create(count=count, total_amount=total_amount)
             sudo_group = Group.objects.get(name=SUDO)
-            add_event(service, OVERDUE_NOTICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
+            add_event(vendor, OVERDUE_NOTICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
 
 
 def suspend_customers_services():
@@ -291,8 +339,8 @@ def suspend_customers_services():
     This cron task shuts down service and sends notice of Service suspension
     for Invoices which tolerance is exceeded.
     """
-    service = get_service_instance()
-    config = service.config
+    vendor = get_service_instance()
+    config = vendor.config
     now = timezone.now()
     invoicing_config = InvoicingConfig.objects.all()[0]
     connection = mail.get_connection()
@@ -309,6 +357,9 @@ def suspend_customers_services():
         if getattr(settings, 'IS_IKWEN', False):
             if subscription.version == Service.FREE:
                 continue
+            if subscription.retailer:
+                vendor = subscription.retailer
+                config = vendor.config
         invoice.status = Invoice.EXCEEDED
         invoice.save()
         action = getattr(settings, 'SERVICE_SUSPENSION_ACTION', None)
@@ -322,16 +373,20 @@ def suspend_customers_services():
                 logger.error("Error while processing subscription %s" % str(subscription), exc_info=True)
                 continue
             member = subscription.member
-            add_event(service, SERVICE_SUSPENDED_EVENT, member=member, object_id=invoice.id)
-            print "Event posted to %s's Console" % member.username
+            add_event(vendor, SERVICE_SUSPENDED_EVENT, member=member, object_id=invoice.id)
             subject, message, sms_text = get_service_suspension_message(invoice)
             if member.email:
-                invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
+                invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
-                                                extra_context={'invoice_url': invoice_url, 'cta': _("Pay now")})
+                                                extra_context={'member_name': member.first_name, 'invoice': invoice,
+                                                               'invoice_url': invoice_url, 'cta': _("Pay now"),
+                                                               'currency': config.currency_symbol, 'service': vendor,
+                                                               'config': config, 'logo': config.logo,
+                                                               'project_name': vendor.project_name,
+                                                               'company_name': config.company_name})
                 # Sender is simulated as being no-reply@company_name_slug.com to avoid the mail
                 # to be delivered to Spams because of origin check.
-                sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
+                sender = '%s <no-reply@%s>' % (config.company_name, vendor.domain)
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
                 print "Sending mail to %s" % member.email
@@ -356,7 +411,7 @@ def suspend_customers_services():
         if count > 0:
             report = SendingReport.objects.create(count=count, total_amount=total_amount)
             sudo_group = Group.objects.get(name=SUDO)
-            add_event(service, SUSPENSION_NOTICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
+            add_event(vendor, SUSPENSION_NOTICES_SENT_EVENT, group_id=sudo_group.id, object_id=report.id)
 
 
 if __name__ == "__main__":

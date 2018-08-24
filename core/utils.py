@@ -13,7 +13,9 @@ from django.core.cache import cache
 from django.core.files import File
 from django.db import router
 from django.db.models import F, Model
+from django.db.models.fields.files import ImageFieldFile
 from django.db.models.loading import get_model
+from django.forms import ImageField
 from django.template import Context
 from django.template.defaultfilters import urlencode, slugify
 from django.template.loader import get_template
@@ -43,6 +45,22 @@ def to_dict(var):
                 dict_var[key] = [item.to_dict() for item in dict_var[key]]
             except AttributeError:
                 dict_var[key] = [to_dict(item) for item in dict_var[key]]
+        elif isinstance(var.__getattribute__(key), ImageFieldFile):
+            if var.__getattribute__(key).name:
+                dict_var[key + '_url'] = var.__getattribute__(key).url
+            else:
+                dict_var[key + '_url'] = ''
+            del (dict_var[key])
+        elif isinstance(var.__getattribute__(key), MultiImageFieldFile):
+            if var.__getattribute__(key).name:
+                dict_var[key + '_url'] = var.__getattribute__(key).url
+                dict_var[key + '_small_url'] = var.__getattribute__(key).small_url
+                dict_var[key + '_thumb_url'] = var.__getattribute__(key).thumb_url
+            else:
+                dict_var[key + '_url'] = ''
+                dict_var[key + '_small_url'] = ''
+                dict_var[key + '_thumb_url'] = ''
+            del (dict_var[key])
         elif isinstance(dict_var[key], Model):
             try:
                 dict_var[key] = dict_var[key].to_dict()
@@ -81,13 +99,7 @@ def get_service_instance(using='default', check_cache=True):
     """
     from ikwen.core.models import Service
     service_id = getattr(settings, 'IKWEN_SERVICE_ID')
-    if check_cache:
-        service = cache.get(service_id + ':' + using)
-        if service:
-            return service
-    service = Service.objects.using(using).get(pk=service_id)
-    cache.set(service_id + ':' + using, service)
-    return service
+    return Service.objects.using(using).get(pk=service_id)
 
 
 def add_database_to_settings(alias, engine='django_mongodb_engine', name=None, username=None, password=None):
@@ -161,13 +173,17 @@ def add_dumb_column(database, table, column):
 
 def get_mail_content(subject, message=None, template_name='core/mails/notice.html', extra_context=None):
     service = get_service_instance()
+    config = service.config
     html_template = get_template(template_name)
     from ikwen.conf.settings import MEDIA_URL
     context = {
         'subject': subject,
         'message': message,
         'service': service,
-        'config': service.config,
+        'config': config,
+        'project_name': service.project_name,
+        'company_name': config.company_name,
+        'logo': config.logo,
         'year': datetime.now().year,
         'IKWEN_MEDIA_URL': MEDIA_URL
     }
@@ -548,12 +564,13 @@ def set_counters(watch_object, *args, **kwargs):
         for field in history_fields:
             if type(watch_object.__dict__[field]) is list:
                 extension = [0 for i in range(gap)]
-                extension = extension[-366:]
                 watch_object.__dict__[field].extend(extension)
+                watch_object.__dict__[field] = watch_object.__dict__[field][-366:]
             else:
                 extension = ['0' for i in range(gap)]
-                extension = extension[-366:]
-                watch_object.__dict__[field] = watch_object.__dict__[field] + ',' + ','.join(extension)
+                res = watch_object.__dict__[field] + ',' + ','.join(extension)
+                res = res.split(',')[-366:]
+                watch_object.__dict__[field] = ','.join(res)
     else:
         for field in history_fields:
             if type(watch_object.__dict__[field]) is list:

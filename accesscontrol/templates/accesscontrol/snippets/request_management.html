@@ -1,56 +1,21 @@
-{% load i18n humanize staticfiles auth_tokens %}
+{% load i18n humanize %}
 <script type="text/javascript">
     (function() {
-        {% if request.GET.successfulRequest %}ikwen.showFloatingNotice('{% trans "Request successfully submitted." %}', '', 6);{% endif %}
-        $('.request-access').click(function() {
-            var serviceId = $(this).data('service-id');
-            $.getJSON('{% url 'ikwen:request_access' %}', {service_id: serviceId, format: 'json'}, function(data) {
+        {% if messages %}
+            {% for msg in messages %}ikwen.showFloatingNotice('{{ msg|safe }}', '{{ msg.tags }}', 6);{% endfor %}
+        {% endif %}
+        $('body').on('click', '.join-community.btn.btn-primary', function() {
+            var _$btn = $(this),
+                serviceId = $(this).data('service-id');
+            _$btn.addClass('btn-default').removeClass('btn-primary');
+            $.getJSON('{% url 'ikwen:join' %}', {service_id: serviceId, format: 'json'}, function(data) {
                 if (data.success) {
-                    $('section#about .actions').addClass('text-success').html('{% trans "Request successfully submitted." %}');
+                    _$btn.fadeOut('normal', 'linear', function() {
+                        _$btn.next().show();
+                    });
+                    ikwen.showFloatingNotice("{% trans "Great ! You just joined our awesome community." %}", '', 6);
                 }
             })
         });
-        $('.allow-access').click(function() {
-            var requestId = $(this).data('request-id'),
-                _$details = $(this).parents('.details');
-            if (_$details.find('.group').length == 1) {
-                var groupId = _$details.find('input[name=group]').val();
-                _$details.find('.group-choice').hide();
-                if (confirm("{% trans "Grant collaboration access ?" %}")) grantAccess(requestId, groupId, _$details);
-            } else {
-                _$details.find('.about').hide();
-                _$details.find('.groups').show();
-            }
-        });
-        $('.deny-access').click(function() {
-            var requestId = $(this).data('request-id'),
-                _$details = $(this).parents('.details');
-            if (confirm("{% trans "Confirm access denial ?" %}")) denyAccess(requestId, _$details);
-        });
-        $('.confirm-group').click(function() {
-            var requestId = $(this).data('request-id'),
-                    groupId = $('.access-request .groups input:checked').val(),
-                _$details = $(this).parents('.details');
-            grantAccess(requestId, groupId, _$details);
-        });
-        function grantAccess(requestId, groupId, _$details) {
-            $.getJSON('{% url 'ikwen:grant_access' %}', {request_id: requestId, group_id: groupId}, function(data) {
-                if (data.success) {
-                    _$details.find('.about, .groups button').hide();
-                    _$details.find('.groups').show();
-                    _$details.find('.groups p.text-success').text("{% trans "Access granted with success." %}").show();
-                }
-            })
-        }
-        function denyAccess(requestId, _$details) {
-            $.getJSON('{% url 'ikwen:deny_access' %}', {request_id: requestId}, function(data) {
-                if (data.success) {
-                    _$details.find('.about, .groups button').hide();
-                    $('#' + requestId).fadeOut()
-                } else {
-                    ikwen.showFloatingNotice("{% trans "Server error. Try again later" %}", '', 6);
-                }
-            })
-        }
     })()
 </script>

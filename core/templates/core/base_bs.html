@@ -201,8 +201,6 @@
         {% block js %}
             <script>
                 (function() {
-                    ikwen.URL_KEY = '{{ request.GET.key }}';
-                    ikwen.URL_RAND = '{{ request.GET.rand }}';
                     $('form#lang a').click(function() {
                         var lang = $(this).data('val');
                         $('form#lang input[name=language]').val(lang);

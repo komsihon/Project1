@@ -106,7 +106,7 @@
                         <td colspan="4">{% trans "Description" %}</td>
                         <td class="numeric">{% trans "Amount" %}</td>
                     </tr>
-                    {% if invoice.is_one_off %}
+                    {% if invoice.entries %}
                         {% for entry in invoice.entries %}
                             <tr>
                                 <td colspan="4">

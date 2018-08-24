@@ -66,6 +66,13 @@ def request_payment(request, transaction):
     data = {'idbouton': 2, 'typebouton': 'PAIE', 'submit.x': 104, 'submit.y': 70,
             '_cIP': '', '_amount': amount, '_tel': transaction.phone}
     cashout_url = MTN_MOMO_API_URL
+    payments_conf = getattr(settings, 'PAYMENTS', None)
+    if payments_conf:
+        conf = request.session['payment_conf']
+        path = payments_conf[conf]['after']
+    else:
+        path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
+    momo_after_checkout = import_by_path(path)
     if getattr(settings, 'UNIT_TESTING', False):
         transaction.processor_tx_id = 'tx_1'
         transaction.task_id = 'task_1'
@@ -73,6 +80,7 @@ def request_payment(request, transaction):
         transaction.is_running = False
         transaction.status = MoMoTransaction.SUCCESS
         request.session['next_url'] = 'http://nextUrl'
+        momo_after_checkout(request, signature=request.session['signature'])
     elif getattr(settings, 'DEBUG', False):
         mtn_momo = json.loads(PaymentMean.objects.get(slug=MTN_MOMO).credentials)
         data.update({'_email': mtn_momo['merchant_email']})
@@ -85,6 +93,7 @@ def request_payment(request, transaction):
         if resp['StatusCode'] == '01':
             logger.debug("Successful MoMo payment of %dF from %s: %s" % (amount, username, transaction.phone))
             transaction.status = MoMoTransaction.SUCCESS
+            momo_after_checkout(request, signature=request.session['signature'])
         else:
             transaction.status = MoMoTransaction.API_ERROR
     else:
@@ -104,13 +113,6 @@ def request_payment(request, transaction):
             if resp['StatusCode'] == '01':
                 logger.debug("MTN MoMo: Successful payment of %dF from %s: %s" % (amount, username, transaction.phone))
                 transaction.status = MoMoTransaction.SUCCESS
-                payments_conf = getattr(settings, 'PAYMENTS', None)
-                if payments_conf:
-                    conf = request.session['payment_conf']
-                    path = payments_conf[conf]['after']
-                else:
-                    path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
-                momo_after_checkout = import_by_path(path)
                 if getattr(settings, 'DEBUG', False):
                     momo_after_checkout(request, signature=request.session['signature'])
                 else:

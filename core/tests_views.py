@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# LOADING FIXTURES DOES NOT WORK BECAUSE Database connection 'foundation' is never found
+# LOADING FIXTURES DOES NOT WORK BECAUSE Database connection 'umbrella' is never found
 # tests_views.py is an equivalent of these tests run by loading data into databases manually
 
 
@@ -13,7 +13,6 @@ from django.core.urlresolvers import reverse
 from django.test.client import Client
 from django.test.utils import override_settings
 from django.utils import unittest
-from ikwen.partnership.models import PartnerProfile
 
 from ikwen.billing.models import Invoice, IkwenInvoiceItem, InvoiceEntry
 
@@ -63,7 +62,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
         response = self.client.get(reverse('ikwen:console'))
         self.assertEqual(response.status_code, 200)
 
-    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102', CACHES=None)
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
     def test_Configuration(self):
         """
         Make sure the url is reachable
@@ -72,7 +71,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
         response = self.client.get(reverse('ikwen:configuration'))
         self.assertEqual(response.status_code, 200)
 
-    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', CACHES=None)
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
     def test_service_detail_page(self):
         """
         Make sure the url is reachable

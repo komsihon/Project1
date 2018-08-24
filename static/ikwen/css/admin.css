@@ -38,10 +38,10 @@ div#container.admin {padding-top: 92px;}
 
 #admin-nav > div > div {padding: 0 10px;}
 #admin-nav .wrapper {padding: 20px 0 90px;}
-#admin-nav .stage {width: 100%;padding: 0 0 90px;}
+#admin-nav .stage {width: 100%;padding: 0 0 200px;}
 #admin-nav {background: #fff;left: 0;max-width: 240px;overflow: auto;position: fixed;height: 100%;width: 80%;top: 0;z-index: 1;}
 #admin-nav .divider {border-top: 1px solid #eee;margin: 15px 0;}
-.nav-pills>li>a {padding: 5px 15px;cursor: pointer;font-weight: 700;text-transform: uppercase;color: #666;}
+.nav-pills>li>a {padding: 9px 15px;cursor: pointer;font-weight: 700;color: #777;}
 .nav-pills>li.active>a, .nav-pills>li.active>a:hover, .nav-pills>li.active>a:focus {background: #eee;color: #333;}
 
 #admin-content {height: 100%;overflow: auto;position: absolute;width: 100%;}
@@ -81,7 +81,7 @@ div#container.admin {padding-top: 92px;}
 
 #results {padding-top: 15px}
 .list-group-item {border-left: none; border-right: none; border-radius: 0}
-.list-group-item .actions {bottom: 12px; position: absolute; right: 20px}
+.list-group-item .actions {bottom: 12px;position: absolute;right: 20px;}
 
 .checkbox-row input[type=checkbox] {float: left;width: 20px;}
 .checkbox-row label {margin: 10px 0 0 10px}
@@ -89,10 +89,11 @@ div#container.admin {padding-top: 92px;}
 .currency-list .checkbox:first-of-type {margin: -5px 0 10px 0}
 #stage section {background: #fff;float: left;margin-top: 25px;overflow: hidden;padding: 15px;width: 100%;}
 #stage section h3 {font-size: 21px; font-weight: 700; margin-top: 0}
-footer {background: #fff;bottom: 0;margin:0;padding: 10px;position: fixed;text-align: left;width: 239px;}
+footer {display:none}
+.edge-panel-left footer {background: #fff;bottom: 0;display:block;margin:0;padding: 10px;position: fixed;text-align: left;width: 239px;}
 footer a {color: #999}
 
-#object-detail {background: #fff;height: 100%;max-width: 270px; position: fixed;right: 0;width: 80%;overflow: auto;}
+#object-detail {max-width: 270px;width: 80%;}
 #object-detail .empty {color: #888; padding: 40px 15px 0}
 #object-detail .main-title {
     font-size: 18px;
@@ -102,7 +103,7 @@ footer a {color: #999}
 #object-detail form {margin: 25px 0}
 #object-detail form button {margin-top: 25px}
 #object-detail .object-list {width: 100%; padding: 10px}
-#object-detail .ik-li {padding: 5px 0}
+#object-detail .ik-li {padding: 5px 0;}
 #object-detail .ik-li .about {font-size: 13px; margin-top: 2px}
 #object-detail .container-fluid {padding: 0 10px}
 
@@ -135,6 +136,7 @@ footer a {color: #999}
 .object-list {
     padding: 0;
 }
+.object-list .list-group-item:first-of-type {border-top: none}
 #results {clear: both}
 #admin-tools + #results {margin-top: 20px;}
 .content-tab-list {position: fixed;width: 100%;z-index: 10;}

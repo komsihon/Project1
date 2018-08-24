@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractUser, Group
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.template.defaultfilters import slugify
 from django.utils.datetime_safe import strftime
 from django.utils.translation import gettext as _, get_language
 from django_mongodb_engine.contrib import RawQueryMixin
@@ -34,6 +35,7 @@ class MemberManager(BaseUserManager, RawQueryMixin):
             raise ValueError('Username must be set')
         member = self.model(username=username, **extra_fields)
         member.full_name = u'%s %s' % (member.first_name.split(' ')[0], member.last_name.split(' ')[0])
+        member.tags = slugify(member.first_name + ' ' + member.last_name).replace('-', ' ')
         service_id = getattr(settings, 'IKWEN_SERVICE_ID')
         from ikwen.accesscontrol.backends import UMBRELLA
         from ikwen.conf.settings import IKWEN_SERVICE_ID
@@ -89,12 +91,13 @@ class MemberManager(BaseUserManager, RawQueryMixin):
 
 class Member(AbstractUser):
     AVATAR = settings.STATIC_URL + 'ikwen/img/login-avatar.jpg'
-    PROFILE_UPLOAD_TO = 'ikwen/members/profile_photos'
-    COVER_UPLOAD_TO = 'ikwen/members/cover_images'
+    PROFILE_UPLOAD_TO = 'members/profile_photos'
+    COVER_UPLOAD_TO = 'members/cover_images'
     MALE = 'Male'
     FEMALE = 'Female'
     # TODO: Create and set field full_name in collection ikwen_member in database itself
     full_name = models.CharField(max_length=150, db_index=True)
+    tags = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     phone = models.CharField(max_length=30, db_index=True, blank=True, null=True)
     gender = models.CharField(max_length=15, blank=True, null=True)
     dob = models.DateField(blank=True, null=True)
@@ -188,7 +191,8 @@ class Member(AbstractUser):
             add_database_to_settings(db)
             Member.objects.using(db).filter(pk=self.id)\
                 .update(email=self.email, phone=self.phone, gender=self.gender, first_name=self.first_name,
-                        last_name=self.last_name, full_name=self.first_name + ' ' + self.last_name)
+                        last_name=self.last_name, full_name=self.first_name + ' ' + self.last_name,
+                        photo=self.photo.name, cover_image=self.cover_image.name)
 
     def propagate_password_change(self, new_password):
         for s in self.get_services():
@@ -253,15 +257,15 @@ class OfficialIdentityDocument(Model):
 
 
 class IDCard(OfficialIdentityDocument):
-    scan_front = models.ImageField(upload_to='ikwen/id_cards')
-    scan_back = models.ImageField(upload_to='ikwen/id_cards')
+    scan_front = models.ImageField(upload_to='id_cards')
+    scan_back = models.ImageField(upload_to='id_cards')
 
     class Meta:
         db_table = 'ikwen_id_cards'
 
 
 class Passport(OfficialIdentityDocument):
-    scan = models.ImageField(upload_to='ikwen/passports')
+    scan = models.ImageField(upload_to='passports')
 
     class Meta:
         db_table = 'ikwen_passports'
@@ -274,8 +278,8 @@ class AccessRequest(Model):
 
     member = models.ForeignKey(Member, db_index=True)
     service = models.ForeignKey(Service, related_name='+', db_index=True)
-    group_name = models.CharField(max_length=60, blank=True)
-    status = models.CharField(max_length=30, default=PENDING)
+    group_name = models.CharField(max_length=60, blank=True, default=COMMUNITY)
+    status = models.CharField(max_length=30, default=CONFIRMED)
 
     class Meta:
         db_table = 'ikwen_access_request'

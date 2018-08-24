@@ -24,7 +24,7 @@
     font-size: 34px
 }
 
-.section-title {clear: both}
+.section-title {clear: both; font-size: 15px}
 #admin-content em.last-payment {color: #555; display: block; font-size: 25px; width: 100%}
 .view-payments {float: left; width: auto}
 
@@ -90,7 +90,11 @@
     width: 100%
 }
 
-.performances > div > div {
+.section-title.performances {
+    margin: 20px 0 5px;
+}
+
+.performances:not(.section-title) > div > div {
     border: 1px solid #eee;
     margin: 5px 0 15px;
     padding: 10px 10px 20px
@@ -153,7 +157,7 @@
     #admin-content em.last-payment {font-size: 21px}
     .payments .view-payments {margin-top: 5px}
     .section-title {border-top: 1px solid #ddd;padding-top: 10px;margin-top: 25px;margin-bottom: 15px;}
-    .section-title.perf {margin-bottom: 25px;}
+    .section-title.performances {margin: 25px 0;}
 }
 @media (min-width: 992px) {
     #admin-content {padding-left: 240px;}

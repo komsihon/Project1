@@ -36,6 +36,23 @@ LOGGING = {
             'filename': '/var/www/ikwen_error.log',
             'maxBytes': 1000000,
             'backupCount': 4
+        },
+        'rewarding_info_log_handler': {
+            'level': 'DEBUG',
+            'filters': ['require_lower_than_error'],
+            'formatter': 'default',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/var/www/rewarding_info.log',
+            'maxBytes': 10000000,
+            'backupCount': 4
+        },
+        'rewarding_error_log_handler': {
+            'level': 'ERROR',
+            'formatter': 'default',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/var/www/rewarding_error.log',
+            'maxBytes': 10000000,
+            'backupCount': 4
         }
     },
     'loggers': {
@@ -43,6 +60,11 @@ LOGGING = {
             'handlers': ['info_log_handler', 'error_log_handler'],
             'level': 'DEBUG',
             'propagate': True,
+        },
+        'ikwen.rewarding': {
+            'handlers': ['rewarding_info_log_handler', 'rewarding_error_log_handler'],
+            'level': 'DEBUG',
+            'propagate': False,
         }
     }
 }

@@ -48,7 +48,7 @@ class BillingUtilsTest(TestCase):
         expiry = datetime.now() + timedelta(days=invoicing_config.gap)
         Subscription.objects.all().update(expiry=expiry)
         send_invoices()
-        sent = Invoice.objects.filter(reminders_sent=1).count()
+        sent = Invoice.objects.all().count()
         self.assertEqual(sent, 3)
 
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801',

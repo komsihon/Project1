@@ -20,7 +20,7 @@ class Template(Model):
 
 
 class Theme(Model):
-    UPLOAD_TO = 'ikwen/theme_logos'
+    UPLOAD_TO = 'theme_logos'
     COMPACT = 'Compact'
     COZY = 'Cozy'
     COMFORTABLE = 'Comfortable'
@@ -33,7 +33,7 @@ class Theme(Model):
     name = models.CharField(max_length=100,
                             help_text="Name of this theme")
     slug = models.SlugField()
-    preview = models.ImageField(upload_to='ikwen/theme_previews',
+    preview = models.ImageField(upload_to='theme_previews',
                                 blank=getattr(settings, 'DEBUG', False), null=getattr(settings, 'DEBUG', False))
     logo = models.ImageField(upload_to=UPLOAD_TO, editable=False, blank=True, null=True,
                              help_text="This is not the logo of the theme actually, but the logo of the website "

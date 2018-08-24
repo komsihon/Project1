@@ -191,9 +191,34 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 #content form ul.errorlist li {color: #FF0808; list-style-type: none}
 
 .edge-swipe-overlay {background: rgba(0, 0, 0, .3);display: none; height: 100%;overflow: hidden;position: fixed;top: 0;width: 100%;z-index: 1000;}
-.edge-panel-left {display: none; margin-left: -300px}
-.edge-panel-right {display: none; margin-right: -300px}
-
+.edge-panel-left {
+    background: #ffffff;
+    display: none;
+    height: 100%;
+    left: 0;
+    margin-left: -300px;
+    max-width: 300px;
+    overflow: auto;
+    position: fixed;
+    top: 0;
+    width: 90%;
+    z-index: 1;
+    }
+.edge-panel-left .wrapper {padding: 20px 0 120px}
+.edge-panel-left footer {
+    bottom: 0;
+    margin: 0;
+    padding: 10px;
+    position: fixed;
+    text-align: left;
+    max-width: 299px;
+    width: 89%;
+    }
+.edge-panel-left .stage {padding: 0 0 90px; width: 100%}
+.edge-panel-left .menu {float: left;padding: 0 10px;width: 100%;}
+.edge-panel-right {background: #fff; display: none; height: 100%; max-width: 300px;
+    position: fixed; right: 0; width: 90%; overflow: auto; margin-right: -300px}
+.divider {border-top: 1px solid #eee;clear:  both;margin: 15px 0;}
 .nav > .tab {position: relative; display: block;}
 .nav > .tab > a {position: relative;display: block;padding: 10px 6px;text-decoration: none;}
 .nav-tabs > .tab {float: left;margin-bottom: -1px;}
@@ -205,6 +230,14 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     border-bottom-color: transparent;
     cursor: default
 }
+.social-sharing .dropdown-menu a i {float: left;font-size: 25px;margin: 6px 10px 0 0;width: 22px;}
+.social-sharing .fa-whatsapp {color: #4CAF50;}
+.social-sharing .fa-facebook {color: #1976D2;}
+.social-sharing .fa-twitter {color: #00BCD4;}
+.social-sharing .dropdown-menu a i.fa-google-plus {color: #FF5722; font-size: 22px}
+.social-sharing .fa-comment {color: #FFC107;}
+
+.dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {color: #7b8a8b;background-color: #eee}
 
 @media (max-width: 767px) {
     .card-xs {padding: 0}
@@ -234,7 +267,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
         margin-top: -5px;
         position: absolute;
     }
-    .navbar-default #nav-xs.navbar-nav .open .dropdown-menu>li>a {color: #545454;line-height: 27px}
+    .navbar-default #nav-xs.navbar-nav .open .dropdown-menu>li>a {color: #545454;line-height: 35px;}
     .navbar-right .dropdown-menu {left: auto;right: 3px;top: 10px;}
     #navbar-results {border-top: 1px solid #eee}
     .nav-tabs.swiper-wrapper {background: #f8f6f6; border-bottom: none}
@@ -305,7 +338,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 }
 @media (max-width: 991px) {
     #navbar .navbar-nav .open .dropdown-menu {max-height: 450px;overflow: auto;min-width: 200px;}
-    #navbar.navbar-default .navbar-nav .open .dropdown-menu>li>a {line-height: 35px;}
+    .dropdown-menu>li>a {line-height: 35px;}
 }
 @media (min-width: 992px) {
     .tiles {margin-left: -15px}
@@ -323,6 +356,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
         padding-top: 7%
     }
     .edge-panel-left {display: block;margin-left: 0;}
+    .social-sharing .dropdown-menu a {line-height: 35px;}
 }
 @media (min-width: 1200px) {
     .tiles .ik-li {height: 300px;width: 25%;}
@@ -362,3 +396,8 @@ footer .company-name {color: #666; text-decoration: none}
 .autocomplete-suggestions {background: #fff; box-shadow: 1px 1px 9px 4px rgba(0, 0, 0, .1)}
 .autocomplete-suggestion {cursor: pointer; padding: 10px;}
 .autocomplete-suggestion:not(:first-child) {border-top: 1px solid #ddd}
+
+.swiper-button-prev, .swiper-button-next {background: #fff !important;font-size: 24px; height: 36px !important;text-align: center; width: 28px !important}
+.swiper-button-next {right: 0 !important;border-top-left-radius: 3px;border-bottom-left-radius: 3px;}
+.swiper-button-prev {left: 0 !important;border-top-right-radius: 3px;border-bottom-right-radius: 3px;}
+.swiper-button-next.swiper-button-disabled, .swiper-button-prev.swiper-button-disabled {pointer-events: visible !important;}

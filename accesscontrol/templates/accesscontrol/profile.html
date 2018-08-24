@@ -1,12 +1,29 @@
 {% extends "core/base_bs.html" %}
 {% load i18n humanize static auth_tokens %}
 
+{% block meta %}
+    {{ block.super }}
+    <meta property="og:type" content="Website" />
+    {% if cr_profile %}
+        <meta property="og:title" content="{{ service.project_name }} is offering you some gifts" />
+        <meta property="og:image" content="{% get_media_prefix %}{{ coupon_list.0.image.name }}" />
+        <meta property="og:description" content="{% blocktrans with project_name=service.project_name %}Join {{ project_name }} on ikwen and get some free coupons !{% endblocktrans %}" />
+        <meta name="description" content="{% blocktrans with project_name=service.project_name %}Join {{ project_name }} on ikwen and get some free coupons !{% endblocktrans %}" />
+    {% else %}
+        <meta property="og:title" content="{{ service.project_name }}" />
+        <meta property="og:image" content="{% get_media_prefix %}{{ config.logo.name }}" />
+        <meta property="og:description" content="{% blocktrans %}Join {{ project_name }} on ikwen !{% endblocktrans %}" />
+        <meta name="description" content="{% blocktrans %}Join {{ project_name }} on ikwen !{% endblocktrans %}" />
+    {% endif %}
+{% endblock %}
+
 {% block page_title %}
 <title> {{ profile_name }} - ikwen </title>
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
     <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <link rel='stylesheet' href="{% static 'ikwen/swiper/css/swiper.min.css' %}" />
     <style>
         body {background: #f6f6f6}
         {% if profile_cover_url %}
@@ -45,7 +62,17 @@
         {% endif %}
         #deploy {background: #7a1e31; border-color:  #7a1e31; color: #fff; font-weight: 700; letter-spacing: 2px}
         #deploy:hover {background: #982035; border-color:  #982035}
+        #coupons .progress {margin: 0}
+        #coupons .progress-bar {background-color: #4CAF50;}
+        #coupons .join-community {font-weight: 600; width: 180px}
+        .coupon-count {color: #fff; float: right; height: 34px; margin-top: 146px; padding-right: 5px}
+        .coupon-count span {font-size: 26px; font-weight: 700}
     </style>
+{% endblock %}
+
+{% block head_js %}
+    {{ block.super }}
+    <script src="{% static 'ikwen/swiper/js/swiper.jquery.min.js' %}"></script>
 {% endblock %}
 
 {% block header_brand %}
@@ -57,6 +84,48 @@
 
 {% block content %}
     <div id="content" class="container">
+        <div class="edge-panel-left visible-xs">
+            <div class="wrapper">
+                <div class="stage">
+                    <div class="logo text-center">
+                        <img src="{% static 'ikwen/img/logo_ikwen_2018.png' %}" alt="ikwen logo" />
+                    </div>
+                    <div class="menu console-menu">
+                        <h4 class="text-muted">
+                            <div class="disc coupon">
+                                <i class="fa fa-ticket"></i>
+                            </div>
+                            {% trans "My collection" %}
+                        </h4>
+                        <ul style="padding: 0">
+                            {% for summary in coupon_summary_list %}
+                                {% with service=summary.service %}
+                                <li class="ik-li">
+                                    <a href="{% url 'ikwen:company_profile' service.project_name_slug %}">
+                                        <div class="image rounded" style="background-image: url({% get_media_prefix %}{{ service.config.logo.name }})">
+                                            {% if summary.threshold_reached %}
+                                                <i class="threshold-reached"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="info">
+                                            <span class="title">{{ service.project_name }}</span>
+                                            <p class="about">{{ summary.count }} {% trans "Coupons" %}</p>
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </a>
+                                </li>
+                                {% endwith %}
+                            {% empty %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <footer>
+                    &copy; {{ year }} <a href="http://www.ikwen.com"><strong>ikwen</strong></a>. {% trans "All rights reserved." %} -
+                    <a href="http://www.ikwen.com/legalMentions" style="text-decoration: underline">{% trans "Legal mentions" %}</a>
+                </footer>
+            </div>
+        </div>
         {% block stage %}
             <div id="stage">
                 <header id="cover" class="subtle-shade">
@@ -68,64 +137,111 @@
                         <h2 class="text-has-shade name hidden-xs">{{ profile_name }}</h2>
                     </div>
                 </header>
-                <div id="cards">
-                    {% for elt in access_request_list %}
-                        {% with rq=elt.rq srvc=elt.rq.service %}
-                            <section id="{{ elt.rq.id }}" class="access-request card subtle-shade">
-                                <div class="logo">
-                                    {% if srvc.config.logo.name %}
-                                        <img src="{{ srvc.config.logo.url }}"/>
-                                    {% else %}
-                                        <img src="{% static 'ikwen/img/logo-placeholder.jpg' %}"/>
-                                    {% endif %}
-                                    <p class="member-name">{{ srvc.project_name }}</p>
-                                </div>
-                                <div class="details row">
-                                    <div class="about">
-                                        <div class="col-xs-12 col-sm-6">
-                                            <h4 style="margin-top: 0">{% trans "Request to join" %}</h4>
-                                            <p>{% trans "This person would like to join your community." %}</p>
-                                        </div>
-                                        <div class="col-xs-6 col-sm-3">
-                                            <button class="btn btn-success btn-sm btn-block allow-access"
-                                                    data-request-id="{{ rq.id }}"
-                                                    data-access-type="{{ rq.type }}">{% trans "Grant access" %}</button>
-                                        </div>
-                                        <div class="col-xs-6 col-sm-3" style="cursor: pointer; font-weight: 700; padding-top: 7px">
-                                            <span class="text-danger deny-access"
-                                                  data-request-id="{{ rq.id }}">{% trans "No, Refuse" %}</span>
-                                        </div>
-                                        {#                                <div class="col-sm-3 col-md-3">#}
-                                        {#                                    <button id="deny-access" class="btn btn-danger btn-sm btn-block" data-request-id="{{ elt.rq.id }}">{% trans "Refuse" %}</button>#}
-                                        {#                                </div>#}
-                                    </div>
-                                    <div class="groups" style="display: none">
-                                        <div class="group-choice">
-                                            <h3>{% trans "Add to group ..." %}</h3>
-                                            {% for group in elt.groups %}
-                                                <div class="form-group">
-                                                    <div class="radio">
-                                                        <label>
-                                                            <input type="radio" class="group" name="group" value="{{ group.id }}"/>
-                                                            {{ group.name }}
-                                                        </label>
-                                                    </div>
+                {% if coupon_list %}
+                <div id="coupons" class="card-ul">
+                    <div class="card subtle-shade">
+                        <div>
+                            <h3 class="pull-left" style="font-size: 18px; margin-top: 0">{% trans "Our Coupons" %}</h3>
+                            <div class="dropdown social-sharing pull-right">
+                                <a class="dropdown-toggle" href="javascript:;" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fa fa-share-alt" style="color: #243682; font-size: 21px; margin-right: 10px"></i>
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="share-coupons">
+                                    <li class="visible-xs visible-sm">
+                                        <a href="https://api.whatsapp.com/send?text={{ url }}" target="_blank">
+                                            <i class="fa fa-whatsapp"></i>
+                                            WhatsApp
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://facebook.com/sharer/sharer.php?u={{ url }}" target="_blank">
+                                            <i class="fa fa-facebook"></i>
+                                            Facebook
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://twitter.com/home?status={{ url }}" target="_blank">
+                                            <i class="fa fa-twitter"></i>
+                                            Twitter
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://plus.google.com/share?url={{ url }}" target="_blank">
+                                            <i class="fa fa-google-plus"></i>
+                                            Google+
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="row">
+                            <div class="row swiper-container" style="margin-top: 5px">
+                                <div class="swiper-wrapper">
+                                {% for coupon in coupon_list %}
+                                    <div class="col-xs-4 col-sm-3 card-li swiper-slide" style="text-align: center">
+                                        <div>
+                                            <div class="img coupon-img" data-id="{{ coupon.id }}" style="background-image: url({% get_media_prefix %}{{ coupon.image.name }})">
+                                                {% if user.is_authenticated %}
+                                                <div class="text-has-shade coupon-count">
+                                                    <span>{{ coupon.count }}</span>/100
                                                 </div>
-                                            {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                            {% if user.is_authenticated %}
+                                            <div class="progress">
+                                                <div class="progress-bar" style="width: {{ coupon.ratio }}%">
+                                                    <span class="sr-only">{{ coupon.ratio }}% Complete</span>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            <p style="margin-top: 5px">{{ coupon.name|truncatewords:2 }}</p>
                                         </div>
-                                        <p class="text-success"
-                                           style="display: none">{% trans "Access granted with success." %}</p>
-                                        <div class="col-xs-6 col-sm-4 col-md-3" style="margin-left: -15px">
-                                            <button data-request-id="{{ rq.id }}"
-                                                    class="btn btn-success btn-sm btn-block confirm-group">{% trans "Confirm" %}</button>
-                                        </div>
+                                        {% if coupon.count >= 100 %}
+                                            <button class="btn btn-sm btn-block btn-warning claim-reward"
+                                                    data-toggle="modal" data-target="#claim-reward">
+                                                {% trans "Claim your reward" %}
+                                            </button>
+                                        {% endif %}
                                     </div>
+                                {% endfor %}
                                 </div>
-                                <div class="clearfix"></div>
-                            </section>
-                        {% endwith %}
-                    {% endfor %}
-                    <section id="about" class="card subtle-shade">
+                                <div class="swiper-button-next has-shade">
+                                    <i class="fa fa-angle-right"></i>
+                                </div>
+                                <div class="swiper-button-prev has-shade">
+                                    <i class="fa fa-angle-left"></i>
+                                </div>
+                            </div>
+                        </div>
+                        {% if not is_member %}
+                        <div>
+                            <p style="margin: 15px 0 25px">{% blocktrans %}
+                                Collect our coupons and get Discounts, Free Gifts and Purchase Orders. It's
+                                free and easy. Join our Community and receive some free coupons to get started.
+                            {% endblocktrans %}</p>
+                            <p class="text-center">
+                            {% if request.user.is_authenticated %}
+                                {% if not is_member %}
+                                    <button class="btn btn-primary join-community" data-service-id="{{ page_service.id }}">
+                                        <img src="{% static 'ikwen/img/Join_button_white.svg' %}" height="15" style="margin: -4px 5px 0 0" />
+                                        Join
+                                    </button>
+                                {% endif %}
+                            {% else %}
+                                <a class="btn btn-primary join-community" href="{% url 'home' %}?join={{ page_service.project_name_slug }}">
+                                    <img src="{% static 'ikwen/img/Join_button_white.svg' %}" height="15" style="margin: -4px 5px 0 0" />
+                                    Join
+                                </a>
+                            {% endif %}
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                <div id="cards" style="width: 100%">
+                    <section id="about" class="card profile-about subtle-shade">
                         {% if is_company and page_config.short_description %}
                             {% if page_config.description %}
                                 <p style="color: #666; font-size: 18px; margin-bottom: 20px; text-align: justify">{{ page_config.description }}</p>
@@ -151,29 +267,41 @@
                             {% if profile_phone %}
                                 <li>
                                     <label>{% trans "Phone" %}</label>
-                                    <span>{{ profile_phone }}</span>
+                                    <a href="tel://{{ profile_phone }}">{{ profile_phone }}</a>
                                 </li>
                             {% endif %}
                             {% if is_company and not app %}
                                 <li>
                                     <label>{% trans "Website" %}</label>
                                     <span>
-                                        {{ page_service.url }} -
-                                        <a href="{{ page_service.url }}" target="_blank">{% trans "Visit" %}</a>
+                                        <a href="{{ page_service.url }}" target="_blank">{{ page_service.url }}</a>
                                     </span>
                                 </li>
+                                {% if profile_address %}
+                                <li>
+                                    <label>{% trans "Address" %}</label>
+                                    <span>
+                                        {{ profile_addess }}
+                                    </span>
+                                </li>
+                                {% endif %}
                             {% endif %}
                         </ul>
-                        {% if is_company and not app %}
+                        {% if is_company and not app and not cr_profile %}
                             <div class="actions">
                                 {% if request.user.is_authenticated %}
                                     {% if not is_member %}
-                                        <button class="btn btn-success btn-sm request-access"
-                                                data-service-id="{{ page_service.id }}">{% trans "Join" %}</button>
+                                        <button class="btn btn-primary btn-sm join-community" data-service-id="{{ page_service.id }}">
+                                            <img src="{% static 'ikwen/img/Join_button_white.svg' %}" height="15" style="margin: -4px 5px 0 0" />
+                                            {% trans "Join" %}
+                                        </button>
                                     {% endif %}
                                 {% else %}
-                                    <a class="btn btn-success btn-sm"
-                                       href="{% url 'ikwen:request_access' %}?service_id={{ page_service.id }}">{% trans "Join" %}</a>
+                                    <a class="btn btn-primary btn-sm"
+                                       href="{% url 'ikwen:join' %}?service_id={{ page_service.id }}">
+                                        <img src="{% static 'ikwen/img/Join_button_white.svg' %}" height="15" style="margin: -4px 5px 0 0" />
+                                        {% trans "Join" %}
+                                    </a>
                                 {% endif %}
                             </div>
                         {% elif app.is_public and app.deployment_url_name %}
@@ -184,6 +312,70 @@
                     </section>
                 </div>
             </div>
+            <div class="modal fade" id="claim-reward" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content modal-info">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">{% trans "Claim your reward" %}</h4>
+                        </div>
+                        <div class="modal-body">
+                            {% blocktrans %}
+                            <p><strong>Congratulations !</strong></p>
+                            <p>
+                                You have collected 100 coupons and can enjoy your reward now. To do so,
+                                go to our online store, contact us or come to our place.
+                            </p>
+                            {% endblocktrans %}
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="profile-about" style="padding: 5px 20px 20px">
+                            <ul>
+                                {% if is_company and not app %}
+                                    <li>
+                                        <label>{% trans "Website" %}</label>
+                                        <span>
+                                            <a href="{{ page_service.url }}" target="_blank">{{ page_service.url }}</a>
+                                        </span>
+                                    </li>
+                                {% endif %}
+                                {% if profile_email %}
+                                    <li>
+                                        <label>E-mail</label>
+                                        <span>{{ profile_email }}</span>
+                                    </li>
+                                {% endif %}
+                                {% if profile_phone %}
+                                    <li>
+                                        <label>{% trans "Phone" %}</label>
+                                        <a href="tel://{{ profile_phone }}">{{ profile_phone }}</a>
+                                    </li>
+                                {% endif %}
+                                {% if profile_address %}
+                                    <li>
+                                        <label>{% trans "Address" %}</label>
+                                        <span>{{ profile_address }}</span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="coupon-detail" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-sm" role="document">
+                    <div class="modal-content modal-info">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title"></h4>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img class="img" />
+                            <p class="description text-left" style="margin-top: 15px"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         {% endblock %}
         {% include 'core/snippets/ads.html' %}
     </div>
@@ -191,4 +383,26 @@
 {% block js %}
     {{ block.super }}
     {% if not is_console %} {% include 'accesscontrol/snippets/request_management.html' %} {% endif %}
+    <script>
+        (function() {
+            var couponSwiper = new Swiper('#coupons .swiper-container', {
+                slidesPerView: 'auto',
+                nextButton: '.swiper-button-next',
+                prevButton: '.swiper-button-prev'
+            });
+            $('body').on('click', '.coupon-img', function() {
+                var id = $(this).data('id');
+                $.getJSON('{% url 'rewarding:coupon_detail' %}', {id: id}, function(data) {
+                    if (data.error) {
+                        ikwen.showFloatingNotice(data.error, '', 6);
+                        return;
+                    }
+                    $('div#coupon-detail .modal-title').text(data.name);
+                    $('div#coupon-detail img').prop('src', data.image_url);
+                    $('div#coupon-detail .description').html(data.description);
+                    $('#coupon-detail').modal('show');
+                })
+            })
+        })()
+    </script>
 {% endblock %}

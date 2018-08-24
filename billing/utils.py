@@ -177,22 +177,7 @@ def get_invoice_generated_message(invoice):
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', details)
     else:
-        message = _("Dear %(member_name)s,<br><br>"
-                    "This is a notice that an invoice has been generated on %(date_issued)s.<br><br>"
-                    "<strong style='font-size: 1.2em'>Invoice #%(invoice_number)s</strong><br>"
-                    "Amount: %(currency)s %(amount).2f<br>"
-                    "Due Date:  %(due_date)s<br><br>"
-                    "<strong>Invoice items:</strong><br>"
-                    "<span>%(invoice_description)s</span><br><br>"
-                    "Thank you for your business with "
-                    "%(company_name)s." % {'member_name': member.first_name,
-                                           'company_name': config.company_name,
-                                           'invoice_number': invoice.number,
-                                           'amount': invoice.amount,
-                                           'currency': config.currency_symbol,
-                                           'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
-                                           'due_date': invoice.due_date.strftime('%B %d, %Y'),
-                                           'invoice_description': details})
+        message = _("This is a notice that an invoice has been generated on %s." % invoice.date_issued.strftime('%B %d, %Y'))
     sms = None
     if invoicing_config.new_invoice_sms:
         sms = invoicing_config.new_invoice_sms.replace('$member_name', member.first_name)\
@@ -231,23 +216,11 @@ def get_invoice_reminder_message(invoice):
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', details)
     else:
-        message = _("Dear %(member_name)s,<br><br>"
-                    "This is a billing reminder that your invoice No. %(invoice_number)s "
-                    "which was generated on %(date_issued)s is due on %(due_date)s.<br><br>"
-                    "<strong style='font-size: 1.2em'>Invoice #%(invoice_number)s</strong><br>"
-                    "Amount: %(currency)s %(amount).2f<br>"
-                    "Due Date:  %(due_date)s<br><br>"
-                    "<strong>Invoice items:</strong><br>"
-                    "<span>%(invoice_description)s</span><br><br>"
-                    "Thank you for your business with "
-                    "%(company_name)s." % {'member_name': member.first_name,
-                                           'company_name': config.company_name,
-                                           'invoice_number': invoice.number,
-                                           'amount': invoice.amount,
-                                           'currency': config.currency_symbol,
-                                           'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
-                                           'due_date': invoice.due_date.strftime('%B %d, %Y'),
-                                           'invoice_description': details})
+        message = _("This is a billing reminder that your invoice No. %(invoice_number)s "
+                    "which was generated on %(date_issued)s is due "
+                    "on %(due_date)s." % {'invoice_number': invoice.number,
+                                          'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
+                                          'due_date': invoice.due_date.strftime('%B %d, %Y')})
     sms = None
     if invoicing_config.reminder_sms:
         sms = invoicing_config.reminder_sms.replace('$member_name', member.first_name)\
@@ -292,24 +265,10 @@ def get_invoice_overdue_message(invoice):
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', details)
     else:
-        message = _("Dear %(member_name)s,<br><br>"
-                    "This is a billing reminder that your invoice No. %(invoice_number)s "
-                    "which was due on %(due_date)s is now overdue."
-                    "Please pay to avoid service suspension.<br><br>"
-                    "<strong style='font-size: 1.2em'>Invoice #%(invoice_number)s</strong><br>"
-                    "Amount: %(currency)s %(amount).2f<br>"
-                    "Due Date:  %(due_date)s<br><br>"
-                    "<strong>Invoice items:</strong><br>"
-                    "<span>%(invoice_description)s</span><br><br>"
-                    "Thank you for your business with "
-                    "%(company_name)s." % {'member_name': member.first_name,
-                                           'company_name': config.company_name,
-                                           'invoice_number': invoice.number,
-                                           'amount': invoice.amount,
-                                           'currency': config.currency_symbol,
-                                           'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
-                                           'due_date': invoice.due_date.strftime('%B %d, %Y'),
-                                           'invoice_description': details})
+        message = _("This is a billing reminder that your "
+                    "invoice No. %(invoice_number)s which was due on %(due_date)s "
+                    "is now overdue." % {'invoice_number': invoice.number,
+                                         'due_date': invoice.due_date.strftime('%B %d, %Y')})
     sms = None
     if invoicing_config.overdue_sms:
         sms = invoicing_config.overdue_sms.replace('$member_name', member.first_name)\
@@ -348,21 +307,11 @@ def get_service_suspension_message(invoice):
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', details)
     else:
-        message = _("Dear %(member_name)s,<br><br>"
-                    "This a notice of <strong>service suspension</strong> because of unpaid Invoice "
-                    "<strong>No. %(invoice_number)s</strong> generated on %(date_issued)s and due on %(due_date)s. <br>"
-                    "Amount due is %(currency)s %(amount).2f.<br><br>"
-                    "<strong>Invoice items:</strong><br>"
-                    "<span>%(invoice_description)s</span><br><br>"
-                    "Thank you for your business with "
-                    "%(company_name)s." % {'member_name': member.first_name,
-                                           'invoice_number': invoice.number,
-                                           'amount': invoice.amount,
-                                           'currency': config.currency_symbol,
-                                           'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
-                                           'due_date': invoice.due_date.strftime('%B %d, %Y'),
-                                           'invoice_description': details,
-                                           'company_name': config.company_name})
+        message = _("This a notice of <strong>service suspension</strong> because of unpaid Invoice "
+                    "<strong>No. %(invoice_number)s</strong> generated on %(date_issued)s and due "
+                    "on %(due_date)s." % {'invoice_number': invoice.number,
+                                          'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
+                                          'due_date': invoice.due_date.strftime('%B %d, %Y')})
     sms = None
     if invoicing_config.service_suspension_sms:
         sms = invoicing_config.service_suspension_sms.replace('$member_name', member.first_name)\
@@ -401,19 +350,13 @@ def get_payment_confirmation_message(payment, member):
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', details)
     else:
-        message = _("Dear %(member_name)s,<br><br>"
-                    "This is a payment receipt of %(currency)s %(amount).2f "
+        message = _("This is a payment receipt of %(currency)s %(amount).2f "
                     "for Invoice <strong>No. %(invoice_number)s</strong> generated on %(date_issued)s "
-                    "towards the services provided by us. Below is a summary of your service.<br><br>"
-                    "<span style='color: #666'>%(invoice_description)s</span><br><br>"
-                    "Thank you for your business with "
-                    "%(company_name)s." % {'member_name': member.first_name,
-                                           'company_name': config.company_name,
-                                           'invoice_number': invoice.number,
-                                           'amount': invoice.amount,
-                                           'currency': config.currency_symbol,
-                                           'date_issued': invoice.date_issued.strftime('%B %d, %Y'),
-                                           'invoice_description': details})
+                    "towards the services provided by us. Below is a summary "
+                    "of the invoice." % {'invoice_number': invoice.number,
+                                         'amount': invoice.amount,
+                                         'currency': config.currency_symbol,
+                                         'date_issued': invoice.date_issued.strftime('%B %d, %Y')})
     sms = None
     if invoicing_config.payment_confirmation_sms:
         sms = invoicing_config.payment_confirmation_sms.replace('$member_name', member.first_name)\
@@ -474,17 +417,17 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug=
 
     partner = service_umbrella.retailer
     if partner:
-        if invoice.is_one_off:
+        if invoice.entries:
             ikwen_earnings = 0
             for entry in invoice.entries:
                 ikwen_earnings += entry.item.price * entry.quantity
         else:
-            billing_plan = service_umbrella.billing_plan
-            if billing_plan:
-                ikwen_earnings = billing_plan.monthly_cost * total_months
-            else:
-                retail_config = ApplicationRetailConfig.objects.get(partner=partner, app=app_umbrella)
+            retail_config = ApplicationRetailConfig.objects.get(partner=partner, app=app_umbrella)
+            if retail_config:
                 ikwen_earnings = retail_config.ikwen_monthly_cost * total_months
+            else:
+                billing_plan = service_umbrella.billing_plan
+                ikwen_earnings = billing_plan.monthly_cost * total_months
         partner_earnings = invoice.amount - ikwen_earnings
         add_database_to_settings(partner.database)
         partner_original = Service.objects.using(partner.database).get(pk=partner.id)

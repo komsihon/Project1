@@ -2,6 +2,7 @@
 import json
 
 import requests
+from datetime import datetime
 from django.conf import settings
 from django.contrib.auth.models import Group
 from ikwen.core.utils import add_event, get_service_instance
@@ -63,6 +64,7 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                 user.is_bao = False
                 user.is_superuser = False
                 user.is_staff = False
+                user.date_joined = datetime.now()
                 service = get_service_instance()
                 user.add_service(service.id)
                 user.add_group(community.id)
