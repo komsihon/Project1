@@ -116,6 +116,9 @@
                                 </li>
                                 {% endwith %}
                             {% empty %}
+                                <li class="ik-li no-coupon">
+                                    <img src="{% static 'ikwen/img/empty-box.png' %}" class="img-responsive" />
+                                </li>
                             {% endfor %}
                         </ul>
                     </div>
@@ -195,7 +198,7 @@
                                                 </div>
                                             </div>
                                             {% endif %}
-                                            <p style="margin-top: 5px">{{ coupon.name|truncatewords:2 }}</p>
+                                            <p style="margin-top: 5px">{{ coupon.name }}</p>
                                         </div>
                                         {% if coupon.count >= 100 %}
                                             <button class="btn btn-sm btn-block btn-warning claim-reward"
