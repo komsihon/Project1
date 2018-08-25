@@ -395,16 +395,20 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
                     config = service.config
                     if usage == 'profile':
                         current_image_path = config.logo.path if config.logo.name else None
-                        destination = ikwen_settings.MEDIA_ROOT + AbstractConfig.LOGO_UPLOAD_TO + "/" + filename
+                        destination = media_root + AbstractConfig.LOGO_UPLOAD_TO + "/" + filename
                         config.logo.save(destination, content)
                         url = ikwen_settings.MEDIA_URL + config.logo.name
                         src = config.logo.path
                         generate_favicons(src)
+                        destination2 = config.logo.path.replace(media_root, ikwen_settings.MEDIA_ROOT)
+                        os.rename(destination, destination2)
                     else:
                         current_image_path = config.cover_image.path if config.cover_image.name else None
-                        destination = ikwen_settings.MEDIA_ROOT + AbstractConfig.COVER_UPLOAD_TO + "/" + filename
+                        destination = media_root + AbstractConfig.COVER_UPLOAD_TO + "/" + filename
                         config.cover_image.save(destination, content)
                         url = ikwen_settings.MEDIA_URL + config.cover_image.name
+                        destination2 = config.cover_image.path.replace(media_root, ikwen_settings.MEDIA_ROOT)
+                        os.rename(destination, destination2)
                     cache.delete(service.id + ':config:')
                     cache.delete(service.id + ':config:default')
                     cache.delete(service.id + ':config:' + UMBRELLA)
