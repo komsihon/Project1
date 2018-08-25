@@ -90,11 +90,17 @@
                                     <a href="{% url 'ikwen:company_profile' service.project_name_slug %}">
                                         {% if config.cover_image.name %}
                                             <div class="cover" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ config.cover_image.name }})">
-                                                <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}" alt="{{ config.company_name }} logo" width="30" />
+                                                {% if config.logo.name %}
+                                                    <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}"
+                                                         alt="{{ config.company_name }} logo" width="30" />
+                                                {% endif %}
                                             </div>
                                         {% else %}
                                             <div class="cover" style="background-image: url({% static 'ikwen/img/default-cover-company.jpg' %})">
-                                                <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}" alt="{{ config.company_name }} logo" width="30" />
+                                                {% if config.logo.name %}
+                                                    <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}"
+                                                         alt="{{ config.company_name }} logo" width="30" />
+                                                {% endif %}
                                             </div>
                                         {% endif %}
                                         <p style="height:30px; margin-top: 5px">{{ config.company_name|truncatewords:2 }}</p>
@@ -128,28 +134,28 @@
                     {% trans "My collection" %}
                 </h4>
                 <ul style="padding: 0">
-{#                    {% for summary in coupon_summary_list %}#}
-{#                        {% with service=summary.service %}#}
-{#                        <li class="ik-li">#}
-{#                            <a href="{% url 'ikwen:company_profile' service.project_name_slug %}">#}
-{#                                <div class="image rounded" style="background-image: url({% get_media_prefix %}{{ service.config.logo.name }})">#}
-{#                                    {% if summary.threshold_reached %}#}
-{#                                        <i class="threshold-reached"></i>#}
-{#                                    {% endif %}#}
-{#                                </div>#}
-{#                                <div class="info">#}
-{#                                    <span class="title">{{ service.project_name }}</span>#}
-{#                                    <p class="about">{{ summary.count }} {% trans "Coupons" %}</p>#}
-{#                                </div>#}
-{#                                <div class="clearfix"></div>#}
-{#                            </a>#}
-{#                        </li>#}
-{#                        {% endwith %}#}
-{#                    {% empty %}#}
+                    {% for summary in coupon_summary_list %}
+                        {% with service=summary.service %}
+                        <li class="ik-li">
+                            <a href="{% url 'ikwen:company_profile' service.project_name_slug %}">
+                                <div class="image rounded" style="background-image: url({% get_media_prefix %}{{ service.config.logo.name }})">
+                                    {% if summary.threshold_reached %}
+                                        <i class="threshold-reached"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="info">
+                                    <span class="title">{{ service.project_name }}</span>
+                                    <p class="about">{{ summary.count }} {% trans "Coupons" %}</p>
+                                </div>
+                                <div class="clearfix"></div>
+                            </a>
+                        </li>
+                        {% endwith %}
+                    {% empty %}
                         <li class="ik-li no-coupon">
                             <img src="{% static 'ikwen/img/empty-box.png' %}" class="img-responsive" />
                         </li>
-{#                    {% endfor %}#}
+                    {% endfor %}
                 </ul>
             </div>
             <div id="cards">
