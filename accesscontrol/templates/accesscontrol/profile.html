@@ -5,15 +5,15 @@
     {{ block.super }}
     <meta property="og:type" content="Website" />
     {% if cr_profile %}
-        <meta property="og:title" content="{{ service.project_name }} is offering you some gifts" />
+        <meta property="og:title" content="{{ profile_name }} is offering you some gifts" />
         <meta property="og:image" content="{% get_media_prefix %}{{ coupon_list.0.image.name }}" />
-        <meta property="og:description" content="{% blocktrans with project_name=service.project_name %}Join {{ project_name }} on ikwen and get some free coupons !{% endblocktrans %}" />
-        <meta name="description" content="{% blocktrans with project_name=service.project_name %}Join {{ project_name }} on ikwen and get some free coupons !{% endblocktrans %}" />
+        <meta property="og:description" content="{% blocktrans %}Join {{ profile_name }} on ikwen and get some free gifts !{% endblocktrans %}" />
+        <meta name="description" content="{% blocktrans %}Join {{ profile_name }} on ikwen and get some free gifts !{% endblocktrans %}" />
     {% else %}
-        <meta property="og:title" content="{{ service.project_name }}" />
+        <meta property="og:title" content="{{ profile_name }}" />
         <meta property="og:image" content="{% get_media_prefix %}{{ config.logo.name }}" />
-        <meta property="og:description" content="{% blocktrans %}Join {{ project_name }} on ikwen !{% endblocktrans %}" />
-        <meta name="description" content="{% blocktrans %}Join {{ project_name }} on ikwen !{% endblocktrans %}" />
+        <meta property="og:description" content="{% blocktrans %}Join {{ profile_name }} on ikwen !{% endblocktrans %}" />
+        <meta name="description" content="{% blocktrans %}Join {{ profile_name }} on ikwen !{% endblocktrans %}" />
     {% endif %}
 {% endblock %}
 
@@ -151,7 +151,7 @@
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="share-coupons">
                                     <li class="visible-xs visible-sm">
-                                        <a href="https://api.whatsapp.com/send?text={{ url }}" target="_blank">
+                                        <a href="javascript:;" data-toggle="modal" data-target="#whatsapp-share">
                                             <i class="fa fa-whatsapp"></i>
                                             WhatsApp
                                         </a>
@@ -323,13 +323,12 @@
                             <h4 class="modal-title">{% trans "Claim your reward" %}</h4>
                         </div>
                         <div class="modal-body">
-                            {% blocktrans %}
-                            <p><strong>Congratulations !</strong></p>
-                            <p>
+                            <p><strong>{% trans "Congratulations" %} !</strong></p>
+                            <p>{% blocktrans %}
                                 You have collected 100 coupons and can enjoy your reward now. To do so,
-                                go to our online store, contact us or come to our place.
+                                go to our online store, contact us or come to our place.{% endblocktrans %}
                             </p>
-                            {% endblocktrans %}
+
                             <div class="clearfix"></div>
                         </div>
                         <div class="profile-about" style="padding: 5px 20px 20px">
@@ -379,6 +378,37 @@
                     </div>
                 </div>
             </div>
+            <div class="modal fade" id="whatsapp-share" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-sm" role="document">
+                    <div class="modal-content modal-info">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">{% trans "Share on WhatsApp" %}</h4>
+                        </div>
+                        <div class="modal-body text-center">
+                            <form onclick="return false" class="form-horizontal">
+                                <div class="form-group row">
+                                    <label for="whatsapp-share-msg" class="col-sm-5 col-md-4">{% trans "Message" %}</label>
+                                    <div class="col-sm-7 col-md-8">
+                                        <textarea id="whatsapp-share-msg" class="form-control input-sm"></textarea>
+                                    </div>
+                                </div>
+                            </form>
+                            <div class="actions">
+                                <div class="col-xs-12 col-sm-4 col-md-3 pull-right action">
+                                    <button class="btn btn-success btn-block btn-sm ok"
+                                            data-dismiss="modal" aria-label="OK">OK</button>
+                                </div>
+                                <div class="col-xs-12 col-sm-4 col-md-3 pull-right action">
+                                    <button class="btn btn-default btn-block btn-sm"
+                                            data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                                </div>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         {% endblock %}
         {% include 'core/snippets/ads.html' %}
     </div>
@@ -405,6 +435,9 @@
                     $('div#coupon-detail .description').html(data.description);
                     $('#coupon-detail').modal('show');
                 })
+            }).on('click', '#whatsapp-share .btn.ok', function() {
+                var msg = $('#whatsapp-share-msg').val();
+                window.location = 'https://api.whatsapp.com/send?text={{ url }}%0A%0A' + msg;
             })
         })()
     </script>
