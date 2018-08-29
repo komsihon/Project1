@@ -199,8 +199,10 @@ class HybridListView(ListView):
         if search_term and len(search_term) >= 2:
             search_term = search_term.lower()
             word = slugify(search_term).replace('-', ' ')
-            if max_chars:
-                word = word[:max_chars]
+            try:
+                word = word[:int(max_chars)]
+            except:
+                pass
             if word:
                 kwargs = {self.search_field + '__icontains': word}
                 queryset = queryset.filter(**kwargs)
