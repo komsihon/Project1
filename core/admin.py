@@ -64,6 +64,7 @@ class ApplicationAdmin(admin.ModelAdmin):
 
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ('project_name', 'app', 'member', 'monthly_cost', 'expiry', 'since', 'version', 'status', )
+    list_select_related = ('app', 'member', )
     raw_id_fields = ('member', )
     search_fields = ('project_name', )
     list_filter = ('app', 'version', 'expiry', 'since', 'status', 'is_public', )
@@ -99,7 +100,7 @@ class ServiceAdmin(admin.ModelAdmin):
                 obj.reload_settings(obj.settings_template)
                 subject = _("Your domain name was changed")
                 html_content = get_mail_content(subject, template_name='core/mails/domain_updated.html',
-                                               extra_context={'website': obj})
+                                                extra_context={'website': obj})
                 sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
                 msg = EmailMessage(subject, html_content, sender, [obj.member.email])
                 msg.content_subtype = "html"
