@@ -109,8 +109,8 @@ class HybridListView(ListView):
         length = int(self.request.GET.get('length', self.page_size))
         limit = start + length
         queryset = self.get_search_results(queryset, max_chars=max_chars)
-        queryset = queryset.order_by(*self.ajax_ordering)
         if fmt == 'json':
+            queryset = queryset.order_by(*self.ajax_ordering)
             queryset = queryset[start:limit]
             response = []
             for item in queryset:
@@ -125,6 +125,7 @@ class HybridListView(ListView):
                 return HttpResponse(jsonp, content_type='application/json', **response_kwargs)
             return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
         else:
+            queryset = queryset.order_by(*self.ordering)
             paginator = Paginator(queryset, self.page_size)
             page = self.request.GET.get('page')
             try:
@@ -257,15 +258,19 @@ class ChangeObjectBase(TemplateView):
         if object_id:
             return get_object_or_404(self.model, pk=object_id)
 
-    def get_context_data(self, **kwargs):
-        context = super(ChangeObjectBase, self).get_context_data(**kwargs)
-        model_admin = get_model_admin_instance(self.model, self.model_admin)
+    def get_model_form(self, obj):
         ModelForm = modelform_factory(self.model, fields=self.model_admin.fields)
-        obj = self.get_object(**kwargs)
         if obj:
             form = ModelForm(instance=obj)
         else:
             form = ModelForm(instance=self.model())
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super(ChangeObjectBase, self).get_context_data(**kwargs)
+        model_admin = get_model_admin_instance(self.model, self.model_admin)
+        obj = self.get_object(**kwargs)
+        form = self.get_model_form(obj)
         obj_form = helpers.AdminForm(form, list(model_admin.get_fieldsets(self.request)),
                                      model_admin.get_prepopulated_fields(self.request),
                                      model_admin.get_readonly_fields(self.request))
@@ -471,24 +476,24 @@ class ServiceDetail(TemplateView):
         context = super(ServiceDetail, self).get_context_data(**kwargs)
         invoicing_config = get_invoicing_config_instance(UMBRELLA)
         service_id = kwargs['service_id']
-        service = Service.objects.using(UMBRELLA).get(pk=service_id)
-        invoice = Invoice.get_last(service)
+        srvce = Service.objects.using(UMBRELLA).get(pk=service_id)
+        invoice = Invoice.get_last(srvce)
         if invoice:
-            service.last_payment = invoice.created_on
-        if not service.version or service.version == Service.FREE:
-            service.expiry = None
+            srvce.last_payment = invoice.created_on
+        if not srvce.version or srvce.version == Service.FREE:
+            srvce.expiry = None
         else:
             now = datetime.now()
-            service.next_invoice_on = service.expiry - timedelta(days=invoicing_config.gap)
-            if service.expiry < now.date():
-                service.expired = True
-            if now.date() > service.next_invoice_on:
-                days = get_billing_cycle_days_count(service.billing_cycle)
-                service.next_invoice_on = service.next_invoice_on + timedelta(days=days)
-            service.next_invoice_amount = service.monthly_cost * get_billing_cycle_months_count(service.billing_cycle)
-            service.pending_invoice_count = Invoice.objects.filter(subscription=service, status=Invoice.PENDING).count()
+            srvce.next_invoice_on = srvce.expiry - timedelta(days=invoicing_config.gap)
+            if srvce.expiry < now.date():
+                srvce.expired = True
+            if now.date() > srvce.next_invoice_on:
+                days = get_billing_cycle_days_count(srvce.billing_cycle)
+                srvce.next_invoice_on = srvce.next_invoice_on + timedelta(days=days)
+            srvce.next_invoice_amount = srvce.monthly_cost * get_billing_cycle_months_count(srvce.billing_cycle)
+            srvce.pending_invoice_count = Invoice.objects.filter(subscription=srvce, status=Invoice.PENDING).count()
 
-        context['service'] = service
+        context['srvce'] = srvce  # Service named srvce in context to avoid collision with service from template_context_processors
         context['billing_cycles'] = Service.BILLING_CYCLES_CHOICES
         return context
 
@@ -851,11 +856,11 @@ class DashboardBase(TemplateView):
 
 
 class LegalMentions(TemplateView):
-    template_name = 'core/contact.html'
+    template_name = 'core/legal_mentions.html'
 
 
 class TermsAndConditions(TemplateView):
-    template_name = 'core/contact.html'
+    template_name = 'core/terms_and_conditions.html'
 
 
 class WelcomeMail(TemplateView):
