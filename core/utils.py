@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import re
+import logging
 from copy import deepcopy
 from datetime import datetime, timedelta, date
 
@@ -9,19 +10,15 @@ from PIL import Image
 from ajaxuploader.backends.local import LocalUploadBackend
 from django.conf import settings
 from django.contrib.admin import AdminSite
-from django.core.cache import cache
 from django.core.files import File
 from django.db import router
 from django.db.models import F, Model
 from django.db.models.fields.files import ImageFieldFile
 from django.db.models.loading import get_model
-from django.forms import ImageField
 from django.template import Context
 from django.template.defaultfilters import urlencode, slugify
 from django.template.loader import get_template
 from django.utils import timezone
-
-import logging
 
 from ikwen.core.fields import MultiImageFieldFile
 
@@ -193,17 +190,22 @@ def get_mail_content(subject, message=None, template_name='core/mails/notice.htm
     return html_template.render(d)
 
 
+def get_sms_label(config):
+    label = config.company_name.strip()
+    if len(label) > 15:
+        label = label.split(' ')[0][:15]
+    label = slugify(label)
+    label = ''.join([tk.capitalize() for tk in label.split('-') if tk])
+    return label
+
+
 def send_sms(recipient, text, label=None, script_url=None, fail_silently=True):
     # label is made of 10 first characters of company name without space
     if not (recipient and text):
         return
     config = get_service_instance().config
     if not label:
-        label = config.company_name.strip()
-        if len(label) > 15:
-            label = label.split(' ')[0][:15]
-        label = slugify(label)
-        label = ''.join([tk.capitalize() for tk in label.split('-') if tk])
+        label = get_sms_label(config)
     if not script_url:
         script_url = config.sms_api_script_url
     if script_url:
@@ -220,52 +222,6 @@ def send_sms(recipient, text, label=None, script_url=None, fail_silently=True):
         else:
             requests.get(url)
             logger.debug('SMS submitted to %s through %s' % (recipient, base_url))
-
-
-def remove_special_words(s):
-    s = re.sub("^the ", '', s)
-    s = re.sub("^at ", '', s)
-    s = re.sub("^in ", '', s)
-    s = re.sub("^le ", '', s)
-    s = re.sub("^la ", '', s)
-    s = re.sub("^les ", '', s)
-    s = re.sub("^l'", '', s)
-    s = re.sub("^un ", '', s)
-    s = re.sub("^une ", '', s)
-    s = re.sub("^des ", '', s)
-    s = re.sub("^d'", '', s)
-    s = re.sub("^de ", '', s)
-    s = re.sub("^du ", '', s)
-    s = re.sub("^a ", '', s)
-    s = re.sub("^et ", '', s)
-    s = re.sub("^en ", '', s)
-    s = s.replace(" the ", " ")\
-        .replace(" at ", " ")\
-        .replace(" in ", " ")\
-        .replace(" of ", " ")\
-        .replace(" le ", " ")\
-        .replace(" la ", " ")\
-        .replace(" les ", " ")\
-        .replace(" l'", " ")\
-        .replace(" un ", " ")\
-        .replace(" une ", " ")\
-        .replace(" des ", " ")\
-        .replace(" d'", " ")\
-        .replace(" de ", " ")\
-        .replace(" du ", " ")\
-        .replace(" a ", " ")\
-        .replace(" et ", " ")\
-        .replace(" en ", " ")\
-        .replace(" 1", "")\
-        .replace(" 2", "")\
-        .replace(" 3", "")\
-        .replace(" 4", "")\
-        .replace(" 5", "")\
-        .replace(" 6", "")\
-        .replace(" 7", "")\
-        .replace(" 8", "")\
-        .replace(" 9", "")
-    return s
 
 
 class DefaultUploadBackend(LocalUploadBackend):
@@ -361,7 +317,7 @@ class DefaultUploadBackend(LocalUploadBackend):
             return super(DefaultUploadBackend, self).upload_complete(request, filename, *args, **kwargs)
 
 
-def increment_history_field(watch_object, history_field, increment_value=1):
+def increment_history_field(watch_object, history_field, increment_value=1, index=None):
     """
     Increments the value of the last element of Watch Object. Those are objects with *history* fields
     The matching *total field* (that is the field summing up the list of values since the creation of
@@ -370,18 +326,25 @@ def increment_history_field(watch_object, history_field, increment_value=1):
     :param watch_object:
     :param history_field:
     :param increment_value:
+    :param index:
     :return:
     """
     sequence = watch_object.__dict__[history_field]
     if type(sequence) is list:  # This means that the sequence is an instance of a ListField
+        if index is not None:
+            sequence[index] += increment_value
+            return
         if len(sequence) >= 1:
             sequence[-1] += increment_value
         else:
             sequence.append(increment_value)
     else:
         value_list = [val.strip() for val in sequence.split(',')]
-        value_list[-1] = float(value_list[-1]) + increment_value
-        value_list[-1] = str(value_list[-1])
+        if index is not None:
+            value_list[index] = float(value_list[index]) + increment_value
+        else:
+            value_list[-1] = float(value_list[-1]) + increment_value
+            value_list[-1] = str(value_list[-1])
         watch_object.__dict__[history_field] = ','.join(value_list)
     matching_total_field = 'total_' + history_field.replace('_history', '')
     try:
@@ -390,6 +353,11 @@ def increment_history_field(watch_object, history_field, increment_value=1):
         pass
     db = router.db_for_write(watch_object.__class__, instance=watch_object)
     watch_object.save(using=db)
+
+
+def increment_history_field_many(history_field, increment_value=1, index=None, *args, **kwargs):
+    for watch_object in args:
+        increment_history_field(watch_object, history_field, increment_value)
 
 
 def calculate_watch_info(history_value_list, duration=0):
@@ -546,6 +514,7 @@ def set_counters(watch_object, *args, **kwargs):
     now = timezone.now()
     last_reset = watch_object.counters_reset_on
     history_fields = [field for field in watch_object.__dict__.keys() if field.endswith('_history')]
+    db = router.db_for_write(watch_object.__class__, instance=watch_object)
     if last_reset:
         diff = now - last_reset
         gap = diff.days
@@ -558,6 +527,7 @@ def set_counters(watch_object, *args, **kwargs):
                     else:
                         if not watch_object.__dict__[field]:
                             watch_object.__dict__[field] = '0'
+                watch_object.save(using=db)
                 return
             else:
                 gap = 1
@@ -578,8 +548,31 @@ def set_counters(watch_object, *args, **kwargs):
             else:
                 watch_object.__dict__[field] = '0'
     watch_object.counters_reset_on = timezone.now()
-    db = router.db_for_write(watch_object.__class__, instance=watch_object)
     watch_object.save(using=db)
+
+
+def set_counters_many(*args, **kwargs):
+    """
+    Call set_counters on multiple WatchObject.
+    """
+    for watch_object in args:
+        set_counters(watch_object)
+
+
+def extend_left(additional, watch_object, **kwargs):
+    """
+    Extends a WatchObject on the left by filling
+    its history fields with additional zeros.
+    """
+    history_fields = [field for field in watch_object.__dict__.keys() if field.endswith('_history')]
+    for field in history_fields:
+        for i in range(additional):
+            watch_object.__getattribute__(field).insert(0, 0)
+
+
+def extend_left_many(additional, *args, **kwargs):
+    for watch_object in args:
+        extend_left(additional, watch_object)
 
 
 def add_event(service, codename, member=None, group_id=None, object_id=None, model=None):
@@ -589,7 +582,7 @@ def add_event(service, codename, member=None, group_id=None, object_id=None, mod
     :param member: Member to whom the event is aimed
     :param group_id: Id of group to whom the event is aimed
     :param object_id: id of the model involved.
-    :param model: full dotted path to the model involved in the event. *Eg: ikwen.billing.Invoice*
+    :param model: django style model name involved in the event. *Eg: billing.Invoice*
     """
     from ikwen.accesscontrol.backends import UMBRELLA
     from ikwen.core.models import ConsoleEventType, ConsoleEvent, Service
