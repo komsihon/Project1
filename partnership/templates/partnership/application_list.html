@@ -5,43 +5,54 @@
 <title>{% trans "Applications" %} - {{ service.project_name }}</title>
 {% endblock %}
 
+{% block head_style %}
+    {{ block.super }}
+    <link href="{% static 'ikwen/css/fancy-tiles.css' %}" media="screen" rel="stylesheet" type="text/css" />
+{% endblock %}
+
 {% block breadcrumb_location %}
     <li>{% trans "Applications" %}</li>
 {% endblock %}
 
 {% block admin_content %}
-    <div id="admin-content">
+    <div id="admin-content" class="fancy-tiles">
         <div class="container-fluid">
             {% include 'core/snippets/admin_tools.html' %}
-            <div id="results">
+            <div id="results" class="col-sm-10 col-sm-offset-1">
                 {% include 'core/snippets/spinner.html' %}
-                <ul class="object-list">
+                <ul class="tiles object-list" style="margin: 20px 0 0 0">
                 {% for plan in plan_list %}
                     {% with app=plan.app %}
-                    <li class="ik-li app" id="{{ plan.id }}" data-id="{{ plan.id }}">
-                        {% if app.logo.name %}
-                            <div class="image rounded"
-                                 style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ app.logo.name }})"></div>
-                        {% else %}
-                            <div class="image rounded"
-                                 style="background-image: url({% static 'ikwen/img/logo-placeholder.jpg' %})"></div>
-                        {% endif %}
-                        <div class="info">
-                            <div class="name" style="float: left">{{ app.name }}</div>
-                            <div class="about" style="clear: both">
-                                <p>
-                                    <span class="starting">
-                                        <strong>{% trans "Starting" %}</strong>: {{ config.currency_symbol }}{{ plan.setup_cost|intcomma }}
-                                    </span>
-                                </p>
-                            </div>
-                        </div>
-                        <div class="actions">
-                            {% if app.deployment_url_name %}
-                            <a href="{% url app.deployment_url_name %}">
-                                <i class="glyphicon glyphicon-cloud-upload" title="{% trans "Deploy Cloud" %}"></i>
-                            </a>
+                    <li class="ik-li fancy app" id="{{ plan.id }}" data-id="{{ plan.id }}">
+                        <div class="content">
+                            {% if app.cover_image.name %}
+                                <div class="image rounded"
+                                     style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ app.cover_image.name }})"></div>
+                            {% elif app.logo.name %}
+                                <div class="image rounded"
+                                     style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ app.logo.name }})"></div>
+                            {% else %}
+                                <div class="image rounded"
+                                     style="background-image: url({% static 'ikwen/img/logo-placeholder.jpg' %})"></div>
                             {% endif %}
+                            <div class="info">
+                                <div class="name" style="float: left">{{ app.name }}</div>
+                                <div class="about" style="clear: both">
+                                    <p>
+                                        <span class="starting">
+                                            <strong>{% trans "Starting" %}</strong>: {{ config.currency_symbol }}{{ plan.setup_cost|intcomma }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="actions">
+                                {% if app.deployment_url_name %}
+                                <a href="{% url app.deployment_url_name %}">
+                                    <i class="glyphicon glyphicon-cloud-upload" title="{% trans "Deploy Cloud" %}"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                            <div class="clearfix"></div>
                         </div>
                     </li>
                     {% endwith %}

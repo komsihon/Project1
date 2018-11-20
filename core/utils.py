@@ -96,7 +96,7 @@ def get_service_instance(using='default', check_cache=True):
     """
     from ikwen.core.models import Service
     service_id = getattr(settings, 'IKWEN_SERVICE_ID')
-    return Service.objects.using(using).get(pk=service_id)
+    return Service.objects.using(using).select_related('member').get(pk=service_id)
 
 
 def add_database_to_settings(alias, engine='django_mongodb_engine', name=None, username=None, password=None):
@@ -168,8 +168,9 @@ def add_dumb_column(database, table, column):
         pass
 
 
-def get_mail_content(subject, message=None, template_name='core/mails/notice.html', extra_context=None):
-    service = get_service_instance()
+def get_mail_content(subject, message=None, template_name='core/mails/notice.html', extra_context=None, service=None):
+    if not service:
+        service = get_service_instance()
     config = service.config
     html_template = get_template(template_name)
     from ikwen.conf.settings import MEDIA_URL
@@ -711,3 +712,9 @@ def parse_paypal_response(response_string):
         tokens = pair.split('=')
         result[tokens[0]] = tokens[1]
     return result
+
+
+def get_item_list(model_name, item_fk_list):
+    tk = model_name.split('.')
+    model = get_model(tk[0], tk[1])
+    return list(model._default_manager.filter(pk__in=item_fk_list))

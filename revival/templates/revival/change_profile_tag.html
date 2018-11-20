@@ -1,0 +1,496 @@
+{% extends 'core/change_object_base.html' %}
+{% load i18n humanize static %}
+
+{% block head_style %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'ikwen/css/uploader-single.css' %}" />
+    <link rel='stylesheet' href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+    <style>
+        .vh {visibility: hidden}
+        .mail-content.input-error {border-width: 1px; border-style: solid}
+        .img-review {background: no-repeat center; background-size: cover; height: 240px; margin-bottom: 20px}
+        #modal-review .modal-body {padding: 10px}
+        #modal-review {font-size: 15px; line-height: 24px}
+        .configure-repeated-revival {margin-top: 25px}
+        .sms-bubble {border-bottom: 15px solid #f3f3f3; border-right: 15px solid #fff; border-bottom-left-radius: 7px}
+        .sms-bubble .text {background: #f3f3f3; border-top-left-radius: 7px;
+            border-top-right-radius: 7px; min-height: 180px; padding: 10px 10px 0 15px}
+        .run-every {font-weight: 600}
+        @media (min-width: 768px) {
+            .admin-form input.form-control.frequency, .admin-form input.form-control.frequency-type {width: 240px}
+            #sms-revival {width: 400px}
+            #mail-revival label {font-weight: 600}
+            #mail-revival .mail-content {height: 189px; width: 554px}
+            .img-review {height: 300px}
+            #sms-review .sms-review {margin: auto; width: 300px}
+            #modal-review .modal-body {padding: 10px 20px 20px}
+        }
+    </style>
+{% endblock %}
+
+{% block head_js %}
+    {{ block.super }}
+    <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}" ></script>
+    <script src="//cdn.tinymce.com/4/tinymce.min.js"></script>
+    <script>
+        (function () {
+            var properties = {
+                menubar: false,
+                statusbar: false,
+                plugins: [
+                    'advlist autolink lists link image charmap print preview anchor',
+                    'searchreplace visualblocks code fullscreen',
+                    'insertdatetime media table contextmenu paste code'
+                ],
+                paste_data_images: true,
+                selector: '#mail-content',
+                height: 150,
+                toolbar: 'undo redo | bold italic underline | bullist numlist | alignleft aligncenter alignright | link code',
+                content_css: [
+                    '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+                    '//www.tinymce.com/css/codepen.min.css'
+                ]
+            };
+            if ($(window).width() >= 768) {
+                properties['width'] = 550;
+            }
+            tinymce.init(properties);
+        })()
+    </script>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="change-form">
+        <div class="container-fluid">
+            {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
+            <form class="admin-form" method="post">{% csrf_token %}
+                {% include 'core/snippets/model_admin_form.html' %}
+                <div class="set-cyclic-revival checkbox">
+                    <label for="set-cyclic-revival">
+                        <input type="checkbox" id="set-cyclic-revival"
+                               name="set_cyclic_revival" {% if set_cyclic %}checked{% endif %}>{% trans "Set repeated revival" %} ?
+                    </label>
+                </div>
+                <div class="configure-repeated-revival{% if not set_cyclic %} tpl{% endif %}">
+                    <h3>{% trans "Configure repeated revivals" %}</h3>
+                    {% if revival %}
+                        <div class="form-group">
+                            <p class="revival-paused{% if not revival.is_active %} tpl{% endif %}">
+                                <i class="fa fa-circle text-success"></i>
+                                {% trans "Your revivals are active, click to stop sending mails and SMS" %}
+                            </p>
+                            <p class="revival-active{% if revival.is_active %} tpl{% endif %}">
+                                <i class="fa fa-circle text-warning"></i>
+                                {% trans "Your revivals are paused, click to activate sending of mails and SMS" %}
+                            </p>
+                            <div class="row">
+                                <div class="col-xs-6 col-sm-3 col-lg-2">
+                                    <div class="btn btn-sm btn-default btn-block toggle-activation" data-revival-id="{{ revival.id }}">
+                                        {% if revival.is_active %}
+                                            <i class="fa fa-pause"></i>
+                                            <span>{% trans "Stop" %}</span>
+                                        {% else %}
+                                            <i class="fa fa-play"></i>
+                                            <span>{% trans "Activate" %}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-xs-6 col-sm-3 col-lg-2">
+                                    <div class="btn btn-sm btn-default btn-block" data-toggle="modal" data-target="#modal-test">
+                                        <i class="fa fa-vial"></i>
+                                        {% trans "Test" %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="form-group row">
+                        <div class="col-xs-4">
+                            <label for="month-days">
+                                <input type="radio" name="frequency_type" id="month-days"
+                                       value="month_days" {% if not revival or revival.day_of_month_list %}checked{% endif %}>
+                                <span>{% trans "Month day(s)" %}</span>
+                            </label>
+                            <input type="text" name="month_days" placeholder="{% trans "Ex: 10, 15, 25" %}" value="{{ revival.day_of_month_list }}"
+                                   class="form-control input-sm frequency-type{% if revival and not revival.day_of_month_list %} vh{% endif %}" />
+                        </div>
+                        <div class="col-xs-4">
+                            <label for="week-days">
+                                <input type="radio" name="frequency_type" id="week-days"
+                                       value="week_days" {% if revival.day_of_week_list %}checked{% endif %}>
+                                <span>{% trans "Week day(s)" %}</span>
+                            </label>
+                            <input type="text" name="week_days" value="{{ revival.day_of_week_list }}"
+                                   class="form-control input-sm frequency-type{% if not revival.day_of_week_list %} vh{% endif %}"
+                                   placeholder="{% trans "Ex: 1, 5, 6" %}" />
+                        </div>
+                        <div class="col-xs-4">
+                            <label for="days-cycle">
+                                <input type="radio" name="frequency_type" id="days-cycle"
+                                       value="days_cycle" {% if revival.days_cycle %} checked{% endif %}>
+                                <span>{% blocktrans %}Every <em>N</em> days{% endblocktrans %}</span>
+                            </label>
+                            <input type="number" name="days_cycle" value="{{ revival.days_cycle }}"
+                                   class="form-control input-sm frequency-type{% if not revival.days_cycle %} vh{% endif %}"
+                                   placeholder="{% trans "Ex: 2" %}" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="hour-of-sending">{% trans "Hour of sending" %}</label>
+                        <input type="number" id="hour-of-sending" min="0" max="23" value="9"
+                               name="hour_of_sending" class="form-control input-sm frequency" />
+                    </div>
+                    <div class="form-group">
+                        <label for="end-on">{% trans "Run it until" %}</label>
+                        <input type="text" id="end-on" class="form-control input-sm frequency"
+                               value="{{ revival.end_on|date }}" />
+                        <input type="hidden" id="end-on-alt" name="end_on" value="{{ revival.end_on_alt }}" />
+                    </div>
+                    <div class="form-group">
+                        <div class="nav nav-tabs" role="tablist">
+                            <div role="presentation" class="tab active mail-revival" data-tab="mail-revival">
+                                <a href="#mail-revival" aria-controls="mail-revival" role="tab" data-toggle="tab">
+                                    <i class="fa fa-circle attention text-danger tpl" style="font-size: 10px"></i>
+                                    {% trans "Mail" %}
+                                </a>
+                            </div>
+                            <div role="presentation" class="tab sms-revival" data-tab="sms-revival">
+                                <a href="#sms-revival" aria-controls="sms-revival" role="tab" data-toggle="tab">
+                                    {% trans "SMS" %}
+                                </a>
+                            </div>
+                        </div>
+                        <div class="tab-content" style="margin-top: 10px">
+                            <div id="mail-revival" class="tab-pane active" role="tabpanel">
+                                <div class="form-group">
+                                    <label for="mail-subject">{% trans "Subject" %}</label>
+                                    <input type="text" class="form-control input-sm" id="mail-subject"
+                                           name="mail_subject" value="{{ revival.mail_subject }}" />
+                                </div>
+                                {% with image=revival.mail_image img_help_text='A beautiful engaging image for your mail: 800px x 500px' %}
+                                    <input type="hidden" name="mail_image_url" id="image_url" value="{% if image.name %}{{ image.url }}{% endif %}" />
+                                    {% include 'core/snippets/uploader_single.html' %}
+                                {% endwith %}
+                                <div class="form-group">
+                                    <label for="mail-content">{% trans "Message" %}</label>
+                                    <div class="mail-content">
+                                        <textarea class="form-control input-sm"
+                                                  id="mail-content" name="mail_content">{{ revival.mail_content|safe }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="sms-revival" class="tab-pane" role="tabpanel">
+                                <textarea class="form-control input-sm sms-text " rows="6" name="sms_text"
+                                          placeholder="{% trans "Your SMS text" %}">{{ revival.sms_text }}</textarea>
+                                <div class="row">
+                                    <div class="col-sm-8 col-xs-8">
+                                        <p class="help-block sms-char-count">0 / 160</p>
+                                    </div>
+                                    <div class="col-sm-4 col-xs-4">
+                                        <p class="help-block pull-right">
+                                            <span class="sms-page-count">0</span> SMS
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="items_fk_list" value="{{ items_fk_list }}" />
+                    <section class="content" style="width: 100%">
+                        <ul id="content-items" style="padding-left: 0">
+                            {% for item in item_list %}
+                                <li class="ik-li" id="{{ item.id }}" data-id="{{ item.id }}">
+                                    <div class="subtle-shade select">
+                                        <i class="glyphicon glyphicon-ok"></i>
+                                    </div>
+                                    {% url 'kako:change_product' item.id as change_item_url %}
+                                    {% if item.image and item.image.name %}
+                                        <a href="{{ change_item_url }}" class="image" style="background-image: url({{ item.image.small_url }})"></a>
+                                    {% else %}
+                                        <a href="{{ change_item_url }}" class="image" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
+                                    {% endif %}
+                                    <div class="info">
+                                        <a href="{{ change_item_url }}" class="full_name">{{ item.name }}</a>
+                                    </div>
+                                    <div class="actions">
+                                        <i class="action glyphicon glyphicon-trash trash" title="{% trans "Delete item" %}"></i>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                            <li class="ik-li">
+                                <a href="{% url 'kako:product_list' %}?smart_link=yes&revival=yes&smart_object_id={{ obj.id }}">
+                                    <i class="icon link"></i>
+                                    {% trans "Add products" %}
+                                </a>
+                            </li>
+                        </ul>
+                    </section>
+                </div>
+                <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
+                    <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal fade" id="modal-review" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-info">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{% trans "Please review and confirm" %}</h4>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <p>{% blocktrans %}Your revival will be run <span class="run-every"></span>.{% endblocktrans %}</p>
+                    </div>
+                    <div class="nav nav-tabs" role="tablist">
+                        <div role="presentation" class="tab active mail-review" data-tab="mail-review">
+                            <a href="#mail-review" aria-controls="mail-review" role="tab" data-toggle="tab">
+                                {% trans "Mail" %}
+                            </a>
+                        </div>
+                        <div role="presentation" class="tab sms-review" data-tab="sms-review">
+                            <a href="#sms-review" aria-controls="sms-review" role="tab" data-toggle="tab">
+                                {% trans "SMS" %}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="tab-content" style="margin-top: 10px">
+                        <div id="mail-review" class="tab-pane active" role="tabpanel">
+                            <div class="form-group">
+                                <label>{% trans "Subject" %}:</label>
+                                <span class="mail-subject"></span>
+                            </div>
+                            {% with image=revival.image %}
+                            <div class="img-review" {% if image.name %}style="background-image: url({% get_media_prefix %}{{ image.name }})"
+                                 {% else %}style="background-image: url({% static 'ikwen/img/no_photo.png' %})"{% endif %}>
+                            </div>
+                            {% endwith %}
+                            <div class="form-group">
+                                <div class="mail-content"></div>
+                            </div>
+                        </div>
+                        <div id="sms-review" class="tab-pane" role="tabpanel">
+                            <div class="sms-review">
+                                <div class="sms-bubble">
+                                    <div class="text"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-8 col-xs-8">
+                                        <p class="help-block sms-char-count">0 / 160</p>
+                                    </div>
+                                    <div class="col-sm-4 col-xs-4">
+                                        <p class="help-block pull-right">
+                                            <span class="sms-page-count">0</span> SMS
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <div class="col-xs-12 col-sm-4 pull-right action">
+                            <button class="btn btn-success btn-block btn-sm ok submit-conf"
+                                    aria-label="OK">{% trans "Confirm & submit" %}</button>
+                        </div>
+                        <div class="col-xs-12 col-sm-4 pull-right action">
+                            <button class="btn btn-default btn-block btn-sm"
+                                    data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modal-test" tabindex="-1" role="dialog" data-revival-id="{{ revival.id }}">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-info">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{% trans "Please review and confirm" %}</h4>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <p>{% blocktrans %}Input test emails and phones{% endblocktrans %}</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="test-emails">{% trans "Test emails" %}</label>
+                        <textarea id="test-emails" class="form-control" cols="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="test-phones">{% trans "Test phones" %}</label>
+                        <textarea id="test-phones" class="form-control" cols="4"></textarea>
+                    </div>
+                    {% include 'core/snippets/spinner.html' %}
+                    <div>
+
+                    </div>
+                    <div class="actions">
+                        <div class="col-xs-12 col-sm-4 pull-right action">
+                            <button class="btn btn-success btn-block btn-sm ok"
+                                    aria-label="OK">{% trans "Send test" %}</button>
+                        </div>
+                        <div class="col-xs-12 col-sm-4 pull-right action">
+                            <button class="btn btn-default btn-block btn-sm"
+                                    data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script src="{% static 'ikwen/js/jquery-ui.js' %}"></script>
+    <script src="{% static 'echo/js/sms-character-counter.js' %}" ></script>
+    <script type="text/javascript">
+        (function() {
+            $('#end-on').prop('disabled', false).datepicker({
+                altField: "#end-on-alt",
+                altFormat: "yy-mm-dd",
+                maxDate: "+2m"
+            });
+            $('#set-cyclic-revival').click(function() {
+                if ($(this).prop('checked')) $('.configure-repeated-revival').fadeIn();
+                else $('.configure-repeated-revival').fadeOut();
+            });
+            $('input[name=frequency_type]').click(function() {
+                $('input.frequency-type').addClass('vh');
+                var frequencyType = $(this).val();
+                $('input[name=' + frequencyType + ']').removeClass('vh');
+                if (frequencyType === 'month_days')
+                    $('#end-on').datepicker( "option", "maxDate", "+2m" );
+                else
+                    $('#end-on').datepicker( "option", "maxDate", "+5w" );
+            });
+            function checkCyclicConfData() {
+                if (!$('#set-cyclic-revival').prop('checked')) return false;
+                var subject = $('#mail-subject').val(),
+                    mailContent = tinymce.activeEditor.getContent({format: 'html'}),
+                    imgUrl = $('#image_url').val(),
+                    smsText = $('.sms-text').val(),
+                    frequencyType = $('input[name=frequency_type]:checked').val(),
+                    monthDays = $('input[name=month_days]').val(),
+                    weekDays = $('input[name=week_days]').val(),
+                    daysCycle = $('input[name=days_cycle]').val(),
+                    hourOfSending = $('#hour-of-sending').val(),
+                    endOn = $('#end-on-alt').val(),
+                    runEvery,
+                    valid = true;
+                $('.input-error').removeClass('input-error');
+                $('.mail-revival .fa ').hide();
+                if (!subject) {
+                    $('#mail-subject').addClass('input-error');
+                    $('.mail-revival .fa ').show();
+                    valid = false;
+                }
+                if (!mailContent) {
+                    $('.mail-content').addClass('input-error');
+                    $('.mail-revival .fa ').show();
+                    valid = false;
+                }
+                if (smsText && smsText.length < 100) {
+                    $('.sms-text').addClass('input-warning');
+                    $('#modal-warning .target').hide();
+                    $('#modal-warning .sms-text').show();
+                    $('#modal-warning').modal('show');
+                }
+                if (!endOn) {
+                    $('#end-on').addClass('input-error');
+                    valid = false;
+                }
+                if (frequencyType === 'days_cycle') {
+                    if ($('input[name=days_cycle]').val() == 1) {
+                        $('#modal-warning .target').hide();
+                        $('#modal-warning .everyday').show();
+                        $('#modal-warning').modal('show');
+                        runEvery = "{% trans "everyday" %}";
+                    } else {
+                        runEvery = "{% trans "every" %} " + daysCycle + " {% trans "days" %}"
+                    }
+                    if (!/\d+/.test(daysCycle)) {
+                        $('input[name=days_cycle]').addClass('input-error');
+                        valid = false;
+                    }
+                } else if(frequencyType === 'week_days') {
+                    if (!/^\d+(,\s*\d*)*$/.test(weekDays)) {
+                        $('input[name=week_days]').addClass('input-error');
+                        valid = false;
+                    }
+                    runEvery = "{% trans "on week days" %} " + weekDays;
+                } else if(frequencyType === 'month_days') {
+                    if (!/^\d+(,\s*\d*)*$/.test(monthDays)) {
+                        $('input[name=month_days]').addClass('input-error');
+                        valid = false;
+                    }
+                    runEvery = "{% trans "on month days" %} " + monthDays;
+                }
+                runEvery += " {% trans "at" %} " + hourOfSending + ":00, {% trans "until" %} " + endOn;
+                $('.run-every').text(runEvery);
+                $('#mail-review .mail-subject').text(subject);
+                $('#mail-review .mail-content').html(mailContent);
+                $('.img-review').css('background-image', 'url(' + imgUrl + ')');
+                $('#sms-review .text').text(smsText);
+                if (!valid) {
+                    var notice = "{% trans "Some fields have errors. Please check" %}";
+                    ikwen.showFloatingNotice(notice, '', 6)
+                }
+                return valid;
+            }
+            var reviewed = false;
+            $('.admin-form').submit(function() {
+                if (!$('#set-cyclic-revival').prop('checked')) return true;
+                var valid = checkCyclicConfData();
+                if  (valid) {
+                    $('.tab.mail-review a').tab('show');
+                    $('#modal-review').modal('show');
+                }
+                return reviewed;
+            });
+            $('.submit-conf').click(function() {
+                reviewed = true;
+                $('.admin-form').submit()
+            });
+            $('.toggle-activation').click(function() {
+                var _$btn = $(this),
+                    revivalId = $(this).data('revival-id'),
+                    params = {action: 'toggle_activation', revival_id: revivalId};
+                $.getJSON('', params, function(data) {
+                    if (data.is_active) {
+                        _$btn.find('span').text("{% trans "Stop" %}");
+                        _$btn.find('i').removeClass('fa-play').addClass("fa-pause")
+                    } else {
+                        _$btn.find('span').text("{% trans "Activate" %}");
+                        _$btn.find('i').removeClass('fa-pause').addClass("fa-play")
+                    }
+                    $('.revival-active, .revival-paused').toggle();
+                    ikwen.showFloatingNotice(data.message, '', 6);
+                });
+            });
+            $('.run-test').click(function() {
+                var revivalId = $('#modal-test').data('revival-id'),
+                    emailList = $('#test-emails').val(),
+                    phoneList = $('#test-phones').val(),
+                    params = {action: 'run_test', revival_id: revivalId, test_email_list: emailList, test_phone_list: phoneList};
+                $('#modal-test .spinner').show();
+                $.getJSON('', params, function(data) {
+                    $('#modal-test .spinner').hide();
+                    if (data.error) {
+                        $('#modal-test .response').text(data.error);
+                        return;
+                    }
+                    $('#modal-test .response').text("{% trans "Your test were all sent" %}");
+                    if (data.warning) {
+                        var warning = data.warning.join('\n');
+                        $('#modal-test .warning .content').text(warning);
+                        $('#modal-test .warning').show();
+                    }
+                });
+            })
+        })()
+    </script>
+{% endblock %}

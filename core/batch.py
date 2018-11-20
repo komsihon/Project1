@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
+sys.path.append('/home/ikwen/Cloud/Kakocase/tchopetyamo')
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "conf.settings")
 import subprocess
 
 from ikwen.core.models import *
@@ -86,28 +88,6 @@ def activate_orange_money(app_slug, **kwargs):
         PaymentMean.objects.using(db).filter(slug='orange-money').update(is_active=True)
 
 
-def rename_projects_media_root(app_slug, **kwargs):
-    app = Application.objects.get(slug=app_slug)
-    for s in Service.objects.filter(app=app):
-        settings_template = app_slug + '/cloud_setup/settings.html'
-        current_media_root = MEDIA_ROOT + s.project_name_slug + '/'
-        if s.domain:
-            media_root = MEDIA_ROOT + s.domain + '/'
-        else:
-            print "Could not determine domain name for %s. Skipping ..." % s.project_name_slug
-            continue
-        try:
-            if os.path.exists(current_media_root):
-                os.rename(current_media_root, media_root)
-                print "%s renamed to %s" % (current_media_root, media_root)
-            else:
-                continue
-            s.reload_settings(settings_template, **kwargs)
-            print "Settings reloaded for %s" % str(s)
-        except:
-            print "Could not reload Project %s. Skipping ..." % s.project_name
-
-
 def clear_wallets():
     """
     Removes stalled wallets
@@ -166,95 +146,6 @@ def update_image_names():
             continue
         print "Processing database %s" % db
         add_database(db)
-        # total = Member.objects.using(db).all().count()
-        # steps = total / 500 + 1
-        # for i in range(steps):
-        #     start = i * 500
-        #     finish = (i + 1) * 500
-        #     for member in Member.objects.using(db).all()[start:finish]:
-        #         rename = False
-        #         if member.photo.name:
-        #             photo_name = member.photo.name
-        #             new_photo_name = photo_name.replace('ikwen/', '')
-        #             member.photo = new_photo_name
-        #             if photo_name != new_photo_name:
-        #                 rename = True
-        #                 print "Renaming %s to %s" % (photo_name, new_photo_name)
-        #         if member.cover_image.name:
-        #             cover_image_name = member.cover_image.name
-        #             new_cover_image_name = cover_image_name.replace('ikwen/', '')
-        #             member.cover_image = new_cover_image_name
-        #             if cover_image_name != new_cover_image_name:
-        #                 rename = True
-        #                 print "Renaming %s to %s" % (cover_image_name, new_cover_image_name)
-        #         if rename:
-        #             member.save(using=db)
-        #
-        # for config in Config.objects.using(db).all():
-        #     rename = False
-        #     if config.logo.name:
-        #         logo_name = config.logo.name
-        #         new_logo_name = logo_name.replace('ikwen/', '')
-        #         config.logo = new_logo_name
-        #         if logo_name != new_logo_name:
-        #             rename = True
-        #             print "Renaming %s to %s" % (logo_name, new_logo_name)
-        #     if config.cover_image.name:
-        #         cover_image_name = config.cover_image.name
-        #         new_cover_image_name = cover_image_name.replace('ikwen/', '')
-        #         config.cover_image = new_cover_image_name
-        #         if cover_image_name != new_cover_image_name:
-        #             rename = True
-        #             print "Renaming %s to %s" % (cover_image_name, new_cover_image_name)
-        #     if rename:
-        #         config.save(using=db)
-
-        # for config in KCOperatorProfile.objects.using(db).all():
-        #     rename = False
-        #     if config.logo.name:
-        #         logo_name = config.logo.name
-        #         new_logo_name = logo_name.replace('ikwen/', '')
-        #         config.logo = new_logo_name
-        #         if logo_name != new_logo_name:
-        #             rename = True
-        #             print "Renaming %s to %s" % (logo_name, new_logo_name)
-        #     if config.cover_image.name:
-        #         cover_image_name = config.cover_image.name
-        #         new_cover_image_name = cover_image_name.replace('ikwen/', '')
-        #         config.cover_image = new_cover_image_name
-        #         if cover_image_name != new_cover_image_name:
-        #             rename = True
-        #             print "Renaming %s to %s" % (cover_image_name, new_cover_image_name)
-        #     if rename:
-        #         config.save(using=db)
-        #
-        # for config in SVDOperatorProfile.objects.using(db).all():
-        #     rename = False
-        #     if config.logo.name:
-        #         logo_name = config.logo.name
-        #         new_logo_name = logo_name.replace('ikwen/', '')
-        #         config.logo = new_logo_name
-        #         if logo_name != new_logo_name:
-        #             rename = True
-        #             print "Renaming %s to %s" % (logo_name, new_logo_name)
-        #     if config.cover_image.name:
-        #         cover_image_name = config.cover_image.name
-        #         new_cover_image_name = cover_image_name.replace('ikwen/', '')
-        #         config.cover_image = new_cover_image_name
-        #         if cover_image_name != new_cover_image_name:
-        #             rename = True
-        #             print "Renaming %s to %s" % (cover_image_name, new_cover_image_name)
-        #     if rename:
-        #         config.save(using=db)
-
-        # for com in CashOutMethod.objects.using(db).all():
-        #     if com.logo.name:
-        #         logo_name = com.logo.name
-        #         new_logo_name = logo_name.replace('ikwen/', '')
-        #         com.logo = new_logo_name
-        #         if logo_name != new_logo_name:
-        #             print "Renaming %s to %s" % (logo_name, new_logo_name)
-        #             com.save(using=db)
 
         for app in Application.objects.using(db).all():
             if app.logo.name:
@@ -265,55 +156,33 @@ def update_image_names():
                     print "Renaming %s to %s" % (logo_name, new_logo_name)
                     app.save(using=db)
 
-        # for mean in PaymentMean.objects.using(db).all():
-        #     rename = False
-        #     if mean.logo.name:
-        #         logo_name = mean.logo.name
-        #         new_logo_name = logo_name.replace('ikwen/', '')
-        #         mean.logo = new_logo_name
-        #         if logo_name != new_logo_name:
-        #             rename = True
-        #             print "Renaming %s to %s" % (logo_name, new_logo_name)
-        #     if mean.watermark.name:
-        #         watermark_name = mean.watermark.name
-        #         new_watermark_name = watermark_name.replace('ikwen/', '')
-        #         mean.watermark = new_watermark_name
-        #         if watermark_name != new_watermark_name:
-        #             rename = True
-        #             print "Renaming %s to %s" % (watermark_name, new_watermark_name)
-        #     if rename:
-        #         mean.save(using=db)
 
-        # for tpl in Template.objects.using(db).all():
-        #     if tpl.preview.name:
-        #         preview_name = tpl.preview.name
-        #         new_preview_name = preview_name.replace('ikwen/', '')
-        #         tpl.preview = new_preview_name
-        #         if preview_name != new_preview_name:
-        #             print "Renaming %s to %s" % (preview_name, new_preview_name)
-        #             tpl.save(using=db)
-        #
-        # for theme in Theme.objects.using(db).all():
-        #     rename = False
-        #     if theme.logo.name:
-        #         logo_name = theme.logo.name
-        #         new_logo_name = logo_name.replace('ikwen/', '')
-        #         theme.logo = new_logo_name
-        #         if logo_name != new_logo_name:
-        #             rename = True
-        #             print "Renaming %s to %s" % (logo_name, new_logo_name)
-        #     if theme.preview.name:
-        #         preview_name = theme.preview.name
-        #         new_preview_name = preview_name.replace('ikwen/', '')
-        #         theme.preview = new_preview_name
-        #         if preview_name != new_preview_name:
-        #             rename = True
-        #             print "Renaming %s to %s" % (preview_name, new_preview_name)
-        #     if rename:
-        #         theme.save(using=db)
+def populate_event_object_id_list():
+    total = ConsoleEvent.objects.all().count()
+    chunks = total / 500 + 1
+    for i in range(chunks):
+        start = i * 500
+        finish = (i + 1) * 500
+        for event in ConsoleEvent.objects.all()[start:finish]:
+            event.object_id_list = [event.object_id]
+            event.save()
 
-        # src_cfg = '/home/ikwen/assets_media/%s/ikwen/configs' % service.project_name_slug
-        # src_tlg = '/home/ikwen/assets_media/%s/ikwen/theme_logos' % service.project_name_slug
-        # dst = '/home/ikwen/assets_media/%s/' % service.project_name_slug
-        # subprocess.call(['mv', src_cfg, dst])
-        # subprocess.call(['mv', src_tlg, dst])
+
+def send_bulk_sms():
+    # fh = open('/home/komsihon/Documents/TCHOPETYAMO/Duvaal_Parents_Test.txt')
+    fh = open('/home/ikwen/Clients/Tchopetyamo/Duvaal_Parents.txt')
+    t0 = datetime.now()
+    n = 1
+    for recipient in fh.readlines():
+        text = u"Cher parent nous innovons,\n" \
+               u"dès 6H30 on s'occupe du pti-dej de vos enfants à Duvaal. " \
+               u"En+, bénéficiez de -5% pour toute inscription sur tchopetyamo.com\n" \
+               u"697506911"
+        send_sms("237" + recipient, text, label='Tchopetyamo')
+        n += 1
+    diff = datetime.now() - t0
+    print "%d SMS sent in %d s" % (n, diff.seconds)
+
+
+if __name__ == "__main__":
+    send_bulk_sms()

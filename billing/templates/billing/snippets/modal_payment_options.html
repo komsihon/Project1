@@ -7,18 +7,19 @@
                 <h4 class="modal-title">{% trans "Pay now" %}</h4>
             </div>
             <div class="modal-body">
-                <form id="checkout" method="post">{% csrf_token %}
-                    <input type="hidden" id="product-id" name="product_id" />
+                <form id="payment-start-flow" method="post">{% csrf_token %}
+                    <input type="hidden" id="payment-product-id" name="product_id" />
+                    <input type="hidden" id="amount" name="amount" />
                     <input type="hidden" name="payment_conf" value="{% if payment_conf %}{{ payment_conf }}{% else %}default{% endif %}" />
                     <ul class="row">
                         <li class="col-sm-4 payment-method{% if payment_mean_list|length == 2 %} col-sm-offset-2{% endif %}"
-                            {% if mtn_momo %}data-action-url="{% url mtn_momo.action_url_name %}{% endif %}">
+                            {% if mtn_momo %}data-action-url="{% url mtn_momo.action_url_name %}"{% endif %}>
                             <a class="logo" style="background: #ffca06" title="{% trans "Pay with MTN Mobile Money" %}">
                                 <img src="{% static 'ikwen/img/logo_mtn_mobile_money.jpg' %}" height="90"/>
                             </a>
                         </li>
                         <li class="col-sm-4 payment-method om"
-                            {% if om %}data-action-url="{% url om.action_url_name %}?mean=orange-money{% endif %}">
+                            {% if om %}data-action-url="{% url om.action_url_name %}?mean=orange-money"{% endif %}>
                             <a class="logo" style="background: #15171e" title="{% trans "Pay with Orange Money" %}">
                                 <img src="{% static 'ikwen/img/logo-OM-200x166.png' %}" height="90" />
                             </a>
@@ -37,3 +38,17 @@
         </div>
     </div>
 </div>
+{% if not payment_cancel_default %}
+<script>
+    (function() {
+        $('.payment-start').click(function() {
+            var productId = $(this).data('product-id');
+            $('#payment-product-id').val(productId);
+        });
+        $('.payment-method').click(function() {
+            var actionURL = $(this).data('action-url');
+            $('form#payment-start-flow').prop('action', actionURL).submit()
+        });
+    })()
+</script>
+{% endif %}

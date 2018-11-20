@@ -1,5 +1,5 @@
 {% extends "core/app_base_admin.html" %}
-{% load i18n humanize static auth_tokens %}
+{% load i18n humanize staticfiles auth_tokens %}
 
 {% block page_title %}
 <title>{% trans "Service info" %} - ikwen </title>
@@ -7,7 +7,7 @@
 {% block head_style %}
     {{ block.super }}
     <style type="text/css">
-        body {background: #f6f6f6}
+        section {border: 1px solid #ddd}
         section div.row {height: 30px}
         section label+span {color: #888}
         section em {font-size: 12px}
@@ -22,7 +22,7 @@
 {% block admin_content %}
     <div id="admin-content">
         <div class="container-fluid">
-            <div id="stage">
+            <div id="stage" style="float: none; margin: auto">
                 <section class="general subtle-shade">
                     <div class="update-result">
                         <p class="message hidden"></p>
@@ -34,52 +34,65 @@
                     <div class="detail row">
                         <label class="col-sm-3">{% trans "Application" %}</label>
                         <span>
-                            <span> {{ srvce.app.name }} </span>
+                            <span> {{ service.app.name }} </span>
                         </span>
                     </div>
                     <div class="detail row">
                         <label class="col-sm-3">{% trans "Project name" %}</label>
-                        <span>{{ srvce.project_name }}</span>
+                        <span>{{ service.project_name }}</span>
                     </div>
                     <div class="detail row">
                         <label class="col-sm-3">{% trans "Online since" %}</label>
-                        <span> {{ srvce.since }} </span>
+                        <span> {{ service.since }} </span>
                     </div>
                     <div class="detail row">
                         <label class="col-sm-3">{% trans "API Signature" %}</label>
-                        <span> {{ srvce.api_signature }} </span>
+                        <span> {{ service.api_signature }} </span>
+                    </div>
+                    <div class="detail row">
+                        <div>
+                            <label class="col-sm-3">{% trans "Support Code" %}</label>
+                            <span>
+                                {{ support_code.token }}
+{#                                {% if support_code.expired %}#}
+                                     <span class="label label-danger">{% trans "Expired" %}</span>
+                                    &nbsp;&nbsp; - &nbsp;&nbsp;&nbsp;<a href="#">{% trans "Renew" %}</a>
+{#                                {% endif %}#}
+                            </span>
+                        </div>
+                        <div>
+
+                        </div>
                     </div>
     {#                <div class="detail">#}
     {#                    <label class="name">{% trans "Admin" %}</label>#}
-    {#                    <span> <a href="{{ srvce.admin_url }}">Access</a> </span>#}
+    {#                    <span> <a href="{{ service.admin_url }}">Access</a> </span>#}
     {#                </div>#}
                 </section>
                 <section id="billing" class="subtle-shade">
                     <header>
                         <h3 style="float: left"> {% trans "Billing" %} </h3>
-                        {% if srvce.expired %}<span class="label label-danger" style="float: right">{% trans "Expired" %}</span>{% endif %}
-                        {#                    {% url 'billing:invoice_list' srvce.id as invoice_list_url %}#}
-                        {#                    <a href="{{ invoice_list_url|ikwenize|append_auth_tokens:request }}" target="_blank">{% trans "Pay your invoice" %}</a>#}
+                        {% if service.expired %}<span class="label label-danger" style="float: right">{% trans "Expired" %}</span>{% endif %}
                         <div class="clear"></div>
                     </header>
                     <div class="detail row">
                         <label class="col-sm-3">{% trans "Version" %}</label>
                         <span>
-                            {{ srvce.version }}
-    {#                        {% if srvce.version == 'Trial' %}#}
+                            {{ service.version }}
+    {#                        {% if service.version == 'Trial' %}#}
     {#                            - <a href="{% url 'ikwen:invoice_list' %}"> {% trans 'Activate full version' %} </a>#}
     {#                        {% endif %}#}
                         </span>
                     </div>
-                    {% if srvce.version != 'Free' %}
+                    {% if service.version != 'Free' %}
                     <div class="detail row">
                         <label class="col-sm-3">{% trans "Monthly cost" %}</label>
-                        <span>{{ currency_symbol }} {{ srvce.monthly_cost|intcomma }}</span>
+                        <span>{{ currency_symbol }} {{ service.monthly_cost|intcomma }}</span>
                     </div>
                     <div class="detail billing-cycle row">
                         <label class="col-sm-3">{% trans "Billing cycle" %}</label>
                         <span>
-                            {% trans srvce.billing_cycle %}
+                            {% trans service.billing_cycle %}
                             - <a class="action-edit" href="#"> {% trans "Change" %} </a>
                         </span>
                     </div>
@@ -99,29 +112,21 @@
                     </div>
                     <div class="detail row" style="clear: both">
                         <label class="col-sm-3">{% trans "Last payment" %}</label>
-                        {% if srvce.last_payment %}<span>{{ srvce.last_payment }}</span>{% else %}<span>N/A</span>{% endif %}
+                        {% if service.last_payment %}<span>{{ service.last_payment }}</span>{% else %}<span>N/A</span>{% endif %}
                     </div>
                     <div class="detail row">
                         <label class="col-sm-3">{% trans "Expiry" %}</label>
-                        {% if srvce.expiry %}
-                            <span>{{ srvce.expiry }} <em style="font-size: 11px">({{ srvce.expiry }})</em></span>
+                        {% if service.expiry %}
+                            <span>{{ service.expiry }} <em style="font-size: 11px">({{ service.expiry }})</em></span>
                         {% else %}
                             <span>N/A</span>
                         {% endif %}
                     </div>
-    {#                <div class="detail row">#}
-    {#                    <label class="col-sm-3">{% trans "Next invoice" %}</label>#}
-    {#                    {% if srvce.next_invoice_on %}#}
-    {#                        <span>{{ srvce.next_invoice_on }} <em style="font-size: 11px">({{ currency_symbol }}{{ srvce.next_invoice_amount|intcomma }})</em></span>#}
-    {#                    {% else %}#}
-    {#                        <span>N/A</span>#}
-    {#                    {% endif %}#}
-    {#                </div>#}
                     <div class="detail row">
                         <label class="col-sm-3">{% trans "Invoices" %}</label>
-                        {% if srvce.pending_invoice_count > 0 %}
+                        {% if service.pending_invoice_count > 0 %}
                             <span>
-                                <strong>{{ srvce.pending_invoice_count }} {% trans "Pending" %}</strong>
+                                <strong>{{ service.pending_invoice_count }} {% trans "Pending" %}</strong>
                                 {% url 'billing:invoice_list' as invoice_list_url %}
                                 - <a href="{{ invoice_list_url|ikwenize }}" target="_blank"> {% trans 'See' %} </a>
                             </span>
@@ -130,6 +135,26 @@
                         {% endif %}
                     </div>
                     {% endif %}
+                </section>
+                <section id="credits" class="subtle-shade">
+                    <header>
+                        <h3 style="float: left"> {% trans "Credits" %} </h3>
+                        <div class="clear"></div>
+                    </header>
+                    <div class="detail billing-cycle row">
+                        <label class="col-sm-3">{% trans "Mail Credit" %}</label>
+                        <span>
+                            {{ echo_balance.mail_count }}
+                            - <a class="action-edit" href="#"> {% trans "Top up" %} </a>
+                        </span>
+                    </div>
+                    <div class="detail billing-cycle row">
+                        <label class="col-sm-3">{% trans "SMS Credit" %}</label>
+                        <span>
+                            {{ echo_balance.sms_count }}
+                            - <a class="action-edit" href="#"> {% trans "Top up" %} </a>
+                        </span>
+                    </div>
                 </section>
             </div>
         </div>
@@ -155,7 +180,7 @@
                 $('body, button, .button').css('cursor', 'wait');
                 {% url 'billing:change_billing_cycle' as change_cycle_url %}
                 $.getJSON('{{ change_cycle_url|ikwenize }}' + '?callback=?',
-                        {new_cycle: value, subscription_id: '{{ srvce.id }}', key: '{{request.GET.key}}', rand: '{{ request.GET.rand }}' },
+                        {new_cycle: value, subscription_id: '{{ service.id }}', key: '{{request.GET.key}}', rand: '{{ request.GET.rand }}' },
                         function(response) {
                     $('body, button, .button').css('cursor', 'default');
                     if (response.error) {

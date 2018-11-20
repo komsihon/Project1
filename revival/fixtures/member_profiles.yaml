@@ -1,0 +1,62 @@
+- model: revival.profiletag
+  pk: 58088fc0c253e5ddf0563951
+  fields:
+    name: Men
+    slug: men
+
+- model: revival.profiletag
+  pk: 58088fc0c253e5ddf0563952
+  fields:
+    name: Women
+    slug: women
+
+- model: revival.profiletag
+  pk: 58088fc0c253e5ddf0563953
+  fields:
+    name: Kakocase
+    slug: kakocase
+
+- model: revival.memberprofile
+  fields:
+    member: 56eb6d04b37b3379b531e011
+    tag_list: [men, kakocase]
+
+- model: revival.memberprofile
+  fields:
+    member: 56eb6d04b37b3379b531e012
+    tag_list: [women, kakocase]
+
+- model: revival.memberprofile
+  fields:
+    member: 56eb6d04b37b3379b531e013
+    tag_list: [women, kakocase]
+
+- model: revival.memberprofile
+  fields:
+    member: 56eb6d04b37b3379b531e014
+    tag_list: [women]
+
+- model: revival.cyclicrevival
+  pk: 56eb6d04b37b3379b3e5ddf1
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    profile_tag_id: 58088fc0c253e5ddf0563951
+    mail_subject: Subject
+    days_cycle: 3
+    end_on: 2035-01-01
+
+- model: revival.cyclicrevival
+  pk: 56eb6d04b37b3379b3e5ddf2
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    profile_tag_id: 58088fc0c253e5ddf0563951
+    mail_subject: Subject
+    end_on: 2035-01-01
+
+- model: revival.cyclicrevival
+  pk: 56eb6d04b37b3379b3e5ddf3
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    profile_tag_id: 58088fc0c253e5ddf0563951
+    mail_subject: Subject
+    end_on: 2035-01-01

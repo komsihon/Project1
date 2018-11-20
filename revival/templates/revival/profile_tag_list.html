@@ -1,0 +1,115 @@
+{% extends "core/object_list_base.html" %}
+{% load i18n humanize staticfiles admin_list %}
+
+{% block head_style %}
+    {{ block.super }}
+    <link href="{% static 'ikwen/css/fancy-tiles.css' %}" media="screen" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content">
+        <div class="container-fluid">
+            <div id="admin-tools" class="ceil bottom-shade-xs">
+                <form id="admin-tools-form" onsubmit="return false">
+                    <div>
+                        <i class="glyphicon glyphicon-search"></i>
+                        <i class="glyphicon glyphicon-menu-left hide-search back"></i>
+                        <input type="text" id="context-search" class="tool search form-input input-sm" placeholder="{% blocktrans %}Search {{ verbose_name }}{% endblocktrans %}"/>
+                    </div>
+                    {% if filter and filter|length > 0 %}
+                        <div class="filter-trigger">
+                            <i class="glyphicon glyphicon-filter"></i>
+                            <i class="glyphicon glyphicon-menu-left hide-filter back"></i>
+                            {% for elt in filter %}
+                            <div class="tool filter">
+                                <label for="{{ elt.parameter_name }}" class="sr-only">{% trans elt.title %}</label>
+                                <select id="{{ elt.parameter_name }}" style="float: left; width: 120px" class="form-control input-sm {{ elt.parameter_name }} widget" name="{{ elt.parameter_name }}">
+                                    <option value="">{% trans "All" %}</option>
+                                    {% for choice in elt.choices %}
+                                        <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </form>
+                {% url change_object_url_name as change_classroom_url %}
+                <a href="{{ change_classroom_url }}" class="btn btn-sm btn-success cta pull-right action"
+                        title="{% trans "Add new classroom" %}">
+                    <i class="glyphicon glyphicon-plus"></i>
+                    <span class="hidden-xs">{% trans "Add" %}</span>
+                </a>
+                <div class="clearfix"></div>
+            </div>
+            <div id="results" class="col-sm-10 col-sm-offset-1">
+                {% include 'core/snippets/spinner.html' %}
+                <ul class="tiles object-list">
+                    {% for tag in reserved_tag_list %}
+                    {% url 'revival:change_profiletag' tag.id as change_profiletag_url %}
+                    <li class="ik-li fancy xs colorful" id="{{ tag.id }}" data-id="{{ tag.id }}">
+                        <div class="content">
+                            <div class="image"
+                                 {% if tag.image.name %}
+                                    style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ tag.image.name }})"
+                                 {% endif %}>
+                                <div class="name">{{ tag.name }}</div>
+                            </div>
+                            <div class="info">
+                                <div class="name" style="float: left">&nbsp;</div>
+                            </div>
+                            <div class="actions">
+                                {% if tag.is_active %}
+                                    <i class="action glyphicon glyphicon-ok toggle active off" title="{% trans "Deactivate" %}"></i>
+                                {% else %}
+                                    <i class="action glyphicon glyphicon-ok toggle active on" title="{% trans "Activate" %}"></i>
+                                {% endif %}
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                    {% for tag in profiletag_list %}
+                    {% url 'revival:change_profiletag' tag.id as change_profiletag_url %}
+                    <li class="ik-li fancy xs colorful" id="{{ tag.id }}" data-id="{{ tag.id }}">
+                        <div class="content">
+                            <a class="image" href="{{ change_profiletag_url }}"
+                                 {% if tag.image.name %}
+                                    style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ tag.image.name }})"
+                                 {% endif %}>
+                                <div class="name">{{ tag.name }}</div>
+                            </a>
+                            <div class="info">
+                                <div class="name" style="float: left">&nbsp;</div>
+                            </div>
+                            <div class="actions">
+                                {% if tag.is_active %}
+                                    <i class="action glyphicon glyphicon-ok toggle active off" title="{% trans "Deactivate" %}"></i>
+                                {% else %}
+                                    <i class="action glyphicon glyphicon-ok toggle active on" title="{% trans "Activate" %}"></i>
+                                {% endif %}
+                                <a href="{{ change_profiletag_url }}" class="glyphicon glyphicon-edit" title="{% trans "Edit item" %}"></a>
+                                <i class="action glyphicon glyphicon-trash trash" title="{% trans "Delete item" %}"></i>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script>
+        (function() {
+            $('#discipline-item-happened-on').datepicker({
+                altField: "#happened-on-alt",
+                altFormat: "yy-mm-dd"
+            });
+        })()
+    </script>
+{% endblock %}

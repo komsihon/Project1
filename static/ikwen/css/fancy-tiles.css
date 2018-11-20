@@ -1,0 +1,46 @@
+/**
+    Document   : fancy-tiles
+    Created on : Oct 02, 2018, 16:29
+    Author     : Kom Sihon
+    Description:
+        Rules for displaying fancy tiles
+*/
+
+.ik-li.fancy .content {
+    border: 1px solid #eee;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .1);
+    padding: 0;
+    overflow: hidden;
+    }
+.ik-li.fancy .image:hover {text-decoration: none}
+.ik-li.fancy .image .name {color: #fff;padding: 10px 15px 0;text-align: right;font-size: 18px;}
+.ik-li.fancy .info {padding: 0 15px}
+.ik-li.fancy .actions {padding-right: 15px}
+.ik-li.fancy.colorful {height: 210px}
+.ik-li.fancy.colorful .image {height: 130px}
+.ik-li.fancy.colorful:nth-child(10n+1) .content {background: #2196F3;}
+.ik-li.fancy.colorful:nth-child(10n+2) .content {background: #AD1457;}
+.ik-li.fancy.colorful:nth-child(10n+3) .content {background: #FF9800;}
+.ik-li.fancy.colorful:nth-child(10n+4) .content {background: blueviolet}
+.ik-li.fancy.colorful:nth-child(10n+5) .content {background: #3F51B5;}
+.ik-li.fancy.colorful:nth-child(10n+6) .content {background: #0097A7;}
+.ik-li.fancy.colorful:nth-child(10n+7) .content {background: #7CB342;}
+.ik-li.fancy.colorful:nth-child(10n+8) .content {background: #455A64;}
+.ik-li.fancy.colorful:nth-child(10n+9) .content {background: #795548;}
+.ik-li.fancy.colorful:nth-child(10n) .content {background: #4A148C;}
+
+@media (max-width: 767px) {
+    .ik-li.fancy.xs {width: 50%;height: 145px;}
+    .ik-li.fancy.xs:nth-child(2n) {padding-left: 5px;}
+    .ik-li.fancy.xs:nth-child(2n+1) {padding-right: 5px;}
+    .ik-li.fancy.xs .image {height: 90px}
+    .ik-li.fancy.xs .image .name {font-size: 16px;}
+}
+
+@media (min-width: 768px) {
+    .fancy-tiles #admin-tools-form, #admin-tools-form input {width: 100%}
+    .fancy-tiles #admin-tools-form div {float: none; margin: auto; width: 400px}
+    .fancy-tiles .tiles.object-list {margin: 30px 0 0 0}
+    .ik-li.fancy.colorful .actions {margin-top: 3px}
+}

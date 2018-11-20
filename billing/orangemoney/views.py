@@ -166,8 +166,9 @@ def check_transaction_status(request):
             status = resp['status']
             if status == 'FAILED':
                 logger.debug("OM: Payment %s of %dF from %s failed" % (token, amount, username))
+                message = resp.get('message', 'Transaction failed.')
                 MoMoTransaction.objects.using('wallets').filter(pk=tx_id)\
-                    .update(message=resp['message'], is_running=False, status=MoMoTransaction.FAILURE)
+                    .update(message=message, is_running=False, status=MoMoTransaction.FAILURE)
                 break
             if status == 'SUCCESS':
                 logger.debug("OM: Successful payment %s of %dF from %s" % (token, amount, username))

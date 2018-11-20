@@ -128,6 +128,15 @@ class Application(AbstractWatchModel):
     def __unicode__(self):
         return self.name
 
+    def _get_cover_image(self):
+        try:
+            app_service = Service.objects.get(project_name_slug=self.slug)
+            config = Config.objects.get(service=app_service)
+            return config.cover_image
+        except:
+            pass
+    cover_image = property(_get_cover_image)
+
 
 class Service(models.Model):
     """
@@ -788,6 +797,7 @@ class ConsoleEvent(Model):
     event_type = models.ForeignKey(ConsoleEventType, related_name='+')
     model = models.CharField(max_length=100, blank=True, null=True)
     object_id = models.CharField(max_length=24, blank=True, null=True, db_index=True)
+    object_id_list = ListField()
 
     class Meta:
         db_table = 'ikwen_console_event'
@@ -802,7 +812,6 @@ class ConsoleEvent(Model):
         config = service.config
         var['project_url'] = service.url
         var['project_name'] = service.project_name
-        # var['project_logo_url'] = config.logo.url if config.logo.name else getattr(settings, 'STATIC_URL') + 'ikwen/img/logo-placeholder.jpg'
         var['project_logo_url'] = config.logo.url if config.logo.name else ''
         var['created_on'] = naturaltime(self.created_on)
         var['min_height'] = self.event_type.min_height
@@ -895,6 +904,7 @@ def delete_object_events(sender, **kwargs):
         return
     instance = kwargs['instance']
     from ikwen.accesscontrol.backends import UMBRELLA
+
     ConsoleEvent.objects.using(UMBRELLA).filter(object_id=instance.pk).delete()
 
 

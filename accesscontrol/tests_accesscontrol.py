@@ -6,20 +6,24 @@
 
 import json
 from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.test.client import Client
 from django.test.utils import override_settings
 from django.utils import unittest
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user
 
 from ikwen.core.utils import add_database_to_settings
 
 from ikwen.accesscontrol.tests_auth import wipe_test_data
-from ikwen.accesscontrol.models import Member, AccessRequest, COMMUNITY
+from ikwen.accesscontrol.models import Member, COMMUNITY
 from ikwen.core.models import Service, ConsoleEventType, ConsoleEvent
+from ikwen.revival.models import MemberProfile
 
 
 class IkwenAccessControlTestCase(unittest.TestCase):
@@ -28,7 +32,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
     Thus, self.client is not automatically created and fixtures not automatically loaded. This
     will be achieved manually by a custom implementation of setUp()
     """
-    fixtures = ['ikwen_members.yaml', 'setup_data.yaml']
+    fixtures = ['ikwen_members.yaml', 'setup_data.yaml', 'member_profiles']
 
     def setUp(self):
         self.client = Client()
@@ -143,7 +147,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.assertIn('5804b37b3379b531e01eb6d1', m3_umbrella.group_fk_list)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
-    def test_Collaborators(self):
+    def test_Community(self):
         """
         Make sure the url is reachable
         """
@@ -152,22 +156,47 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
-    def test_MemberList(self):
+    def test_Community_load_member_detail(self):
         """
-        Make sure the url is reachable
+        Make sure the action is working
         """
+        ct = ContentType.objects.all()[0]
+        Permission.objects.all().delete()
+        perm1 = Permission.objects.create(codename='ik_action1', name="Can do action 1", content_type=ct)
+        m3 = Member.objects.get(username='member3')
+        add_permission_to_user(perm1, m3)
         self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('ikwen:member_list'))
+        response = self.client.get(reverse('ikwen:community'), {'action': 'load_member_detail', 'member_id': '56eb6d04b37b3379b531e013'})
         self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.context['member'])
+        self.assertEqual(len(response.context['permission_list']), 1)
+        self.assertIsNotNone(response.context['profiletag_list'])
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
-    def test_AccessRequestList(self):
+    def test_Community_set_member_profiles(self):
+        """
+        Make sure the action is working
+        """
+        self.client.login(username='member2', password='admin')
+        response = self.client.get(reverse('ikwen:community'), {'action': 'set_member_profiles',
+                                                                'member_id': '56eb6d04b37b3379b531e014',
+                                                                'tag_ids': '58088fc0c253e5ddf0563952,58088fc0c253e5ddf0563953'})
+        self.assertEqual(response.status_code, 200)
+        member_profile = MemberProfile.objects.get(member='56eb6d04b37b3379b531e014')
+        json_response = json.loads(response.content)
+        self.assertTrue(json_response['success'])
+        self.assertListEqual(member_profile.tag_list, ['women', 'kakocase'])
+
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
+    def test_MemberList_with_jsonp_search(self):
         """
         Make sure the url is reachable
         """
-        self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('ikwen:access_request_list'))
+        response = self.client.get(reverse('ikwen:member_list'), {'q': 'mem', 'format': 'json'})
+        json_response = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
+        self.assertGreater(len(json_response), 1)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
     def test_view_member_profile(self):
@@ -201,9 +230,39 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         perm3 = Permission.objects.create(codename='ik_action3', name="Can do action 3", content_type=ct)
         m3 = Member.objects.get(username='member3')
         m3.is_staff = True
+        m3.email_verified = True
+        m3.save()
         add_permission_to_user(perm3, m3)
         self.client.login(username='member3', password='admin')
         response = self.client.get(reverse('ikwen:staff_router'), follow=True)
         final = response.redirect_chain[-1]
-        location = final[0].strip('/').split('/')[-1]
+        location = final[0].replace('?splash=yes', '').strip('/').split('/')[-1]
         self.assertEqual(location, 'ikwen-service-2')
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102',
+                       EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
+                       EMAIL_FILE_PATH='test_emails/accesscontrol/email_confirmation/')
+    def test_EmailConfirmation_with_email_not_verified(self):
+        """
+        The EmailConfirmation sends an email verification to the user_email
+        """
+        Member.objects.filter(username='member2').update(email_verified=False)
+        self.client.login(username='member2', password='admin')
+        response = self.client.get(reverse('ikwen:email_confirmation'))
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
+    def test_ConfirmEmail(self):
+        """
+        Hitting the correct ConfirmEmail sets member.email_verified to True
+        """
+        member = Member.objects.get(username='member2')
+        member.email_verified = False
+        member.save()
+        uid = urlsafe_base64_encode(force_bytes(member.pk))
+        token = default_token_generator.make_token(member)
+        self.client.login(username='member2', password='admin')
+        response = self.client.get(reverse('ikwen:confirm_email', args=(uid, token)))
+        self.assertEqual(response.status_code, 200)
+        member = Member.objects.get(username='member2')
+        self.assertTrue(member.email_verified)

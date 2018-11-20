@@ -40,6 +40,7 @@ class Theme(Model):
                                        "when using this theme. User may want different logos for different themes.")
     display = models.CharField(max_length=30, choices=DISPLAY_CHOICES)
     cost = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'ikwen_theme'

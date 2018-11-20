@@ -33,6 +33,16 @@
 #stage .card h3 img {margin-right: 6px}
 #stage .card > div:first-of-type h4 {margin: 0 0 .5em;}
 
+.cr-join-widget {margin: 45px 0 60px}
+.bottom-join .cr-join-widget {margin: 0}
+.btn.join-community {background: #2cb100; border-color: #2cb100; font-weight: 600}
+.cr-join-widget .btn.join-community {width: 180px}
+.bottom-join {background: #fff; bottom: -140px; height: 125px; left: 0;
+    position: fixed; width: 100%; z-index: 1000; transition: all .3s}
+.bottom-join.revealed {bottom: 0; transition: all .3s}
+#modal-join-notice .modal-body {padding: 20px 0;}
+#modal-join-notice .modal-content {background: #364761;border-radius: 0;color: #fff;}
+
 .coupon-img {cursor: pointer}
 #coupon-detail img {cursor: pointer; height: 180px}
 
@@ -42,6 +52,7 @@
     #cards > .row {margin: 0}
     #cards, .events-col1, .events-col2 {padding: 0;}
     #stage .card {padding: 10px}
+    .bottom-join.revealed .btn.join-community {margin-top: -10px}
 }
 @media (min-width: 768px) {
     #banner {height: 300px;overflow: hidden;}

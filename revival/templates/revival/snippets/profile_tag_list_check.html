@@ -1,0 +1,12 @@
+{% load i18n humanize %}
+
+<div class="check-tag-list">
+{% for tag in profiletag_list %}
+    <div class="subject checkbox tile col-xs-6 col-sm-4 col-lg-3">
+        <label>
+             <input type="checkbox" value="{{ tag.id }}"
+                    {% if tag.is_active %}checked{% endif %}><strong>{{ tag.name }}</strong>
+        </label>
+    </div>
+{% endfor %}
+</div>

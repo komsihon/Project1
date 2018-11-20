@@ -3,17 +3,32 @@
 
 {% block meta %}
     {{ block.super }}
+    <meta name="theme-color" content="#233682">
+    <meta name="msapplication-navbutton-color" content="#233682">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#233682">
     <meta property="og:type" content="Website" />
     {% if cr_profile %}
-        <meta property="og:title" content="{{ profile_name }} is offering you some gifts" />
-        <meta property="og:image" content="{% get_media_prefix %}{{ coupon_list.0.image.name }}" />
-        <meta property="og:description" content="{% blocktrans %}Join {{ profile_name }} on ikwen and get some free gifts !{% endblocktrans %}" />
+        <meta property="og:title" content="{{ profile_name }}" />
+        {% if coupon_list %}
+            <meta property="og:image" content="{% get_media_prefix %}{{ coupon_list.0.image.name }}" />
+        {% elif config.cover_image %}
+            <meta property="og:image" content="{% get_media_prefix %}{{ config.cover_image.name }}" />
+        {% else %}
+            <meta property="og:image" content="{% get_media_prefix %}{{ config.logo.name }}" />
+        {% endif %}
+        {% if user.is_authenticated %}
+            <meta property="og:description" content="{% blocktrans %}{{ user.first_name }} is inviting you to join {{ profile_name }} and earn some free gifts.{% endblocktrans %}" />
+        {% else %}
+            <meta property="og:description" content="{% trans "We have some free gifts for you. Collect them now." %}" />
+        {% endif %}
         <meta name="description" content="{% blocktrans %}Join {{ profile_name }} on ikwen and get some free gifts !{% endblocktrans %}" />
+        <meta property="og:site_name" content="www.ikwen.com" />
     {% else %}
         <meta property="og:title" content="{{ profile_name }}" />
         <meta property="og:image" content="{% get_media_prefix %}{{ config.logo.name }}" />
         <meta property="og:description" content="{% blocktrans %}Join {{ profile_name }} on ikwen !{% endblocktrans %}" />
         <meta name="description" content="{% blocktrans %}Join {{ profile_name }} on ikwen !{% endblocktrans %}" />
+        <meta property="og:site_name" content="www.ikwen.com" />
     {% endif %}
 {% endblock %}
 
@@ -22,10 +37,10 @@
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
-    <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <link href="{% static 'ikwen/css/console.css' %}?v=18.10.24.1" media="screen" rel="stylesheet" type="text/css" />
     <link rel='stylesheet' href="{% static 'ikwen/swiper/css/swiper.min.css' %}" />
     <style>
-        body {background: #f6f6f6}
+        body {background: #f6f6f6; padding-bottom: 200px}
         {% if profile_cover_url %}
             #cover {background-image: url({{ profile_cover_url }})}
         {% else %}
@@ -64,9 +79,9 @@
         #deploy:hover {background: #982035; border-color:  #982035}
         #coupons .progress {margin: 0}
         #coupons .progress-bar {background-color: #4CAF50;}
-        #coupons .join-community {font-weight: 600; width: 180px}
         .coupon-count {color: #fff; float: right; height: 34px; margin-top: 146px; padding-right: 5px}
         .coupon-count span {font-size: 26px; font-weight: 700}
+        #whatsapp-share-msg {height: 60px}
     </style>
 {% endblock %}
 
@@ -97,6 +112,7 @@
                             </div>
                             {% trans "My collection" %}
                         </h4>
+                        {% if user.is_authenticated %}
                         <ul style="padding: 0">
                             {% for summary in coupon_summary_list %}
                                 {% with service=summary.service %}
@@ -121,6 +137,12 @@
                                 </li>
                             {% endfor %}
                         </ul>
+                        {% else %}
+                            <div class="text-center">
+                                <p style="margin: 20px 0 30px">{% trans "Please, login to see your collected coupons" %}</p>
+                                <a class="btn btn-sm btn-success" href="{% url 'home' %}" style="width: 180px">{% trans "Login" %}</a>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
                 <footer>
@@ -131,6 +153,9 @@
         </div>
         {% block stage %}
             <div id="stage">
+                {% if coupon_list and not is_member %}
+                    {% include 'rewarding/snippets/cr_join_widget.html' %}
+                {% endif %}
                 <header id="cover" class="subtle-shade">
                     <div id="banner">
                         <div class="frame">
@@ -144,7 +169,7 @@
                 <div id="coupons" class="card-ul">
                     <div class="card subtle-shade">
                         <div>
-                            <h3 class="pull-left" style="font-size: 18px; margin-top: 0">{% trans "Our Coupons" %}</h3>
+                            <h3 class="pull-left" style="font-size: 18px; margin-top: 0">{% trans "Our free coupons" %}</h3>
                             <div class="dropdown social-sharing pull-right">
                                 <a class="dropdown-toggle" href="javascript:;" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <i class="fa fa-share-alt" style="color: #243682; font-size: 21px; margin-right: 10px"></i>
@@ -166,12 +191,6 @@
                                         <a href="https://twitter.com/home?status={{ url }}" target="_blank">
                                             <i class="fa fa-twitter"></i>
                                             Twitter
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="https://plus.google.com/share?url={{ url }}" target="_blank">
-                                            <i class="fa fa-google-plus"></i>
-                                            Google+
                                         </a>
                                     </li>
                                 </ul>
@@ -217,27 +236,11 @@
                                 </div>
                             </div>
                         </div>
-                        {% if not is_member %}
+                        {% if is_member %}
                         <div>
-                            <p style="margin: 15px 0 25px">{% blocktrans %}
-                                Collect our coupons and get Discounts, Free Gifts and Purchase Orders. It's
-                                free and easy. Join our Community and receive some free coupons to get started.
+                            <p class="text-muted" style="margin: 15px 0 25px; text-align: center">{% blocktrans %}
+                                Refer {{ profile_name }} to a friend by sharing and earn {{ referral_coupon_count }} more free coupons.
                             {% endblocktrans %}</p>
-                            <p class="text-center">
-                            {% if request.user.is_authenticated %}
-                                {% if not is_member %}
-                                    <button class="btn btn-primary join-community" data-service-id="{{ page_service.id }}">
-                                        <img src="{% static 'ikwen/img/Join_button_white.svg' %}" height="15" style="margin: -4px 5px 0 0" />
-                                        Join
-                                    </button>
-                                {% endif %}
-                            {% else %}
-                                <a class="btn btn-primary join-community" href="{% url 'home' %}?join={{ page_service.project_name_slug }}">
-                                    <img src="{% static 'ikwen/img/Join_button_white.svg' %}" height="15" style="margin: -4px 5px 0 0" />
-                                    Join
-                                </a>
-                            {% endif %}
-                            </p>
                         </div>
                         {% endif %}
                     </div>
@@ -315,107 +318,21 @@
                     </section>
                 </div>
             </div>
-            <div class="modal fade" id="claim-reward" tabindex="-1" role="dialog">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content modal-info">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title">{% trans "Claim your reward" %}</h4>
-                        </div>
-                        <div class="modal-body">
-                            <p><strong>{% trans "Congratulations" %} !</strong></p>
-                            <p>{% blocktrans %}
-                                You have collected 100 coupons and can enjoy your reward now. To do so,
-                                go to our online store, contact us or come to our place.{% endblocktrans %}
-                            </p>
-
-                            <div class="clearfix"></div>
-                        </div>
-                        <div class="profile-about" style="padding: 5px 20px 20px">
-                            <ul>
-                                {% if is_company and not app %}
-                                    <li>
-                                        <label>{% trans "Website" %}</label>
-                                        <span>
-                                            <a href="{{ page_service.url }}" target="_blank">{{ page_service.url }}</a>
-                                        </span>
-                                    </li>
-                                {% endif %}
-                                {% if profile_email %}
-                                    <li>
-                                        <label>E-mail</label>
-                                        <span>{{ profile_email }}</span>
-                                    </li>
-                                {% endif %}
-                                {% if profile_phone %}
-                                    <li>
-                                        <label>{% trans "Phone" %}</label>
-                                        <a href="tel://{{ profile_phone }}">{{ profile_phone }}</a>
-                                    </li>
-                                {% endif %}
-                                {% if profile_address %}
-                                    <li>
-                                        <label>{% trans "Address" %}</label>
-                                        <span>{{ profile_address }}</span>
-                                    </li>
-                                {% endif %}
-                            </ul>
-                        </div>
+            {% if coupon_list and not is_member %}
+                <div class="bottom-join has-shade">
+                    <div class="container-fluid">
+                        {% include 'rewarding/snippets/cr_join_widget.html' %}
                     </div>
                 </div>
-            </div>
-            <div class="modal fade" id="coupon-detail" tabindex="-1" role="dialog">
-                <div class="modal-dialog modal-sm" role="document">
-                    <div class="modal-content modal-info">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title"></h4>
-                        </div>
-                        <div class="modal-body text-center">
-                            <img class="img" />
-                            <p class="description text-left" style="margin-top: 15px"></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="whatsapp-share" tabindex="-1" role="dialog">
-                <div class="modal-dialog modal-sm" role="document">
-                    <div class="modal-content modal-info">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title">{% trans "Share on WhatsApp" %}</h4>
-                        </div>
-                        <div class="modal-body text-center">
-                            <form onclick="return false" class="form-horizontal">
-                                <div class="form-group row">
-                                    <label for="whatsapp-share-msg" class="col-sm-5 col-md-4">{% trans "Message" %}</label>
-                                    <div class="col-sm-7 col-md-8">
-                                        <textarea id="whatsapp-share-msg" class="form-control input-sm"></textarea>
-                                    </div>
-                                </div>
-                            </form>
-                            <div class="actions">
-                                <div class="col-xs-12 col-sm-4 col-md-3 pull-right action">
-                                    <button class="btn btn-success btn-block btn-sm ok"
-                                            data-dismiss="modal" aria-label="OK">OK</button>
-                                </div>
-                                <div class="col-xs-12 col-sm-4 col-md-3 pull-right action">
-                                    <button class="btn btn-default btn-block btn-sm"
-                                            data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
-                                </div>
-                            </div>
-                            <div class="clearfix"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endif %}
+            {% include 'rewarding/snippets/cr_console_modals.html' %}
         {% endblock %}
         {% include 'core/snippets/ads.html' %}
     </div>
 {% endblock %}
 {% block js %}
     {{ block.super }}
-    {% if not is_console %} {% include 'accesscontrol/snippets/request_management.html' %} {% endif %}
+    {% include 'accesscontrol/snippets/request_management.html' %}
     <script>
         (function() {
             var couponSwiper = new Swiper('#coupons .swiper-container', {
@@ -438,7 +355,13 @@
             }).on('click', '#whatsapp-share .btn.ok', function() {
                 var msg = $('#whatsapp-share-msg').val();
                 window.location = 'https://api.whatsapp.com/send?text={{ url }}%0A%0A' + msg;
-            })
+            });
+            $(window).scroll(function() {
+                var scrollTop = $(this).scrollTop();
+                if (scrollTop > 150) $('.bottom-join').addClass('revealed');
+                else $('.bottom-join').removeClass('revealed');
+            });
+            if ("{{ request.GET.joined }}") $('#modal-join-notice').modal('show');
         })()
     </script>
 {% endblock %}

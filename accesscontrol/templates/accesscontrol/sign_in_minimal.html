@@ -288,7 +288,7 @@
                         if (data.existing) {
                             location.hash = 'login';
                             $('#password').focus();
-                            $('#auth').prop('action', "{% url 'ikwen:do_sign_in' %}?{{ request.META.QUERY_STRING }}");
+                            $('#auth').prop('action', "{% url 'ikwen:do_sign_in' %}?{{ request.META.QUERY_STRING|safe }}");
                             if (username.isValidEmail()) {
                                 $('.forgotten-pwd').prop('href', '{{ forgotten_password_url|ikwenize }}' + '?' + 'username=' + username);
                             }
@@ -303,7 +303,7 @@
                             }
                             $('.form-group.password').prependTo('.create-account').find('label').text("{% trans "Choose a password" %}");
                             location.hash = 'register-step1';
-                            $('#auth').prop('action', "{% url 'ikwen:register' %}?{{ request.META.QUERY_STRING }}");
+                            $('#auth').prop('action', "{% url 'ikwen:register' %}?{{ request.META.QUERY_STRING|safe }}");
                         }
                     }
                 });

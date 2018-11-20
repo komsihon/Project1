@@ -26,9 +26,6 @@
         $('.form-row').addClass('form-group');
         $('.form-row input, .form-row select, .form-row textarea').addClass('form-control input-sm');
         $('.form-row textarea').addClass('form-control input-sm');
-        {% if request.GET.success %}
-            ikwen.showFloatingNotice("{% trans "Configuration successfully saved." %}", '', 6);
-        {% endif %}
         var uploader = new qq.FileUploader({
             action: "{% url 'ikwen:upload_image' %}",
             element: $('div#upload-container .uploader')[0],

@@ -287,6 +287,25 @@ class Invoice(AbstractInvoice):
         super(Invoice, self).save(using=using, *args, **kwargs)
 
 
+class SupportCode(Model):
+    """
+    A customer support code
+    """
+    EMAIL = 'Email'
+    PHONE = 'Phone'
+    ONSITE = 'Onsite'
+    TYPE_CHOICES = (
+        (EMAIL, _("Email")),
+        (PHONE, _("Phone")),
+        (ONSITE, _("Onsite")),
+    )
+    service = models.OneToOneField(Service, related_name='+')
+    token = models.CharField(max_length=60)
+    type = models.CharField(max_length=30, default=EMAIL, choices=TYPE_CHOICES)
+    balance = models.IntegerField(default=0)
+    expiry = models.DateTimeField(db_index=True)
+
+
 class Donation(Model):
     """
     A donation offered by a website visitor

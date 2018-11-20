@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
 import os
+import random
+import string
 from datetime import datetime, timedelta
 from time import strptime
 
@@ -33,9 +35,11 @@ from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
 import ikwen.conf.settings
+from echo.models import Balance
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT
-from ikwen.billing.models import Invoice
+from ikwen.accesscontrol.utils import VerifiedEmailTemplateView
+from ikwen.billing.models import Invoice, SupportCode
 from ikwen.billing.utils import get_invoicing_config_instance, get_billing_cycle_days_count, \
     get_billing_cycle_months_count, refresh_currencies_exchange_rates
 from ikwen.cashout.models import CashOutRequest
@@ -43,7 +47,8 @@ from ikwen.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent
     OperatorWallet
 from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons, add_database_to_settings, \
     add_database, calculate_watch_info, set_counters, get_model_admin_instance
-from ikwen.rewarding.models import CouponSummary, CROperatorProfile
+from ikwen.rewarding.models import CROperatorProfile
+from ikwen.revival.models import ObjectProfile, ProfileTag, Revival
 
 try:
     ikwen_service = Service.objects.using(UMBRELLA).get(pk=ikwen.conf.settings.IKWEN_SERVICE_ID)
@@ -249,8 +254,12 @@ class ChangeObjectBase(TemplateView):
     model = None
     model_admin = None
     object_list_url = None  # Django url name of the object list page
+    change_object_url = None  # Django url name of the change object page
     template_name = 'core/change_object_base.html'
     context_object_name = 'obj'
+    profiles_aware = False  # If set to true, object ProfileTag management utilities will be integrated to the object
+    auto_profile = False  # If true, this object generates a secret ProfileTag matching the actual object upon save
+    revival_mail_renderer = None
 
     def get_object(self, **kwargs):
         object_id = kwargs.get('object_id')  # May be overridden with the one from GET data
@@ -274,6 +283,15 @@ class ChangeObjectBase(TemplateView):
         obj_form = helpers.AdminForm(form, list(model_admin.get_fieldsets(self.request)),
                                      model_admin.get_prepopulated_fields(self.request),
                                      model_admin.get_readonly_fields(self.request))
+
+        if self.profiles_aware:
+            object_profile, update = ObjectProfile.objects.get_or_create(model_id=obj.id)
+            profiletag_list = list(ProfileTag.objects.filter(is_active=True, is_auto=False))
+            for tag in profiletag_list:
+                if tag.name in object_profile.tag_list:
+                    tag.is_selected = True
+            context['profiletag_list'] = profiletag_list
+
         context[self.context_object_name] = obj
         context['obj'] = obj  # Base template recognize the context object only with the name 'obj'
         context['verbose_name'] = self.model()._meta.verbose_name
@@ -327,6 +345,16 @@ class ChangeObjectBase(TemplateView):
                     pass
             except:
                 pass
+
+            if self.auto_profile:
+                name_field_name = request.POST.get('name_field_name', 'name')
+                try:
+                    name_field = obj.__getattribute__(name_field_name)
+                    slug = '__' + slugify(name_field)
+                    ObjectProfile.objects.create(name=slug, slug=slug, is_auto=True)
+                except:
+                    pass
+
             image_url = request.POST.get('image_url')
             if image_url:
                 s = get_service_instance()
@@ -347,8 +375,12 @@ class ChangeObjectBase(TemplateView):
                         if getattr(settings, 'DEBUG', False):
                             raise e
                         return {'error': 'File failed to upload. May be invalid or corrupted image file'}
+            self.save_object_profile_tags(request, obj, *args, **kwargs)
             self.after_save(request, obj, *args, **kwargs)
-            next_url = self.get_object_list_url(request, obj, *args, **kwargs)
+            if request.POST.get('keep_editing'):
+                next_url = self.get_change_object_url(request, obj, *args, **kwargs)
+            else:
+                next_url = self.get_object_list_url(request, obj, *args, **kwargs)
             if object_id:
                 messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj).decode('utf8') + '</strong> ' + _('successfully updated'))
             else:
@@ -361,15 +393,54 @@ class ChangeObjectBase(TemplateView):
 
     def get_object_list_url(self, request, obj, *args, **kwargs):
         if self.object_list_url:
-            next_url = reverse(self.object_list_url)
+            url = reverse(self.object_list_url)
         else:
             try:
                 if obj is None:
                     obj = self.model()
-                next_url = reverse('%s:%s_list' % (obj._meta.app_label, obj._meta.model_name))
+                url = reverse('%s:%s_list' % (obj._meta.app_label, obj._meta.model_name))
             except:
-                next_url = request.META['HTTP_REFERER']
-        return next_url
+                url = request.META['HTTP_REFERER']
+        return url
+
+    def get_change_object_url(self, request, obj, *args, **kwargs):
+        if self.change_object_url:
+            url = reverse(self.change_object_url, args=(obj.id, ))
+        else:
+            try:
+                if obj is None:
+                    obj = self.model()
+                url = reverse('%s:change_%s' % (obj._meta.app_label, obj._meta.model_name))
+            except:
+                url = request.META['HTTP_REFERER']
+        return url
+
+    def save_object_profile_tags(self, request, obj, *args, **kwargs):
+        auto_profiletag_id_list = kwargs.pop('auto_profiletag_id_list', [])
+        profiletag_ids = request.GET.get('profiletag_ids', '')
+        revival_mail_renderer = kwargs.pop('revival_mail_renderer', self.revival_mail_renderer)
+        if not (profiletag_ids or auto_profiletag_id_list):
+            return
+        do_revive = kwargs.pop('do_revive', None)  # Set a revival if explicitly stated to do so
+        if do_revive is None and not kwargs.get('object_id'):
+            do_revive = True  # Set a revival in any case for a newly added product
+        profiletag_id_list = profiletag_ids.strip().split(',')
+        profiletag_id_list.extend(auto_profiletag_id_list)
+        model_name = obj._meta.app_label + '.' + obj._meta.model_name
+        object_profile, update = ObjectProfile.objects.get_or_create(model_name=model_name, object_id=obj.id)
+        tag_list = []
+        for pk in profiletag_id_list:
+            try:
+                tag = ProfileTag.objects.get(pk=pk)
+                tag_list.append(tag.slug)
+            except:
+                continue
+        object_profile.tag_list = tag_list
+        object_profile.save()
+        if do_revive and revival_mail_renderer:  # This is a newly created object
+            service = Service.objects.using(UMBRELLA).get(pk=get_service_instance().id)
+            Revival.objects.using(UMBRELLA).create(service=service, model_name=model_name, object_id=obj.id,
+                                                   mail_renderer=revival_mail_renderer)
 
     def after_save(self, request, obj, *args, **kwargs):
         """
@@ -407,6 +478,9 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
                         url = ikwen_settings.MEDIA_URL + config.logo.name
                         src = config.logo.path
                         generate_favicons(src)
+                        destination2_folder = ikwen_settings.MEDIA_ROOT + AbstractConfig.LOGO_UPLOAD_TO
+                        if not os.path.exists(destination2_folder):
+                            os.makedirs(destination2_folder)
                         destination2 = config.logo.path.replace(media_root, ikwen_settings.MEDIA_ROOT)
                         os.rename(destination, destination2)
                     else:
@@ -414,6 +488,9 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
                         destination = media_root + AbstractConfig.COVER_UPLOAD_TO + "/" + filename
                         config.cover_image.save(destination, content)
                         url = ikwen_settings.MEDIA_URL + config.cover_image.name
+                        destination2_folder = ikwen_settings.MEDIA_ROOT + AbstractConfig.COVER_UPLOAD_TO
+                        if not os.path.exists(destination2_folder):
+                            os.makedirs(destination2_folder)
                         destination2 = config.cover_image.path.replace(media_root, ikwen_settings.MEDIA_ROOT)
                         os.rename(destination, destination2)
                     cache.delete(service.id + ':config:')
@@ -478,12 +555,12 @@ class ServiceDetail(TemplateView):
         service_id = kwargs['service_id']
         srvce = Service.objects.using(UMBRELLA).get(pk=service_id)
         invoice = Invoice.get_last(srvce)
+        now = datetime.now()
         if invoice:
             srvce.last_payment = invoice.created_on
         if not srvce.version or srvce.version == Service.FREE:
             srvce.expiry = None
         else:
-            now = datetime.now()
             srvce.next_invoice_on = srvce.expiry - timedelta(days=invoicing_config.gap)
             if srvce.expiry < now.date():
                 srvce.expired = True
@@ -492,8 +569,21 @@ class ServiceDetail(TemplateView):
                 srvce.next_invoice_on = srvce.next_invoice_on + timedelta(days=days)
             srvce.next_invoice_amount = srvce.monthly_cost * get_billing_cycle_months_count(srvce.billing_cycle)
             srvce.pending_invoice_count = Invoice.objects.filter(subscription=srvce, status=Invoice.PENDING).count()
-
+        try:
+            support_code = SupportCode.objects.using(UMBRELLA).filter(service=srvce).order_by('-id')[0]
+        except IndexError:
+            token = ''.join([random.SystemRandom().choice(string.digits) for _ in range(6)])
+            expiry = now + timedelta(days=40)  # Offre 45 days of Phone support for people who don't have it yet
+            support_code = SupportCode.objects.using(UMBRELLA)\
+                .create(service=srvce, type=SupportCode.PHONE, token=token, expiry=expiry)
+        if support_code.expiry < now:
+            support_code.expired = True
+        echo_balance, update = Balance.objects.using('wallets').get_or_create(service_id=srvce.id)
+        if support_code.expiry < now:
+            support_code.expired = True
         context['srvce'] = srvce  # Service named srvce in context to avoid collision with service from template_context_processors
+        context['support_code'] = support_code
+        context['echo_balance'] = echo_balance
         context['billing_cycles'] = Service.BILLING_CYCLES_CHOICES
         return context
 
@@ -636,7 +726,7 @@ class Console(TemplateView):
                 suggestion_list.append(join_service)
             except CROperatorProfile.DoesNotExist:
                 pass
-        suggested_operators = CROperatorProfile.objects.exclude(service__in=member_services).filter(expiry__gt=now, is_active=True)
+        suggested_operators = CROperatorProfile.objects.all()
         suggestion_list = [op.service for op in suggested_operators.order_by('-id')[:9]]
         if join_service and join_service not in suggestion_list and join_service not in member_services:
             suggestion_list.insert(0, join_service)
@@ -776,7 +866,7 @@ def get_location_by_ip(request, *args, **kwargs):
     return HttpResponse(json.dumps(response))
 
 
-class DashboardBase(TemplateView):
+class DashboardBase(VerifiedEmailTemplateView):
 
     transactions_count_title = _("Transactions")
     transactions_avg_revenue_title = _('ARPT <i class="text-muted">Avg. Eearning Per Transaction</i>')

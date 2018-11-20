@@ -119,6 +119,8 @@ class Member(AbstractUser):
                                     help_text="Services on which member was granted mere member access.")
     group_fk_list = ListField(editable=False,
                               help_text="Groups' ids of the member across different Services.")
+    email_verified = models.BooleanField(_('Email verification status'), default=False,
+                                         help_text=_('Designates whether this email has been verified.'))
     phone_verified = models.BooleanField(_('Phone verification status'), default=False,
                                          help_text=_('Designates whether this phone number has been '
                                                      'verified by sending a confirmation code by SMS.'))

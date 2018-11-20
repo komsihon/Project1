@@ -38,7 +38,7 @@
                     {% endif %}
                 </form>
                 {% url change_object_url_name as change_object_url %}
-                <a href="{{ change_object_url }}" class="btn btn-sm btn-success cta add pull-right action" style="border-color: #18bc9c"
+                <a href="{{ change_object_url }}" class="btn btn-sm btn-success cta add pull-right action"
                         title="{% trans "Add new " %} {{ verbose_name }}">
                     <i class="glyphicon glyphicon-plus"></i>
                     <span class="hidden-xs">{% trans "Add" %}</span>
@@ -58,7 +58,8 @@
     {% include 'core/snippets/sort_and_actions.html' %}
     <script type="text/javascript">
         (function() {
-            $('div#admin-nav .{{ verbose_name_plural|slugify }}').addClass('active');
+            var target = '{{ verbose_name_plural|slugify }}' ? '{{ verbose_name_plural|slugify }}' : 'blank';
+            $('div#admin-nav .' + target).addClass('active');
         })()
     </script>
 {% endblock %}

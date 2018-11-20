@@ -13,8 +13,9 @@ from ikwen.core.views import get_location_by_ip
 from ikwen.accesscontrol.views import SignIn, SignInMinimal, AccountSetup, update_info, \
     update_password, ForgottenPassword, SetNewPassword, Profile, Community, CompanyProfile, \
     join, set_collaborator_permissions, move_member_to_group, toggle_member, \
-    list_collaborators, MemberList, load_member_detail, AccessRequestList, deny_access, Register, \
-    StaffWithoutPermission, staff_router, PhoneConfirmation, SetNewPasswordSMSRecovery
+    list_collaborators, MemberList, deny_access, Register, StaffWithoutPermission,\
+    staff_router, SetNewPasswordSMSRecovery
+from ikwen.accesscontrol.utils import EmailConfirmationPrompt, ConfirmEmail, PhoneConfirmation
 from ikwen.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, \
     ServiceExpired, reset_notices_counter, get_queued_sms, LegalMentions, TermsAndConditions, Configuration, \
     upload_customization_image, list_projects, upload_image, load_event_content
@@ -30,6 +31,7 @@ SERVICE_DETAIL = 'service_detail'
 SERVICE_EXPIRED = 'service_expired'
 LOAD_EVENT = 'load_event_content'
 PHONE_CONFIRMATION = 'phone_confirmation'
+EMAIL_CONFIRMATION = 'email_confirmation'
 
 urlpatterns = patterns(
     '',
@@ -39,6 +41,8 @@ urlpatterns = patterns(
     url(r'^doSignIn/$', SignIn.as_view(), name=DO_SIGN_IN),
     url(r'^register/$', Register.as_view(), name=REGISTER),
     url(r'^phoneConfirmation/$', login_required(PhoneConfirmation.as_view()), name=PHONE_CONFIRMATION),
+    url(r'^emailConfirmation/$', login_required(EmailConfirmationPrompt.as_view()), name=EMAIL_CONFIRMATION),
+    url(r'^confirmEmail/(?P<uidb64>[-\w]+)/(?P<token>[-\w]+)/$', ConfirmEmail.as_view(), name='confirm_email'),
 
     url(r'^accountSetup/$', login_required(AccountSetup.as_view()), name='account_setup'),
     url(r'^update_info$', update_info, name=UPDATE_INFO),
@@ -52,10 +56,9 @@ urlpatterns = patterns(
     url(r'^join$', join, name='join'),
     url(r'^set_collaborator_permissions$', set_collaborator_permissions, name='set_collaborator_permissions'),
     url(r'^move_member_to_group$', move_member_to_group, name='move_member_to_group'),
-    url(r'^accessRequests/$', login_required(AccessRequestList.as_view()), name='access_request_list'),
     url(r'^deny_access$', deny_access, name='deny_access'),
     url(r'^toggle_member$', toggle_member, name='toggle_member'),
-    url(r'^community/$', permission_required('accesscontrol.sudo')(Community.as_view()), name='community'),
+    url(r'^community/$', permission_required('accesscontrol.ik_manage_community')(Community.as_view()), name='community'),
     url(r'^flatPages/$', permission_required('accesscontrol.sudo')(FlatPageList.as_view()), name='flatpage_list'),
     url(r'^flatPage/$', permission_required('accesscontrol.sudo')(ChangeFlatPage.as_view()), name='change_flatpage'),
     url(r'^flatPage/(?P<page_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(ChangeFlatPage.as_view()), name='change_flatpage'),
@@ -64,7 +67,6 @@ urlpatterns = patterns(
     url(r'^staffWithoutPermission/$', StaffWithoutPermission.as_view(), name='staff_without_permission'),
 
     url(r'^customers/$', MemberList.as_view(), name='member_list'),
-    url(r'^load_member_detail$', load_member_detail, name='load_member_detail'),
 
     url(r'^console/$', login_required(Console.as_view()), name='console'),
     url(r'^load_event_content/$', load_event_content, name='load_event_content'),

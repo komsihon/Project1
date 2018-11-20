@@ -27,6 +27,8 @@
 .section-title {clear: both; font-size: 15px}
 #admin-content em.last-payment {color: #555; display: block; font-size: 25px; width: 100%}
 .view-payments {float: left; width: auto}
+.figure-lg {font-size: 75px;line-height: 135px;}
+.see-all {clear: both; margin-top: 10px}
 
 .show-details {
     float: right;
@@ -158,6 +160,7 @@
     .payments .view-payments {margin-top: 5px}
     .section-title {border-top: 1px solid #ddd;padding-top: 10px;margin-top: 25px;margin-bottom: 15px;}
     .section-title.performances {margin: 25px 0;}
+    .figure-lg {text-align: center}
 }
 @media (min-width: 992px) {
     #admin-content {padding-left: 240px;}

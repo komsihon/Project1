@@ -63,3 +63,20 @@ class PhoneVerificationMiddleware(object):
         if request.user.is_authenticated() and not request.user.phone_verified:
             next_url = reverse('ikwen:phone_confirmation')
             return HttpResponseRedirect(next_url)
+
+
+class EmailVerificationMiddleware(object):
+    """
+    Middleware that checks whether Member has a verified email address.
+    If not, he is prompted to do so.
+    """
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        rm = request.resolver_match
+        from ikwen.core.urls import EMAIL_CONFIRMATION, LOGOUT, ACCOUNT_SETUP, UPDATE_INFO, UPDATE_PASSWORD
+        if rm.namespace == 'ikwen':
+            if rm.url_name == LOGOUT or rm.url_name == ACCOUNT_SETUP or rm.url_name == UPDATE_INFO or \
+               rm.url_name == UPDATE_PASSWORD or rm.url_name == EMAIL_CONFIRMATION:
+                return
+        if request.user.is_authenticated() and not request.user.email_verified:
+            next_url = reverse('ikwen:email_confirmation')
+            return HttpResponseRedirect(next_url)

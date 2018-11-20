@@ -13,3 +13,6 @@ GENDER_CHOICES = (
     (MALE, _('Male')),
     (FEMALE, _('Female'))
 )
+
+STARTED = 'Started'
+COMPLETE = 'Complete'

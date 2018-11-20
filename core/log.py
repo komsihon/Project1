@@ -53,6 +53,10 @@ LOGGING = {
             'filename': '/var/www/rewarding_error.log',
             'maxBytes': 10000000,
             'backupCount': 4
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler'
         }
     },
     'loggers': {
@@ -62,7 +66,12 @@ LOGGING = {
             'propagate': True,
         },
         'ikwen.rewarding': {
-            'handlers': ['rewarding_info_log_handler', 'rewarding_error_log_handler'],
+            'handlers': ['rewarding_info_log_handler', 'rewarding_error_log_handler', 'mail_admins'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'ikwen.crons': {
+            'handlers': ['info_log_handler', 'error_log_handler', 'mail_admins'],
             'level': 'DEBUG',
             'propagate': False,
         }

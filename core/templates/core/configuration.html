@@ -9,7 +9,6 @@
     {{ block.super }}
     <link href="{% static 'ikwen/ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" />
     <style>
-        body {background: #f6f6f6}
         #context-search {clear: both; margin: 10px 0 6px 0;}
         #context-search input {width: 270px}
         #stage section {box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .15)}
@@ -27,51 +26,53 @@
 {% block admin_content %}
     <div id="admin-content" class="change-form no-edge-panel-right">
         <div class="container-fluid">
-            {% if config.cover_image and config.cover_image.name %}
-            <header id="cover" class="subtle-shade" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ config.cover_image.name }});">
-            {% else %}
-                <header id="cover" class="subtle-shade" style="background-image: url({% static 'ikwen/img/default-cover-company.jpg' %});">
-            {% endif %}
-                <div id="banner">
-                    <div class="frame">
-                        {% if config.logo and config.logo.name %}
-                            <div class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }})">
-                                <div class="upload-image"></div>
-                            </div>
-                        {% else %}
-                            {# TODO: Company logo placeholder for service configuration #}
-                            <div class="photo" style="background-image: url({% static 'ikwen/img/logo-placeholder.jpg' %})">
-                                <div class="upload-image"></div>
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                                        <span class="sr-only"></span>
+            <div class="configuration-stage">
+                {% if config.cover_image and config.cover_image.name %}
+                <header id="cover" class="subtle-shade" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ config.cover_image.name }});">
+                {% else %}
+                    <header id="cover" class="subtle-shade" style="background-image: url({% static 'ikwen/img/default-cover-company.jpg' %});">
+                {% endif %}
+                    <div id="banner">
+                        <div class="frame">
+                            {% if config.logo and config.logo.name %}
+                                <div class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }})">
+                                    <div class="upload-image"></div>
+                                </div>
+                            {% else %}
+                                {# TODO: Company logo placeholder for service configuration #}
+                                <div class="photo" style="background-image: url({% static 'ikwen/img/logo-placeholder.jpg' %})">
+                                    <div class="upload-image"></div>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                            <span class="sr-only"></span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="upload-image"></div>
-                    <div class="progress">
-                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
-                             aria-valuemax="100">
-                            <span class="sr-only"></span>
+                            {% endif %}
                         </div>
+                        <div class="upload-image"></div>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                                 aria-valuemax="100">
+                                <span class="sr-only"></span>
+                            </div>
+                        </div>
+                        <h2 class="text-has-shade">{{ config.full_name }}</h2>
                     </div>
-                    <h2 class="text-has-shade">{{ config.full_name }}</h2>
-                </div>
-            </header>
-            <form id="configuration" class="admin-form" method="post"
-                  enctype="multipart/form-data" action="{{ request.META.path }}">{% csrf_token %}
-                <input type="hidden" name="id" value="{{ config.id }}" />
-                <input type="hidden" name="company_name_slug" value="{{ config.company_name_slug }}" />
-                {% if config.can_manage_currencies %}
-                    {% include 'core/snippets/currencies_config.html' %}
-                {% endif %}
-                {% include 'core/snippets/model_admin_form.html' %}
-                <div class="form-group col-xs-12 col-sm-4 col-md-3" style="padding-top: 15px">
-                    <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
-                </div>
-            </form>
+                </header>
+                <form id="configuration" class="admin-form pull-left" style="width: auto" method="post"
+                      enctype="multipart/form-data" action="{{ request.META.path }}">{% csrf_token %}
+                    <input type="hidden" name="id" value="{{ config.id }}" />
+                    <input type="hidden" name="company_name_slug" value="{{ config.company_name_slug }}" />
+                    {% if config.can_manage_currencies %}
+                        {% include 'core/snippets/currencies_config.html' %}
+                    {% endif %}
+                    {% include 'core/snippets/model_admin_form.html' %}
+                    <div class="form-group col-xs-12 col-sm-4 col-md-3" style="padding-top: 15px">
+                        <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 {% endblock %}

@@ -16,14 +16,14 @@ from django.template.defaultfilters import urlencode
 from django.test.client import Client
 from django.test.utils import override_settings
 from django.utils import unittest
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext as _
 from permission_backend_nonrel.models import UserPermissionList
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, COMMUNITY
-from ikwen.core.models import Service, Config, OperatorWallet
+from ikwen.core.models import Service, Config, OperatorWallet, ConsoleEventType
+from ikwen.core.utils import add_database
+from ikwen.rewarding.models import JoinRewardPack, ReferralRewardPack, Reward, CumulatedCoupon, CouponSummary
 
 
 def wipe_test_data():
@@ -35,6 +35,8 @@ def wipe_test_data():
     import ikwen.billing.models
     import ikwen.accesscontrol.models
     import ikwen.partnership.models
+    import ikwen.revival.models
+    import ikwen.rewarding.models
     import permission_backend_nonrel.models
     OperatorWallet.objects.using('wallets').all().delete()
     for alias in getattr(settings, 'DATABASES').keys():
@@ -56,6 +58,15 @@ def wipe_test_data():
             model.objects.using(alias).all().delete()
         for name in ('PartnerProfile', 'ApplicationRetailConfig'):
             model = getattr(ikwen.partnership.models, name)
+            model.objects.using(alias).all().delete()
+        for name in ('ProfileTag', 'ObjectProfile', 'MemberProfile', 'Revival', 'CyclicRevival',
+                     'Target', 'CyclicTarget', ):
+            model = getattr(ikwen.revival.models, name)
+            model.objects.using(alias).all().delete()
+        for name in ('Coupon', 'CRBillingPlan', 'Reward', 'CumulatedCoupon', 'CouponSummary',
+                     'CouponUse', 'CouponWinner', 'CRProfile', 'CROperatorProfile',
+                     'JoinRewardPack', 'ReferralRewardPack', 'PaymentRewardPack', ):
+            model = getattr(ikwen.rewarding.models, name)
             model.objects.using(alias).all().delete()
 
 
@@ -265,6 +276,40 @@ class IkwenAuthTestCase(unittest.TestCase):
         from pymongo import Connection
         cnx = Connection()
         cnx.drop_database('test_registered_member')
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
+                       EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
+                       EMAIL_FILE_PATH='test_emails/accesscontrol/referral')
+    def test_register_with_referrer_and_referral_reward(self):
+        """
+        Member registering through a referrer receives the
+        join reward pack and his referrer receives the referral
+        reward pack.
+        """
+        call_command('loaddata', 'rewarding.yaml')
+        service = Service.objects.get(pk='56eb6d04b37b3379b531b102')
+        et = ConsoleEventType.objects.get(pk='56eb6db3379b531a0104b371')  # Collaboration Access Request event type
+        group_id = '5804b37b3379b531e01eb6d2'
+        add_database(service.database)
+        Group.objects.using(service.database).create(pk=group_id, name=COMMUNITY)
+        UserPermissionList.objects.using(service.database).all().delete()
+        origin = reverse('ikwen:register') + '?join=ikwen-service-2&referrer=56eb6d04b37b3379b531e014'
+        response = self.client.post(origin, {'username': 'referred.user1@domain.com', 'password': 'secret', 'password2': 'secret',
+                                             'phone': '655000001', 'first_name': 'Phil', 'last_name': 'Mia'}, follow=True)
+        final = response.redirect_chain[-1]
+        params = unquote(final[0]).split('?')[1]
+        self.assertGreaterEqual(params.index('joined=yes'), 0)
+        total_count = 0
+        member = Member.objects.get(pk='56eb6d04b37b3379b531e014')
+        for ref in ReferralRewardPack.objects.using(UMBRELLA).filter(service='56eb6d04b37b3379b531b102'):
+            coupon = ref.coupon
+            total_count += ref.count
+            Reward.objects.using(UMBRELLA).get(member=member, coupon=coupon, count=ref.count,
+                                               type=Reward.REFERRAL, status=Reward.SENT)
+            cumul = CumulatedCoupon.objects.using(UMBRELLA).get(member=member, coupon=coupon)
+            self.assertEqual(cumul.count, ref.count)
+        scs = CouponSummary.objects.using(UMBRELLA).get(service='56eb6d04b37b3379b531b102', member=member)
+        self.assertEqual(scs.count, total_count)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
     def test_update_info_with_existing_email(self):

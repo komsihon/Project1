@@ -1,19 +1,81 @@
-{% load i18n humanize %}
+{% load static i18n humanize %}
+<div id="modal-join-notice" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content modal-info">
+            <div class="modal-body">
+                <div class="col-sm-6">
+                    <img src="{% static 'ikwen/img/join-notice.jpg' %}" class="guard-img-landscape img-responsive">
+{#                    <img src="{% get_media_prefix %}{{ config.guard_image_portrait.name }}" class="guard-img-portrait img-responsive">#}
+                </div>
+                <div class="col-sm-6 speech">
+                    {% blocktrans %}
+                    <h3>Great !</h3>
+                    <div class="no-reward">
+                        <p>You just joined our awesome community on ikwen. </p>
+                        <p>Welcome.</p>
+                    </div>
+                    <div class="reward-available">
+                        <p>
+                            You just joined <span class="project-name"></span> community and earned <span class="join-coupon-count"></span> coupons
+                            for that.</p>
+                        <p>
+                            Collect up to 100 coupons and redeem them with us for the equivalent gift;
+                            on our website or in our store.
+                        </p>
+                        <p class="cr-refer">
+                            Refer friends by sharing and earn <span class="referral-coupon-count"></span> more free coupons.
+                        </p>
+                    </div>
+                    {% endblocktrans %}
+                </div>
+                <div class="actions">
+                    <div class="col-xs-12 col-sm-4 col-md-3 pull-right reward-available">
+                        <a href="" class="btn btn-sm btn-danger btn-block cta claim"
+                                data-dismiss="modal" aria-label="Close">{% trans "Claim your reward" %}</a>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-3 pull-right cr-refer">
+                        <button class="btn btn-sm btn-default btn-block"
+                                data-dismiss="modal" aria-label="Close">
+                            <i class="fa fa-forward"></i>
+                            {% trans "Refer" %}
+                        </button>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-3 pull-right no-reward">
+                        <button class="btn btn-sm btn-default btn-block"
+                                data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script type="text/javascript">
     (function() {
         {% if messages %}
             {% for msg in messages %}ikwen.showFloatingNotice('{{ msg|safe }}', '{{ msg.tags }}', 6);{% endfor %}
         {% endif %}
-        $('body').on('click', '.join-community.btn.btn-primary', function() {
+        $('body').on('click', 'button.join-community.btn-primary', function() {
             var _$btn = $(this),
-                serviceId = $(this).data('service-id');
+                serviceId = $(this).data('service-id'),
+                params = {service_id: serviceId, format: 'json', referrer: '{{ request.GET.referrer }}'};
             _$btn.addClass('btn-default').removeClass('btn-primary');
-            $.getJSON('{% url 'ikwen:join' %}', {service_id: serviceId, format: 'json'}, function(data) {
+            $.getJSON('{% url 'ikwen:join' %}', params, function(data) {
                 if (data.success) {
-                    _$btn.fadeOut('normal', 'linear', function() {
+                    _$btn.fadeOut('normal', 'linear', function () {
                         _$btn.next().show();
                     });
-                    ikwen.showFloatingNotice("{% trans "Great ! You just joined our awesome community." %}", '', 6);
+                    $('div#modal-join-notice .speech > div, div#modal-join-notice .actions > div, .cr-refer').hide();
+                    if (data.reward.join_coupon_count || data.reward.referral_coupon_count) {
+                        $('.reward-available').show();
+                        if (data.reward.referral_coupon_count) $('.cr-refer').show();
+                    } else {
+                        $('.no-reward').show();
+                    }
+                    $('.join-coupon-count').text(data.reward.join_coupon_count);
+                    $('.referral-coupon-count').text(data.reward.referral_coupon_count);
+                    $('div#modal-join-notice .project-name').text(data.project_name);
+                    $('#modal-join-notice').modal('show').find('.claim').attr('href', data.ikwen_page);
                 }
             })
         });

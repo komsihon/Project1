@@ -17,14 +17,14 @@ from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.core.validators import validate_email
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http.response import HttpResponseRedirect, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404
 from django.template import Context
 from django.template.defaultfilters import slugify
 from django.template.loader import get_template
 from django.utils.decorators import method_decorator
-from django.utils.http import urlsafe_base64_decode, urlunquote
+from django.utils.http import urlsafe_base64_decode, urlunquote, urlquote
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache, cache_page
@@ -35,19 +35,21 @@ from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_group
 
 from ikwen.accesscontrol.backends import UMBRELLA
-from ikwen.accesscontrol.utils import send_welcome_email
+from ikwen.accesscontrol.utils import send_welcome_email, VerifiedEmailTemplateView
 from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SMSPasswordResetForm, SetPasswordForm, \
     SetPasswordFormSMSRecovery
 from ikwen.accesscontrol.models import Member, AccessRequest, \
     SUDO, ACCESS_GRANTED_EVENT, COMMUNITY, WELCOME_EVENT
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
+from ikwen.core.constants import MALE, FEMALE
 from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
 from ikwen.core.utils import get_service_instance, get_mail_content, add_database_to_settings, add_event, set_counters, \
     increment_history_field
 from ikwen.core.utils import send_sms
 from ikwen.core.views import HybridListView
-
-from ikwen.rewarding.models import Coupon, CumulatedCoupon, Reward, CROperatorProfile
+from ikwen.revival.models import ProfileTag, MemberProfile
+from ikwen.revival.utils import set_profile_tag_member_count
+from ikwen.rewarding.models import Coupon, CumulatedCoupon, Reward, CROperatorProfile, CouponSummary, ReferralRewardPack
 from ikwen.rewarding.utils import reward_member
 
 import logging
@@ -143,8 +145,10 @@ class Register(TemplateView):
                     add_event(service, WELCOME_EVENT, member)
                     set_counters(service)
                     increment_history_field(service, 'community_history')
-                    reward_pack_list = reward_member(service, member, Reward.JOIN)
+                    reward_pack_list, coupon_count = reward_member(service, member, Reward.JOIN)
                 send_welcome_email(member, reward_pack_list)
+                if request.GET.get('join'):
+                    return join(request, *args, **kwargs)
                 next_url = request.REQUEST.get('next')
                 if next_url:
                     # Remove next_url from the original query_string
@@ -275,6 +279,9 @@ def staff_router(request, *args, **kwargs):
     as defined in the STAFF_ROUTER setting. Failing to
     """
     member = request.user
+    if member.is_authenticated() and not member.email_verified:
+        next_url = reverse('ikwen:email_confirmation')
+        return HttpResponseRedirect(next_url)
     next_url = reverse('ikwen:staff_without_permission')
     routes = getattr(settings, 'STAFF_ROUTER', None)
     if routes:
@@ -384,6 +391,8 @@ class SetNewPassword(TemplateView):
         else:
             context = self.get_context_data(**kwargs)
             context['form'] = form
+            context['uidb64'] = uidb64
+            context['token'] = kwargs['token']
             return render(request, self.template_name, context)
 
 
@@ -636,7 +645,10 @@ class CompanyProfile(TemplateView):
                     coupon_list.append(coupon)
             else:
                 coupon_list = coupon_qs
-            context['url'] = getattr(settings, 'PROJECT_URL') + reverse('ikwen:company_profile', args=(project_name_slug, ))
+            url = getattr(settings, 'PROJECT_URL') + reverse('ikwen:company_profile', args=(project_name_slug, ))
+            if request.user.is_authenticated():
+                url += '?referrer=' + request.user.id
+            context['url'] = urlquote(url)
             context['cr_profile'] = cr_profile
             context['coupon_list'] = coupon_list
         return render(request, self.template_name, context)
@@ -660,38 +672,78 @@ class Community(HybridListView):
 
     def get_context_data(self, **kwargs):
         context = super(Community, self).get_context_data(**kwargs)
-        groups = [Group.objects.get(name=COMMUNITY)]
-        groups.extend(list(Group.objects.exclude(name__in=[COMMUNITY, SUDO]).order_by('name')))
-        context['groups'] = groups
+        group_list = [Group.objects.get(name=COMMUNITY)]
+        group_list.extend(list(Group.objects.exclude(name__in=[COMMUNITY, SUDO]).order_by('name')))
+        context['group_list'] = group_list
         context['sudo_group'] = Group.objects.get(name=SUDO)
-        context['permissions'] = Permission.objects.filter(codename__startswith='ik_')
         return context
+
+    def render_to_response(self, context, **response_kwargs):
+        action = self.request.GET.get('action')
+        if action == 'load_member_detail':
+            return self.load_member_detail(context)
+        elif action == 'set_member_profiles':
+            return self.set_member_profiles(context)
+        return super(Community, self).render_to_response(context, **response_kwargs)
+
+    def load_member_detail(self, context):
+        member_id = self.request.GET['member_id']
+        member = Member.objects.get(pk=member_id)
+        obj = UserPermissionList.objects.get(user=member)
+        try:
+            group = Group.objects.get(pk=obj.group_fk_list[0])
+        except:
+            group = Group.objects.get(name=COMMUNITY)
+
+        member.group = group
+        if True:
+            permission_list = list(Permission.objects.filter(codename__startswith='ik_'))
+            for perm in permission_list:
+                if perm.id in obj.permission_fk_list:
+                    perm.is_active = True
+
+        member_profile, update = MemberProfile.objects.get_or_create(member=member)
+        profiletag_list = list(ProfileTag.objects.filter(is_active=True, is_auto=False))
+        for tag in profiletag_list:
+            if tag.name in member_profile.tag_list:
+                tag.is_selected = True
+        context['member'] = member
+        context['permission_list'] = permission_list
+        context['profiletag_list'] = profiletag_list
+        return render(self.request, 'accesscontrol/snippets/member_detail.html', context)
+
+    def set_member_profiles(self, *args, **kwargs):
+        tag_id_list = []
+        tag_ids = self.request.GET['tag_ids']
+        if tag_ids:
+            tag_id_list = tag_ids.split(',')
+        member_id = self.request.GET['member_id']
+        member = Member.objects.get(pk=member_id)
+        tag_list = []
+        for tag in ProfileTag.objects.filter(pk__in=tag_id_list):
+            tag_list.append(tag.slug)
+            if tag.slug == 'men':
+                if not member.gender:
+                    Member.objects.using('default').filter(pk=member_id).update(gender=MALE)
+                    Member.objects.using(UMBRELLA).filter(pk=member_id).update(gender=MALE)
+            elif tag.slug == 'women':
+                if not member.gender:
+                    Member.objects.using('default').filter(pk=member_id).update(gender=FEMALE)
+                    Member.objects.using(UMBRELLA).filter(pk=member_id).update(gender=FEMALE)
+        member_profile = MemberProfile.objects.get(member=member)
+        member_profile.tag_list = tag_list
+        member_profile.save()
+        Thread(target=set_profile_tag_member_count).start()
+        return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
 
 class MemberList(HybridListView):
-    template_name = 'accesscontrol/member_list.html'
     context_object_name = 'customer_list'
     model = Member
     search_field = 'tags'
     ordering = ('first_name', '-id', )
     ajax_ordering = ('first_name', '-id', )
     page_size = 2
-
-
-@permission_required('accesscontrol.ik_manage_customer')
-def load_member_detail(request, *args, **kwargs):
-    member_id = request.GET['member_id']
-    member = Member.objects.get(pk=member_id)
-    path = getattr(settings, 'CUSTOMER_DETAIL_RENDERER', 'ikwen.accesscontrol.views.render_customer_detail')
-    fn = import_by_path(path)
-    content = fn(member)
-    return HttpResponse(content)
-
-
-def render_customer_detail(member):
-    html_template = get_template('accesscontrol/snippets/customer_detail.html')
-    c = Context({'member': member})
-    return html_template.render(c)
 
 
 @permission_required('accesscontrol.sudo')
@@ -709,45 +761,17 @@ def list_collaborators(request, *args, **kwargs):
     return HttpResponse(json.dumps(results), content_type='application/json')
 
 
-class AccessRequestList(TemplateView):
-    """
-    Lists all Access requests for the admin to process them all from
-    a single page rather than going to everyone's profile
-    """
-    template_name = 'accesscontrol/access_request_list.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(AccessRequestList, self).get_context_data(**kwargs)
-        rqs = []
-        services = self.request.user.collaborates_on
-        for rq in AccessRequest.objects.filter(service__in=services, status=AccessRequest.PENDING):
-            if rq.service in self.request.user.collaborates_on:
-                add_database_to_settings(rq.service.database)
-                groups = Group.objects.using(rq.service.database).exclude(name=SUDO).order_by('name')
-                rqs.append({'rq': rq, 'groups': groups})
-        context['access_requests'] = rqs
-        return context
-
-
-@login_required  # The user must be logged in to ikwen and not his own service, this view runs on ikwen
-def request_access(request, *args, **kwargs):
-    """
-    Deprecated, replaced by mere join()
-    """
-
-
-@login_required   # The user must be logged in to ikwen and not his own service, this view runs on ikwen
-def grant_access(request, *args, **kwargs):
-    """
-    Deprecated, replaced by mere join()
-    """
-
-
 @login_required   # The user must be logged in to ikwen and not his own service, this view runs on ikwen
 def join(request, *args, **kwargs):
-    service_id = request.GET['service_id']
+    service_id = request.GET.get('service_id')
+    slug = request.GET.get('join')
+    referrer_id = request.GET.get('referrer')
     format = request.GET.get('format')
-    service = Service.objects.get(pk=service_id)
+    if service_id:
+        service = get_object_or_404(Service, pk=service_id)
+    else:
+        service = get_object_or_404(Service, project_name_slug=slug)
+        service_id = service.id
     member = request.user
     if service_id in member.customer_on_fk_list:
         if format == 'json':
@@ -780,27 +804,45 @@ def join(request, *args, **kwargs):
     add_event(service, ACCESS_GRANTED_EVENT, member=service.member, object_id=rq.id)
     set_counters(service)
     increment_history_field(service, 'community_history')
-    reward_pack_list = reward_member(service, member, Reward.JOIN)
+    reward_pack_list, coupon_count = reward_member(service, member, Reward.JOIN)
     subject = _("You just joined %s community" % service.project_name)
+    reward = None
     if reward_pack_list:
         template_name = 'rewarding/mails/community_welcome_pack.html'
-        message = ''
+        coupon_summary = CouponSummary.objects.using(UMBRELLA).get(service=service, member=member)
+        aggr = ReferralRewardPack.objects.filter(service=service).aggregate(Sum('count'))
+        reward = {'join_coupon_count': coupon_summary.count, 'referral_coupon_count': aggr['count__sum']}
     else:
         template_name = 'accesscontrol/mails/community_welcome.html'
-        message = _("Hi %(member_name)s,<br><br>You were added to <b>%(project_name)s</b> community.<br><br>"
-                    "Thanks for joining us." % {'member_name': member.first_name,
-                                                'project_name': service.project_name})
-    html_content = get_mail_content(subject, message, template_name=template_name,
+
+    html_content = get_mail_content(subject, template_name=template_name,
                                     extra_context={'reward_pack_list': reward_pack_list,
-                                                   'joined_service': service, 'joined_logo': service.config.logo})
+                                                   'joined_service': service, 'joined_project_name': service.project_name,
+                                                   'joined_logo': service.config.logo})
     sender = 'ikwen <no-reply@ikwen.com>'
     msg = EmailMessage(subject, html_content, sender, [member.email])
     msg.content_subtype = "html"
     Thread(target=lambda m: m.send(), args=(msg, )).start()
+    if referrer_id:
+        referrer = Member.objects.get(pk=referrer_id)
+        referral_pack_list, coupon_count = reward_member(service, referrer, Reward.REFERRAL)
+        if referral_pack_list:
+            template_name = 'rewarding/mails/referral_reward.html'
+            CouponSummary.objects.using(UMBRELLA).get(service=service, member=referrer)
+            html_content = get_mail_content(subject, template_name=template_name,
+                                            extra_context={'referral_pack_list': referral_pack_list,
+                                                           'joined_service': service, 'joined_project_name': service.project_name,
+                                                           'joined_logo': service.config.logo})
+            msg = EmailMessage(subject, html_content, sender, [member.email])
+            msg.content_subtype = "html"
+            Thread(target=lambda m: m.send(), args=(msg, )).start()
+
     if format == 'json':
-        return HttpResponse(json.dumps({'success': True}), content_type='application/json')
+        response = {'success': True, 'reward': reward, 'project_name': service.project_name,
+                    'ikwen_page': service.get_profile_url()}
+        return HttpResponse(json.dumps(response), content_type='application/json')
     else:
-        next_url = service.get_profile_url()
+        next_url = service.get_profile_url() + '?joined=yes'
         notice = _("You were added to our community. Thank you for joining us.")
         messages.success(request, notice)
         return HttpResponseRedirect(next_url)
@@ -819,7 +861,10 @@ def deny_access(request, *args, **kwargs):
 
 @permission_required('accesscontrol.sudo')
 def set_collaborator_permissions(request, *args, **kwargs):
-    permission_id_list = request.GET['permission_ids'].split(',')
+    permission_id_list = []
+    permission_ids = request.GET['permission_ids']
+    if permission_ids:
+        permission_id_list = permission_ids.split(',')
     member_id = request.GET['member_id']
     member = Member.objects.get(pk=member_id)
     obj = UserPermissionList.objects.get(user=member)
@@ -855,13 +900,17 @@ def move_member_to_group(request, *args, **kwargs):
     member = Member.objects.get(pk=member_id)
     if member.is_bao:
         return HttpResponse(json.dumps({'error': "Bao can only be transferred."}), content_type='application/json')
+
+    if group.name == COMMUNITY:
+        member.is_staff = False
+    else:
+        member.is_staff = True
+
     if group.name == SUDO:
         if not request.user.is_bao:
             return HttpResponse(json.dumps({'error': "Only Bao User can transfer member here."}), content_type='application/json')
-        member.is_staff = True
         member.is_superuser = True
     else:
-        member.is_staff = False
         member.is_superuser = False
     member.save()
     obj = UserPermissionList.objects.get(user=member)
@@ -982,76 +1031,3 @@ def render_member_joined_event(event, request):
     c = Context({'service': get_service_instance(), 'member': member,
                  'group_name': COMMUNITY, 'IKWEN_MEDIA_URL': MEDIA_URL, 'is_iao': member != request_user})
     return html_template.render(c)
-
-
-class PhoneConfirmation(TemplateView):
-    template_name = 'accesscontrol/phone_confirmation.html'
-
-    def send_code(self, request, new_code=False):
-        service = get_service_instance()
-        member = request.user
-        code = ''.join([random.SystemRandom().choice(string.digits) for _ in range(4)])
-        do_send = False
-        try:
-            current = request.session['code']  # Test whether there's a pending code in session
-            if new_code:
-                request.session['code'] = code
-                do_send = True
-        except KeyError:
-            request.session['code'] = code
-            do_send = True
-
-        if do_send:
-            phone = slugify(member.phone).replace('-', '')
-            if len(phone) == 9:
-                phone = '237' + phone  # This works only for Cameroon
-            text = 'Your %s confirmation code is %s' % (service.project_name, code)
-            try:
-                main_link = service.config.sms_api_script_url
-                if not main_link:
-                    main_link = getattr(settings, 'SMS_MAIN_LINK', None)
-                send_sms(phone, text, script_url=main_link, fail_silently=False)
-            except:
-                fallback_link = getattr(settings, 'SMS_FALLBACK_LINK', None)
-                send_sms(phone, text, script_url=fallback_link, fail_silently=False)
-
-    def get(self, request, *args, **kwargs):
-        next_url = getattr(settings, 'LOGIN_REDIRECT_URL', 'home')
-        member = request.user
-        if member.is_authenticated() and member.phone_verified:
-            return HttpResponseRedirect(reverse(next_url))
-        if getattr(settings, 'DEBUG', False):
-            self.send_code(request)
-        else:
-            try:
-                self.send_code(request)
-            except:
-                logger.error('Failed to submit SMS to %s' % member.phone, exc_info=True)
-                messages.error(request, _('Could not send code. Please try again later'))
-        return super(PhoneConfirmation, self).get(request, *args, **kwargs)
-
-    def render_to_response(self, context, **response_kwargs):
-        response = {'success': True}
-        if self.request.GET.get('action') == 'new_code':
-            if getattr(settings, 'DEBUG', False):
-                self.send_code(self.request, new_code=True)
-            else:
-                try:
-                    self.send_code(self.request, new_code=True)
-                except:
-                    response = {'error': _('Could not send code. Please try again later')}
-            return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
-        else:
-            return super(PhoneConfirmation, self).render_to_response(context, **response_kwargs)
-
-    def post(self, request, *args, **kwargs):
-        member = request.user
-        code = request.session.get('code')
-        if code != request.POST['code']:
-            context = self.get_context_data(**kwargs)
-            context['error_message'] = _('Invalid code. Please try again')
-            return render(request, self.template_name, context)
-        member.phone_verified = True
-        member.save()
-        next_url = getattr(settings, 'LOGIN_REDIRECT_URL', 'home')
-        return HttpResponseRedirect(reverse(next_url))

@@ -8,7 +8,7 @@
 
 @import url('https://fonts.googleapis.com/css?family=Lato:300|PT+Sans:400,700');
 
-body {color: #696969;}
+body {color: #464646;}
 .working {cursor: wait}
 .success {background: #B6F1B6; border: 1px solid; border-radius: 3px; color: #039B03}
 .msg-tag.info {background: #dde9f1;border: 1px solid;border-radius: 3px;color: #1d2e9b}
@@ -30,15 +30,18 @@ body {color: #696969;}
     }
 .modal .actions {clear: both}
 .actions .glyphicon, .glyphicon.action {border: 1px solid #ddd; border-radius: 3px}
-.cta {font-family: "PT Sans", Lato, sans-serif;font-weight: 700;letter-spacing: 0.5px;text-transform: uppercase;}
+.cta {font-family: "PT Sans", Lato, sans-serif;font-weight: 700;letter-spacing: 0.5px}
 .stretched {height: 100%; width: 100%}
 .errorlist {color: #e74c3c}
+.input-error {border-color: #e74c3c}
 #content .errorlist.username, #content .errorlist.phone {padding-left: 18px}
 #content .errorlist.username li, #content .errorlist.phone li {list-style-type: disc}
 
 .payment-method {display: block;cursor: pointer;margin-bottom: 1em;}
 .payment-method .logo {display: block; text-align: center}
 .om-instructions {display: none; margin-top: 10px;}
+.modal-backdrop {background: #fff}
+.modal-backdrop.in {opacity: .7; filter: Alpha(opacity=70)}
 
 .spinner-container {-webkit-animation: rotate 2s linear infinite; animation: rotate 2s linear infinite; z-index: 2}
 .spinner-container .path {
@@ -94,6 +97,7 @@ body {color: #696969;}
 .ik-li .date {font-size: 11px}
 
 .ik-li .actions .glyphicon, #selection-control .glyphicon {
+    background: #fff;
     box-sizing: content-box;
     padding: 5px;
     border: 1px solid transparent;
@@ -222,13 +226,13 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 .nav > .tab {position: relative; display: block;}
 .nav > .tab > a {position: relative;display: block;padding: 10px 6px;text-decoration: none;}
 .nav-tabs > .tab {float: left;margin-bottom: -1px;}
-.nav-tabs > .tab > a {line-height: 1.42857143;border: 1px solid transparent;border-radius: 4px 4px 0 0;}
+.nav-tabs > .tab > a {line-height: 1.42857143;/* border: 1px solid transparent; */border-radius: 4px 4px 0 0;}
 .nav-tabs > .tab.active > a, .nav-tabs > .tab.active > a:hover, .nav-tabs > .tab.active > a:focus {
     color: #2c3e50;
-    background-color: #ffffff;
-    border: 1px solid #ecf0f1;
-    border-bottom-color: transparent;
-    cursor: default
+    background-color: #f6f6f6;
+    border-bottom: 3px solid #1565C0;
+    /* border-bottom-color: #3F51B5; */
+    cursor: default;
 }
 .social-sharing .dropdown-menu a i {float: left;font-size: 25px;margin: 6px 10px 0 0;width: 22px;}
 .social-sharing .fa-whatsapp {color: #4CAF50;}
@@ -238,7 +242,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 .social-sharing .fa-comment {color: #FFC107;}
 
 .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {color: #7b8a8b;background-color: #eee}
-
+.btn .glyphicon, .btn .fa {margin: 0 10px 0 -10px}
 @media (max-width: 767px) {
     .card-xs {padding: 0}
     .modal .actions .action, .modal .actions .btn {margin-top: .6em}

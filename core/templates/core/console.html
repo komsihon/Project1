@@ -205,7 +205,6 @@
     {{ block.super }}
     <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
     {% include 'core/snippets/banner_and_pp_uploader.html' %}
-    {% include 'accesscontrol/snippets/request_management.html' %}
     <script>
         (function() {
             var suggestionSwiper = new Swiper('#communities-suggestions .swiper-container', {

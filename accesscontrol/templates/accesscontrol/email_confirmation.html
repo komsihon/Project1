@@ -1,0 +1,107 @@
+{% extends "core/base_bs.html" %}
+{% load i18n static auth_tokens %}
+
+{% block page_title %}<title>{{ service.project_name }} - {% trans "Confirm your email" %} </title>{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <style  type="text/css">
+        #navbar {background: rgba(0, 0, 0, 0)}
+        #navbar form.search input, #navbar-search, #navbar .navbar-right, #nav-xs {display: none}
+        #content > div {margin: auto}
+        div#confirmation {background: rgba(255, 255, 255, .9); border-radius: 3px; padding: 1px 20px 30px; width: 300px}
+        #navbar .navbar-brand, #navbar .navbar-brand:hover {display: none}
+        .logout {font-size: 13px}
+
+        @media (max-width: 767px) {
+            #navbar .navbar-header {float: none; text-align: center}
+            #content {padding-top: 15px}
+            .logout {padding-bottom: 20px}
+            div#confirmation {padding: 1px 0 30px}
+        }
+
+        @media (min-width: 768px) {
+            div#confirmation {width: 380px}
+        }
+
+        @media (min-width: 992px) {
+            #content {margin-top: 3%}
+        }
+
+        div#confirmation input {border: 1px solid #bbb;}
+        div#confirmation form {padding: 30px}
+        label span {font-weight: normal}
+        #content form .hint {color: #8D96C5; font-size: 14px}
+        #content form ul.errorlist {padding-left: 0}
+        #content form ul.errorlist li {color: #FF0808; list-style-type: none}
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="content" class="container">
+        {% if messages %}
+            {% for msg in messages %}<p class="msg-tag {{ msg.tags }}" style="font-size: 1em; padding: 9px">{{ msg }}</p>{% endfor %}
+        {% endif %}
+        <div class="col-xs-12 text-right logout">
+            <a href="{% url 'ikwen:logout' %}">{% trans "Logout" %}</a>
+        </div>
+        <div id="confirmation">
+            {% if email_confirmed %}
+                <div class="text-center" style="margin-bottom: 15px">
+                    <img src="{% static 'ikwen/img/email-confirmed.png' %}" class="img-responsive"/>
+                </div>
+                <p class="text-muted" style="text-align: center">{% blocktrans with email=user.email %}
+                    Your email <strong>{{ email }}</strong> was confirmed.
+                {% endblocktrans %}</p>
+                <div class="row">
+                    <div class="col-xs-12 col-sm-8 col-sm-offset-2">
+                        <a href="{% url 'home' %}" class="btn btn-success btn-block">{% trans "Return to home" %}</a>
+                    </div>
+                </div>
+            {% else %}
+                <h3 style="text-align: center"> {% trans "Confirm your email" %} </h3>
+                <div class="text-center" style="margin-bottom: 15px">
+                    <img src="{% static 'ikwen/img/confirm-email.png' %}" />
+                </div>
+                <p class="text-muted" style="text-align: center">{% blocktrans with email=user.email %}
+                    A confirmation link was sent to <strong>{{ email }}</strong>, please check.
+                {% endblocktrans %}</p>
+                <div style="clear: both; text-align: center">
+                    {% url 'ikwen:account_setup' as account_setup_url %}
+                    {% include 'core/snippets/spinner.html' %}
+                    <p class="text-muted" style="font-size: 12px">{% trans "Please be patient ! Email can sometimes take about 1-2 mn to get to you." %}</p>
+                    <a class="get-new-code" href="#">{% trans "Resend confirmation link" %}</a>
+                    <div class="code-sent" style="display: none">
+                        <i style="font-size: 2em; color: #039B03" class="glyphicon glyphicon-ok"></i>
+                        <p class="text-success">{% trans "A new code was sent to you." %}</p>
+                    </div>
+                    <p class="code-error text-danger"></p>
+                    <p>{% blocktrans with account_setup=account_setup_url|ikwenize %}
+                        Not your email ?
+                        <a href="{{ account_setup }}">Change now</a>
+                    {% endblocktrans %}</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="clear"></div>
+    </div>
+{% endblock %}
+{% block js %}
+    {{ block.super }}
+    <script>
+        (function() {
+            $('.get-new-code').click(function() {
+                $(this).hide();
+                $('div#confirmation .spinner').show();
+                $.getJSON('', {action: 'new_code'}, function(resp) {
+                    $('div#confirmation .spinner').hide();
+                    if (resp.error) {
+                        $('.code-error').text(resp.error).show();
+                        return;
+                    }
+                    $('.code-sent').show();
+                });
+                return false
+            })
+        })()
+    </script>
+{% endblock %}

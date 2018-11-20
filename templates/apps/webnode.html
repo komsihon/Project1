@@ -1,0 +1,193 @@
+{% extends "core/base_bs.html" %}
+{% load i18n humanize static auth_tokens %}
+
+{% block page_title %}
+<title> {{ profile_name }} - ikwen </title>
+{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <style>
+        body {background: #f6f6f6}
+        {% if profile_cover_url %}
+            #cover {background-image: url({{ profile_cover_url }})}
+        {% else %}
+            {% if is_company %}
+                #cover {
+                    background-image: url({% static 'ikwen/img/default-cover-company.jpg' %})
+                }
+            {% else %}
+                #cover {
+                    background-image: url({% static 'ikwen/img/default-cover.jpg' %})
+                }
+            {% endif %}
+        {% endif %}
+        {% if profile_photo_url %}
+            #banner .frame .photo {background-image: url({{ profile_photo_url }})}
+        {% else %}
+            {% if is_company %}
+                #banner .frame .photo {
+                    background-image: url({% static 'ikwen/img/logo-placeholder.jpg' %})
+                }
+            {% else %}
+                #banner .frame .photo {
+                    background-image: url({% static 'ikwen/img/login-avatar.jpg' %})
+                }
+            {% endif %}
+        {% endif %}
+
+        {% if is_console %}
+            @media (min-width: 476px) {
+                #banner h2 {
+                    margin-top: 210px
+                }
+            }
+        {% endif %}
+        #deploy {background: #7a1e31; border-color:  #7a1e31; color: #fff; font-weight: 700; letter-spacing: 2px}
+        #deploy:hover {background: #982035; border-color:  #982035}
+    </style>
+{% endblock %}
+
+{% block header_brand %}
+<strong class="navbar-header">
+    <a class="navbar-brand" href="{{ settings.IKWEN_BASE_URL }}">ikwen {{ profile_name }}</a>
+</strong>
+{% endblock %}
+
+{% block content %}
+    <div id="content" class="container">
+        {% block stage %}
+            <div id="stage">
+                <header id="cover" class="subtle-shade">
+                    <div id="banner">
+                        <div class="frame">
+                            <div class="photo"></div>
+                            <h2 class="text-has-shade name visible-xs">{{ profile_name|truncatewords:"2" }}</h2>
+                        </div>
+                        <h2 class="text-has-shade name hidden-xs">{{ profile_name }}</h2>
+                    </div>
+                </header>
+                <div id="cards">
+                    {% for elt in access_request_list %}
+                        {% with rq=elt.rq srvc=elt.rq.service %}
+                            <section id="{{ elt.rq.id }}" class="access-request card subtle-shade">
+                                <div class="logo">
+                                    {% if srvc.config.logo.name %}
+                                        <img src="{{ srvc.config.logo.url }}"/>
+                                    {% else %}
+                                        <img src="{% static 'ikwen/img/logo-placeholder.jpg' %}"/>
+                                    {% endif %}
+                                    <p class="member-name">{{ srvc.project_name }}</p>
+                                </div>
+                                <div class="details row">
+                                    <div class="about">
+                                        <div class="col-xs-12 col-sm-6">
+                                            <h4 style="margin-top: 0">{% trans "Request to join" %}</h4>
+                                            <p>{% trans "This person would like to join your community." %}</p>
+                                        </div>
+                                        <div class="col-xs-6 col-sm-3">
+                                            <button class="btn btn-success btn-sm btn-block allow-access"
+                                                    data-request-id="{{ rq.id }}"
+                                                    data-access-type="{{ rq.type }}">{% trans "Grant access" %}</button>
+                                        </div>
+                                        <div class="col-xs-6 col-sm-3" style="cursor: pointer; font-weight: 700; padding-top: 7px">
+                                            <span class="text-danger deny-access"
+                                                  data-request-id="{{ rq.id }}">{% trans "No, Refuse" %}</span>
+                                        </div>
+                                        {#                                <div class="col-sm-3 col-md-3">#}
+                                        {#                                    <button id="deny-access" class="btn btn-danger btn-sm btn-block" data-request-id="{{ elt.rq.id }}">{% trans "Refuse" %}</button>#}
+                                        {#                                </div>#}
+                                    </div>
+                                    <div class="groups" style="display: none">
+                                        <div class="group-choice">
+                                            <h3>{% trans "Add to group ..." %}</h3>
+                                            {% for group in elt.groups %}
+                                                <div class="form-group">
+                                                    <div class="radio">
+                                                        <label>
+                                                            <input type="radio" class="group" name="group" value="{{ group.id }}"/>
+                                                            {{ group.name }}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        <p class="text-success"
+                                           style="display: none">{% trans "Access granted with success." %}</p>
+                                        <div class="col-xs-6 col-sm-4 col-md-3" style="margin-left: -15px">
+                                            <button data-request-id="{{ rq.id }}"
+                                                    class="btn btn-success btn-sm btn-block confirm-group">{% trans "Confirm" %}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="clearfix"></div>
+                            </section>
+                        {% endwith %}
+                    {% endfor %}
+                    <section id="about" class="card subtle-shade">
+                        {% if is_company and page_config.short_description %}
+                            {% if page_config.description %}
+                                <p style="color: #666; font-size: 18px; margin-bottom: 20px; text-align: justify">{{ page_config.description }}</p>
+                            {% else %}
+                                <p style="color: #666; font-size: 18px; margin-bottom: 20px">{{ page_config.short_description }}</p>
+                            {% endif %}
+                        {% else %}
+                            <h3 style="font-size: 18px">{% trans "About" %}</h3>
+                        {% endif %}
+                        <ul>
+                            {% if profile_gender %}
+                                <li>
+                                    <label>{% trans "Gender" %}</label>
+                                    <span>{{ profile_gender }}</span>
+                                </li>
+                            {% endif %}
+                            {% if profile_email %}
+                                <li>
+                                    <label>E-mail</label>
+                                    <span>{{ profile_email }}</span>
+                                </li>
+                            {% endif %}
+                            {% if profile_phone %}
+                                <li>
+                                    <label>{% trans "Phone" %}</label>
+                                    <span>{{ profile_phone }}</span>
+                                </li>
+                            {% endif %}
+                            {% if is_company and not app %}
+                                <li>
+                                    <label>{% trans "Website" %}</label>
+                                    <span>
+                                        {{ page_service.url }} -
+                                        <a href="{{ page_service.url }}" target="_blank">{% trans "Visit" %}</a>
+                                    </span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                        {% if is_company and not app %}
+                            <div class="actions">
+                                {% if request.user.is_authenticated %}
+                                    {% if not is_member %}
+                                        <button class="btn btn-success btn-sm request-access"
+                                                data-service-id="{{ page_service.id }}">{% trans "Join" %}</button>
+                                    {% endif %}
+                                {% else %}
+                                    <a class="btn btn-success btn-sm"
+                                       href="{% url 'ikwen:request_access' %}?service_id={{ page_service.id }}">{% trans "Join" %}</a>
+                                {% endif %}
+                            </div>
+                        {% elif app.is_public and app.deployment_url_name %}
+                            <div class="actions">
+                                <a id="deploy" class="btn btn-sm" href="{% url app.deployment_url_name app.slug %}">{% trans "DEPLOY" %}</a>
+                            </div>
+                        {% endif %}
+                    </section>
+                </div>
+            </div>
+        {% endblock %}
+        {% include 'core/snippets/ads.html' %}
+    </div>
+{% endblock %}
+{% block js %}
+    {{ block.super }}
+    {% if not is_console %} {% include 'accesscontrol/snippets/request_management.html' %} {% endif %}
+{% endblock %}

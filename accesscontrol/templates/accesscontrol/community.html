@@ -15,7 +15,11 @@
         .tab-content .spinner {background: rgba(255, 255, 255, .6); height: 100%; margin-left: -255px; position: fixed; width: 100%}
         ul.people {margin: 0; padding-left: 0}
         .member.Blocked  {opacity: .72; filter:Alpha(opacity=72)}
-        #group-update, #blocking {border-top: 1px solid #eee}
+        #permissions, #profiles, #group-update {border-bottom: 1px solid #eee}
+        #profile-tag-list ul {padding: 5px 0 0 5px}
+        #profile-tag-list li {list-style-type: none; padding-bottom: 7px}
+        #profile-tag-list li input[type=checkbox] {float: left; margin: 2px 6px 0 0}
+        #profile-tag-list li span {font-weight: 400}
         #group-update h5 em {color: #888}
         @media (min-width: 768px) {
             #groups {clear: both; margin-top: 15px}
@@ -58,10 +62,10 @@
             <div id="groups" class="content-tab-list ceil">
                 <div class="swiper-container">
                     <div class="nav nav-tabs" role="tablist">
-                        <div role="presentation" class="tab group {{ groups.0.name }} active" data-id="{{ groups.0.id }}" data-name="{{ groups.0.name }}">
-                            <a href="#{{ groups.0.id }}" aria-controls="{{ groups.0.id }}" role="tab" data-toggle="tab">{% trans groups.0.name %}</a>
+                        <div role="presentation" class="tab group {{ group_list.0.name }} active" data-id="{{ group_list.0.id }}" data-name="{{ group_list.0.name }}">
+                            <a href="#{{ group_list.0.id }}" aria-controls="{{ group_list.0.id }}" role="tab" data-toggle="tab">{% trans group_list.0.name %}</a>
                         </div>
-                        {% for group in groups|slice:"1:" %}
+                        {% for group in group_list|slice:"1:" %}
                             <div role="presentation" class="tab group {{ group.name }}" data-id="{{ group.id }}" data-name="{{ group.name }}">
                                 <a href="#{{ group.id }}" aria-controls="{{ group.id }}" role="tab" data-toggle="tab">{% trans group.name %}</a>
                             </div>
@@ -76,7 +80,7 @@
                 </div>
             </div>
             <div class="tab-content">
-                <div role="tabpanel" class="tab-pane active" id="{{ groups.0.id }}">
+                <div role="tabpanel" class="tab-pane active" id="{{ group_list.0.id }}">
                     {% include 'core/snippets/spinner.html' %}
                     <ul class="people object-list">
                     {% for obj in nonrel_perm_list %}
@@ -107,7 +111,7 @@
                         </li>
                     </ul>
                 </div>
-                {% for group in groups|slice:'1:' %}
+                {% for group in group_list|slice:'1:' %}
                     <div role="tabpanel" class="tab-pane" id="{{ group.id }}">
                         <ul class="people">
                             <li class="member tpl" style="display: none">
@@ -151,53 +155,11 @@
 
             <div class="edge-panel-right-container">
                 <div id="object-detail" class="edge-panel edge-panel-right">
+                    {% include 'core/snippets/spinner.html' %}
                     <div class="empty">
                         {% trans "Click on a member in the list to view and manage." %}
                     </div>
-                    <div class="actions" style="display: none; padding-bottom: 200px">
-                        <h3 class="main-title">{% trans "Permissions" %}</h3>
-                        <div class="container-fluid">
-                            <div id="permissions">
-                                <form name="permissions" onsubmit="return false">
-                                    {% for perm in permissions %}
-                                        <div class="form-group">
-                                            <div class="checkbox">
-                                                <label>
-                                                    <input type="checkbox" id="{{ perm.id }}" value="{{ perm.id }}" /> {% trans perm.name %}
-                                                </label>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                    <button id="set-permissions" class="btn btn-primary btn-sm btn-block">{% trans "Confirm" %}</button>
-                                </form>
-                            </div>
-                            <div id="group-update">
-                                <h5>{% trans "Group" %}: <em>{{ groups.0.name }}</em></h5>
-                                <div class="btn-group" style="width: 100%">
-                                    <button class="btn btn-warning btn-sm btn-block dropdown-toggle" style="text-align: left"
-                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <span class="pull-left">{% trans "Move to group" %}&nbsp;&nbsp;&nbsp;...</span>
-                                        <span class="caret pull-right" style="margin-top: 8px"></span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        {% for group in groups %}
-                                            <li role="presentation" class="group {{ group.name }}" data-id="{{ group.id }}" data-name="{{ group.name }}">
-                                                <a href="#">{{ group.name }}</a></li>
-                                        {% endfor %}
-                                        {% if user.is_bao %}
-                                            <li role="presentation" class="group {{ sudo_group.name }}" data-id="{{ sudo_group.id }}" data-name="{{ sudo_group.name }}">
-                                                <a href="#">{{ sudo_group.name }}</a></li>
-                                        {% endif %}
-                                    </ul>
-                                </div>
-                            </div>
-                            <div id="blocking" style="margin-top: 45px">
-                                <h5>{% trans "Block/Activate" %}</h5>
-                                <button class="btn btn-danger btn-sm btn-block">{% trans "Block" %}</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="clear"></div>
+                    <div class="content"></div>
                 </div>
             </div>
         </div>
@@ -246,66 +208,59 @@
                 return $tpl;
             }
             $('body').on('click', 'li.member', function() {
-                var memberId = $(this).data('id'),
-                    status = $(this).data('status'),
-                    permissions = $(this).data('permissions');
-                if (permissions) permissions = permissions.split(',');
-                else permissions = [];
-                $('div#object-detail form input').prop('checked', false);
-                for (var i=0; i<permissions.length; i++) {
-                    $('#' + permissions[i]).prop('checked', true)
-                }
-                $('div#object-detail button').data({"member-id": memberId, "status": status});
-                $('div#group-update .group').data("member-id", memberId);
+                var memberId = $(this).data('id');
                 $('ul li.member').removeClass('active');
                 $(this).addClass('active');
                 $('div#object-detail .empty').hide();
-                if (status == 'Blocked') {
-                    $('div#blocking button').text("{% trans 'Activate' %}");
-                    $('#permissions, #group-update').hide()
-                } else {
-                    $('div#blocking button').text("{% trans 'Block' %}");
-                    $('#permissions, #group-update').show()
-                }
-                $('div#object-detail .actions').show();
+                $('div#object-detail .spinner').show();
+                $('div#object-detail .content').load('?action=load_member_detail&member_id=' + memberId, function() {
+                    $('div#object-detail .spinner').hide();
+                });
                 if ($(window).width() < 768) {
                     ikwen.swipeInRightPanel()
                 }
-            });
-            $('button#set-permissions').click(function() {
+            }).on('click', '.set-permissions', function() {
                 var memberId = $(this).data('member-id'),
                     permissionIds = [];
-                $('div#object-detail form input:checked').each(function() {
+                $('div#permissions input:checked').each(function() {
                     permissionIds.push($(this).val())
                 });
                 $.getJSON('{% url 'ikwen:set_collaborator_permissions' %}',
                         {permission_ids: permissionIds.join(','), member_id: memberId}, function(data) {
                     if (data.success) {
-                        $('#' + memberId).data('permissions', permissionIds.join(','));
                         ikwen.showFloatingNotice("{% trans 'Permissions successfully updated' %}", '', 6)
                     }
                 });
-            });
-            $('div#group-update .group').click(function() {
+            }).on('click', '.set-profiles', function() {
+                var memberId = $(this).data('member-id'),
+                    tagIds = [];
+                $('div#profiles input:checked').each(function() {
+                    tagIds.push($(this).val())
+                });
+                $.getJSON('', {action: 'set_member_profiles', member_id: memberId, tag_ids: tagIds.join(',')}, function(data) {
+                    if (data.success) {
+                        ikwen.showFloatingNotice("{% trans 'Profiles successfully updated' %}", '', 6)
+                    }
+                });
+            }).on('click', '#group-update .group', function() {
                 var groupId = $(this).data('id'),
                     name = $(this).data('name'),
                     memberId = $(this).data('member-id');
                 $.getJSON('{% url 'ikwen:move_member_to_group' %}', {group_id: groupId, member_id: memberId}, function(data) {
                     if (data.success) {
                         var activeGroupId = $('div#groups .group.active').data('id');
-                        if (groupId != activeGroupId) {
+                        if (groupId !== activeGroupId) {
                             $('.member.active').remove().appendTo('#' + groupId + ' .people').click();
                         }
                         ikwen.showFloatingNotice("{% trans 'Member moved to group' %}" + ' ' + name, '', 6)
                     }
                 });
-            });
-            $('div#blocking button').click(function() {
+            }).on('click', '#blocking button', function() {
                 var memberId = $(this).data('member-id'),
                     status = $(this).data('status');
                 $.getJSON('{% url 'ikwen:toggle_member' %}', {member_id: memberId}, function(data) {
                     if (data.success) {
-                        if (status == 'Blocked')  {
+                        if (status === 'Blocked')  {
                             $('.member.active').removeClass('Blocked');
                             $('#permissions, #group-update').show();
                             $('div#blocking button').text("{% trans 'Block' %}").data('status', 'Active');

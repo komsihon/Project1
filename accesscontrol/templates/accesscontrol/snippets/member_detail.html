@@ -1,0 +1,77 @@
+{% load i18n humanize static %}
+
+<div class="actions" style="padding-bottom: 200px">
+    <div class="container-fluid">
+        {% if permission_list %}
+        <div id="permissions"{% if not member.is_active %} class="tpl"{% endif %}>
+            <h3 class="main-title" style="margin: 10px 0">{% trans "Permissions" %}</h3>
+            <form name="permissions" onsubmit="return false" style="margin-top: 10px">
+                {% for perm in permission_list %}
+                    <div class="form-group">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="{{ perm.id }}" value="{{ perm.id }}"
+                                       {% if perm.is_active %}checked{% endif %} /> {% trans perm.name %}
+                            </label>
+                        </div>
+                    </div>
+                {% endfor %}
+                <button class="set-permissions btn btn-success btn-sm btn-block"
+                        data-member-id="{{ member.id }}">{% trans "Confirm" %}</button>
+            </form>
+            <div class="clearfix"></div>
+        </div>
+        {% endif %}
+        {# Profiles: Begin #}
+        {% if profiletag_list %}
+        <div id="profiles"{% if not member.is_active %} class="tpl"{% endif %} style="padding-bottom: 30px">
+            <h3 class="main-title" style="margin: 10px 0">{% trans "Profile" %}</h3>
+            <div id="profile-tag-list">
+                <ul>
+                    {% for tag in profiletag_list %}
+                    <li>
+                        <label>
+                             <input type="checkbox" value="{{ tag.id }}"
+                                    {% if tag.is_selected %}checked{% endif %}><span>{{ tag.name }}</span>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <button class="set-profiles btn btn-success btn-sm btn-block"
+                    data-member-id="{{ member.id }}">{% trans "Set member profile" %}</button>
+            <div class="clearfix"></div>
+        </div>
+        {% endif %}
+        {# Profiles: End #}
+        <div id="group-update"{% if not member.is_active %} class="tpl"{% endif %}>
+            <h5>{% trans "Group" %}: <em>{{ member.group.name }}</em></h5>
+            <div class="btn-group" style="width: 100%">
+                <button class="btn btn-warning btn-sm btn-block dropdown-toggle" style="text-align: left"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="pull-left">{% trans "Move to group" %}&nbsp;&nbsp;&nbsp;...</span>
+                    <span class="caret pull-right" style="margin-top: 8px"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    {% for group in group_list %}
+                        <li role="presentation" class="group {{ group.name }}" data-id="{{ group.id }}" data-name="{{ group.name }}">
+                            <a href="javascript:;">{{ group.name }}</a></li>
+                    {% endfor %}
+                    {% if user.is_bao %}
+                        <li role="presentation" class="group {{ sudo_group.name }}" data-id="{{ sudo_group.id }}" data-name="{{ sudo_group.name }}">
+                            <a href="javascript:;">{{ sudo_group.name }}</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+        <div id="blocking" style="margin-top: 45px">
+            <h5>{% trans "Block/Activate" %}</h5>
+            {% if member.is_active %}
+                <button class="btn btn-danger btn-sm btn-block">{% trans "Block" %}</button>
+            {% else %}
+                <button class="btn btn-danger btn-sm btn-block">{% trans "Activate" %}</button>
+            {% endif %}
+        </div>
+    </div>
+</div>

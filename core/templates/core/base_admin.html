@@ -9,6 +9,8 @@
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="{{ settings.IKWEN_MEDIA_URL }}ikwen/favicons/{{ service.app.slug }}/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
+    <meta name="msapplication-navbutton-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#ffffff">
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
@@ -30,9 +32,9 @@
     {{ block.super }}
     <div id="app-nav" class="container-fluid">
         <span class="cta app-logo">
-            <img src="{{ settings.IKWEN_MEDIA_URL }}ikwen/app_logos/{{ service.app.slug }}-logo.png" class="img-responsive" />
+            <img src="{{ settings.IKWEN_MEDIA_URL }}app_logos/{{ service.app.slug }}-logo.png" class="img-responsive" />
         </span>
-        <span class="cta app-name">{{ service.app.name }}</span>
+        <span class="cta app-name">{{ service.app.name|upper }}</span>
         <ol class="breadcrumb">
             {% url 'ikwen:staff_router' as admin_home_url %}
             <li><a href="{{ admin_home_url }}">{{ service.project_name }}</a></li>
@@ -40,7 +42,7 @@
         </ol>
         <a href="{% url 'home' %}" class="go-to-website pull-right" title="{% trans "Go to public website" %}">
             <i class="glyphicon glyphicon-globe"></i>
-            <span class="hidden-xs">{% trans "Go to website" %}</span>
+            <span class="hidden-xs" style="font-weight: 400">{% trans "Go to website" %}</span>
         </a>
     </div>
 {% endblock %}
@@ -139,10 +141,10 @@
                     $('#app-nav').removeClass('has-shade')
                 }
             });
-            $('.tiles .ik-li a').each(function() {
-                if ($(window).width() < 768)
-                    if (!$(this).hasClass('glyphicon') && !$(this).hasClass('fa')) $(this).removeAttr('href');
-            });
+            if ($(window).width() < 768)
+                $('.tiles .ik-li a').each(function() {
+                    if ($(this).parents('.actions').length === 0) $(this).removeAttr('href');
+                });
             $('body').on('click', '.ik-li', function() {
                 if ($(this).find('> .select').length <= 0) return;
                 $(this).toggleClass('selected');
