@@ -44,6 +44,7 @@
         $('.payment-start').click(function() {
             var productId = $(this).data('product-id');
             $('#payment-product-id').val(productId);
+            $('#payment-methods').modal('show');
         });
         $('.payment-method').click(function() {
             var actionURL = $(this).data('action-url');
