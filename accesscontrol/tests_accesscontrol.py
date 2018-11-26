@@ -127,7 +127,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
     def test_move_member_to_group(self):
         """
-        Make sure the url is reachable
+        Moving member to a group sets permission_list and group_fk_list accordingly
         """
         call_command('loaddata', 'ikwen_members.yaml', database='umbrella')
         ct = ContentType.objects.all()[0]

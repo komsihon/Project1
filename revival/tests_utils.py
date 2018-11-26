@@ -11,7 +11,7 @@ from django.test.utils import override_settings
 from django.utils import unittest
 
 from ikwen.accesscontrol.backends import UMBRELLA
-from ikwen.revival.models import ProfileTag, CyclicRevival
+from ikwen.revival.models import ProfileTag, CyclicRevival, MemberProfile
 from ikwen.revival.utils import set_profile_tag_member_count
 from ikwen.revival.tests_views import wipe_test_data
 
@@ -32,11 +32,13 @@ class RevivalUtilsTestCase(unittest.TestCase):
     def tearDown(self):
         wipe_test_data()
 
-    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102', UNIT_TESTING=True)
     def test_set_profile_tag_member_count(self):
         """
         member_count field for each ProfileTag must be set correctly
         """
+        MemberProfile.objects.all().delete()
+        call_command('loaddata', 'member_profiles.yaml')
         set_profile_tag_member_count()
         profile_tag1 = ProfileTag.objects.get(pk='58088fc0c253e5ddf0563951')
         profile_tag2 = ProfileTag.objects.get(pk='58088fc0c253e5ddf0563952')

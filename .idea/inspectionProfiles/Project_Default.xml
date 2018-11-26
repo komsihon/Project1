@@ -5,6 +5,8 @@
       <option name="ignoredIdentifiers">
         <list>
           <option value="theming.urls.*" />
+          <option value="conf.urls.*" />
+          <option value="kakocase.batch.*" />
         </list>
       </option>
     </inspection_tool>

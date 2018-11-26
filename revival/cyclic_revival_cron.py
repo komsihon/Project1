@@ -11,16 +11,15 @@ from django.conf import settings
 from django.core import mail
 from django.core.mail import EmailMessage
 from django.db import transaction
-from django.utils.translation import activate, gettext as _
+from django.utils.translation import activate
 
 from core.utils import increment_history_field
-from echo.models import Balance, SMS
+from echo.models import Balance, SMS, SMSObject
 from echo.utils import notify_for_empty_messaging_credit, EMAIL, SMS, EMAIL_AND_SMS
 from echo.views import count_pages
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.accesscontrol.models import Member
 from ikwen.core.utils import add_database, get_mail_content, send_sms, get_sms_label, set_counters
-from ikwen.core.models import Config
 from ikwen.revival.models import MemberProfile, CyclicRevival, CyclicTarget, ProfileTag
 
 logger = logging.getLogger('ikwen.crons')
@@ -132,7 +131,7 @@ def notify_profiles():
                             send_sms(recipient=member.phone, text=sms_text, fail_silently=False)
                             total_sms += 1
                             increment_history_field(profile_tag, 'cyclic_revival_sms_history')
-                            SMS.objects.create(recipient=member.phone, text=sms_text, label=label)
+                            SMSObject.objects.create(recipient=member.phone, text=sms_text, label=label)
                         except:
                             transaction.rollback(using=WALLETS_DB_ALIAS)
             if balance.mail_count == 0 and balance.sms_count == 0:

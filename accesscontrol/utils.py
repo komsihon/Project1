@@ -15,13 +15,13 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
-from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 from permission_backend_nonrel.models import UserPermissionList, GroupPermissionList
 
+from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.accesscontrol.models import Member
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.core.utils import get_service_instance, get_mail_content, send_sms
@@ -182,7 +182,7 @@ class VerifiedEmailTemplateView(TemplateView):
         if request.user.is_authenticated() and not request.user.email_verified:
             next_url = reverse('ikwen:email_confirmation')
             return HttpResponseRedirect(next_url)
-        super(VerifiedEmailTemplateView, self).get(request, *args, **kwargs)
+        return super(VerifiedEmailTemplateView, self).get(request, *args, **kwargs)
 
 
 class EmailConfirmationPrompt(TemplateView):
@@ -191,7 +191,7 @@ class EmailConfirmationPrompt(TemplateView):
     def send_code(self, request, new_code=False):
         member = request.user
         uid = urlsafe_base64_encode(force_bytes(member.pk))
-        token = default_token_generator.make_token(member)
+        token = default_token_generator.make_tm.oken(member)
 
         do_send = False
         try:
@@ -206,9 +206,9 @@ class EmailConfirmationPrompt(TemplateView):
         if do_send:
             subject = _("Confirm your email and get started !")
             template_name = 'accesscontrol/mails/confirm_email.html'
-            confirmation_url = 'http://www.ikwen.com' + reverse('ikwen:confirm_email', args=(uid, token))
+            confirmation_url = reverse('ikwen:confirm_email', args=(uid, token))
             html_content = get_mail_content(subject, template_name=template_name,
-                                            extra_context={'confirmation_url': confirmation_url,
+                                            extra_context={'confirmation_url': ikwenize(confirmation_url),
                                                            'member_name': member.first_name})
             sender = 'ikwen <no-reply@ikwen.com>'
             msg = EmailMessage(subject, html_content, sender, [member.email])
@@ -254,7 +254,7 @@ class EmailConfirmationPrompt(TemplateView):
             context['error_message'] = _('Invalid code. Please try again')
             return render(request, self.template_name, context)
         member.phone_verified = True
-        member.save()
+        member.propagate_changes()
         next_url = getattr(settings, 'LOGIN_REDIRECT_URL', 'home')
         return HttpResponseRedirect(reverse(next_url))
 

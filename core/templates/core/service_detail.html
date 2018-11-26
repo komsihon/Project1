@@ -54,10 +54,10 @@
                             <label class="col-sm-3">{% trans "Support Code" %}</label>
                             <span>
                                 {{ support_code.token }}
-{#                                {% if support_code.expired %}#}
+                                {% if support_code.expired %}
                                      <span class="label label-danger">{% trans "Expired" %}</span>
                                     &nbsp;&nbsp; - &nbsp;&nbsp;&nbsp;<a href="#">{% trans "Renew" %}</a>
-{#                                {% endif %}#}
+                                {% endif %}
                             </span>
                         </div>
                         <div>

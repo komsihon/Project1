@@ -53,7 +53,8 @@
                                  {% if tag.image.name %}
                                     style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ tag.image.name }})"
                                  {% endif %}>
-                                <div class="name">{{ tag.name }}</div>
+                                <div class="name">{% trans tag.name %}</div>
+                                <div class="meta">{{ tag.member_count }}</div>
                             </div>
                             <div class="info">
                                 <div class="name" style="float: left">&nbsp;</div>
@@ -78,6 +79,7 @@
                                     style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ tag.image.name }})"
                                  {% endif %}>
                                 <div class="name">{{ tag.name }}</div>
+                                <div class="meta">{{ tag.member_count }}</div>
                             </a>
                             <div class="info">
                                 <div class="name" style="float: left">&nbsp;</div>
@@ -100,16 +102,4 @@
             </div>
         </div>
     </div>
-{% endblock %}
-
-{% block js %}
-    {{ block.super }}
-    <script>
-        (function() {
-            $('#discipline-item-happened-on').datepicker({
-                altField: "#happened-on-alt",
-                altFormat: "yy-mm-dd"
-            });
-        })()
-    </script>
 {% endblock %}

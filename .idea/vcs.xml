@@ -2,12 +2,20 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../CR" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Cyberlink" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Echo" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../FKCouture" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../Kakocase" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Foulassi" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../IkwenBlog" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Kakocase" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Laakam" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Mails" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../MyJumboPay" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Olbizgo" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Shavida" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../Shavida" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../embed-doc" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../ikwenSupport" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../ikwenWebsite" vcs="Git" />
   </component>
 </project>

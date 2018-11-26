@@ -576,7 +576,7 @@ def extend_left_many(additional, *args, **kwargs):
         extend_left(additional, watch_object)
 
 
-def add_event(service, codename, member=None, group_id=None, object_id=None, model=None):
+def add_event(service, codename, member=None, group_id=None, object_id=None, model=None, object_id_list=[]):
     """
     Pushes an event to the ikwen Console and return the created ConsoleEvent object.
     :param service: Service targeted by this event
@@ -610,8 +610,9 @@ def add_event(service, codename, member=None, group_id=None, object_id=None, mod
         except ConsoleEventType.DoesNotExist:
             event_type = ConsoleEventType.objects.using(UMBRELLA).create(app=service.app, codename=codename,
                                                                          renderer='ikwen.core.views.default_renderer')
-    event = ConsoleEvent.objects.using(UMBRELLA).create(service=service, member=member, group_id=group_id,
-                                                        event_type=event_type, model=model, object_id=object_id)
+    event = ConsoleEvent.objects.using(UMBRELLA).\
+        create(service=service, member=member, group_id=group_id,
+               event_type=event_type, model=model, object_id=object_id, object_id_list=object_id_list)
     return event
 
 

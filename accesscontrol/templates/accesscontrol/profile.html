@@ -37,7 +37,7 @@
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
-    <link href="{% static 'ikwen/css/console.css' %}?v=18.10.24.1" media="screen" rel="stylesheet" type="text/css" />
+    <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
     <link rel='stylesheet' href="{% static 'ikwen/swiper/css/swiper.min.css' %}" />
     <style>
         body {background: #f6f6f6; padding-bottom: 200px}
@@ -81,7 +81,6 @@
         #coupons .progress-bar {background-color: #4CAF50;}
         .coupon-count {color: #fff; float: right; height: 34px; margin-top: 146px; padding-right: 5px}
         .coupon-count span {font-size: 26px; font-weight: 700}
-        #whatsapp-share-msg {height: 60px}
     </style>
 {% endblock %}
 
@@ -108,7 +107,7 @@
                     <div class="menu console-menu">
                         <h4 class="text-muted">
                             <div class="disc coupon">
-                                <i class="fa fa-ticket"></i>
+                                <i class="fas fa-ticket-alt"></i>
                             </div>
                             {% trans "My collection" %}
                         </h4>
@@ -177,19 +176,19 @@
                                 <ul class="dropdown-menu" aria-labelledby="share-coupons">
                                     <li class="visible-xs visible-sm">
                                         <a href="javascript:;" data-toggle="modal" data-target="#whatsapp-share">
-                                            <i class="fa fa-whatsapp"></i>
+                                            <i class="fab fa-whatsapp"></i>
                                             WhatsApp
                                         </a>
                                     </li>
                                     <li>
                                         <a href="https://facebook.com/sharer/sharer.php?u={{ url }}" target="_blank">
-                                            <i class="fa fa-facebook"></i>
+                                            <i class="fab fa-facebook"></i>
                                             Facebook
                                         </a>
                                     </li>
                                     <li>
                                         <a href="https://twitter.com/home?status={{ url }}" target="_blank">
-                                            <i class="fa fa-twitter"></i>
+                                            <i class="fab fa-twitter"></i>
                                             Twitter
                                         </a>
                                     </li>
@@ -332,6 +331,7 @@
 {% endblock %}
 {% block js %}
     {{ block.super }}
+    {% with joined=request.GET.joined join_coupon_count=request.GET.join_coupon_count referral_coupon_count=request.GET.referral_coupon_count %}
     {% include 'accesscontrol/snippets/request_management.html' %}
     <script>
         (function() {
@@ -353,15 +353,35 @@
                     $('#coupon-detail').modal('show');
                 })
             }).on('click', '#whatsapp-share .btn.ok', function() {
-                var msg = $('#whatsapp-share-msg').val();
-                window.location = 'https://api.whatsapp.com/send?text={{ url }}%0A%0A' + msg;
+                var msg = $('#whatsapp-share-msg').val(),
+                    url = $('.wsap-link').data('url');
+                window.location = 'https://api.whatsapp.com/send?text=' + url + '%0A%0A' + msg;
             });
             $(window).scroll(function() {
                 var scrollTop = $(this).scrollTop();
                 if (scrollTop > 150) $('.bottom-join').addClass('revealed');
                 else $('.bottom-join').removeClass('revealed');
             });
-            if ("{{ request.GET.joined }}") $('#modal-join-notice').modal('show');
+            {% if joined %}
+                $('div#modal-join-notice .speech > div, div#modal-join-notice .actions > div, .cr-refer').hide();
+                {% if  join_coupon_count or referral_coupon_count %}
+                    $('.reward-available').show();
+                    $('#modal-join-notice .claim').attr('href', "{% url 'ikwen:company_profile' request.GET.joined %}");
+                    if ("{{ request.GET.referral_coupon_count }}") {
+                        $('.cr-refer').show();
+                        $('.reward-available.col-sm-offset-4').removeClass('col-sm-offset-4');
+                    }
+                {% else %}
+                    $('.no-reward').show();
+                {% endif %}
+                $('#modal-join-notice').modal('show');
+            {% endif %}
+            {% if is_company %}
+                $('#modal-join-notice .invite-friends').click(function () {
+                    $('.social-sharing')
+                });
+            {% endif %}
         })()
     </script>
+    {% endwith %}
 {% endblock %}

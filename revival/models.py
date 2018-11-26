@@ -130,3 +130,8 @@ class CyclicTarget(Model):
     revival = models.ForeignKey(CyclicRevival)
     member = models.ForeignKey(Member)
     revival_count = models.BooleanField(default=False)
+
+
+class CCMMonitoringMail(Model):
+    service = models.ForeignKey(Service, related_name='+')
+    subject = models.CharField(max_length=30)

@@ -1,0 +1,135 @@
+ERROR      2018-08-14 11:02:11,610     Connexion error on Invoice #A1/0818 to member2@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 137, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-14 11:02:11,633     Connexion error on Invoice #A2/0818 to member3@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 137, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-14 11:02:11,655     Connexion error on Invoice #A3/0818 to member4@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 137, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-14 13:12:23,988     Connexion error on Invoice #A1/0818 to member2@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 137, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-14 13:12:24,009     Connexion error on Invoice #A2/0818 to member3@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 137, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-14 13:12:24,028     Connexion error on Invoice #A3/0818 to member4@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 137, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-14 14:28:36,232     Connexion error on Invoice #A1/0818 to member2@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 137, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-14 14:28:36,254     Connexion error on Invoice #A2/0818 to member3@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 137, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-14 14:28:36,277     Connexion error on Invoice #A3/0818 to member4@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 137, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:34:49,063     Connexion error on Invoice #A1/0818 to member2@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:34:49,087     Connexion error on Invoice #A2/0818 to member3@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:34:49,111     Connexion error on Invoice #A3/0818 to member4@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:40:10,964     Connexion error on Invoice #A1/0818 to member2@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:40:13,132     Connexion error on Invoice #A2/0818 to member3@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:40:13,835     Connexion error on Invoice #A3/0818 to member4@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:50:00,392     Connexion error on Invoice #A1/0818 to member2@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:50:00,428     Connexion error on Invoice #A2/0818 to member3@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:50:00,456     Connexion error on Invoice #A3/0818 to member4@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:51:32,124     Connexion error on Invoice #A1/0818 to member2@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:51:32,146     Connexion error on Invoice #A2/0818 to member3@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:51:32,167     Connexion error on Invoice #A3/0818 to member4@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:52:22,488     Connexion error on Invoice #A1/0818 to member2@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:52:22,516     Connexion error on Invoice #A2/0818 to member3@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-08-21 14:52:22,539     Connexion error on Invoice #A3/0818 to member4@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-11-20 17:30:29,194     Connexion error on Invoice #A1/1118 to member2@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-11-20 17:30:29,216     Connexion error on Invoice #A2/1118 to member3@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'
+ERROR      2018-11-20 17:30:29,241     Connexion error on Invoice #A3/1118 to member4@ikwen.com
+Traceback (most recent call last):
+  File "/home/komsihon/Tools/virtualenv/local/lib/python2.7/site-packages/ikwen/billing/crons.py", line 153, in send_invoices
+    logger.debug("1st Invoice reminder for %s sent to %s" % (subscription.domain, member.email))
+AttributeError: 'Subscription' object has no attribute 'domain'

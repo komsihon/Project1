@@ -23,7 +23,7 @@ from ikwen.accesscontrol.models import SUDO, Member
 
 from ikwen.flatpages.models import FlatPage
 
-from ikwen.conf.settings import STATIC_ROOT, STATIC_URL, MEDIA_ROOT, MEDIA_URL
+from ikwen.conf.settings import STATIC_ROOT, STATIC_URL, CLUSTER_MEDIA_ROOT, CLUSTER_MEDIA_URL
 
 from ikwen.partnership.models import PartnerProfile
 
@@ -97,8 +97,8 @@ def deploy(app, member, project_name, billing_plan, monthly_cost, theme,
     # Create a copy of template application in the Cloud folder
     app_folder = CLOUD_HOME + '000Tpl/AppSkeleton'
     website_home_folder = CLOUD_FOLDER + ikwen_name
-    media_root = MEDIA_ROOT + ikwen_name + '/'
-    media_url = MEDIA_URL + ikwen_name + '/'
+    media_root = CLUSTER_MEDIA_ROOT + ikwen_name + '/'
+    media_url = CLUSTER_MEDIA_URL + ikwen_name + '/'
     default_images_folder = CLOUD_FOLDER + '000Tpl/images/000Default'
     if os.path.exists(default_images_folder):
         if os.path.exists(media_root):

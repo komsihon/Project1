@@ -573,7 +573,7 @@ class ServiceDetail(TemplateView):
             support_code = SupportCode.objects.using(UMBRELLA).filter(service=srvce).order_by('-id')[0]
         except IndexError:
             token = ''.join([random.SystemRandom().choice(string.digits) for _ in range(6)])
-            expiry = now + timedelta(days=40)  # Offre 45 days of Phone support for people who don't have it yet
+            expiry = now + timedelta(days=45)  # Offer 45 days of Phone support for people who don't have it yet
             support_code = SupportCode.objects.using(UMBRELLA)\
                 .create(service=srvce, type=SupportCode.PHONE, token=token, expiry=expiry)
         if support_code.expiry < now:
@@ -726,7 +726,7 @@ class Console(TemplateView):
                 suggestion_list.append(join_service)
             except CROperatorProfile.DoesNotExist:
                 pass
-        suggested_operators = CROperatorProfile.objects.all()
+        suggested_operators = CROperatorProfile.objects.exclude(service__in=member_services).filter(expiry__gt=now, is_active=True)
         suggestion_list = [op.service for op in suggested_operators.order_by('-id')[:9]]
         if join_service and join_service not in suggestion_list and join_service not in member_services:
             suggestion_list.insert(0, join_service)

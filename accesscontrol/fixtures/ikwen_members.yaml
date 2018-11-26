@@ -44,6 +44,7 @@
     last_name: Tchuendom
     full_name: Foka Tchuendom
     gender: Male
+    email_verified: Yes
     collaborates_on_fk_list: [56eb6d04b37b3379b531b101]
     tags: member3
 

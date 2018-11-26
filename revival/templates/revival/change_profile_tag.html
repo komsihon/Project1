@@ -65,6 +65,7 @@
             {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
             <form class="admin-form" method="post">{% csrf_token %}
                 {% include 'core/snippets/model_admin_form.html' %}
+                {% if perms.revival.ik_manage_revivals %}
                 <div class="set-cyclic-revival checkbox">
                     <label for="set-cyclic-revival">
                         <input type="checkbox" id="set-cyclic-revival"
@@ -96,7 +97,7 @@
                                     </div>
                                 </div>
                                 <div class="col-xs-6 col-sm-3 col-lg-2">
-                                    <div class="btn btn-sm btn-default btn-block" data-toggle="modal" data-target="#modal-test">
+                                    <div class="btn btn-sm btn-default btn-block show-modal-test" data-toggle="modal" data-target="#modal-test">
                                         <i class="fa fa-vial"></i>
                                         {% trans "Test" %}
                                     </div>
@@ -323,12 +324,12 @@
                         <textarea id="test-phones" class="form-control" cols="4"></textarea>
                     </div>
                     {% include 'core/snippets/spinner.html' %}
-                    <div>
-
-                    </div>
+                    <div class="test-error text-danger"></div>
+                    <div class="test-warning text-warning"></div>
+                    <div class="test-success text-success"></div>
                     <div class="actions">
                         <div class="col-xs-12 col-sm-4 pull-right action">
-                            <button class="btn btn-success btn-block btn-sm ok"
+                            <button class="btn btn-success btn-block btn-sm run-test"
                                     aria-label="OK">{% trans "Send test" %}</button>
                         </div>
                         <div class="col-xs-12 col-sm-4 pull-right action">
@@ -340,11 +341,13 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 {% endblock %}
 
 {% block js %}
     {{ block.super }}
+    {% if perms.revival.ik_manage_revivals %}
     <script src="{% static 'ikwen/js/jquery-ui.js' %}"></script>
     <script src="{% static 'echo/js/sms-character-counter.js' %}" ></script>
     <script type="text/javascript">
@@ -471,26 +474,30 @@
                     ikwen.showFloatingNotice(data.message, '', 6);
                 });
             });
+            $('.show-modal-test').click(function() {
+                $('.test-error, .test-warning').hide();
+            });
             $('.run-test').click(function() {
                 var revivalId = $('#modal-test').data('revival-id'),
                     emailList = $('#test-emails').val(),
                     phoneList = $('#test-phones').val(),
                     params = {action: 'run_test', revival_id: revivalId, test_email_list: emailList, test_phone_list: phoneList};
                 $('#modal-test .spinner').show();
+                $('.test-error, .test-warning, .test-success').hide();
                 $.getJSON('', params, function(data) {
                     $('#modal-test .spinner').hide();
                     if (data.error) {
-                        $('#modal-test .response').text(data.error);
+                        $('.test-error').text(data.error).show();
                         return;
                     }
-                    $('#modal-test .response').text("{% trans "Your test were all sent" %}");
+                    $('.test-success').text("{% trans "Your tests were sent" %}").show();
                     if (data.warning) {
-                        var warning = data.warning.join('\n');
-                        $('#modal-test .warning .content').text(warning);
-                        $('#modal-test .warning').show();
+                        var warning = data.warning.join('<br>');
+                        $('.test-warning').html(warning).show();
                     }
                 });
             })
         })()
     </script>
+    {% endif %}
 {% endblock %}

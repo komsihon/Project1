@@ -159,13 +159,11 @@ def deploy(app, member, project_name, billing_plan, setup_cost, monthly_cost,
     obj_list.group_fk_list.append(sudo_group.id)
     obj_list.save(using=database)
 
-    OperatorWallet.objects.using('wallets').create(nonrel_id=service.id)
     mail_signature = "%s<br>" \
                      "<a href='%s'>%s</a>" % (project_name, 'http://' + domain, domain)
     config = OperatorProfile(service=service, api_signature=api_signature,
                              ikwen_share_fixed=billing_plan.tx_share_fixed, ikwen_share_rate=billing_plan.tx_share_rate,
-                             is_pro_version=is_pro_version, currency_code='XAF', currency_symbol='XAF',
-                             signature=mail_signature, max_customers=billing_plan.max_objects)
+                             is_pro_version=is_pro_version, signature=mail_signature, max_customers=billing_plan.max_objects)
     config.save(using=UMBRELLA)
     base_config = config.get_base_config()
     base_config.save(using=UMBRELLA)

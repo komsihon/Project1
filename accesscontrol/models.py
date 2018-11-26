@@ -194,7 +194,8 @@ class Member(AbstractUser):
             Member.objects.using(db).filter(pk=self.id)\
                 .update(email=self.email, phone=self.phone, gender=self.gender, first_name=self.first_name,
                         last_name=self.last_name, full_name=self.first_name + ' ' + self.last_name,
-                        photo=self.photo.name, cover_image=self.cover_image.name)
+                        photo=self.photo.name, cover_image=self.cover_image.name, phone_verified=self.phone_verified,
+                        email_verified=self.email_verified)
 
     def propagate_password_change(self, new_password):
         for s in self.get_services():
@@ -226,6 +227,12 @@ class Member(AbstractUser):
         m = Member.objects.using(UMBRELLA).get(pk=self.id)
         m.group_fk_list.append(group_id)
         m.save(using=UMBRELLA)
+
+    def save(self, **kwargs):
+        super(Member, self).save(**kwargs)
+        if self.gender:
+            from ikwen.revival.models import MemberProfile
+            member_profile = MemberProfile
 
     def to_dict(self):
         self.collaborate_on_fk_list = []  # Empty this as it is useless and may cause error

@@ -14,11 +14,8 @@ from ikwen.billing.models import PaymentMean
 from ikwen_kakocase.kako.models import *
 from ikwen.theming.models import Template, Theme
 from ikwen.partnership.models import PartnerProfile
-from ikwen.cashout.models import CashOutMethod
-from ikwen_kakocase.kakocase.models import OperatorProfile as KCOperatorProfile
-from ikwen_shavida.shavida.models import OperatorProfile as SVDOperatorProfile
 from ikwen.accesscontrol.models import Member
-
+from ikwen.revival.models import ProfileTag
 
 def reload_settings(app_slug, **kwargs):
     app = Application.objects.get(slug=app_slug)
@@ -182,6 +179,14 @@ def send_bulk_sms():
         n += 1
     diff = datetime.now() - t0
     print "%d SMS sent in %d s" % (n, diff.seconds)
+
+
+def create_basic_profiles():
+    for service in Service.objects.all():
+        db = service.database
+        add_database(db)
+        ProfileTag.objects.using(db).create(name="Men", slug="men", is_reserved=True)
+        ProfileTag.objects.using(db).create(name="Women", slug="women", is_reserved=True)
 
 
 if __name__ == "__main__":

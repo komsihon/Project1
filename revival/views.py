@@ -11,10 +11,9 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
 
-from echo.utils import notify_for_empty_messaging_credit, EMAIL_AND_SMS, EMAIL
 from echo.views import count_pages
 from ikwen.conf.settings import WALLETS_DB_ALIAS
-from echo.models import Balance, SMS
+from echo.models import Balance, SMSObject
 from ikwen.conf import settings as ikwen_settings
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
@@ -24,6 +23,7 @@ from ikwen.core.views import HybridListView, ChangeObjectBase
 from ikwen.revival.models import ProfileTag
 from ikwen.revival.admin import ProfileTagAdmin
 from ikwen.revival.models import CyclicRevival
+from ikwen_kakocase.kako.models import Product
 
 
 class ProfileTagList(HybridListView):
@@ -162,8 +162,7 @@ class ChangeProfileTag(ChangeObjectBase):
         revival = CyclicRevival.objects.using(UMBRELLA).get(pk=revival_id)
         balance = Balance.objects.using(WALLETS_DB_ALIAS).get(service_id=service.id)
         if balance.mail_count == 0 and balance.sms_count == 0:
-            notify_for_empty_messaging_credit(service, EMAIL_AND_SMS)
-            response = {'error': 'Insufficient credit'}
+            response = {'error': 'Insufficient Email and SMS credit'}
             return HttpResponse(json.dumps(response))
 
         connection = mail.get_connection()
@@ -177,7 +176,7 @@ class ChangeProfileTag(ChangeObjectBase):
         warning = []
         for email in test_email_list:
             if balance.mail_count == 0:
-                notify_for_empty_messaging_credit(service, EMAIL)
+                warning.append('Insufficient email Credit')
                 break
             email = email.strip()
             subject = revival.mail_subject
@@ -187,18 +186,22 @@ class ChangeProfileTag(ChangeObjectBase):
             except:
                 message = revival.mail_content.replace('$client', _("<Unknown>"))
             sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
-            html_content = get_mail_content(subject, message, template_name='revival/mails/default.html')
+            media_url = ikwen_settings.CLUSTER_MEDIA_URL + service.project_name_slug + '/'
+            product_list = Product.objects.filter(pk__in=revival.items_fk_list)
+            html_content = get_mail_content(subject, message, template_name='revival/mails/default.html',
+                                            extra_context={'media_url': media_url, 'product_list': product_list,
+                                                           'revival': revival})
             msg = EmailMessage(subject, html_content, sender, [email])
             msg.content_subtype = "html"
-            with transaction.atomic():
+            with transaction.atomic(using='wallets'):
                 try:
                     balance.mail_count -= 1
                     balance.save()
                     if not msg.send():
-                        transaction.rollback()
+                        transaction.rollback(using='wallets')
                         warning.append('Mail not sent to %s' % email)
                 except:
-                    transaction.rollback()
+                    transaction.rollback(using='wallets')
         try:
             connection.close()
         except:
@@ -208,7 +211,7 @@ class ChangeProfileTag(ChangeObjectBase):
             label = get_sms_label(config)
             for phone in test_phone_list:
                 if balance.sms_count == 0:
-                    notify_for_empty_messaging_credit(service, SMS)
+                    warning.append('Insufficient SMS Credit')
                     break
                 try:
                     member = Member.objects.filter(phone=phone)[0]
@@ -224,7 +227,7 @@ class ChangeProfileTag(ChangeObjectBase):
                         if len(phone) == 9:
                             phone = '237' + phone
                         send_sms(recipient=phone, text=revival.sms_text, fail_silently=False)
-                        SMS.objects.create(recipient=phone, text=revival.sms_text, label=label)
+                        SMSObject.objects.create(recipient=phone, text=revival.sms_text, label=label)
                     except:
                         transaction.rollback()
                         warning.append('SMS not sent to %s' % phone)

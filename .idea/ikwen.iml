@@ -7,17 +7,30 @@
         <option name="settingsModule" value="conf/settings.py" />
         <option name="manageScript" value="manage.py" />
         <option name="environment" value="&lt;map/&gt;" />
+        <option name="doNotUseTestRunner" value="false" />
+        <option name="trackFilePattern" value="migrations" />
       </configuration>
     </facet>
   </component>
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Python 2.7.12 virtualenv at ~/Tools/virtualenv" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 2.7 (virtualenv)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="ikwenAppRetail" />
-    <orderEntry type="module" module-name="CreolinkMaps" />
-    <orderEntry type="module" module-name="Laakam" />
     <orderEntry type="module" module-name="Shavida" />
+    <orderEntry type="module" module-name="Foulassi" />
+    <orderEntry type="module" module-name="Cyberlink" />
+    <orderEntry type="module" module-name="TestMongo" />
+    <orderEntry type="module" module-name="WebNode" />
+    <orderEntry type="module" module-name="KakacaseGithub" />
+    <orderEntry type="module" module-name="ikwenSupport" />
+    <orderEntry type="module" module-name="SIARC" />
+    <orderEntry type="module" module-name="CR" />
+    <orderEntry type="module" module-name="YouPayer" />
+    <orderEntry type="module" module-name="DoCash" />
+    <orderEntry type="module" module-name="Mails" />
+    <orderEntry type="module" module-name="Echo" />
+    <orderEntry type="module" module-name="embed-doc" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />

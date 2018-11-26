@@ -298,7 +298,7 @@ class IkwenAuthTestCase(unittest.TestCase):
                                              'phone': '655000001', 'first_name': 'Phil', 'last_name': 'Mia'}, follow=True)
         final = response.redirect_chain[-1]
         params = unquote(final[0]).split('?')[1]
-        self.assertGreaterEqual(params.index('joined=yes'), 0)
+        self.assertGreaterEqual(params.index('joined='), 0)
         total_count = 0
         member = Member.objects.get(pk='56eb6d04b37b3379b531e014')
         for ref in ReferralRewardPack.objects.using(UMBRELLA).filter(service='56eb6d04b37b3379b531b102'):

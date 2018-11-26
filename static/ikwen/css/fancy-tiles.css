@@ -15,6 +15,7 @@
     }
 .ik-li.fancy .image:hover {text-decoration: none}
 .ik-li.fancy .image .name {color: #fff;padding: 10px 15px 0;text-align: right;font-size: 18px;}
+.ik-li.fancy .image .meta {color: #fff;padding-right: 15px;text-align: right;font-size: 15px;}
 .ik-li.fancy .info {padding: 0 15px}
 .ik-li.fancy .actions {padding-right: 15px}
 .ik-li.fancy.colorful {height: 210px}

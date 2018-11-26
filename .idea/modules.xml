@@ -2,17 +2,24 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../CreolinkMaps/.idea/CreolinkMaps.iml" filepath="$PROJECT_DIR$/../CreolinkMaps/.idea/CreolinkMaps.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../FKCouture/.idea/FKCouture.iml" filepath="$PROJECT_DIR$/../FKCouture/.idea/FKCouture.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../CR/.idea/CR.iml" filepath="$PROJECT_DIR$/../CR/.idea/CR.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Cyberlink/.idea/Cyberlink.iml" filepath="$PROJECT_DIR$/../Cyberlink/.idea/Cyberlink.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../DoCash/.idea/DoCash.iml" filepath="$PROJECT_DIR$/../DoCash/.idea/DoCash.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Echo/.idea/Echo.iml" filepath="$PROJECT_DIR$/../Echo/.idea/Echo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Foulassi/.idea/Foulassi.iml" filepath="$PROJECT_DIR$/../Foulassi/.idea/Foulassi.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Kakocase/.idea/Kakocase.iml" filepath="$PROJECT_DIR$/../Kakocase/.idea/Kakocase.iml" />
       <module fileurl="file://$USER_HOME$/PycharmProjects/KakocaseDelivery/.idea/KakocaseDelivery.iml" filepath="$USER_HOME$/PycharmProjects/KakocaseDelivery/.idea/KakocaseDelivery.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../KakocaseRetail/.idea/KakocaseRetail.iml" filepath="$PROJECT_DIR$/../KakocaseRetail/.idea/KakocaseRetail.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Laakam/.idea/Laakam.iml" filepath="$PROJECT_DIR$/../Laakam/.idea/Laakam.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../MyJumboPay/.idea/MyJumboPay.iml" filepath="$PROJECT_DIR$/../MyJumboPay/.idea/MyJumboPay.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Mails/.idea/Mails.iml" filepath="$PROJECT_DIR$/../Mails/.idea/Mails.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../SIARC/.idea/SIARC.iml" filepath="$PROJECT_DIR$/../SIARC/.idea/SIARC.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Shavida/.idea/Shavida.iml" filepath="$PROJECT_DIR$/../Shavida/.idea/Shavida.iml" />
       <module fileurl="file://$PROJECT_DIR$/../ShirtyBox/.idea/ShirtyBox.iml" filepath="$PROJECT_DIR$/../ShirtyBox/.idea/ShirtyBox.iml" />
+      <module fileurl="file://$USER_HOME$/PycharmProjects/TestMongo/.idea/TestMongo.iml" filepath="$USER_HOME$/PycharmProjects/TestMongo/.idea/TestMongo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../WebNode/.idea/WebNode.iml" filepath="$PROJECT_DIR$/../WebNode/.idea/WebNode.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../YouPayer/.idea/YouPayer.iml" filepath="$PROJECT_DIR$/../YouPayer/.idea/YouPayer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../embed-doc/.idea/embed-doc.iml" filepath="$PROJECT_DIR$/../embed-doc/.idea/embed-doc.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/ikwen.iml" filepath="$PROJECT_DIR$/.idea/ikwen.iml" />
       <module fileurl="file://$PROJECT_DIR$/../ikwenAppRetail/.idea/ikwenAppRetail.iml" filepath="$PROJECT_DIR$/../ikwenAppRetail/.idea/ikwenAppRetail.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../ikwenSupport/.idea/ikwenSupport.iml" filepath="$PROJECT_DIR$/../ikwenSupport/.idea/ikwenSupport.iml" />
     </modules>
   </component>
 </project>

@@ -90,6 +90,7 @@ class Register(TemplateView):
             email = form.cleaned_data.get('email', '').strip().lower()
             first_name = form.cleaned_data.get('first_name', '').strip()
             last_name = form.cleaned_data.get('last_name', '').strip()
+            gender = form.cleaned_data.get('gender')
             try:
                 year = request.POST['year']
                 month = request.POST['month']
@@ -129,7 +130,7 @@ class Register(TemplateView):
                         register_url += "?" + query_string
                     return HttpResponseRedirect(register_url)
                 Member.objects.create_user(username=username, phone=phone, email=email, password=password,
-                                           first_name=first_name, last_name=last_name, dob=dob)
+                                           first_name=first_name, last_name=last_name, dob=dob, gender=gender)
                 member = authenticate(username=username, password=password)
                 login(request, member)
                 events = getattr(settings, 'IKWEN_REGISTER_EVENTS', ())
@@ -696,16 +697,15 @@ class Community(HybridListView):
             group = Group.objects.get(name=COMMUNITY)
 
         member.group = group
-        if True:
-            permission_list = list(Permission.objects.filter(codename__startswith='ik_'))
-            for perm in permission_list:
-                if perm.id in obj.permission_fk_list:
-                    perm.is_active = True
+        permission_list = list(Permission.objects.filter(codename__startswith='ik_'))
+        for perm in permission_list:
+            if perm.id in obj.permission_fk_list:
+                perm.is_active = True
 
         member_profile, update = MemberProfile.objects.get_or_create(member=member)
         profiletag_list = list(ProfileTag.objects.filter(is_active=True, is_auto=False))
         for tag in profiletag_list:
-            if tag.name in member_profile.tag_list:
+            if tag.slug in member_profile.tag_list:
                 tag.is_selected = True
         context['member'] = member
         context['permission_list'] = permission_list
@@ -806,12 +806,14 @@ def join(request, *args, **kwargs):
     increment_history_field(service, 'community_history')
     reward_pack_list, coupon_count = reward_member(service, member, Reward.JOIN)
     subject = _("You just joined %s community" % service.project_name)
-    reward = None
+    reward, join_coupon_count, referral_coupon_count = None, 0, 0
     if reward_pack_list:
         template_name = 'rewarding/mails/community_welcome_pack.html'
         coupon_summary = CouponSummary.objects.using(UMBRELLA).get(service=service, member=member)
         aggr = ReferralRewardPack.objects.filter(service=service).aggregate(Sum('count'))
-        reward = {'join_coupon_count': coupon_summary.count, 'referral_coupon_count': aggr['count__sum']}
+        join_coupon_count = coupon_summary.count
+        referral_coupon_count = aggr['count__sum']
+        reward = {'join_coupon_count': join_coupon_count, 'referral_coupon_count': referral_coupon_count}
     else:
         template_name = 'accesscontrol/mails/community_welcome.html'
 
@@ -825,6 +827,15 @@ def join(request, *args, **kwargs):
     Thread(target=lambda m: m.send(), args=(msg, )).start()
     if referrer_id:
         referrer = Member.objects.get(pk=referrer_id)
+        referrer_profile, update = MemberProfile.objects.get_or_create(member=referrer)
+        referrer_tag_list = referrer_profile.tag_list
+        if 'men' in referrer_tag_list:
+            referrer_tag_list.remove('men')
+        if 'women' in referrer_tag_list:
+            referrer_tag_list.remove('women')
+        member_profile, update = MemberProfile.objects.get_or_create(member=member)
+        member_profile.tag_list.extend(referrer_tag_list)
+        member_profile.save()
         referral_pack_list, coupon_count = reward_member(service, referrer, Reward.REFERRAL)
         if referral_pack_list:
             template_name = 'rewarding/mails/referral_reward.html'
@@ -842,7 +853,12 @@ def join(request, *args, **kwargs):
                     'ikwen_page': service.get_profile_url()}
         return HttpResponse(json.dumps(response), content_type='application/json')
     else:
-        next_url = service.get_profile_url() + '?joined=yes'
+        query = '?joined=' + service.project_name_slug
+        if join_coupon_count:
+            query += '&join_coupon_count=%d' % join_coupon_count
+        if referral_coupon_count:
+            query += '&referral_coupon_count=%d' % referral_coupon_count
+        next_url = service.get_profile_url() + query
         notice = _("You were added to our community. Thank you for joining us.")
         messages.success(request, notice)
         return HttpResponseRedirect(next_url)
