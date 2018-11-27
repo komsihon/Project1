@@ -22,6 +22,10 @@ from ikwen.accesscontrol.models import Member
 from ikwen.core.utils import add_database, get_mail_content, send_sms, get_sms_label, set_counters
 from ikwen.revival.models import MemberProfile, CyclicRevival, CyclicTarget, ProfileTag
 
+
+from ikwen.core.log import CRONS_LOGGING
+logging.config.dictConfig(CRONS_LOGGING)
+
 logger = logging.getLogger('ikwen.crons')
 
 MAX_BATCH_SEND = 500
@@ -91,7 +95,7 @@ def notify_profiles():
             extra_context = {
                 'revival': revival,
                 'currency': currency,
-                'media_url': getattr(settings, 'CLUSTER_MEDIA_URL') + service.project_name_slug
+                'media_url': getattr(settings, 'CLUSTER_MEDIA_URL') + service.project_name_slug + '/'
             }
             html_content = get_mail_content(subject, message, template_name='revival/mails/default.html',
                                             service=service, extra_context=extra_context)

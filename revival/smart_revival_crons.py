@@ -22,6 +22,9 @@ from ikwen.accesscontrol.models import Member
 from ikwen.core.utils import add_database, set_counters_many, increment_history_field_many
 from ikwen.revival.models import Revival, Target, ObjectProfile, MemberProfile, ProfileTag
 
+
+from ikwen.core.log import CRONS_LOGGING
+logging.config.dictConfig(CRONS_LOGGING)
 logger = logging.getLogger('ikwen.crons')
 
 MAX_BATCH_SEND = 500
