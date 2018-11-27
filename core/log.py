@@ -37,23 +37,6 @@ LOGGING = {
             'maxBytes': 1000000,
             'backupCount': 4
         },
-        'rewarding_info_log_handler': {
-            'level': 'DEBUG',
-            'filters': ['require_lower_than_error'],
-            'formatter': 'default',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/var/www/rewarding_info.log',
-            'maxBytes': 10000000,
-            'backupCount': 4
-        },
-        'rewarding_error_log_handler': {
-            'level': 'ERROR',
-            'formatter': 'default',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/var/www/rewarding_error.log',
-            'maxBytes': 10000000,
-            'backupCount': 4
-        },
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler'
@@ -65,13 +48,48 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
-        'ikwen.rewarding': {
-            'handlers': ['rewarding_info_log_handler', 'rewarding_error_log_handler', 'mail_admins'],
+    }
+}
+
+CRONS_LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            'format': '%(asctime)-27s %(message)s'
+        }
+    },
+    'filters': {
+        'require_lower_than_error': {
+            '()': 'ikwen.core.log.RequireLowerThanError'
+        }
+    },
+    'handlers': {
+        'crons_info_log_handler': {
             'level': 'DEBUG',
-            'propagate': False,
+            'filters': ['require_lower_than_error'],
+            'formatter': 'default',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'info.log',
+            'maxBytes': 10000000,
+            'backupCount': 4
         },
+        'crons_error_log_handler': {
+            'level': 'ERROR',
+            'formatter': 'default',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'error.log',
+            'maxBytes': 10000000,
+            'backupCount': 4
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler'
+        }
+    },
+    'loggers': {
         'ikwen.crons': {
-            'handlers': ['info_log_handler', 'error_log_handler', 'mail_admins'],
+            'handlers': ['crons_info_log_handler', 'crons_error_log_handler', 'mail_admins'],
             'level': 'DEBUG',
             'propagate': False,
         }
