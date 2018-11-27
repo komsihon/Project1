@@ -32,6 +32,7 @@ SERVICE_EXPIRED = 'service_expired'
 LOAD_EVENT = 'load_event_content'
 PHONE_CONFIRMATION = 'phone_confirmation'
 EMAIL_CONFIRMATION = 'email_confirmation'
+STAFF_ROUTER = 'staff_router'
 
 urlpatterns = patterns(
     '',
@@ -63,7 +64,7 @@ urlpatterns = patterns(
     url(r'^flatPage/$', permission_required('accesscontrol.sudo')(ChangeFlatPage.as_view()), name='change_flatpage'),
     url(r'^flatPage/(?P<page_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(ChangeFlatPage.as_view()), name='change_flatpage'),
     url(r'^list_collaborators$', list_collaborators, name='list_collaborators'),
-    url(r'^staffRouter/$', staff_router, name='staff_router'),
+    url(r'^staffRouter/$', staff_router, name=STAFF_ROUTER),
     url(r'^staffWithoutPermission/$', StaffWithoutPermission.as_view(), name='staff_without_permission'),
 
     url(r'^customers/$', MemberList.as_view(), name='member_list'),

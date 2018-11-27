@@ -5,7 +5,6 @@ from threading import Thread
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.humanize.templatetags.humanize import naturaltime
-from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.db import models, router
 from django.db import transaction
@@ -289,11 +288,23 @@ class Service(models.Model):
     created_on = property(_get_created_on)
 
     def _get_config(self):
+        """
+        Gets the Service configuration based on the model
+        stated in IKWEN_CONFIG_MODEL setting.
+        """
         config_model = get_config_model()
         db = router.db_for_read(self.__class__, instance=self)
         config = config_model.objects.using(db).get(service=self)
         return config
     config = property(_get_config)
+
+    def _get_basic_config(self):
+        """
+        Gets the Config object in UMBRELLA database for this Service
+        """
+        config = Config.objects.using('umbrella').get(service=self)
+        return config
+    basic_config = property(_get_basic_config)
 
     def _get_details(self):
         return "Application: <em>%(app_name)s</em><br>" \

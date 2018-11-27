@@ -38,7 +38,6 @@ import ikwen.conf.settings
 from echo.models import Balance
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT
-from ikwen.accesscontrol.utils import VerifiedEmailTemplateView
 from ikwen.billing.models import Invoice, SupportCode
 from ikwen.billing.utils import get_invoicing_config_instance, get_billing_cycle_days_count, \
     get_billing_cycle_months_count, refresh_currencies_exchange_rates
@@ -866,7 +865,7 @@ def get_location_by_ip(request, *args, **kwargs):
     return HttpResponse(json.dumps(response))
 
 
-class DashboardBase(VerifiedEmailTemplateView):
+class DashboardBase(TemplateView):
 
     transactions_count_title = _("Transactions")
     transactions_avg_revenue_title = _('ARPT <i class="text-muted">Avg. Eearning Per Transaction</i>')
