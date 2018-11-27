@@ -55,10 +55,11 @@ class PhoneVerificationMiddleware(object):
     """
     def process_view(self, request, view_func, view_args, view_kwargs):
         rm = request.resolver_match
-        from ikwen.core.urls import PHONE_CONFIRMATION, LOGOUT, ACCOUNT_SETUP, UPDATE_INFO, UPDATE_PASSWORD
         if rm.namespace == 'ikwen':
+            from ikwen.core.urls import PHONE_CONFIRMATION, LOGOUT,\
+                ACCOUNT_SETUP, UPDATE_INFO, UPDATE_PASSWORD,  STAFF_ROUTER
             if rm.url_name == LOGOUT or rm.url_name == ACCOUNT_SETUP or rm.url_name == UPDATE_INFO or \
-               rm.url_name == UPDATE_PASSWORD or rm.url_name == PHONE_CONFIRMATION:
+               rm.url_name == UPDATE_PASSWORD or rm.url_name == PHONE_CONFIRMATION or rm.url_name == STAFF_ROUTER:
                 return
         if request.user.is_authenticated() and not request.user.phone_verified:
             next_url = reverse('ikwen:phone_confirmation')
@@ -72,11 +73,24 @@ class EmailVerificationMiddleware(object):
     """
     def process_view(self, request, view_func, view_args, view_kwargs):
         rm = request.resolver_match
-        from ikwen.core.urls import EMAIL_CONFIRMATION, LOGOUT, ACCOUNT_SETUP, UPDATE_INFO, UPDATE_PASSWORD
         if rm.namespace == 'ikwen':
+            from ikwen.core.urls import EMAIL_CONFIRMATION, LOGOUT,\
+                ACCOUNT_SETUP, UPDATE_INFO, UPDATE_PASSWORD,  STAFF_ROUTER
             if rm.url_name == LOGOUT or rm.url_name == ACCOUNT_SETUP or rm.url_name == UPDATE_INFO or \
-               rm.url_name == UPDATE_PASSWORD or rm.url_name == EMAIL_CONFIRMATION:
+               rm.url_name == UPDATE_PASSWORD or rm.url_name == EMAIL_CONFIRMATION or rm.url_name == STAFF_ROUTER:
                 return
-        if request.user.is_authenticated() and not request.user.email_verified:
-            next_url = reverse('ikwen:email_confirmation')
-            return HttpResponseRedirect(next_url)
+        if request.user.is_authenticated() and request.user.is_staff and not request.user.email_verified:
+            # First check if email not already verified in umbrella database
+            from ikwen.accesscontrol.models import Member
+            from ikwen.accesscontrol.backends import UMBRELLA
+            email_verified = Member.objects.using(UMBRELLA).get(pk=request.user.id).email_verified
+            if email_verified:
+                # If email already verified in umbrella, report it to local database
+                member = request.user
+                member.email_verified = True
+                member.propagate_changes()
+                return
+
+            next_url = request.GET.get('next', request.META.get('HTTP_REFERER'))
+            confirm_url = reverse('ikwen:email_confirmation') + '?next=' + next_url
+            return HttpResponseRedirect(confirm_url)

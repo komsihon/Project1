@@ -16,14 +16,16 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode, base36_to_int
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 from permission_backend_nonrel.models import UserPermissionList, GroupPermissionList
 
+from ikwen.conf.settings import IKWEN_SERVICE_ID
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.accesscontrol.models import Member
 from ikwen.accesscontrol.backends import UMBRELLA
+from ikwen.core.models import Service
 from ikwen.core.utils import get_service_instance, get_mail_content, send_sms
 
 logger = logging.getLogger('ikwen')
@@ -180,6 +182,13 @@ class VerifiedEmailTemplateView(TemplateView):
     """
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated() and not request.user.email_verified:
+            email_verified = Member.objects.using(UMBRELLA).get(pk=request.user.id).email_verified
+            if email_verified:
+                # If email already verified in umbrella, report it to local database
+                member = request.user
+                member.email_verified = True
+                member.propagate_changes()
+                return super(VerifiedEmailTemplateView, self).get(request, *args, **kwargs)
             next_url = reverse('ikwen:email_confirmation')
             return HttpResponseRedirect(next_url)
         return super(VerifiedEmailTemplateView, self).get(request, *args, **kwargs)
@@ -188,14 +197,14 @@ class VerifiedEmailTemplateView(TemplateView):
 class EmailConfirmationPrompt(TemplateView):
     template_name = 'accesscontrol/email_confirmation.html'
 
-    def send_code(self, request, new_code=False):
+    def send_code(self, request, new_code=False, next_url=None):
         member = request.user
         uid = urlsafe_base64_encode(force_bytes(member.pk))
-        token = default_token_generator.make_tm.oken(member)
+        token = default_token_generator.make_token(member)
 
         do_send = False
         try:
-            uid = request.session['uid']  # Test whether there's a pending code in session
+            current = request.session['uid']  # Test whether there's a pending code in session
             if new_code:
                 request.session['uid'] = uid
                 do_send = True
@@ -207,44 +216,44 @@ class EmailConfirmationPrompt(TemplateView):
             subject = _("Confirm your email and get started !")
             template_name = 'accesscontrol/mails/confirm_email.html'
             confirmation_url = reverse('ikwen:confirm_email', args=(uid, token))
-            html_content = get_mail_content(subject, template_name=template_name,
+            ikwen_service = Service.objects.using(UMBRELLA).get(pk=IKWEN_SERVICE_ID)
+            html_content = get_mail_content(subject, service=ikwen_service, template_name=template_name,
                                             extra_context={'confirmation_url': ikwenize(confirmation_url),
-                                                           'member_name': member.first_name})
+                                                           'member_name': member.first_name, 'next_url': next_url})
             sender = 'ikwen <no-reply@ikwen.com>'
             msg = EmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
             Thread(target=lambda m: m.send(), args=(msg,)).start()
 
     def get(self, request, *args, **kwargs):
-        next_url = request.META.get('REFERER')
-        if not next_url:
-            next_url = getattr(settings, 'LOGIN_REDIRECT_URL', 'home')
-        member = request.user
-        if member.is_authenticated() and member.email_verified:
-            return HttpResponseRedirect(reverse(next_url))
-        if getattr(settings, 'DEBUG', False):
-            self.send_code(request)
-        else:
-            try:
-                self.send_code(request)
-            except:
-                logger.error('Failed to submit email to %s' % member.email, exc_info=True)
-                messages.error(request, _('Could not send code. Please try again later'))
-        return super(EmailConfirmationPrompt, self).get(request, *args, **kwargs)
-
-    def render_to_response(self, context, **response_kwargs):
-        response = {'success': True}
         if self.request.GET.get('action') == 'new_code':
+            response = {'success': True}
+            next_url = request.GET.get('next')
             if getattr(settings, 'DEBUG', False):
-                self.send_code(self.request, new_code=True)
+                self.send_code(self.request, new_code=True, next_url=next_url)
             else:
                 try:
-                    self.send_code(self.request, new_code=True)
+                    self.send_code(self.request, new_code=True, next_url=next_url)
                 except:
                     response = {'error': _('Could not send code. Please try again later')}
-            return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
+            return HttpResponse(json.dumps(response), 'content-type: text/json')
         else:
-            return super(EmailConfirmationPrompt, self).render_to_response(context, **response_kwargs)
+            member = request.user
+            if member.is_authenticated():
+                email_verified = Member.objects.using(UMBRELLA).get(pk=member.id).email_verified
+                if email_verified:
+                    next_url = getattr(settings, 'LOGIN_REDIRECT_URL', 'home')
+                    return HttpResponseRedirect(reverse(next_url))
+            next_url = request.GET.get('next')
+            if getattr(settings, 'DEBUG', False):
+                self.send_code(request, next_url=next_url)
+            else:
+                try:
+                    self.send_code(request, next_url=next_url)
+                except:
+                    logger.error('Failed to submit email to %s' % member.email, exc_info=True)
+                    messages.error(request, _('Could not send code. Please try again later'))
+            return super(EmailConfirmationPrompt, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         member = request.user
@@ -274,12 +283,32 @@ class ConfirmEmail(TemplateView):
             member = None
         return member
 
+    def check_token(self, user, token):
+        """
+        Check that a password reset token is correct for a given user.
+        """
+        # Parse the token
+        try:
+            ts_b36, hash = token.split("-")
+        except ValueError:
+            return False
+
+        try:
+            ts = base36_to_int(ts_b36)
+        except ValueError:
+            return False
+
+        return True
+
     def get(self, request, *args, **kwargs):
         uidb64, token = kwargs['uidb64'], kwargs['token']
         member = self.get_member(uidb64)
-        if member is not None and default_token_generator.check_token(member, token):
-            member.email_verified = True
-            member.save()
         context = super(ConfirmEmail, self).get_context_data(**kwargs)
-        context['email_confirmed'] = True
+        if member is not None and self.check_token(member, token):
+            member.email_verified = True
+            member.propagate_changes()
+            context['email_confirmed'] = True
+            context['next_url'] = request.GET.get('next')
+        else:
+            messages.error(request, _("Could not confirm email"))
         return render(request, self.template_name, context)

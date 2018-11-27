@@ -35,7 +35,7 @@ from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_group
 
 from ikwen.accesscontrol.backends import UMBRELLA
-from ikwen.accesscontrol.utils import send_welcome_email, VerifiedEmailTemplateView
+from ikwen.accesscontrol.utils import send_welcome_email
 from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SMSPasswordResetForm, SetPasswordForm, \
     SetPasswordFormSMSRecovery
 from ikwen.accesscontrol.models import Member, AccessRequest, \
@@ -280,9 +280,6 @@ def staff_router(request, *args, **kwargs):
     as defined in the STAFF_ROUTER setting. Failing to
     """
     member = request.user
-    if member.is_authenticated() and not member.email_verified:
-        next_url = reverse('ikwen:email_confirmation')
-        return HttpResponseRedirect(next_url)
     next_url = reverse('ikwen:staff_without_permission')
     routes = getattr(settings, 'STAFF_ROUTER', None)
     if routes:

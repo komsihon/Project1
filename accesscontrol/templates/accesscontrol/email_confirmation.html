@@ -54,7 +54,8 @@
                 {% endblocktrans %}</p>
                 <div class="row">
                     <div class="col-xs-12 col-sm-8 col-sm-offset-2">
-                        <a href="{% url 'home' %}" class="btn btn-success btn-block">{% trans "Return to home" %}</a>
+                        <a href="{% if next_url %}{{ next_url }}{% else %}{% url 'home' %}{% endif %}"
+                           class="btn btn-success btn-block">{% trans "Continue" %}</a>
                     </div>
                 </div>
             {% else %}
@@ -92,7 +93,7 @@
             $('.get-new-code').click(function() {
                 $(this).hide();
                 $('div#confirmation .spinner').show();
-                $.getJSON('', {action: 'new_code'}, function(resp) {
+                $.getJSON('', {action: 'new_code', next: '{{ request.GET.next }}'}, function(resp) {
                     $('div#confirmation .spinner').hide();
                     if (resp.error) {
                         $('.code-error').text(resp.error).show();
