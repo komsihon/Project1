@@ -303,12 +303,16 @@ class ConfirmEmail(TemplateView):
     def get(self, request, *args, **kwargs):
         uidb64, token = kwargs['uidb64'], kwargs['token']
         member = self.get_member(uidb64)
+        next_url = request.GET.get('next')
+        if member.email_verified:
+            if next_url:
+                return HttpResponseRedirect(next_url)
         context = super(ConfirmEmail, self).get_context_data(**kwargs)
         if member is not None and self.check_token(member, token):
             member.email_verified = True
             member.propagate_changes()
             context['email_confirmed'] = True
-            context['next_url'] = request.GET.get('next')
+            context['next_url'] = next_url
         else:
             messages.error(request, _("Could not confirm email"))
         return render(request, self.template_name, context)

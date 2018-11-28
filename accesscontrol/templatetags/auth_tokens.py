@@ -33,11 +33,10 @@ def ikwenize(uri):
     Returns the equivalent URL on IKWEN website
     Ex: ikwenize('/console') = 'http://www.ikwen.com/console'
     """
-    url = uri
     if not getattr(settings, 'IS_UMBRELLA', False):
-        from ikwen.core.views import IKWEN_BASE_URL
         uri = uri.replace('/ikwen', '')
-        if getattr(settings, 'DEBUG', False):
-            uri = uri.replace(getattr(settings, 'WSGI_SCRIPT_ALIAS'), '')
-        url = IKWEN_BASE_URL + uri
+    if getattr(settings, 'DEBUG', False):
+        uri = uri.replace(getattr(settings, 'WSGI_SCRIPT_ALIAS'), '')
+    from ikwen.core.views import IKWEN_BASE_URL
+    url = IKWEN_BASE_URL + uri
     return url

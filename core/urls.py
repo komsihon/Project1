@@ -32,6 +32,7 @@ SERVICE_EXPIRED = 'service_expired'
 LOAD_EVENT = 'load_event_content'
 PHONE_CONFIRMATION = 'phone_confirmation'
 EMAIL_CONFIRMATION = 'email_confirmation'
+CONFIRM_EMAIL = 'confirm_email'
 STAFF_ROUTER = 'staff_router'
 
 urlpatterns = patterns(
@@ -43,7 +44,7 @@ urlpatterns = patterns(
     url(r'^register/$', Register.as_view(), name=REGISTER),
     url(r'^phoneConfirmation/$', login_required(PhoneConfirmation.as_view()), name=PHONE_CONFIRMATION),
     url(r'^emailConfirmation/$', login_required(EmailConfirmationPrompt.as_view()), name=EMAIL_CONFIRMATION),
-    url(r'^confirmEmail/(?P<uidb64>[-\w]+)/(?P<token>[-\w]+)/$', ConfirmEmail.as_view(), name='confirm_email'),
+    url(r'^confirmEmail/(?P<uidb64>[-\w]+)/(?P<token>[-\w]+)/$', ConfirmEmail.as_view(), name=CONFIRM_EMAIL),
 
     url(r'^accountSetup/$', login_required(AccountSetup.as_view()), name='account_setup'),
     url(r'^update_info$', update_info, name=UPDATE_INFO),
