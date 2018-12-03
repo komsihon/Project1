@@ -76,13 +76,13 @@ class ChangeProfileTag(ChangeObjectBase):
         set_cyclic_revival = request.POST.get('set_cyclic_revival')
         if not set_cyclic_revival:
             try:
-                revival = CyclicRevival.objects.using(UMBRELLA).get(profile_tag_id=obj.id)
+                revival_umbrella = CyclicRevival.objects.using(UMBRELLA).get(profile_tag_id=obj.id)
                 try:
-                    os.unlink(getattr(settings, 'MEDIA_ROOT') + revival.mail_image.name)
+                    os.unlink(getattr(settings, 'MEDIA_ROOT') + revival_umbrella.mail_image.name)
                 except IOError as e:
                     if getattr(settings, 'DEBUG', False):
                         raise e
-                revival.delete()
+                revival_umbrella.delete()
             except CyclicRevival.DoesNotExist:
                 pass
             return
@@ -115,32 +115,33 @@ class ChangeProfileTag(ChangeObjectBase):
             day_of_month_list = [int(i) for i in month_days.split(',')]
             day_of_month_list.sort()
         try:
-            revival = CyclicRevival.objects.using(UMBRELLA).get(profile_tag_id=obj.id)
+            revival_umbrella = CyclicRevival.objects.using(UMBRELLA).get(profile_tag_id=obj.id)
             CyclicRevival.objects.using(UMBRELLA).filter(profile_tag_id=obj.id)\
                 .update(mail_subject=mail_subject, mail_content=mail_content,
                         sms_text=sms_text,  days_cycle=days_cycle, day_of_week_list=day_of_week_list,
                         day_of_month_list=day_of_month_list, hour_of_sending=hour_of_sending, end_on=end_on,
                         items_fk_list=items_fk_list)
         except CyclicRevival.DoesNotExist:
-            service_id = getattr(settings, 'IKWEN_SERVICE_ID')
-            service = Service.objects.using(UMBRELLA).get(pk=service_id)
-            revival = CyclicRevival.objects.using(UMBRELLA)\
-                .create(service=service, profile_tag_id=obj.id, mail_subject=mail_subject, mail_content=mail_content,
-                        sms_text=sms_text,  days_cycle=days_cycle, day_of_week_list=day_of_week_list,
-                        day_of_month_list=day_of_month_list, hour_of_sending=hour_of_sending, end_on=end_on,
-                        items_fk_list=items_fk_list)
+            service = get_service_instance()
+            srvc = Service.objects.using(UMBRELLA).get(pk=service.id)
+            revival = CyclicRevival.objects.create(service=service, profile_tag_id=obj.id)
+            revival_umbrella = CyclicRevival.objects.using(UMBRELLA)\
+                .create(id=revival.id, service=srvc, profile_tag_id=obj.id, mail_subject=mail_subject,
+                        mail_content=mail_content, sms_text=sms_text,  days_cycle=days_cycle,
+                        day_of_week_list=day_of_week_list, day_of_month_list=day_of_month_list,
+                        hour_of_sending=hour_of_sending, end_on=end_on, items_fk_list=items_fk_list)
         if mail_image_url:
             s = get_service_instance()
             media_root = getattr(settings, 'MEDIA_ROOT')
             path = mail_image_url.replace(getattr(settings, 'MEDIA_URL'), '')
             path = path.replace(ikwen_settings.MEDIA_URL, '')
-            if not revival.mail_image.name or path != revival.mail_image.name:
+            if not revival_umbrella.mail_image.name or path != revival_umbrella.mail_image.name:
                 filename = mail_image_url.split('/')[-1]
                 try:
                     with open(media_root + path, 'r') as f:
                         content = File(f)
-                        destination = media_root + revival.UPLOAD_TO + "/" + s.project_name_slug + '_' + filename
-                        revival.mail_image.save(destination, content)
+                        destination = media_root + CyclicRevival.UPLOAD_TO + "/" + s.project_name_slug + '_' + filename
+                        revival_umbrella.mail_image.save(destination, content)
                     os.unlink(media_root + path)
                 except IOError as e:
                     if getattr(settings, 'DEBUG', False):

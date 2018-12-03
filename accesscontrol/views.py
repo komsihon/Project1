@@ -740,7 +740,6 @@ class MemberList(HybridListView):
     search_field = 'tags'
     ordering = ('first_name', '-id', )
     ajax_ordering = ('first_name', '-id', )
-    page_size = 2
 
 
 @permission_required('accesscontrol.sudo')

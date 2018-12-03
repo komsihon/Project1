@@ -10,11 +10,11 @@ from djangotoolbox.fields import ListField
 
 from ikwen.core.fields import MultiImageField
 from ikwen.core.constants import PENDING
-from ikwen.core.models import Model, Service
+from ikwen.core.models import Model, Service, AbstractWatchModel
 from ikwen.accesscontrol.models import Member
 
 
-class ProfileTag(Model):
+class ProfileTag(AbstractWatchModel):
     name = models.CharField(max_length=60, unique=True)
     slug = models.SlugField(unique=True)
     member_count = models.IntegerField(default=0)
@@ -37,20 +37,21 @@ class CyclicRevival(Model):
     UPLOAD_TO = 'revival/cyclic_mail_images'
 
     service = models.ForeignKey(Service, related_name='+')
-    profile_tag_id = models.CharField(max_length=24, db_index=True)
+    profile_tag_id = models.CharField(max_length=24, unique=True)
     hour_of_sending =  models.IntegerField(default=9, db_index=True)
     days_cycle = models.IntegerField(blank=True, null=True,
                                      help_text=_("Run revival every N days"))
     day_of_week_list = ListField()
     day_of_month_list = ListField()
-    mail_subject = models.CharField(max_length=150)
+    mail_subject = models.CharField(max_length=150, blank=True, null=True)
     mail_content = models.TextField(blank=True, null=True)
     mail_image = MultiImageField(upload_to=UPLOAD_TO, max_size=800, blank=True, null=True)
     sms_text = models.TextField(blank=True, null=True)
     next_run_on = models.DateField(default=datetime.now, db_index=True)
-    end_on = models.DateField(db_index=True)
+    end_on = models.DateField(db_index=True, blank=True, null=True)
     items_fk_list = ListField()
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False, db_index=True)
+    is_running = models.BooleanField(default=False, db_index=True)
 
     def set_next_run_date(self):
         if self.days_cycle:
@@ -116,6 +117,7 @@ class Revival(Model):
     mail_renderer = models.CharField(max_length=100)
     run_on = models.DateTimeField(blank=True, null=True, editable=False, db_index=True)
     is_active = models.BooleanField(default=True)
+    is_running = models.BooleanField(default=False, db_index=True)
 
 
 class Target(Model):

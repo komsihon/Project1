@@ -91,7 +91,7 @@ CRONS_LOGGING = {
         'ikwen.crons': {
             'handlers': ['crons_info_log_handler', 'crons_error_log_handler', 'mail_admins'],
             'level': 'DEBUG',
-            'propagate': False,
+            'propagate': True,
         }
     }
 }

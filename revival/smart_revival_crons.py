@@ -1,7 +1,9 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+import sys
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
 
@@ -21,6 +23,7 @@ from ikwen.core.constants import PENDING, COMPLETE, STARTED
 from ikwen.accesscontrol.models import Member
 from ikwen.core.utils import add_database, set_counters_many, increment_history_field_many
 from ikwen.revival.models import Revival, Target, ObjectProfile, MemberProfile, ProfileTag
+from ikwen.rewarding.utils import REFERRAL
 
 
 from ikwen.core.log import CRONS_LOGGING
@@ -37,7 +40,18 @@ def notify_profiles():
     to run with a settings file having 'umbrella' as default database.
     :return:
     """
+    t0 = datetime.now()
+    total_revival, total_mail = 0, 0
     for revival in Revival.objects.select_related('service').exclude(status=COMPLETE, is_active=False):
+        try:
+            refreshed = Revival.objects.get(pk=revival.id)
+            if refreshed.is_running:
+                continue
+            refreshed.is_running = True
+            refreshed.save()
+            total_revival += 1
+        except Revival.DoesNotExist:
+            continue
         service = revival.service
         db = service.database
         add_database(db)
@@ -59,34 +73,43 @@ def notify_profiles():
                 profile_tag_list.append(profile_tag)
             except:
                 continue
+
+        if revival.status != PENDING:
+            continue
+
         set_counters_many(*profile_tag_list)
-        if revival.status == PENDING:
+        revival_local = Revival.objects.using(db).get(pk=revival.id)
+        if debug:
+            member_queryset = Member.objects.using(db).filter(is_superuser=True)
+        else:
             member_queryset = Member.objects.using(db).all()
-            total = member_queryset.count()
-            chunks = total / 500 + 1
-            for i in range(chunks):
-                start = i * 500
-                finish = (i + 1) * 500
-                for member in member_queryset.order_by('date_joined')[start:finish]:
-                    try:
-                        profile = MemberProfile.objects.using(db).get(member=member)
-                    except MemberProfile.DoesNotExist:
-                        continue
-                    match = set(profile.tag_list) & set(object_profile.tag_list)
-                    if len(match) > 0:
-                        if member.email:
-                            Target.objects.get_or_create(revival=revival, member=member)
-            revival.run_on = timezone.now()
-            revival.status = STARTED
-            revival.total = revival.target_set.all().count()
-            revival.save()
+        total = member_queryset.count()
+        chunks = total / 500 + 1
+        for i in range(chunks):
+            start = i * 500
+            finish = (i + 1) * 500
+            for member in member_queryset.order_by('date_joined')[start:finish]:
+                try:
+                    profile = MemberProfile.objects.using(db).get(member=member)
+                except MemberProfile.DoesNotExist:
+                    profile = MemberProfile.objects.using(db).create(member=member, tag_list=[REFERRAL])
+                match = set(profile.tag_list) & set(object_profile.tag_list)
+                if len(match) > 0:
+                    if debug:
+                        print "Profiles matching on %s for member %s" % (match, member)
+                    if member.email:
+                        Target.objects.using(db).get_or_create(revival=revival_local, member=member)
+        revival.run_on = datetime.now()
+        revival.status = STARTED
+        revival.total = revival_local.target_set.all().count()
+        revival.save()
 
         connection = mail.get_connection()
         try:
             connection.open()
         except:
             logger.error(u"Connexion error", exc_info=True)
-        for target in revival.target_set.select_related('member').filter(notified=False)[:MAX_BATCH_SEND]:
+        for target in revival_local.target_set.select_related('member').filter(notified=False)[:MAX_BATCH_SEND]:
             member = target.member
             if member.language:
                 activate(member.language)
@@ -96,29 +119,30 @@ def notify_profiles():
             subject, html_content = mail_renderer(target, obj, revival)
             if not html_content:
                 continue
+            if debug:
+                subject = 'Test - ' + subject
             sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
             msg = EmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
-            with transaction.atomic(using=WALLETS_DB_ALIAS):
-                try:
-                    balance.mail_count -= 1
-                    balance.save()
+            try:
+                with transaction.atomic(using=WALLETS_DB_ALIAS):
+                    if not debug:
+                        balance.mail_count -= 1
+                        balance.save()
                     if msg.send():
                         target.revival_count += 1
                         target.notified = True
                         target.save()
                         increment_history_field_many('smart_revival_history', args=profile_tag_list)
                     else:
-                        transaction.rollback(using=WALLETS_DB_ALIAS)
                         logger.error("Member %s not notified for Content %s" % (member.email, str(obj)),
                                      exc_info=True)
-                except:
-                    transaction.rollback(using=WALLETS_DB_ALIAS)
-                    logger.error("Member %s not notified for Content %s" % (member.email, str(obj)), exc_info=True)
+            except:
+                logger.error("Member %s not notified for Content %s" % (member.email, str(obj)), exc_info=True)
             revival.progress += 1
             revival.save()
         else:
-            if revival.progress >= revival.total:
+            if revival.progress > 0 and revival.progress >= revival.total:
                 revival.status = COMPLETE
                 revival.save()
 
@@ -127,15 +151,29 @@ def notify_profiles():
         except:
             pass
 
+    diff = datetime.now() - t0
+    logger.debug("notify_profiles() run %d revivals2. %d mails sent in %s" % (total_revival, total_mail, diff))
+
 
 def notify_profiles_retro():
     """
     Cron job that revive users by mail. Must be configured
     to run with a settings file having 'umbrella' as default database.
     """
+    t0 = datetime.now()
+    total_revival, total_mail = 0, 0
     for revival in Revival.objects.select_related('service').filter(Q(status=COMPLETE) | Q(status=STARTED),
                                                                     is_active=True):
-        start_on = timezone.now()
+        try:
+            refreshed = Revival.objects.get(pk=revival.id)
+            if refreshed.is_running:
+                continue
+            refreshed.is_running = True
+            refreshed.save()
+            total_revival += 1
+        except Revival.DoesNotExist:
+            continue
+        start_on = datetime.now()
         service = revival.service
         db = revival.service.database
         add_database(db)
@@ -158,8 +196,12 @@ def notify_profiles_retro():
             except:
                 continue
         set_counters_many(*profile_tag_list)
+        revival_local = Revival.objects.using(db).get(pk=revival.id)
         extra = 0
-        member_queryset = Member.objects.using(db).filter(date_joined__gt=revival.run_on)
+        if debug:
+            member_queryset = Member.objects.using(db).filter(is_superuser=True)
+        else:
+            member_queryset = Member.objects.using(db).filter(date_joined__gt=revival.run_on)
         total = member_queryset.count()
         chunks = total / 500 + 1
         for i in range(chunks):
@@ -169,14 +211,14 @@ def notify_profiles_retro():
                 try:
                     profile = MemberProfile.objects.using(db).get(member=member)
                 except MemberProfile.DoesNotExist:
-                    continue
+                    profile = MemberProfile.objects.using(db).create(member=member, tag_list=[REFERRAL])
                 match = set(profile.tag_list) & set(object_profile.tag_list)
                 if len(match) > 0:
                     if member.email:
-                        Target.objects.get_or_create(revival=revival, member=member)
+                        Target.objects.using(db).get_or_create(revival=revival_local, member=member)
                         extra += 1
 
-        revival.run_on = timezone.now()
+        revival.run_on = datetime.now()
         revival.status = STARTED
         revival.total += extra
         revival.save()
@@ -185,7 +227,7 @@ def notify_profiles_retro():
             connection.open()
         except:
             logger.error(u"Connexion error", exc_info=True)
-        for target in revival.target_set.select_related('member').filter(created_on__gte=start_on)[:MAX_BATCH_SEND]:
+        for target in revival_local.target_set.select_related('member').filter(created_on__gte=start_on)[:MAX_BATCH_SEND]:
             member = target.member
             if member.language:
                 activate(member.language)
@@ -195,24 +237,26 @@ def notify_profiles_retro():
             subject, html_content = mail_renderer(target, obj, revival)
             if not html_content:
                 continue
+            if debug:
+                subject = 'Test retro - ' + subject
             sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
             msg = EmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
-            with transaction.atomic(using=WALLETS_DB_ALIAS):
-                try:
-                    balance.mail_count -= 1
-                    balance.save()
+            try:
+                with transaction.atomic(using=WALLETS_DB_ALIAS):
+                    if not debug:
+                        balance.mail_count -= 1
+                        balance.save()
                     if msg.send():
                         target.revival_count += 1
                         target.save()
                         increment_history_field_many('smart_revival_history', args=profile_tag_list)
+                        total_mail += 1
                     else:
-                        transaction.rollback(using=WALLETS_DB_ALIAS)
                         logger.error("Member %s not notified for Content %s" % (member.email, str(obj)),
                                      exc_info=True)
-                except:
-                    transaction.rollback(using=WALLETS_DB_ALIAS)
-                    logger.error("Member %s not notified for Content %s" % (member.email, str(obj)), exc_info=True)
+            except:
+                logger.error("Member %s not notified for Content %s" % (member.email, str(obj)), exc_info=True)
             revival.progress += 1
             revival.save()
         else:
@@ -225,14 +269,28 @@ def notify_profiles_retro():
         except:
             pass
 
+    diff = datetime.now() - t0
+    logger.debug("notify_profiles_retro() run %d revivals. %d mails sent in %s" % (total_revival, total_mail, diff))
+
 
 def rerun_complete_revivals():
     """
     Re-run Revivals with status = COMPLETE to keep users engaged
     """
+    t0 = datetime.now()
+    total_revival, total_mail = 0, 0
     one_week_ago = timezone.now() - timedelta(days=3)
     for revival in Revival.objects.select_related('service').filter(run_on__lte=one_week_ago, status=COMPLETE,
                                                                     is_active=True):
+        try:
+            refreshed = Revival.objects.get(pk=revival.id)
+            if refreshed.is_running:
+                continue
+            refreshed.is_running = True
+            refreshed.save()
+            total_revival += 1
+        except Revival.DoesNotExist:
+            continue
         service = revival.service
         db = revival.service.database
         add_database(db)
@@ -254,17 +312,22 @@ def rerun_complete_revivals():
                 profile_tag_list.append(profile_tag)
             except:
                 continue
+
         set_counters_many(*profile_tag_list)
+        revival_local = Revival.objects.using(db).get(pk=revival.id)
 
         revival.run_on = timezone.now()
+        revival.status = STARTED
         revival.save()
         connection = mail.get_connection()
         try:
             connection.open()
         except:
             logger.error(u"Connexion error", exc_info=True)
-        for target in revival.target_set.select_related('member').filter(revival_count__lt=MAX_AUTO_REWARDS).order_by('updated_on')[:MAX_BATCH_SEND]:
+        for target in revival_local.target_set.select_related('member').filter(revival_count__lt=MAX_AUTO_REWARDS).order_by('updated_on')[:MAX_BATCH_SEND]:
             member = target.member
+            if debug and not member.is_superuser:
+                continue
             if member.language:
                 activate(member.language)
             else:
@@ -273,24 +336,26 @@ def rerun_complete_revivals():
             subject, html_content = mail_renderer(target, obj, revival)
             if not html_content:
                 continue
+            if debug:
+                subject = 'Test remind - ' + subject
             sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
             msg = EmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
-            with transaction.atomic(using=WALLETS_DB_ALIAS):
-                try:
-                    balance.mail_count -= 1
-                    balance.save()
+            try:
+                with transaction.atomic(using=WALLETS_DB_ALIAS):
+                    if not debug:
+                        balance.mail_count -= 1
+                        balance.save()
                     if msg.send():
                         target.revival_count += 1
                         target.save()
+                        total_mail += 1
                         increment_history_field_many('smart_revival_history', args=profile_tag_list)
                     else:
-                        transaction.rollback(using=WALLETS_DB_ALIAS)
                         logger.error("Member %s not notified for Content %s" % (member.email, str(obj)),
                                      exc_info=True)
-                except:
-                    transaction.rollback(using=WALLETS_DB_ALIAS)
-                    logger.error("Member %s not notified for Content %s" % (member.email, str(obj)), exc_info=True)
+            except:
+                logger.error("Member %s not notified for Content %s" % (member.email, str(obj)), exc_info=True)
         else:
             revival.progress += 1
             revival.save()
@@ -300,9 +365,24 @@ def rerun_complete_revivals():
         except:
             pass
 
+    diff = datetime.now() - t0
+    logger.debug("rerun_complete_revivals() run %d revivals. %d mails sent in %s" % (total_revival, total_mail, diff))
+
 
 if __name__ == '__main__':
     try:
+        t0 = datetime.now()
+        try:
+            debug = sys.argv[1] == 'debug'
+        except IndexError:
+            debug = False
+        if debug:
+            print "Smart revivals started in debug mode"
         notify_profiles()
+        notify_profiles_retro()
+        rerun_complete_revivals()
+
+        diff = datetime.now() - t0
+        logger.debug("Smart revivals run in %s" % diff)
     except:
         logger.error("Fatal error occured, cyclic revivals not run", exc_info=True)

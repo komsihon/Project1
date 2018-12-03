@@ -437,8 +437,11 @@ class ChangeObjectBase(TemplateView):
         object_profile.tag_list = tag_list
         object_profile.save()
         if do_revive and revival_mail_renderer:  # This is a newly created object
-            service = Service.objects.using(UMBRELLA).get(pk=get_service_instance().id)
-            Revival.objects.using(UMBRELLA).create(service=service, model_name=model_name, object_id=obj.id,
+            service = get_service_instance()
+            srvce = Service.objects.using(UMBRELLA).get(pk=service.id)
+            revival = Revival.objects.create(service=service, model_name=model_name, object_id=obj.id,
+                                   mail_renderer=revival_mail_renderer)
+            Revival.objects.using(UMBRELLA).create(id=revival.id, service=srvce, model_name=model_name, object_id=obj.id,
                                                    mail_renderer=revival_mail_renderer)
 
     def after_save(self, request, obj, *args, **kwargs):
