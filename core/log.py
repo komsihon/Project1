@@ -70,7 +70,7 @@ CRONS_LOGGING = {
             'filters': ['require_lower_than_error'],
             'formatter': 'default',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'info.log',
+            'filename': '/var/www/crons_info.log',
             'maxBytes': 10000000,
             'backupCount': 4
         },
@@ -78,7 +78,7 @@ CRONS_LOGGING = {
             'level': 'ERROR',
             'formatter': 'default',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'error.log',
+            'filename': '/var/www/crons_error.log',
             'maxBytes': 10000000,
             'backupCount': 4
         },
