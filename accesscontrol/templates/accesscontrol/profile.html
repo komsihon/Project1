@@ -331,7 +331,7 @@
 {% endblock %}
 {% block js %}
     {{ block.super }}
-    {% with joined=request.GET.joined join_coupon_count=request.GET.join_coupon_count referral_coupon_count=request.GET.referral_coupon_count %}
+    {% with do_refer=request.GET.do_refer joined=request.GET.joined join_coupon_count=request.GET.join_coupon_count referral_coupon_count=request.GET.referral_coupon_count %}
     {% include 'accesscontrol/snippets/request_management.html' %}
     <script>
         (function() {
@@ -375,6 +375,13 @@
                     $('.no-reward').show();
                 {% endif %}
                 $('#modal-join-notice').modal('show');
+            {% endif %}
+            {% if do_refer %}
+                {% if user.is_anonymous %}
+                    $('#modal-login-to-refer').modal('show');
+                {% else %}
+                    $('#modal-refer-now').modal('show');
+                {% endif %}
             {% endif %}
             {% if is_company %}
                 $('#modal-join-notice .invite-friends').click(function () {
