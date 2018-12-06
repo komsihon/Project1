@@ -33,7 +33,7 @@
                         <button class="btn btn-primary btn-block btn-sm" type="button"> {% trans "Submit" %} </button>
                     {% else %}
                         <button class="btn btn-primary btn-block btn-sm login-with-ikwen" type="button">
-                            <img height="26" />
+                            <img height="26" src="{% static 'ikwen/img/logo_ikwen_symbol_30x30.png' %}" />
                             {% blocktrans %}Login with <strong>ikwen</strong>{% endblocktrans %}
                         </button>
                     {% endif %}
@@ -72,14 +72,14 @@
                             <input id="last-name" class="form-control input-sm" type="text" name="last_name"/>
                         </div>
                     </div>
-                    <div class="form-group row last-name">
+                    <div class="form-group row gender">
                         <label for="last-name" class="col-sm-5 col-md-4">{% trans "Your are ..." %}</label>
-                        <div class="checkbox">
+                        <div class="checkbox col-sm-3">
                             <label>
                                 <input id="accept-terms" type="radio" name="gender" value="Female" /> {% trans "A woman" %}
                             </label>
                         </div>
-                        <div class="checkbox">
+                        <div class="checkbox col-sm-3" style="margin-top: 10px">
                             <label>
                                 <input id="accept-terms" type="radio" name="gender" value="Male" /> {% trans "A man" %}
                             </label>
@@ -97,23 +97,21 @@
                 </div>
                 <div class="terms">
                     <div class="form-group">
+                        {% url 'ikwen:terms_and_conditions' as ikwen_eula_url %}
                         {% if settings.IS_IKWEN %}
-                            <p id="terms-warning">
-                                {% trans "By creating an account you agree our " %} <a
-                                    href="{% url 'ikwen:terms_and_conditions' %}">{% trans "Terms & Conditions" %}</a>
-                            </p>
+                            <p id="terms-warning">{% blocktrans %}
+                                By creating an account you agree our
+                                <a href="{{ ikwen_eula_url }}">Terms & Conditions</a>
+                            {% endblocktrans %}</p>
                         {% else %}
-                            <p id="terms-warning">
-                            {% url 'ikwen:terms_and_conditions' as ikwen_eula_url %}
-                                {% trans "You are about to create an account managed by" %} <a
-                                    href="{{ settings.IKWEN_BASE_URL }}"
-                                    style="color: #999; text-decoration: underline"><strong>ikwen</strong></a>,
-                                {% trans "on" %} {{ service.project_name }}.
-                                {% trans "By doing so you accept" %} <a
-                                    href="{{ ikwen_eula_url|ikwenize }}"><strong>ikwen</strong> {% trans "Terms & Conditions" %}
-                            </a>, {% trans "as well as" %}
-                                <a href="{{ settings.AGREEMENT_URL }}">{{ service.project_name }} {% trans "Terms & Conditions" %}.</a>
-                            </p>
+                            <p id="terms-warning">{% blocktrans %}
+                                You are about to create an account managed by
+                                <a href="{{ settings.IKWEN_BASE_URL }}" style="color: #999; text-decoration: underline"><strong>ikwen</strong></a>,
+                                on {{ service.project_name }}. By doing so you accept
+                                <a href="{{ ikwen_eula_url|ikwenize }}"><strong>ikwen</strong> Terms & Conditions</a>,
+                                    as well as
+                                <a href="{{ settings.AGREEMENT_URL }}">{{ service.project_name }}Terms & Conditions.</a>
+                            {% endblocktrans %}</p>
                         {% endif %}
                     </div>
                     <div class="form-group row">
