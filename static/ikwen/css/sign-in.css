@@ -28,8 +28,8 @@ label span {font-weight: normal}
 #cancel.btn {float: left; width: 180px}
 #content.register #continue.btn, #content.register #submit.btn {float: right; width: 180px}
 .login-with-ikwen {font-size: 1em;height: 40px;letter-spacing: .5px;padding: 6px 9px 8px;}
-.login-with-ikwen img {content: url(../../ikwen/img/logo_ikwen_symbol_30x30.png); margin: -4px 5px 0 0}
-.login-with-ikwen strong {/* color: #54c5ff; */font-weight: 700;}
+.login-with-ikwen img {margin: -4px 5px 0 0}
+.login-with-ikwen strong {font-weight: 700;}
 .forgotten-pwd {float: left; margin-top: 7px}
 .init .col-sm-5, .init .col-md-4, .init .col-sm-7, .init .col-md-8 {padding: 0; width: auto}
 #auth > .form-group.password > * {float: none; width: auto}
