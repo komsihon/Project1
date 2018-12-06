@@ -133,6 +133,7 @@ def notify_profiles():
                         target.revival_count += 1
                         target.notified = True
                         target.save()
+                        total_mail += 1
                         increment_history_field_many('smart_revival_history', args=profile_tag_list)
                     else:
                         logger.error("Member %s not notified for Content %s" % (member.email, str(obj)),
@@ -142,9 +143,10 @@ def notify_profiles():
             revival.progress += 1
             revival.save()
         else:
+            revival.is_running = False
             if revival.progress > 0 and revival.progress >= revival.total:
                 revival.status = COMPLETE
-                revival.save()
+            revival.save()
 
         try:
             connection.close()
@@ -152,7 +154,7 @@ def notify_profiles():
             pass
 
     diff = datetime.now() - t0
-    logger.debug("notify_profiles() run %d revivals2. %d mails sent in %s" % (total_revival, total_mail, diff))
+    logger.debug("notify_profiles() run %d revivals. %d mails sent in %s" % (total_revival, total_mail, diff))
 
 
 def notify_profiles_retro():
@@ -260,9 +262,10 @@ def notify_profiles_retro():
             revival.progress += 1
             revival.save()
         else:
+            revival.is_running = False
             if revival.progress >= revival.total:
                 revival.status = COMPLETE
-                revival.save()
+            revival.save()
 
         try:
             connection.close()
@@ -357,6 +360,7 @@ def rerun_complete_revivals():
             except:
                 logger.error("Member %s not notified for Content %s" % (member.email, str(obj)), exc_info=True)
         else:
+            revival.is_running = False
             revival.progress += 1
             revival.save()
 

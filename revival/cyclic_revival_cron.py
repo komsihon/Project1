@@ -158,6 +158,8 @@ def notify_profiles():
                                      exc_info=True)
             if balance.mail_count == 0 and balance.sms_count == 0:
                 break
+        revival.is_running = False
+        revival.save()
         try:
             connection.close()
         except:

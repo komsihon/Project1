@@ -32,7 +32,7 @@ def render_suggest_referral_mail(target, obj, revival):
         'referred_project_name': obj.project_name,
         'referred_project_name_slug': obj.project_name_slug
     }
-    html_content = get_mail_content(subject, template_name=template_name,
+    html_content = get_mail_content(subject, service=obj, template_name=template_name,
                                     extra_context=extra_context)
     return subject, html_content
 
