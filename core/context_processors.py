@@ -20,8 +20,7 @@ def project_settings(request):
     console_uri = reverse('ikwen:console')
     if not getattr(settings, 'IS_IKWEN', False):
         console_uri = console_uri.replace('/ikwen', '')
-        if getattr(settings, 'DEBUG', False):
-            console_uri = console_uri.replace(getattr(settings, 'WSGI_SCRIPT_ALIAS'), '')
+        console_uri = console_uri.replace(getattr(settings, 'WSGI_SCRIPT_ALIAS', ''), '')
 
     # DEPRECATED ! agreement_page, legal_mentions_page, about_page defined below is now better
     agreement_url, legal_mentions_url = None, None
