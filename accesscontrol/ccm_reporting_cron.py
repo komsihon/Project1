@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import os
+import sys
 import logging
 from datetime import datetime
+
+sys.path.append("/home/libran/virtualenv/lib/python2.7/site-packages")
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "conf.settings")
 
@@ -47,14 +51,15 @@ def send_ccm_report():
         ccm_watch['last_mail'] = last_mail
 
         subject = _("Community progression report")
-        html_content = get_mail_content(subject, '', template_name='ccm_monitoring/activity_report.html',
+        html_content = get_mail_content(subject, template_name='monitoring/community_progression.html',
                                         extra_context=ccm_watch)
+        cc = [sudo.email for sudo in Member.objects.using(db).filter(is_superuser=True).exclude(pk=member.id)]
         sender = 'ikwen <no-reply@ikwen.com>'
         msg = EmailMessage(subject, html_content, sender, [member.email])
         msg.content_subtype = "html"
+        msg.cc = cc
         msg.send()
-        ccm_mail = CCMMonitoringMail(service=service, subject=subject)
-        ccm_mail.save()
+        CCMMonitoringMail.objects.create(service=service, subject=subject)
 
 
 if __name__ == "__main__":
