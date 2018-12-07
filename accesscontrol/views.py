@@ -791,6 +791,8 @@ def join(request, *args, **kwargs):
     member.is_staff = False
     member.is_superuser = False
     member.is_iao = False
+    member.date_joined = datetime.now()
+    member.last_login = datetime.now()
     member.save(using=db)
     member = Member.objects.using(db).get(pk=member.id)  # Reload from local database to avoid database router error
     obj_list, created = UserPermissionList.objects.using(db).get_or_create(user=member)

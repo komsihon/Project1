@@ -65,6 +65,7 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                 user.is_superuser = False
                 user.is_staff = False
                 user.date_joined = datetime.now()
+                user.last_login = datetime.now()
                 service = get_service_instance()
                 user.add_service(service.id)
                 user.add_group(community.id)
