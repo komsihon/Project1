@@ -5,6 +5,8 @@ import sys
 import logging
 from datetime import datetime, timedelta
 
+sys.path.append("/home/libran/virtualenv/lib/python2.7/site-packages")
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
 
 from django.core import mail
