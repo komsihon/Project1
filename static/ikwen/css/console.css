@@ -139,7 +139,7 @@
 .tile-3-2 {height: 50%; width: 34%}
 .coupon-event {background-size: cover;float: left;height: 240px;margin: 0 0 1em;width: 100%;}
 .coupon-event.count-3 {height: 300px}
-.coupon-tile {background: no-repeat center;background-size: auto;border: 1px solid #fff;float: left;overflow: hidden;}
+.coupon-tile {background: no-repeat center;background-size: cover;border: 1px solid #fff;float: left;overflow: hidden;}
 .coupon-tile .more {background: rgba(0, 0, 0, .6);color: #fff;text-align: center;float: left;}
 .coupon-tile .more .main {font-size: 2em;margin: 2em 0 0;}
 .coupon-tile .more .sub {font-size: .8em}
