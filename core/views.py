@@ -38,7 +38,7 @@ import ikwen.conf.settings
 from echo.models import Balance
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT
-from ikwen.billing.models import Invoice, SupportCode
+from ikwen.billing.models import Invoice, SupportCode, SupportBundle
 from ikwen.billing.utils import get_invoicing_config_instance, get_billing_cycle_days_count, \
     get_billing_cycle_months_count, refresh_currencies_exchange_rates
 from ikwen.cashout.models import CashOutRequest
@@ -577,7 +577,7 @@ class ServiceDetail(TemplateView):
             token = ''.join([random.SystemRandom().choice(string.digits) for _ in range(6)])
             expiry = now + timedelta(days=45)  # Offer 45 days of Phone support for people who don't have it yet
             support_code = SupportCode.objects.using(UMBRELLA)\
-                .create(service=srvce, type=SupportCode.PHONE, token=token, expiry=expiry)
+                .create(service=srvce, type=SupportBundle.PHONE, token=token, expiry=expiry)
         if support_code.expiry < now:
             support_code.expired = True
         echo_balance, update = Balance.objects.using('wallets').get_or_create(service_id=srvce.id)
@@ -715,20 +715,19 @@ class Console(TemplateView):
         context['profile_photo_url'] = member.photo.small_url if member.photo.name else ''
         context['profile_cover_url'] = member.cover_image.url if member.cover_image.name else ''
 
-        now = datetime.now()
         member_services = member.get_services()
-        active_operators = CROperatorProfile.objects.filter(service__in=member_services, expiry__gt=now, is_active=True)
+        active_operators = CROperatorProfile.objects.filter(service__in=member_services, is_active=True)
         active_cr_services = [op.service for op in active_operators]
         suggestion_list = []
         join_service = None
         if join:
             try:
                 join_service = Service.objects.get(project_name_slug=join)
-                CROperatorProfile.objects.get(service=join_service, expiry__gt=now, is_active=True)
+                CROperatorProfile.objects.get(service=join_service, is_active=True)
                 suggestion_list.append(join_service)
             except CROperatorProfile.DoesNotExist:
                 pass
-        suggested_operators = CROperatorProfile.objects.exclude(service__in=member_services).filter(expiry__gt=now, is_active=True)
+        suggested_operators = CROperatorProfile.objects.exclude(service__in=member_services).filter(is_active=True)
         suggestion_list = [op.service for op in suggested_operators.order_by('-id')[:9]]
         if join_service and join_service not in suggestion_list and join_service not in member_services:
             suggestion_list.insert(0, join_service)
