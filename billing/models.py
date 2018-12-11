@@ -287,9 +287,9 @@ class Invoice(AbstractInvoice):
         super(Invoice, self).save(using=using, *args, **kwargs)
 
 
-class SupportCode(Model):
+class SupportBundle(Model):
     """
-    A customer support code
+    A customer support bundle
     """
     EMAIL = 'Email'
     PHONE = 'Phone'
@@ -299,9 +299,22 @@ class SupportCode(Model):
         (PHONE, _("Phone")),
         (ONSITE, _("Onsite")),
     )
+    type = models.CharField(max_length=30, default=EMAIL, choices=TYPE_CHOICES)
+    quantity = models.IntegerField(default=0)
+    duration = models.IntegerField()
+    cost = models.IntegerField()
+
+    def __unicode__(self):
+        return '%s (%d): %d days' % (self.type, self.quantity, self.duration)
+
+
+class SupportCode(Model):
+    """
+    A customer support code
+    """
     service = models.OneToOneField(Service, related_name='+')
     token = models.CharField(max_length=60)
-    type = models.CharField(max_length=30, default=EMAIL, choices=TYPE_CHOICES)
+    type = models.CharField(max_length=30, choices=SupportBundle.TYPE_CHOICES)
     balance = models.IntegerField(default=0)
     expiry = models.DateTimeField(db_index=True)
 

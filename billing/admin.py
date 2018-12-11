@@ -19,7 +19,7 @@ from import_export.admin import ImportExportMixin, ExportMixin
 
 from ikwen.accesscontrol.models import Member, SUDO
 from ikwen.billing.models import Payment, AbstractInvoice, InvoicingConfig, Invoice, NEW_INVOICE_EVENT, \
-    SUBSCRIPTION_EVENT, PaymentMean, MoMoTransaction, CloudBillingPlan, PAYMENT_CONFIRMATION
+    SUBSCRIPTION_EVENT, PaymentMean, MoMoTransaction, CloudBillingPlan, PAYMENT_CONFIRMATION, SupportBundle
 from ikwen.billing.utils import get_payment_confirmation_message, get_invoice_generated_message, \
     get_next_invoice_number, get_subscription_registered_message, get_subscription_model, get_product_model, \
     get_invoicing_config_instance, get_days_count, share_payment_and_set_stats
@@ -492,6 +492,10 @@ class CloudBillingPlanAdmin(admin.ModelAdmin):
         super(CloudBillingPlanAdmin, self).save_model(request, obj, form, change)
 
 
+class SupportBundleAdmin(admin.ModelAdmin):
+    list_display = ('type', 'quantity', 'duration', 'cost')
+
+
 # Override ProductAdmin class if there's another defined in settings
 product_model_admin = getattr(settings, 'BILLING_PRODUCT_MODEL_ADMIN', None)
 if product_model_admin:
@@ -519,4 +523,5 @@ if getattr(settings, 'IS_UMBRELLA', False):
     admin.site.register(PaymentMean, PaymentMeanAdmin)
     admin.site.register(MoMoTransaction, MoMoTransactionAdmin)
     admin.site.register(CloudBillingPlan, CloudBillingPlanAdmin)
+    admin.site.register(SupportBundle, SupportBundleAdmin)
 
