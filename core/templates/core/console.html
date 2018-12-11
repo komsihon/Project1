@@ -239,6 +239,9 @@
                 if (dataSourceEmpty || loadingCards) return;
                 var scrollTop = $(this).scrollTop(),
                     threshold = Math.max($('footer').height(), 60);
+                if (scrollTop > 375) {
+                    if ($(window).width() >= 768) $('.console-menu').addClass('fixed')
+                } else  $('.console-menu').removeClass('fixed');
                 if ($(document).height() - $(this).height() - scrollTop <= threshold) {
                     loadingCards = true;
                     var start = $('div#cards .card').length;
