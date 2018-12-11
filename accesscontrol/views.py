@@ -50,7 +50,7 @@ from ikwen.core.views import HybridListView
 from ikwen.revival.models import ProfileTag, MemberProfile
 from ikwen.revival.utils import set_profile_tag_member_count
 from ikwen.rewarding.models import Coupon, CumulatedCoupon, Reward, CROperatorProfile, CouponSummary, ReferralRewardPack
-from ikwen.rewarding.utils import reward_member
+from ikwen.rewarding.utils import reward_member, get_coupon_summary_list
 
 import logging
 logger = logging.getLogger('ikwen')
@@ -576,6 +576,7 @@ class Profile(TemplateView):
         context['profile_photo_url'] = member.photo.small_url if member.photo.name else ''
         context['profile_cover_url'] = member.cover_image.url if member.cover_image.name else ''
         context['member'] = member
+        context['coupon_summary_list'] = get_coupon_summary_list(member)
         return render(request, self.template_name, context)
 
 
@@ -646,6 +647,7 @@ class CompanyProfile(TemplateView):
             url = getattr(settings, 'PROJECT_URL') + reverse('ikwen:company_profile', args=(project_name_slug, ))
             if request.user.is_authenticated():
                 url += '?referrer=' + request.user.id
+                context['coupon_summary_list'] = get_coupon_summary_list(request.user)
             context['url'] = urlquote(url)
             context['cr_profile'] = cr_profile
             context['coupon_list'] = coupon_list
@@ -833,6 +835,10 @@ def join(request, *args, **kwargs):
             referrer_tag_list.remove('women')
         member_profile, update = MemberProfile.objects.get_or_create(member=member)
         member_profile.tag_list.extend(referrer_tag_list)
+        if member.gender == MALE:
+            member_profile.tag_list.append('men')
+        elif member.gender == FEMALE:
+            member_profile.tag_list.append('women')
         member_profile.save()
         referral_pack_list, coupon_count = reward_member(service, referrer, Reward.REFERRAL)
         if referral_pack_list:

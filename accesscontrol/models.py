@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from threading import Thread
+
 from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractUser, Group
 from django.core.urlresolvers import reverse
@@ -8,6 +10,8 @@ from django.utils.datetime_safe import strftime
 from django.utils.translation import gettext as _, get_language
 from django_mongodb_engine.contrib import RawQueryMixin
 from djangotoolbox.fields import ListField
+
+from ikwen.core.constants import MALE, FEMALE
 from ikwen.core.utils import add_event
 from permission_backend_nonrel.models import UserPermissionList
 
@@ -55,6 +59,16 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         perm_list, created = UserPermissionList.objects.using(UMBRELLA).get_or_create(user=member)
         perm_list.group_fk_list.append(ikwen_community.id)
         perm_list.save(using=UMBRELLA)
+
+        from ikwen.revival.models import MemberProfile
+        from ikwen.revival.utils import set_profile_tag_member_count
+        member_profile, update = MemberProfile.objects.get_or_create(member=member)
+        if member.gender == MALE:
+            member_profile.tag_list.append('men')
+        elif member.gender == FEMALE:
+            member_profile.tag_list.append('women')
+        member_profile.save()
+        Thread(target=set_profile_tag_member_count).start()
 
         if service_id != IKWEN_SERVICE_ID:
             # This block is not added above because member must have
