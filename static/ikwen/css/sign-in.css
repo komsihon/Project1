@@ -48,12 +48,12 @@ label span {font-weight: normal}
 .register.step2 .form-group.password, .register.step2 .form-group.password2,
 .register.step1 .form-group.first-name, .register.step1 .form-group.last-name,
 .register.step2 .form-group.email, .register.step2 .form-group.phone, .dob,
-#cancel.btn, #continue.btn, .register.step1 #submit {display: none}
+.register.step1 .form-group.gender, #cancel.btn, #continue.btn, .register.step1 #submit {display: none}
 .register .create-account, .register.step2 .terms,
 .register.step1 .form-group.password, .register.step1 .form-group.password2,
 .register.step2 .form-group.first-name, .register.step2 .form-group.last-name,
 .register.step1 .form-group.email, .register.step1 .form-group.phone, .register.step2 .dob,
-.register #cancel, .register.step1 #continue, .register.step2 #submit {display: block}
+.register.step2 .form-group.gender, .register #cancel, .register.step1 #continue, .register.step2 #submit {display: block}
 .register .form-group.username {height: auto; margin-bottom: 15px}
 select#month {text-transform: capitalize}
 #terms-warning {font-size: 11px}
