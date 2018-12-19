@@ -804,6 +804,13 @@ def join(request, *args, **kwargs):
     add_event(service, ACCESS_GRANTED_EVENT, member=service.member, object_id=rq.id)
     set_counters(service)
     increment_history_field(service, 'community_history')
+    events = getattr(settings, 'IKWEN_REGISTER_EVENTS', ())
+    for path in events:
+        event = import_by_path(path)
+        try:
+            event(request, *args, **kwargs)
+        except:
+            pass
     reward_pack_list, coupon_count = reward_member(service, member, Reward.JOIN)
     subject = _("You just joined %s community" % service.project_name)
     reward, join_coupon_count, referral_coupon_count = None, 0, 0
