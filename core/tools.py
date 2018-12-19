@@ -62,7 +62,7 @@ def setup_dev_env(app_name, username, database=None, project_name=None,
     FlatPage.objects.create(url=FlatPage.LEGAL_MENTIONS, title=FlatPage.LEGAL_MENTIONS)
     Group.objects.create(name=COMMUNITY)
     sudo_group = Group.objects.create(name=SUDO)
-    UserPermissionList.objects.create(user=m)
+    UserPermissionList.objects.get_or_create(user=m)
     add_user_to_group(m,  sudo_group)
 
     if s.id not in m.collaborates_on_fk_list:

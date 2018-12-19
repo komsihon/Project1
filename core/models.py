@@ -415,7 +415,11 @@ class Service(models.Model):
         from ikwen.core.tools import generate_django_secret_key
 
         secret_key = generate_django_secret_key()
-        allowed_hosts = '"%s", "www.%s"' % (self.domain, self.domain)
+        is_naked_domain = "go.ikwen.com" not in self.url
+        if is_naked_domain:
+            allowed_hosts = '"%s", "www.%s"' % (self.domain, self.domain)
+        else:
+            allowed_hosts = '"go.ikwen.com"'
         media_root = CLUSTER_MEDIA_ROOT + self.project_name_slug + '/'
         media_url = CLUSTER_MEDIA_URL + self.project_name_slug + '/'
         c = {'secret_key': secret_key, 'ikwen_name': self.project_name_slug, 'service': self,
@@ -442,7 +446,11 @@ class Service(models.Model):
         from ikwen.accesscontrol.models import Member
         from ikwen.accesscontrol.backends import UMBRELLA
         media_root = CLUSTER_MEDIA_ROOT + self.project_name_slug + '/'
-        apache_alias = '/etc/apache2/sites-enabled/' + self.domain + '.conf'
+        is_naked_domain = "go.ikwen.com" not in self.url
+        if is_naked_domain:
+            apache_alias = '/etc/apache2/sites-enabled/' + self.domain + '.conf'
+        else:
+            apache_alias = '/etc/apache2/sites-enabled/go_ikwen/' + self.project_name_slug + '.conf'
         if os.path.exists(media_root):
             shutil.rmtree(media_root)
         if os.path.exists(apache_alias):

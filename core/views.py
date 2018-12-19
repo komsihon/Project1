@@ -869,6 +869,8 @@ def get_location_by_ip(request, *args, **kwargs):
 
 class DashboardBase(TemplateView):
 
+    template_name = 'core/dashboard_base.html'
+
     transactions_count_title = _("Transactions")
     transactions_avg_revenue_title = _('ARPT <i class="text-muted">Avg. Eearning Per Transaction</i>')
 
