@@ -27,7 +27,7 @@
                             <div class="tool filter">
                                 <label for="{{ elt.parameter_name }}" class="sr-only">{% trans elt.title %}</label>
                                 <select id="{{ elt.parameter_name }}" style="float: left; width: 120px" class="form-control input-sm {{ elt.parameter_name }} widget" name="{{ elt.parameter_name }}">
-                                    <option value="">{% trans "All" %}</option>
+                                    <option value="">{% trans "All" %} {% trans elt.title %}</option>
                                     {% for choice in elt.choices %}
                                         <option value="{{ choice.0 }}">{{ choice.1 }}</option>
                                     {% endfor %}

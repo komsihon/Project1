@@ -195,7 +195,11 @@
                 params = {start: 0, length: 100, format: 'html_results'};
             $('div#admin-tools .filter select').each(function() {
                 var paramName = $(this).prop('name');
-                params[paramName] = $(this).val();
+                if (paramName) params[paramName] = $(this).val();
+            });
+            $('div#admin-tools .filter input').each(function() {
+                var paramName = $(this).prop('name');
+                if (paramName) params[paramName] = $(this).val();
             });
             params['q'] = $('#context-search').val();
             var query = window.location.search,

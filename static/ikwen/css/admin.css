@@ -68,11 +68,12 @@ div#container.admin {padding-top: 92px;}
 #admin-content.change-form h3:first-of-type {margin-top: 0}
 
 #admin-tools {padding: 0 15px;clear: both;position: fixed;width: 100%;background: #fff;z-index: 11;}
-#admin-tools input, #admin-tools select {border: 1px solid #ddd;font-size: 13px;padding-left: 32px;}
+#admin-tools input, #admin-tools select {border: 1px solid #ddd;font-size: 13px;padding-left: 40px;}
 #admin-tools .btn.action .glyphicon {float: left;margin: 1px 10px 0 0;}
+#admin-tools .btn.filter {padding-left: 30px;}
 #admin-tools-form {float: left}
 #admin-tools-form .glyphicon-search {margin-right: -26px;margin-left: 9px;}
-.filter-trigger > .glyphicon-filter {float: left;margin: 8px -24px 0 12px;}
+.filter-trigger > .glyphicon-filter {float: left;margin: 10px -24px 0 12px;}
 #admin-tools-form .glyphicon-menu-left {display: none}
 
 #page-navigation {margin: 30px 0 0;float: right;}
@@ -162,17 +163,18 @@ footer a {color: #999}
     #selection-control.visible {padding-top: 15px}
     #admin-content > .container-fluid {padding: 0}
     #app-nav .breadcrumb li:not(:last-of-type) {display: none}
-    #admin-tools {margin-top: -20px;border-bottom: 1px solid #eee;height: 40px;padding-top: 10px;}
+    #admin-tools {margin-top: -20px;border-bottom: 1px solid #eee;height: 45px;padding-top: 13px;}
     #admin-tools .glyphicon {float: left;font-size: 18px;color: #888;}
     #admin-tools .btn.action .glyphicon {margin-right: 0}
     #admin-tools .glyphicon-menu-left {margin: 2px -24px 0 6px;}
     #admin-tools .tool {display: none}
     #admin-tools input, #admin-tools select, #admin-tools .btn {border: none;margin-top: -7px; background: none;padding-right: 0;}
+    #admin-tools .btn.filter {padding: 9px 9px 6px 40px;}
     #admin-tools input:focus {outline: none;}
     #admin-tools .btn {color: #888}
     #admin-tools .btn:active, #admin-tools .btn.active {background: none; color: #545454; box-shadow: none}
     #admin-tools-form .glyphicon-search {margin: 2px 0 0}
-    #results {padding: 0}
+    #results {padding-top: 20px}
     .filter-trigger > .glyphicon-filter {float: left;margin: 2px 0 0 10px;}
     .content-tab-list {background: #f8f6f6}
     #admin-tools + .content-tab-list {padding-top: 15px;}
@@ -218,7 +220,7 @@ footer a {color: #999}
     .images-uploader .qq-upload-button {line-height: 190px}
     #admin-tools + #results {margin-top: 35px;}
     .results-filter + #results {margin-top: 35px;}
-    .results-filter {padding-top: 30px;}
+    .results-filter {padding-top: 35px;}
     #admin-content .member .info, #admin-content .ik-li .info {max-width: 400px;}
     #admin-content .has-edge-panel-right .member .info, #admin-content .has-edge-panel-right .ik-li .info {max-width: 225px;}
     .pagination {margin-left: 15px}
@@ -240,7 +242,7 @@ footer a {color: #999}
     #admin-tools {padding-left: 0; padding-right: 285px}
     #admin-tools .btn {margin-right: 0}
     #admin-content.has-edge-panel-right #admin-tools {padding-right: 540px;}
-    .results-filter {padding: 30px 10px 5px 0;}
+    .results-filter {padding: 35px 10px 5px 0;}
     #admin-content .member .info, #admin-content .ik-li .info {max-width: 600px;}
     #admin-content .has-edge-panel-right .member .info, #admin-content .has-edge-panel-right .ik-li .info {max-width: 400px;}
     .pagination {margin-left: 0}
