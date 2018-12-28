@@ -226,7 +226,7 @@ class HybridListView(ListView):
                         'choices': filter.lookups()
                     })
             else:
-                item_values = set([obj.__dict__[item] for obj in self.get_queryset()])
+                item_values = set([obj.__getattribute__[item] for obj in self.get_queryset()])
                 item_values = list(sorted(item_values))
                 options.append({
                     'title': item.capitalize(),
