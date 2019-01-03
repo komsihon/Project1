@@ -54,12 +54,16 @@
                 </button>
                 <ul class="dropdown-menu">
                     {% for group in group_list %}
-                        <li role="presentation" class="group {{ group.name }}" data-id="{{ group.id }}" data-name="{{ group.name }}">
-                            <a href="javascript:;">{{ group.name }}</a></li>
+                        <li role="presentation" class="group {{ group.name }}" data-id="{{ group.id }}"
+                            data-member-id="{{ member.id }}" data-name="{{ group.name }}">
+                            <a href="javascript:;">{{ group.name }}</a>
+                        </li>
                     {% endfor %}
                     {% if user.is_bao %}
-                        <li role="presentation" class="group {{ sudo_group.name }}" data-id="{{ sudo_group.id }}" data-name="{{ sudo_group.name }}">
-                            <a href="javascript:;">{{ sudo_group.name }}</a></li>
+                        <li role="presentation" class="group {{ sudo_group.name }}" data-id="{{ sudo_group.id }}"
+                            data-member-id="{{ member.id }}" data-name="{{ sudo_group.name }}">
+                            <a href="javascript:;">{{ sudo_group.name }}</a>
+                        </li>
                     {% endif %}
                 </ul>
             </div>
