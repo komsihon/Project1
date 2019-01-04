@@ -3,7 +3,6 @@ import calendar
 from datetime import datetime, timedelta
 from random import random
 
-from django.db.models import get_model
 from django.utils.translation import gettext_lazy as _
 from django.db import models
 from djangotoolbox.fields import ListField
@@ -115,6 +114,7 @@ class Revival(Model):
     progress = models.IntegerField(default=0)
     total = models.IntegerField(default=0)
     mail_renderer = models.CharField(max_length=100)
+    get_kwargs = models.CharField(max_length=100, blank=True, null=True)
     run_on = models.DateTimeField(blank=True, null=True, editable=False, db_index=True)
     is_active = models.BooleanField(default=True)
     is_running = models.BooleanField(default=False, db_index=True)

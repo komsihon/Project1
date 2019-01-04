@@ -33,7 +33,7 @@ logging.config.dictConfig(CRONS_LOGGING)
 logger = logging.getLogger('ikwen.crons')
 
 MAX_BATCH_SEND = 500
-MAX_AUTO_REWARDS = 5  # Max number of mails sent for the same Revival topic
+MAX_AUTO_REWARDS = 4  # Max number of mails sent for the same Revival topic
 
 
 def notify_profiles():
@@ -111,6 +111,13 @@ def notify_profiles():
             connection.open()
         except:
             logger.error(u"Connexion error", exc_info=True)
+
+        kwargs = {}
+        if revival.get_kwargs:
+            get_kwargs = import_by_path(revival.get_kwargs)
+            kwargs = get_kwargs(revival)
+
+        logger.debug("Running notify_profiles() %s for %s" % (revival.mail_renderer, revival.service))
         for target in revival_local.target_set.select_related('member').filter(notified=False)[:MAX_BATCH_SEND]:
             member = target.member
             if member.language:
@@ -118,7 +125,7 @@ def notify_profiles():
             else:
                 activate('en')
             mail_renderer = import_by_path(revival.mail_renderer)
-            subject, html_content = mail_renderer(target, obj, revival)
+            sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
             if not html_content:
                 continue
             if debug:
@@ -231,6 +238,13 @@ def notify_profiles_retro():
             connection.open()
         except:
             logger.error(u"Connexion error", exc_info=True)
+
+        kwargs = {}
+        if revival.get_kwargs:
+            get_kwargs = import_by_path(revival.get_kwargs)
+            kwargs = get_kwargs(revival)
+
+        logger.debug("Running notify_profiles_retro() %s for %s" % (revival.mail_renderer, revival.service))
         for target in revival_local.target_set.select_related('member').filter(created_on__gte=start_on)[:MAX_BATCH_SEND]:
             member = target.member
             if member.language:
@@ -238,7 +252,7 @@ def notify_profiles_retro():
             else:
                 activate('en')
             mail_renderer = import_by_path(revival.mail_renderer)
-            subject, html_content = mail_renderer(target, obj, revival)
+            sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
             if not html_content:
                 continue
             if debug:
@@ -329,6 +343,13 @@ def rerun_complete_revivals():
             connection.open()
         except:
             logger.error(u"Connexion error", exc_info=True)
+
+        kwargs = {}
+        if revival.get_kwargs:
+            get_kwargs = import_by_path(revival.get_kwargs)
+            kwargs = get_kwargs(revival)
+
+        logger.debug("Running rerun_complete_revivals() %s for %s" % (revival.mail_renderer, revival.service))
         for target in revival_local.target_set.select_related('member').filter(revival_count__lt=MAX_AUTO_REWARDS).order_by('updated_on')[:MAX_BATCH_SEND]:
             member = target.member
             if debug and not member.is_superuser:
@@ -338,12 +359,11 @@ def rerun_complete_revivals():
             else:
                 activate('en')
             mail_renderer = import_by_path(revival.mail_renderer)
-            subject, html_content = mail_renderer(target, obj, revival)
+            sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
             if not html_content:
                 continue
             if debug:
                 subject = 'Test remind - ' + subject
-            sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
             msg = EmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
             try:
