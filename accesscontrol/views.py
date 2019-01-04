@@ -47,7 +47,7 @@ from ikwen.core.utils import get_service_instance, get_mail_content, add_databas
     increment_history_field
 from ikwen.core.utils import send_sms
 from ikwen.core.views import HybridListView
-from ikwen.revival.models import ProfileTag, MemberProfile, Revival
+from ikwen.revival.models import ProfileTag, MemberProfile, Revival, ObjectProfile
 from ikwen.revival.utils import set_profile_tag_member_count
 from ikwen.rewarding.models import Coupon, CumulatedCoupon, Reward, CROperatorProfile, CouponSummary, ReferralRewardPack
 from ikwen.rewarding.utils import reward_member, get_coupon_summary_list, JOIN
@@ -806,6 +806,11 @@ class Community(HybridListView):
         Revival.objects.using(UMBRELLA).get_or_create(service=service, model_name='core.Service', object_id=service.id,
                                                       mail_renderer='ikwen.revival.utils.render_suggest_create_account_mail',
                                                       get_kwargs='ikwen.rewarding.utils.get_join_reward_pack_list')
+        tag = JOIN
+        ProfileTag.objects.get_or_create(name=tag, slug=tag, is_auto=True)
+        object_profile, update = ObjectProfile.objects.get_or_create(model_name='core.Service', object_id=service.id)
+        object_profile.tag_list.append(tag)
+        object_profile.save()
 
         Thread(target=set_profile_tag_member_count).start()
         response = {'success': True, 'member': member.to_dict()}
