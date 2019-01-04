@@ -29,6 +29,7 @@ class MemberForm(forms.Form):
     email = forms.EmailField(required=False)
     first_name = forms.CharField(max_length=60, required=name_required)
     last_name = forms.CharField(max_length=60, required=name_required)
+    gender = forms.CharField(max_length=15, required=False)
 
 
 class PasswordResetForm(forms.Form):

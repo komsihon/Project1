@@ -21,8 +21,11 @@
         #profile-tag-list li input[type=checkbox] {float: left; margin: 2px 6px 0 0}
         #profile-tag-list li span {font-weight: 400}
         #group-update h5 em {color: #888}
+        li.member.ghost .full_name {font-style: italic}
+        #admin-tools .import {margin-right: 15px}
         @media (min-width: 768px) {
             #groups {clear: both; margin-top: 15px}
+            .form-group.new-contact-profile {margin-bottom: 50px}
         }
     </style>
 {% endblock %}
@@ -48,14 +51,24 @@
                         <input id="context-search" type="text" class="form-input input-sm tool search" placeholder="{% trans "Search" %}"/>
                     </div>
                 </form>
-                <div id="page-navigation" class="text-muted" data-page-index="1" data-page-size="{{ page_size }}">
-                    {% if total_objects > page_size %}
-                        <div style="padding-top: 5px;"><strong class="start">1</strong> - <strong class="finish">{{ page_size }}</strong> {% trans "of" %} <strong class="total">{{ total_objects }}</strong></div>
-                        <div style="margin-left: 10px"><i class="finished back"> < </i><i class="next"> > </i></div>
-                    {% else %}
-                        <div>{{ total_objects }}/{{ total_objects }}</div>
-                    {% endif %}
-                </div>
+{#                <a href="javascript:;" class="btn btn-sm btn-success cta add pull-right action"#}
+{#                        title="{% trans "Import contacts from Spreasheet" %}">#}
+{#                    <i class="glyphicon glyphicon-list-alt"></i>#}
+{#                    <span class="hidden-xs">{% trans "Import" %}</span>#}
+{#                </a>#}
+                <a href="javascript:;" class="btn btn-sm btn-success cta import pull-right action"
+                        data-toggle="modal" data-target="#modal-add-contact" title="{% trans "Add new contact" %}">
+                    <i class="glyphicon glyphicon-plus"></i>
+                    <span class="hidden-xs">{% trans "Add" %}</span>
+                </a>
+{#                <div id="page-navigation" class="text-muted" data-page-index="1" data-page-size="{{ page_size }}">#}
+{#                    {% if total_objects > page_size %}#}
+{#                        <div style="padding-top: 5px;"><strong class="start">1</strong> - <strong class="finish">{{ page_size }}</strong> {% trans "of" %} <strong class="total">{{ total_objects }}</strong></div>#}
+{#                        <div style="margin-left: 10px"><i class="finished back"> < </i><i class="next"> > </i></div>#}
+{#                    {% else %}#}
+{#                        <div>{{ total_objects }}/{{ total_objects }}</div>#}
+{#                    {% endif %}#}
+{#                </div>#}
                 <div class="clearfix"></div>
             </div>
             {# END ADMIN TOOLS #}
@@ -85,7 +98,8 @@
                     <ul class="people object-list">
                     {% for obj in nonrel_perm_list %}
                         {% with user=obj.user %}
-                        <li id="{{ user.id }}" class="member {{ user.get_status }}" data-id="{{ user.id }}" data-status="{{ user.get_status }}"
+                        <li id="{{ user.id }}" class="member {{ user.get_status }}{% if user.is_ghost %} ghost{% endif %}"
+                            data-id="{{ user.id }}" data-status="{{ user.get_status }}"
                             data-permissions="{% for perm in obj.permission_fk_list %},{{ perm }}{% endfor %}">
                             {% url 'ikwen:profile' user.id as member_url %}
                         {% if user.photo and user.photo.name %}
@@ -164,6 +178,63 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="modal-add-contact" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-info">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{% trans "Add contact to CCM" %}</h4>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="return false">
+                        <div class="form-group">
+                            <label for="new-contact-name">{% trans "Name" %}</label>
+                            <input id="new-contact-name" type="text" class="form-control input-sm" />
+                        </div>
+                        <div class="form-group">
+                            <label for="new-contact-gender">{% trans "Gender" %}</label>
+                            <select id="new-contact-gender" class="form-control input-sm">
+                                <option value=""> ------ </option>
+                                <option value="Male">{% trans "Male" %}</option>
+                                <option value="Female">{% trans "Female" %}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-contact-email">{% trans "Email" %}</label>
+                            <input id="new-contact-email" type="email" class="form-control input-sm" />
+                        </div>
+                        <div class="form-group">
+                            <label for="new-contact-phone">{% trans "Phone" %}</label>
+                            <input id="new-contact-phone" type="text" class="form-control input-sm" />
+                        </div>
+                        <div class="form-group" id="new-contact-profiles">
+                            <label for="new-contact-profiles">{% trans "Profiles" %}</label>
+                            <div class="row">
+                            {% for profile in profiletag_list %}
+                                <div class="subject checkbox tile col-sm-4 col-md-3">
+                                    <label for="squaredThree">
+                                         <input type="checkbox" value="{{ profile.id }}"><strong>{{ profile.name }}</strong>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                            </div>
+                        </div>
+                    </form>
+                    <div class="actions row">
+                        <div class="col-xs-12 col-sm-4 pull-right">
+                            <button class="btn btn-sm btn-success btn-block add-contact"
+                                    data-dismiss="modal" aria-label="Close">{% trans "OK" %}</button>
+                        </div>
+                        <div class="col-xs-12 col-sm-4 pull-right">
+                            <button class="btn btn-sm btn-default btn-block"
+                                    data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block js %}
@@ -184,7 +255,7 @@
                 }
                 $('div#object-detail .empty').show();
                 $('div#object-detail .actions').hide();
-                if (groupId == 'results') return;
+                if (groupId === 'results') return;
                 $('body').css('cursor', 'wait');
                 $.getJSON('{% url 'ikwen:community' %}',
                         {group_name: groupName, start: 0, length: 100, format: 'json'}, function(data) {
@@ -205,6 +276,7 @@
                 $tpl.find('.about').text(member.phone + ', ' + member.email);
                 $tpl.find('a').attr('href', member.url);
                 $tpl.find('.photo').css('background-image', 'url(' + member.photo + ')');
+                if (member.is_ghost) $tpl.addClass('ghost');
                 return $tpl;
             }
             $('body').on('click', 'li.member', function() {
@@ -270,6 +342,33 @@
                             $('#permissions, #group-update').hide();
                         }
                         ikwen.showFloatingNotice("{% trans 'Permissions successfully updated' %}", '', 6)
+                    }
+                });
+            }).on('click', '#admin-tools .add', function() {
+                $('#modal-add-contact input, #modal-add-contact select').val('');
+                $('div#new-contact-profiles input[type=checkbox]').prop('checked', false);
+            }).on('click', '.add-contact', function() {
+                var name = $('#new-contact-name').val(),
+                    gender = $('#new-contact-gender').val(),
+                    email = $('#new-contact-email').val(),
+                    phone = $('#new-contact-phone').val(),
+                    tagIds = [];
+                $('div#new-contact-profiles input:checked').each(function() {
+                    tagIds.push($(this).val())
+                });
+                var params = {action: 'add_ghost_member', name: name, gender: gender,
+                    email: email, phone: phone, tag_ids: tagIds.join(',')};
+                $.getJSON('', params, function(data) {
+                    if (data.error) {
+                        ikwen.showFloatingNotice(data.error, '', 6)
+                    }
+                    if (data.success) {
+                        $('.tab-pane').removeClass('active').hide();
+                        $('.tab-pane:first').addClass('active').show();
+                        var $member = $('.member.tpl').clone().removeClass('tpl');
+                        $member = applyMemberTemplate($member, data.member);
+                        $member.prependTo('.tab-pane:first .people').show();
+                        ikwen.showFloatingNotice("{% trans "Member added" %}", '', 6)
                     }
                 });
             });

@@ -24,6 +24,7 @@ from ikwen.accesscontrol.tests_auth import wipe_test_data
 from ikwen.accesscontrol.models import Member, COMMUNITY
 from ikwen.core.models import Service, ConsoleEventType, ConsoleEvent
 from ikwen.revival.models import MemberProfile
+from ikwen.rewarding.utils import REFERRAL, JOIN
 
 
 class IkwenAccessControlTestCase(unittest.TestCase):
@@ -266,3 +267,53 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         member = Member.objects.get(username='member2')
         self.assertTrue(member.email_verified)
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
+    def test_Community_add_ghost_member_with_phone_only(self):
+        """
+        Ghost member are those created manually from the admin.
+        Can be create using phone only.
+        """
+        self.client.login(username='member2', password='admin')
+        origin = reverse('ikwen:community')
+        response = self.client.get(origin, {'action': 'add_ghost_member', 'name': 'Kom Ngnieng',
+                                            'phone': '237666000006', 'gender': 'Female'})
+        json_response = json.loads(response.content)
+        self.assertTrue(json_response['success'])
+        ghost = Member.objects.get(username='666000006', phone='666000006', is_ghost=True)
+        ghost_profile = MemberProfile.objects.get(member=ghost)
+        self.assertEqual(set(ghost_profile.tag_list), {JOIN, 'women'})
+        self.assertEqual(ghost.first_name, "Kom")
+        self.assertEqual(ghost.last_name, "Ngnieng")
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
+    def test_Community_add_ghost_member_with_email_only(self):
+        """
+        Ghost member are those created manually from the admin.
+        Can be create using email only.
+        """
+        self.client.login(username='member2', password='admin')
+        origin = reverse('ikwen:community')
+        response = self.client.get(origin, {'action': 'add_ghost_member', 'name': 'Kom Ngnieng',
+                                            'email': 'ngnieng@ikwen.com', 'gender': 'Female'})
+        json_response = json.loads(response.content)
+        self.assertTrue(json_response['success'])
+        ghost = Member.objects.get(username='ngnieng@ikwen.com', email='ngnieng@ikwen.com', is_ghost=True)
+        ghost_profile = MemberProfile.objects.get(member=ghost)
+        self.assertEqual(set(ghost_profile.tag_list), {JOIN, 'women'})
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
+    def test_Community_add_ghost_member_with_email_and_phone(self):
+        """
+        Ghost member are those created manually from the admin.
+        Adding should be OK
+        """
+        self.client.login(username='member2', password='admin')
+        origin = reverse('ikwen:community')
+        response = self.client.get(origin, {'action': 'add_ghost_member', 'name': 'Kom Ngnieng',
+                                            'email': 'ngnieng@ikwen.com', 'phone': '237666000006', 'gender': 'Female'})
+        json_response = json.loads(response.content)
+        self.assertTrue(json_response['success'])
+        ghost = Member.objects.get(username='ngnieng@ikwen.com', phone='666000006', is_ghost=True)
+        ghost_profile = MemberProfile.objects.get(member=ghost)
+        self.assertEqual(set(ghost_profile.tag_list), {JOIN, 'women'})

@@ -35,11 +35,11 @@ from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_group
 
 from ikwen.accesscontrol.backends import UMBRELLA
-from ikwen.accesscontrol.utils import send_welcome_email
+from ikwen.accesscontrol.utils import send_welcome_email, shift_ghost_member, import_ghost_profile_to_member
 from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SMSPasswordResetForm, SetPasswordForm, \
     SetPasswordFormSMSRecovery
 from ikwen.accesscontrol.models import Member, AccessRequest, \
-    SUDO, ACCESS_GRANTED_EVENT, COMMUNITY, WELCOME_EVENT
+    SUDO, ACCESS_GRANTED_EVENT, COMMUNITY, WELCOME_EVENT, DEFAULT_GHOST_PWD
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.constants import MALE, FEMALE
 from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
@@ -47,10 +47,10 @@ from ikwen.core.utils import get_service_instance, get_mail_content, add_databas
     increment_history_field
 from ikwen.core.utils import send_sms
 from ikwen.core.views import HybridListView
-from ikwen.revival.models import ProfileTag, MemberProfile
+from ikwen.revival.models import ProfileTag, MemberProfile, Revival
 from ikwen.revival.utils import set_profile_tag_member_count
 from ikwen.rewarding.models import Coupon, CumulatedCoupon, Reward, CROperatorProfile, CouponSummary, ReferralRewardPack
-from ikwen.rewarding.utils import reward_member, get_coupon_summary_list
+from ikwen.rewarding.utils import reward_member, get_coupon_summary_list, JOIN
 
 import logging
 logger = logging.getLogger('ikwen')
@@ -106,11 +106,15 @@ class Register(TemplateView):
             except ValidationError:
                 pass
             try:
-                member = Member.objects.get(username=username)
+                member = Member.objects.using(UMBRELLA).get(username=username)
+                if member.is_ghost:
+                    raise Member.DoesNotExist()
             except Member.DoesNotExist:
                 if phone:
                     try:
-                        member = Member.objects.get(phone=phone)
+                        member = Member.objects.using(UMBRELLA).get(phone=phone)
+                        if member.is_ghost:
+                            raise Member.DoesNotExist()
                     except Member.DoesNotExist:
                         pass
                     else:
@@ -165,6 +169,8 @@ class Register(TemplateView):
                             next_url = reverse(next_url_view)
                         else:
                             next_url = ikwenize(reverse('ikwen:console'))
+
+                Thread(target=set_profile_tag_member_count).start()
                 return HttpResponseRedirect(next_url)
             else:
                 msg = _("You already have an account on ikwen with this username. It was created on %s. "
@@ -255,20 +261,24 @@ class SignInMinimal(SignIn):
         if request.user.is_authenticated():
             super(SignInMinimal, self).get(request, *args, **kwargs)
         username = request.GET.get('username')
+        response = {'existing': False}
         if username:
             try:
-                Member.objects.using(UMBRELLA).get(username__iexact=username)
-                response = {'existing': True}
+                member = Member.objects.using(UMBRELLA).get(username__iexact=username)
+                if not member.is_ghost:
+                    response = {'existing': True}
             except Member.DoesNotExist:
                 try:
-                    Member.objects.using(UMBRELLA).filter(email__iexact=username)[0]
-                    response = {'existing': True}
+                    member = Member.objects.using(UMBRELLA).filter(email__iexact=username)[0]
+                    if not member.is_ghost:
+                        response = {'existing': True}
                 except IndexError:
                     try:
-                        Member.objects.using(UMBRELLA).get(phone=username)
-                        response = {'existing': True}
+                        member = Member.objects.using(UMBRELLA).get(phone=username)
+                        if not member.is_ghost:
+                            response = {'existing': True}
                     except Member.DoesNotExist:
-                        response = {'existing': False}
+                        pass
             return HttpResponse(json.dumps(response), 'content-type: text/json')
         return super(SignInMinimal, self).get(request, *args, **kwargs)
 
@@ -503,6 +513,8 @@ def update_info(request, *args, **kwargs):
             return HttpResponse(json.dumps(response), content_type='application/json')
         except Member.DoesNotExist:
             member.email = email
+            if member.email != email:
+                member.email_verified = False
     if phone:
         try:
             Member.objects.get(phone=phone)
@@ -510,6 +522,8 @@ def update_info(request, *args, **kwargs):
             return HttpResponse(json.dumps(response), content_type='application/json')
         except Member.DoesNotExist:
             member.phone = phone
+            if member.phone != phone:
+                member.phone_verified = False
     if name:
         name_tokens = name.split(' ')
         first_name = name_tokens[0]
@@ -676,6 +690,7 @@ class Community(HybridListView):
         group_list.extend(list(Group.objects.exclude(name__in=[COMMUNITY, SUDO]).order_by('name')))
         context['group_list'] = group_list
         context['sudo_group'] = Group.objects.get(name=SUDO)
+        context['profiletag_list'] = ProfileTag.objects.exclude(slug__in=['men', 'women']).filter(is_active=True, is_auto=False)
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -684,6 +699,8 @@ class Community(HybridListView):
             return self.load_member_detail(context)
         elif action == 'set_member_profiles':
             return self.set_member_profiles(context)
+        elif action == 'add_ghost_member':
+            return self.add_ghost_member()
         return super(Community, self).render_to_response(context, **response_kwargs)
 
     def load_member_detail(self, context):
@@ -734,6 +751,65 @@ class Community(HybridListView):
         member_profile.save()
         Thread(target=set_profile_tag_member_count).start()
         return HttpResponse(json.dumps({'success': True}), content_type='application/json')
+
+    def add_ghost_member(self, *args, **kwargs):
+        name = self.request.GET.get('name', '')
+        gender = self.request.GET.get('gender', '')
+        email = self.request.GET.get('email', '')
+        phone = self.request.GET.get('phone', '')
+        tag_ids = self.request.GET.get('tag_ids')
+        if email:
+            try:
+                Member.objects.filter(email=email)[0]
+                response = {'error': _("This email already exists")}
+                HttpResponse(json.dumps(response), content_type='application/json')
+            except:
+                pass
+        if phone:
+            phone = slugify(phone).replace('-', '')
+            if phone.startswith('237') and len(phone) == 12:
+                phone = phone[3:]
+            try:
+                Member.objects.filter(phone=phone)[0]
+                response = {'error': _("This phone already exists")}
+                HttpResponse(json.dumps(response), content_type='application/json')
+            except:
+                pass
+            try:
+                Member.objects.filter(phone='237' + phone)[0]
+                response = {'error': _("This phone already exists")}
+                HttpResponse(json.dumps(response), content_type='application/json')
+            except:
+                pass
+
+        tag_id_list = []
+        if tag_ids:
+            tag_id_list = tag_ids.split(',')
+        first_name, last_name = '', ''
+        if name:
+            tk = name.split(' ')
+            first_name = tk[0]
+            if len(tk) >= 2:
+                last_name = ' '.join(tk[1:])
+
+        username = email if email else phone
+        member = Member.objects.create_user(username, DEFAULT_GHOST_PWD, first_name=first_name, last_name=last_name,
+                                            email=email, phone=phone, gender=gender, is_ghost=True)
+        tag_list = [JOIN]
+        for tag in ProfileTag.objects.filter(pk__in=tag_id_list):
+            tag_list.append(tag.slug)
+        member_profile = MemberProfile.objects.get(member=member)
+        member_profile.tag_list.extend(tag_list)
+        member_profile.save()
+
+        service = Service.objects.using(UMBRELLA).get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
+        Revival.objects.using(UMBRELLA).get_or_create(service=service, model_name='core.Service', object_id=service.id,
+                                                      mail_renderer='ikwen.revival.utils.render_suggest_create_account_mail',
+                                                      get_kwargs='ikwen.rewarding.utils.get_join_reward_pack_list')
+
+        Thread(target=set_profile_tag_member_count).start()
+        response = {'success': True, 'member': member.to_dict()}
+        return HttpResponse(json.dumps(response), content_type='application/json')
 
 
 class MemberList(HybridListView):
@@ -795,7 +871,9 @@ def join(request, *args, **kwargs):
     member.is_iao = False
     member.date_joined = datetime.now()
     member.last_login = datetime.now()
+    shift_ghost_member(member, db=db)
     member.save(using=db)
+    import_ghost_profile_to_member(member, db=db)
     member = Member.objects.using(db).get(pk=member.id)  # Reload from local database to avoid database router error
     obj_list, created = UserPermissionList.objects.using(db).get_or_create(user=member)
     obj_list.group_fk_list.append(group.id)

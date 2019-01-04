@@ -23,7 +23,9 @@ from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, COMMUNITY
 from ikwen.core.models import Service, Config, OperatorWallet, ConsoleEventType
 from ikwen.core.utils import add_database
-from ikwen.rewarding.models import JoinRewardPack, ReferralRewardPack, Reward, CumulatedCoupon, CouponSummary
+from ikwen.rewarding.models import ReferralRewardPack, Reward, CumulatedCoupon, CouponSummary
+from ikwen.revival.models import MemberProfile
+from ikwen.rewarding.utils import REFERRAL
 
 
 def wipe_test_data():
@@ -277,6 +279,62 @@ class IkwenAuthTestCase(unittest.TestCase):
         cnx = Connection()
         cnx.drop_database('test_registered_member')
 
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
+    def test_register_with_existing_ghost_as_phone(self):
+        """
+        If a 'ghost' Member exists with the same email or phone, it is
+        replaced with the one registering and profile information of
+        the ghost are shift to the actual Member.
+        Ghost is Member with is_ghost=True. Those member are created manually
+        from the admin or when user leaves his mail on a website.        .
+        """
+        UserPermissionList.objects.all().delete()
+        ghost = Member.objects.create_user(username='666000006', gender='Male', phone='666000006', is_ghost=True,
+                                           first_name='Ngnieng', last_name='Makambou', password='secret')
+        ghost_profile, update = MemberProfile.objects.get_or_create(member=ghost)
+        ghost_profile.tag_list.extend(['yogam', 'hardworker'])
+        ghost_profile.save()
+        origin = reverse('ikwen:register')
+        response = self.client.post(origin, {'username': 'ngnieng@ikwen.com', 'password': 'secret', 'password2': 'secret',
+                                             'phone': '237666000006', 'first_name': 'Ngnieng', 'last_name': 'Kom', 'gender': 'Female'}, follow=True)
+        final = response.redirect_chain[-1]
+        location = final[0].strip('?').strip('/').split('/')[-1]
+        self.assertEqual(location, 'console')
+        member = Member.objects.get(username='ngnieng@ikwen.com', phone='237666000006', is_ghost=False)
+        member_profile = MemberProfile.objects.get(member=member)
+        self.assertEqual(set(member_profile.tag_list), {REFERRAL, 'hardworker', 'yogam', 'women'})
+        self.assertRaises(Member.DoesNotExist, Member.objects.get, phone='666000006', is_ghost=True)
+        self.assertRaises(MemberProfile.DoesNotExist, MemberProfile.objects.get, member=ghost)
+        self.assertRaises(UserPermissionList.DoesNotExist, UserPermissionList.objects.get, user=ghost)
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
+    def test_register_with_existing_ghost_as_email(self):
+        """
+        If a 'ghost' Member exists with the same email or phone, it is
+        replaced with the one registering and profile information of
+        the ghost are shift to the actual Member.
+        Ghost is Member with is_ghost=True. Those member are created manually
+        from the admin or when user leaves his mail on a website.        .
+        """
+        ghost = Member.objects.create_user(username='ngnieng@ikwen.com', email='ngnieng@ikwen.com', gender='Male',
+                                           phone='666000006', first_name='Ngnieng', last_name='Makambou',
+                                           password='secret', is_ghost=True)
+        ghost_profile, update = MemberProfile.objects.get_or_create(member=ghost)
+        ghost_profile.tag_list.extend(['yogam', 'hardworker'])
+        ghost_profile.save()
+        origin = reverse('ikwen:register')
+        response = self.client.post(origin, {'username': 'ngnieng@ikwen.com', 'password': 'secret', 'password2': 'secret',
+                                             'phone': '237666000006', 'first_name': 'Ngnieng', 'last_name': 'Kom', 'gender': 'Female'}, follow=True)
+        final = response.redirect_chain[-1]
+        location = final[0].strip('?').strip('/').split('/')[-1]
+        self.assertEqual(location, 'console')
+        member = Member.objects.get(username='ngnieng@ikwen.com', phone='237666000006', is_ghost=False)
+        member_profile = MemberProfile.objects.get(member=member)
+        self.assertEqual(set(member_profile.tag_list), {REFERRAL, 'hardworker', 'yogam', 'women'})
+        self.assertRaises(Member.DoesNotExist, Member.objects.get, phone='666000006', is_ghost=True)
+        self.assertRaises(MemberProfile.DoesNotExist, MemberProfile.objects.get, member=ghost)
+        self.assertRaises(UserPermissionList.DoesNotExist, UserPermissionList.objects.get, user=ghost)
+
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
                        EMAIL_FILE_PATH='test_emails/accesscontrol/referral')
@@ -288,7 +346,6 @@ class IkwenAuthTestCase(unittest.TestCase):
         """
         call_command('loaddata', 'rewarding.yaml')
         service = Service.objects.get(pk='56eb6d04b37b3379b531b102')
-        et = ConsoleEventType.objects.get(pk='56eb6db3379b531a0104b371')  # Collaboration Access Request event type
         group_id = '5804b37b3379b531e01eb6d2'
         add_database(service.database)
         Group.objects.using(service.database).create(pk=group_id, name=COMMUNITY)

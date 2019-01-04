@@ -27,6 +27,8 @@ from ikwen.accesscontrol.models import Member
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.core.models import Service
 from ikwen.core.utils import get_service_instance, get_mail_content, send_sms
+from ikwen.revival.models import MemberProfile
+from ikwen.rewarding.utils import JOIN
 
 logger = logging.getLogger('ikwen')
 
@@ -316,3 +318,60 @@ class ConfirmEmail(TemplateView):
         else:
             messages.error(request, _("Could not confirm email"))
         return render(request, self.template_name, context)
+
+
+def shift_ghost_member(member, db='default'):
+    phone = str(member.phone)
+    if phone.startswith('237') and len(phone) == 12:  # When saving ghost contacts '237' is stripped
+        phone = phone[3:]
+    shifted_phone = '__' + phone
+    shifted_email = '__' + member.email
+    shifted_username = '__' + member.username
+    Member.objects.using(db).filter(phone=phone, is_ghost=True).update(phone=shifted_phone)
+    Member.objects.using(db).filter(email=member.email, is_ghost=True).update(email=shifted_email)
+    Member.objects.using(db).filter(username=member.username, is_ghost=True).update(username=shifted_username)
+
+
+def import_ghost_profile_to_member(member, db='default'):
+    phone = str(member.phone)
+    if phone.startswith('237') and len(phone) == 12:  # When saving ghost contacts '237' is stripped
+        phone = phone[3:]
+    shifted_phone = '__' + phone
+    shifted_email = '__' + member.email
+    ghost_tag_list = []
+    try:
+        ghost = Member.objects.using(db).get(phone=shifted_phone, is_ghost=True)
+        ghost_tag_list = MemberProfile.objects.using(db).get(member=ghost).tag_list
+        UserPermissionList.objects.using(db).filter(user=ghost).delete()
+    except:
+        pass
+    try:
+        ghost = Member.objects.using(db).get(email=shifted_email, is_ghost=True)
+        ghost_tag_list.extend(MemberProfile.objects.using(db).get(member=ghost).tag_list)
+        UserPermissionList.objects.using(db).filter(user=ghost).delete()
+    except:
+        pass
+
+    ghost_tag_list = list(set(ghost_tag_list))
+    try:
+        # Gender entered by user is more trustworthy that one set by website owner
+        ghost_tag_list.remove('men')
+    except:
+        pass
+    try:
+        ghost_tag_list.remove('women')
+    except:
+        pass
+    try:
+        ghost_tag_list.remove(JOIN)
+    except:
+        pass
+
+    if len(ghost_tag_list) == 0:
+        return
+
+    member_profile, update = MemberProfile.objects.using(db).get_or_create(member=member)
+    member_profile.tag_list.extend(ghost_tag_list)
+    member_profile.save()
+    Member.objects.using(db).filter(phone=shifted_phone, is_ghost=True).delete()
+    Member.objects.using(db).filter(email=shifted_email, is_ghost=True).delete()

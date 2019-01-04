@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractUser, Group
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.db.models import Q
 from django.template.defaultfilters import slugify
 from django.utils.datetime_safe import strftime
 from django.utils.translation import gettext as _, get_language
@@ -12,13 +13,12 @@ from django_mongodb_engine.contrib import RawQueryMixin
 from djangotoolbox.fields import ListField
 
 from ikwen.core.constants import MALE, FEMALE
-from ikwen.core.utils import add_event
 from permission_backend_nonrel.models import UserPermissionList
 
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.fields import MultiImageField
 from ikwen.core.models import Service, Model
-from ikwen.core.utils import to_dict, get_service_instance, add_database_to_settings
+from ikwen.core.utils import add_event, to_dict, get_service_instance, add_database_to_settings
 
 
 SUDO = 'Sudo'
@@ -31,18 +31,24 @@ MEMBER_JOINED_IN = 'MemberJoinedIn'
 # Personal events
 WELCOME_EVENT = 'WelcomeEvent'
 
+DEFAULT_GHOST_PWD = '__0000'
+
 
 class MemberManager(BaseUserManager, RawQueryMixin):
 
     def create_user(self, username, password=None, **extra_fields):
+        from ikwen.accesscontrol.backends import UMBRELLA
+        from ikwen.accesscontrol.utils import shift_ghost_member, import_ghost_profile_to_member
+        from ikwen.conf.settings import IKWEN_SERVICE_ID
         if not username:
             raise ValueError('Username must be set')
         member = self.model(username=username, **extra_fields)
+        if not member.is_ghost:
+            shift_ghost_member(member)
+
         member.full_name = u'%s %s' % (member.first_name.split(' ')[0], member.last_name.split(' ')[0])
         member.tags = slugify(member.first_name + ' ' + member.last_name).replace('-', ' ')
         service_id = getattr(settings, 'IKWEN_SERVICE_ID')
-        from ikwen.accesscontrol.backends import UMBRELLA
-        from ikwen.conf.settings import IKWEN_SERVICE_ID
         ikwen_community = Group.objects.using(UMBRELLA).get(name=COMMUNITY)
         member.customer_on_fk_list.append(IKWEN_SERVICE_ID)
         member.group_fk_list.append(ikwen_community.id)
@@ -61,14 +67,15 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         perm_list.save(using=UMBRELLA)
 
         from ikwen.revival.models import MemberProfile
-        from ikwen.revival.utils import set_profile_tag_member_count
         member_profile, update = MemberProfile.objects.get_or_create(member=member)
         if member.gender == MALE:
             member_profile.tag_list.append('men')
         elif member.gender == FEMALE:
             member_profile.tag_list.append('women')
         member_profile.save()
-        Thread(target=set_profile_tag_member_count).start()
+
+        if not member.is_ghost:
+            import_ghost_profile_to_member(member)
 
         if service_id != IKWEN_SERVICE_ID:
             # This block is not added above because member must have
@@ -109,7 +116,10 @@ class Member(AbstractUser):
     COVER_UPLOAD_TO = 'members/cover_images'
     MALE = 'Male'
     FEMALE = 'Female'
-    # TODO: Create and set field full_name in collection ikwen_member in database itself
+    is_ghost = models.BooleanField(default=False,
+                                   help_text="Ghost users are created manually by site owner. They can still register "
+                                             "normally afterwards. Ghost members are useful because they can be "
+                                             "enrolled in revivals without actually having an account on the website")
     full_name = models.CharField(max_length=150, db_index=True)
     tags = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     phone = models.CharField(max_length=30, db_index=True, blank=True, null=True)
