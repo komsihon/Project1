@@ -143,6 +143,7 @@ footer a {color: #999}
 .object-list {
     padding: 0;
 }
+.checkbox.tile {margin: 0 0 10px}
 .tiles.object-list {margin-top: 20px}
 .object-list .list-group-item:first-of-type {border-top: none}
 #results {clear: both}
