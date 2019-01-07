@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import subprocess
 from threading import Thread
 
@@ -388,6 +389,9 @@ class Service(models.Model):
         apache_tpl = get_template(web_server_config_template)
         apache_context = Context({'is_naked_domain': is_naked_domain, 'domain': new_domain, 'ikwen_name': self.project_name_slug})
         fh = open(self.home_folder + '/apache.conf', 'w')
+        go_ikwen_conf = '/etc/apache2/sites-enabled/go_ikwen/%s.conf' % self.project_name_slug
+        if os.path.exists(go_ikwen_conf):
+            os.unlink(go_ikwen_conf)
         fh.write(apache_tpl.render(apache_context))
         fh.close()
         subprocess.call(['sudo', 'unlink', '/etc/apache2/sites-enabled/' + previous_domain + '.conf'])
@@ -565,6 +569,8 @@ class AbstractConfig(Model):
                                                 "and also to use on top of the mails. (Max. 800px width)"))
     signature = models.TextField(blank=True, verbose_name=_("Mail signature"),
                                  help_text=_("Signature on all mails. HTML allowed."))
+    invitation_message = models.TextField(_("Invitation message"), blank=True, null=True,
+                                          help_text="Message to send to user to invite to register on your platform.")
     welcome_message = models.TextField(blank=True, verbose_name=_("Welcome message"),
                                        help_text="Model of message to send to user upon registration.")
     contact_email = models.EmailField(verbose_name=_("Contact email"),
@@ -657,6 +663,7 @@ class AbstractConfig(Model):
         config.short_description = self.short_description
         config.description = self.description
         config.slogan = self.slogan
+        config.invitation_message = self.invitation_message
         config.logo = self.logo
         config.latitude = self.latitude
         config.longitude = self.longitude
