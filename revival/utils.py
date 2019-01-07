@@ -24,36 +24,39 @@ def set_profile_tag_member_count():
                 profile_tag.save()
 
 
-def render_suggest_create_account_mail(target, obj, revival, **kwargs):
-    sender = '%s <no-reply@%s>' % (obj.project_name, obj.domain)
-    subject = _("Join us on ikwen and earn free coupons." % obj.project_name)
+def render_suggest_create_account_mail(target, service, revival, **kwargs):
+    sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
+    config = service.config
+    invitation_message = config.__getattribute__('invitation_message')
+    subject = _("Join us on ikwen and earn free coupons." % service.project_name)
     template_name = 'revival/mails/suggest_create_account.html'
     join_reward_pack_list = kwargs.pop('reward_pack_list', None)
-    if join_reward_pack_list:
+    if invitation_message or join_reward_pack_list:
         extra_context = {
             'member_name': target.member.first_name,
             'join_reward_pack_list': join_reward_pack_list,
+            'invitation_message': invitation_message
         }
-        html_content = get_mail_content(subject, service=obj, template_name=template_name,
+        html_content = get_mail_content(subject, service=service, template_name=template_name,
                                         extra_context=extra_context)
     else:
         html_content = None
     return sender, subject, html_content
 
 
-def render_suggest_referral_mail(target, obj, revival, **kwargs):
-    sender = '%s <no-reply@%s>' % (obj.project_name, obj.domain)
-    subject = _("Invite your friends on %s and earn free coupons." % obj.project_name)
+def render_suggest_referral_mail(target, service, revival, **kwargs):
+    sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
+    subject = _("Invite your friends on %s and earn free coupons." % service.project_name)
     template_name = 'revival/mails/suggest_referral.html',
     referral_reward_pack_list = kwargs.pop('reward_pack_list', None)
     if referral_reward_pack_list:
         extra_context = {
             'member_name': target.member.first_name,
-            'referred_project_name': obj.project_name,
-            'referred_project_name_slug': obj.project_name_slug,
+            'referred_project_name': service.project_name,
+            'referred_project_name_slug': service.project_name_slug,
             'referral_reward_pack_list': referral_reward_pack_list
         }
-        html_content = get_mail_content(subject, service=obj, template_name=template_name,
+        html_content = get_mail_content(subject, service=service, template_name=template_name,
                                         extra_context=extra_context)
     else:
         html_content = None
