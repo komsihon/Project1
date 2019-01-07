@@ -238,8 +238,10 @@
             $(window).scroll(function() {
                 if (dataSourceEmpty || loadingCards) return;
                 var scrollTop = $(this).scrollTop(),
-                    threshold = Math.max($('footer').height(), 60);
-                if (scrollTop > 375) {
+                    threshold = Math.max($('footer').height(), 60),
+                    consoleMenuThreshold = 375;
+                if ($('#communities-suggestions').length > 0) consoleMenuThreshold = 650;
+                if (scrollTop > consoleMenuThreshold) {
                     if ($(window).width() >= 768) $('.console-menu').addClass('fixed')
                 } else  $('.console-menu').removeClass('fixed');
                 if ($(document).height() - $(this).height() - scrollTop <= threshold) {
