@@ -23,6 +23,7 @@
         #group-update h5 em {color: #888}
         li.member.ghost .full_name {font-style: italic}
         #admin-tools .import {margin-right: 15px}
+        #page-navigation {float: left; margin: 10px 0 0 10px}
         @media (min-width: 768px) {
             #groups {clear: both; margin-top: 15px}
             .form-group.new-contact-profile {margin-bottom: 50px}
@@ -51,6 +52,14 @@
                         <input id="context-search" type="text" class="form-input input-sm tool search" placeholder="{% trans "Search" %}"/>
                     </div>
                 </form>
+                <div id="page-navigation" class="text-muted" data-page-index="1" data-page-size="{{ page_size }}">
+                    {% if total_objects > page_size %}
+                        <div><strong class="start">1</strong> - <strong class="finish">{{ page_size }}</strong> {% trans "of" %} <strong class="total">{{ total_objects }}</strong></div>
+{#                        <div style="margin: -8px 0 0 10px"><i class="finished back"> < </i><i class="next"> > </i></div>#}
+                    {% else %}
+                        <div>{{ total_objects }}/{{ total_objects }}</div>
+                    {% endif %}
+                </div>
 {#                <a href="javascript:;" class="btn btn-sm btn-success cta add pull-right action"#}
 {#                        title="{% trans "Import contacts from Spreasheet" %}">#}
 {#                    <i class="glyphicon glyphicon-list-alt"></i>#}
@@ -61,14 +70,6 @@
                     <i class="glyphicon glyphicon-plus"></i>
                     <span class="hidden-xs">{% trans "Add" %}</span>
                 </a>
-{#                <div id="page-navigation" class="text-muted" data-page-index="1" data-page-size="{{ page_size }}">#}
-{#                    {% if total_objects > page_size %}#}
-{#                        <div style="padding-top: 5px;"><strong class="start">1</strong> - <strong class="finish">{{ page_size }}</strong> {% trans "of" %} <strong class="total">{{ total_objects }}</strong></div>#}
-{#                        <div style="margin-left: 10px"><i class="finished back"> < </i><i class="next"> > </i></div>#}
-{#                    {% else %}#}
-{#                        <div>{{ total_objects }}/{{ total_objects }}</div>#}
-{#                    {% endif %}#}
-{#                </div>#}
                 <div class="clearfix"></div>
             </div>
             {# END ADMIN TOOLS #}
@@ -211,14 +212,28 @@
                             <label for="new-contact-profiles">{% trans "Profiles" %}</label>
                             <div class="row">
                             {% for profile in profiletag_list %}
-                                <div class="subject checkbox tile col-sm-4 col-md-3">
+                                <div class="checkbox tile col-sm-4 col-md-3">
                                     <label for="squaredThree">
-                                         <input type="checkbox" value="{{ profile.id }}"><strong>{{ profile.name }}</strong>
+                                         <input type="checkbox" value="{{ profile.id }}"><span>{{ profile.name }}</span>
                                     </label>
                                 </div>
                             {% endfor %}
                             </div>
                         </div>
+                        {% if preference_list %}
+                        <div class="form-group" id="new-contact-preferences">
+                            <label for="new-contact-preferences">{% trans "Preferences" %}</label>
+                            <div class="row">
+                            {% for preference in preference_list %}
+                                <div class="checkbox tile col-sm-4 col-md-3">
+                                    <label for="squaredThree">
+                                         <input type="checkbox" value="{{ preference.id }}"><span>{{ preference.name }}</span>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </form>
                     <div class="actions row">
                         <div class="col-xs-12 col-sm-4 pull-right">
@@ -347,6 +362,7 @@
             }).on('click', '#admin-tools .add', function() {
                 $('#modal-add-contact input, #modal-add-contact select').val('');
                 $('div#new-contact-profiles input[type=checkbox]').prop('checked', false);
+                $('div#new-contact-preferences input[type=checkbox]').prop('checked', false);
             }).on('click', '.add-contact', function() {
                 var name = $('#new-contact-name').val(),
                     gender = $('#new-contact-gender').val(),
@@ -354,6 +370,9 @@
                     phone = $('#new-contact-phone').val(),
                     tagIds = [];
                 $('div#new-contact-profiles input:checked').each(function() {
+                    tagIds.push($(this).val())
+                });
+                $('div#new-contact-preferences input:checked').each(function() {
                     tagIds.push($(this).val())
                 });
                 var params = {action: 'add_ghost_member', name: name, gender: gender,

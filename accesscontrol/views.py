@@ -50,7 +50,7 @@ from ikwen.core.views import HybridListView
 from ikwen.revival.models import ProfileTag, MemberProfile, Revival, ObjectProfile
 from ikwen.revival.utils import set_profile_tag_member_count
 from ikwen.rewarding.models import Coupon, CumulatedCoupon, Reward, CROperatorProfile, CouponSummary, ReferralRewardPack
-from ikwen.rewarding.utils import reward_member, get_coupon_summary_list, JOIN
+from ikwen.rewarding.utils import reward_member, get_coupon_summary_list, JOIN, REFERRAL
 
 import logging
 logger = logging.getLogger('ikwen')
@@ -691,6 +691,7 @@ class Community(HybridListView):
         context['group_list'] = group_list
         context['sudo_group'] = Group.objects.get(name=SUDO)
         context['profiletag_list'] = ProfileTag.objects.exclude(slug__in=['men', 'women']).filter(is_active=True, is_auto=False)
+        context['preference_list'] = ProfileTag.objects.exclude(slug__in=[JOIN, REFERRAL]).filter(is_active=True, is_auto=True)
         return context
 
     def render_to_response(self, context, **response_kwargs):
