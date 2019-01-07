@@ -349,8 +349,9 @@ class ChangeObjectBase(TemplateView):
                 name_field_name = request.POST.get('name_field_name', 'name')
                 try:
                     name_field = obj.__getattribute__(name_field_name)
+                    tag_name = '__' + name_field
                     slug = '__' + slugify(name_field)
-                    ObjectProfile.objects.create(name=slug, slug=slug, is_auto=True)
+                    ProfileTag.objects.create(name=tag_name, slug=slug, is_auto=True)
                 except:
                     pass
 
@@ -422,7 +423,7 @@ class ChangeObjectBase(TemplateView):
             return
         do_revive = kwargs.pop('do_revive', None)  # Set a revival if explicitly stated to do so
         if do_revive is None and not kwargs.get('object_id'):
-            do_revive = True  # Set a revival in any case for a newly added product
+            do_revive = True  # Set a revival in any case for a newly added item
         profiletag_id_list = profiletag_ids.strip().split(',')
         profiletag_id_list.extend(auto_profiletag_id_list)
         model_name = obj._meta.app_label + '.' + obj._meta.model_name
