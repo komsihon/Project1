@@ -143,7 +143,7 @@
                     </div>
                     <div class="form-group">
                         <label for="end-on">{% trans "Run it until" %}</label>
-                        <input type="text" id="end-on" class="form-control input-sm frequency"
+                        <input type="text" id="end-on" class="form-control input-sm frequency" autocomplete="off"
                                value="{{ revival.end_on|date }}" />
                         <input type="hidden" id="end-on-alt" name="end_on" value="{{ revival.end_on_alt }}" />
                     </div>
