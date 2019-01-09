@@ -1,0 +1,53 @@
+- model: revival.cyclicrevival
+  pk: 56eb6d04b37b3379b3e5ddf1
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    profile_tag_id: 58088fc0c253e5ddf0563951
+    mail_subject: Subject
+    days_cycle: 3
+    end_on: 2035-01-01
+
+- model: revival.cyclicrevival
+  pk: 56eb6d04b37b3379b3e5ddf2
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    profile_tag_id: 58088fc0c253e5ddf0563952
+    mail_subject: Subject
+    end_on: 2035-01-01
+
+- model: revival.cyclicrevival
+  pk: 56eb6d04b37b3379b3e5ddf3
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    profile_tag_id: 58088fc0c253e5ddf0563953
+    mail_subject: Subject
+    end_on: 2035-01-01
+
+- model: revival.revival
+  pk: 58eb3eb637b33795ddfd04b1
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    model_name: core.Application
+    tag: kakocase
+    object_id: 56eb6d04b37b3379b531a001
+    mail_renderer: ikwen.revival.utils.render_tsunami_revival_mail
+
+- model: revival.revival
+  pk: 58eb3eb637b33795ddfd04b2
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    model_name: core.Service
+    object_id: 56eb6d04b37b3379b531b102
+    tag: __Join
+    mail_renderer: ikwen.revival.utils.render_suggest_create_account_mail
+    get_kwargs: ikwen.rewarding.utils.get_join_reward_pack_list
+
+- model: revival.revival
+  pk: 58eb3eb637b33795ddfd04b3
+  fields:
+    service: 56eb6d04b37b3379b531b102
+    model_name: core.Service
+    object_id: 56eb6d04b37b3379b531b102
+    tag: __Referral
+    mail_renderer: ikwen.revival.utils.render_suggest_referral_mail
+    get_kwargs: ikwen.rewarding.utils.get_referral_reward_pack_list
