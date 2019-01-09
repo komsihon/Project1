@@ -6,6 +6,14 @@
         Rules for ikwen Admin pages
 */
 
+/*@import url('https://fonts.googleapis.com/css?family=Andika');*/
+/*@import url('https://fonts.googleapis.com/css?family=Raleway:300,400,700');*/
+/*@import url('https://fonts.googleapis.com/css?family=Mukta:300,400,700');*/
+/*@import url('https://fonts.googleapis.com/css?family=Rubik:300,400,700');*/
+/*@import url('https://fonts.googleapis.com/css?family=Varela+Round');*/
+/*@import url('https://fonts.googleapis.com/css?family=Asap:400,700');*/
+/*@import url('https://fonts.googleapis.com/css?family=Ubuntu:300,400,700');*/
+
 body {font-size: 13px;overflow: hidden;}
 .glyphicon.toggle.on {color: #ccc}
 .glyphicon.toggle.off {color: #33c800}
@@ -39,10 +47,12 @@ body {font-size: 13px;overflow: hidden;}
 #app-nav .breadcrumb li {color: #888}
 div#container.admin {padding-top: 92px;}
 
+#admin-nav {background: #fff;left: 0;max-width: 240px;overflow: auto;position: fixed;height: 100%;
+    overflow: -moz-scrollbars-none; -ms-overflow-style: none; width: 80%;top: 0;z-index: 1;}
+#admin-nav::-webkit-scrollbar {width: 0 !important;}
 #admin-nav > div > div {padding: 0 10px;}
 #admin-nav .wrapper {padding: 20px 0 90px;}
 #admin-nav .stage {width: 100%;padding: 0 0 200px;}
-#admin-nav {background: #fff;left: 0;max-width: 240px;overflow: auto;position: fixed;height: 100%;width: 80%;top: 0;z-index: 1;}
 #admin-nav .divider {margin: 15px 0;}
 .nav-pills>li>a {padding: 9px 15px;cursor: pointer;font-weight: 700;color: #777;}
 .nav-pills>li.active>a, .nav-pills>li.active>a:hover, .nav-pills>li.active>a:focus {background: #eee;color: #333;}
@@ -231,7 +241,7 @@ footer a {color: #999}
     #app-nav .app-logo {margin-top: -5px}
     #app-nav .breadcrumb {padding-left: 15px; padding-top: 2px}
     #app-nav .app-name {display: block;float: left;margin-top: 3px;width: 190px;}
-    #admin-nav {top: 110px;border-right: 1px solid #eee;}
+    #admin-nav {top: 110px;}
     #admin-content {padding-left: 255px}
     #selection-control {height: 66px;min-height: 66px; padding-top: 20px; top: -70px}
     #selection-control .actions {margin-top: -4px}
