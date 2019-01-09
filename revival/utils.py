@@ -69,7 +69,7 @@ def render_suggest_referral_mail(target, service, revival, **kwargs):
 
 
 def render_tsunami_revival_mail(target, obj, revival, **kwargs):
-    if target.revival_count >= 3:
+    if target.revival_count >= 2:
         return None, None, None
     sender = 'ikwen Tsunami <no-reply@ikwen.com>'
     if target.revival_count <= 0:
