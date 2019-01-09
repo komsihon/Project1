@@ -427,7 +427,6 @@ class ChangeObjectBase(TemplateView):
         profiletag_id_list = profiletag_ids.strip().split(',')
         profiletag_id_list.extend(auto_profiletag_id_list)
         model_name = obj._meta.app_label + '.' + obj._meta.model_name
-        object_profile, update = ObjectProfile.objects.get_or_create(model_name=model_name, object_id=obj.id)
         tag_list = []
         for pk in profiletag_id_list:
             try:
@@ -435,15 +434,14 @@ class ChangeObjectBase(TemplateView):
                 tag_list.append(tag.slug)
             except:
                 continue
-        object_profile.tag_list = tag_list
-        object_profile.save()
         if do_revive and revival_mail_renderer:  # This is a newly created object
             service = get_service_instance()
             srvce = Service.objects.using(UMBRELLA).get(pk=service.id)
-            revival = Revival.objects.create(service=service, model_name=model_name, object_id=obj.id,
-                                   mail_renderer=revival_mail_renderer)
-            Revival.objects.using(UMBRELLA).create(id=revival.id, service=srvce, model_name=model_name, object_id=obj.id,
-                                                   mail_renderer=revival_mail_renderer)
+            for tag in tag_list:
+                revival = Revival.objects.create(service=service, model_name=model_name, object_id=obj.id,
+                                                 tag=tag, mail_renderer=revival_mail_renderer)
+                Revival.objects.using(UMBRELLA).create(id=revival.id, service=srvce, model_name=model_name, object_id=obj.id,
+                                                       tag=tag, mail_renderer=revival_mail_renderer)
 
     def after_save(self, request, obj, *args, **kwargs):
         """

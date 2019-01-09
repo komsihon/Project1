@@ -68,6 +68,7 @@
     company_name: Zulander
     contact_email: contact@zulander.com
     logo: logos/some_logo.png
+    invitation_message: You're invited to join our awesome community on ikwen
 
 - model: billing.paymentmean
   pk: 5880870e4fc0c229da8da3d1

@@ -1,10 +1,21 @@
 import logging
+
+from django.conf import settings
+
 try:
     from logging.config import dictConfig
 except ImportError:
     from django.utils.dictconfig import dictConfig
 
 getLogger = logging.getLogger
+
+DEBUG = getattr(settings, 'DEBUG', False) or getattr(settings, 'UNIT_TESTING', False)
+BASE_DIR = getattr(settings, 'BASE_DIR')
+
+ikwen_info_log_filename = BASE_DIR + '/ikwen_info.log' if DEBUG else '/var/www/ikwen_info.log'
+ikwen_error_log_filename = BASE_DIR + '/ikwen_error.log' if DEBUG else '/var/www/ikwen_error.log'
+crons_info_log_filename = BASE_DIR + '/crons_info.log' if DEBUG else '/var/www/crons_info.log'
+crons_error_log_filename = BASE_DIR + '/crons_error.log' if DEBUG else '/var/www/crons_error.log'
 
 LOGGING = {
     'version': 1,
@@ -25,7 +36,7 @@ LOGGING = {
             'filters': ['require_lower_than_error'],
             'formatter': 'default',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/var/www/ikwen_info.log',
+            'filename': ikwen_info_log_filename,
             'maxBytes': 1000000,
             'backupCount': 4
         },
@@ -33,7 +44,7 @@ LOGGING = {
             'level': 'ERROR',
             'formatter': 'default',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/var/www/ikwen_error.log',
+            'filename': ikwen_error_log_filename,
             'maxBytes': 1000000,
             'backupCount': 4
         },
@@ -70,7 +81,7 @@ CRONS_LOGGING = {
             'filters': ['require_lower_than_error'],
             'formatter': 'default',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/var/www/crons_info.log',
+            'filename': crons_info_log_filename,
             'maxBytes': 10000000,
             'backupCount': 4
         },
@@ -78,7 +89,7 @@ CRONS_LOGGING = {
             'level': 'ERROR',
             'formatter': 'default',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/var/www/crons_error.log',
+            'filename': crons_error_log_filename,
             'maxBytes': 10000000,
             'backupCount': 4
         },
