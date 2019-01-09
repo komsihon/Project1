@@ -370,6 +370,12 @@ def import_ghost_profile_to_member(member, db='default'):
     if len(ghost_tag_list) == 0:
         return
 
+    if not member.phone and shifted_phone != '__':
+        member.phone = shifted_phone[2:]
+    if not member.email and shifted_email != '__':
+        member.email = shifted_email[2:]
+
+    member.save()
     member_profile, update = MemberProfile.objects.using(db).get_or_create(member=member)
     member_profile.tag_list.extend(ghost_tag_list)
     member_profile.save()
