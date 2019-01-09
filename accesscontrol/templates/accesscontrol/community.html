@@ -22,7 +22,7 @@
         #profile-tag-list li span {font-weight: 400}
         #group-update h5 em {color: #888}
         li.member.ghost .full_name {font-style: italic}
-        #admin-tools .import {margin-right: 15px}
+        #admin-tools .import {margin-left: 15px}
         #page-navigation {float: left; margin: 10px 0 0 10px}
         @media (min-width: 768px) {
             #groups {clear: both; margin-top: 15px}
@@ -60,12 +60,12 @@
                         <div>{{ total_objects }}/{{ total_objects }}</div>
                     {% endif %}
                 </div>
-{#                <a href="javascript:;" class="btn btn-sm btn-success cta add pull-right action"#}
+{#                <a href="javascript:;" class="btn btn-sm btn-success cta import pull-right action"#}
 {#                        title="{% trans "Import contacts from Spreasheet" %}">#}
 {#                    <i class="glyphicon glyphicon-list-alt"></i>#}
 {#                    <span class="hidden-xs">{% trans "Import" %}</span>#}
 {#                </a>#}
-                <a href="javascript:;" class="btn btn-sm btn-success cta import pull-right action"
+                <a href="javascript:;" class="btn btn-sm btn-success cta add pull-right action"
                         data-toggle="modal" data-target="#modal-add-contact" title="{% trans "Add new contact" %}">
                     <i class="glyphicon glyphicon-plus"></i>
                     <span class="hidden-xs">{% trans "Add" %}</span>
