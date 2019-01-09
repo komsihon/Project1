@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime
 
+from currencies.models import Currency
 from django.conf import settings
 from django.core import mail
 from django.core.files import File
@@ -188,10 +189,16 @@ class ChangeProfileTag(ChangeObjectBase):
                 message = revival.mail_content.replace('$client', _("<Unknown>"))
             sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
             media_url = ikwen_settings.CLUSTER_MEDIA_URL + service.project_name_slug + '/'
-            product_list = Product.objects.filter(pk__in=revival.items_fk_list)
+            product_list = []
+            if service.app.slug == 'kakocase':
+                product_list = Product.objects.filter(pk__in=revival.items_fk_list)
+            try:
+                currency = Currency.objects.get(is_base=True)
+            except Currency.DoesNotExist:
+                currency = None
             html_content = get_mail_content(subject, message, template_name='revival/mails/default.html',
                                             extra_context={'media_url': media_url, 'product_list': product_list,
-                                                           'revival': revival})
+                                                           'revival': revival, 'currency': currency})
             msg = EmailMessage(subject, html_content, sender, [email])
             msg.content_subtype = "html"
             with transaction.atomic(using='wallets'):

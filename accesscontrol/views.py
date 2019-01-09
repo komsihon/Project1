@@ -804,14 +804,11 @@ class Community(HybridListView):
         member_profile.save()
 
         service = Service.objects.using(UMBRELLA).get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
+        tag = JOIN
         Revival.objects.using(UMBRELLA).get_or_create(service=service, model_name='core.Service', object_id=service.id,
                                                       mail_renderer='ikwen.revival.utils.render_suggest_create_account_mail',
-                                                      get_kwargs='ikwen.rewarding.utils.get_join_reward_pack_list')
-        tag = JOIN
+                                                      tag=tag, get_kwargs='ikwen.rewarding.utils.get_join_reward_pack_list')
         ProfileTag.objects.get_or_create(name=tag, slug=tag, is_auto=True)
-        object_profile, update = ObjectProfile.objects.get_or_create(model_name='core.Service', object_id=service.id)
-        object_profile.tag_list.append(tag)
-        object_profile.save()
 
         Thread(target=set_profile_tag_member_count).start()
         response = {'success': True, 'member': member.to_dict()}

@@ -100,7 +100,6 @@ class MemberProfile(Model):
 class ObjectProfile(Model):
     model_name = models.CharField(max_length=60)
     object_id = models.CharField(max_length=60)
-    tag_list = ListField()
 
     class Meta:
         unique_together = ('model_name', 'object_id', )
@@ -110,6 +109,7 @@ class Revival(Model):
     service = models.ForeignKey(Service, related_name='+')
     model_name = models.CharField(max_length=150, db_index=True)
     object_id = models.CharField(max_length=60, db_index=True)
+    tag = models.CharField(max_length=100, blank=True, null=True)  # Tag targeted by this revival
     status = models.CharField(max_length=60, default=PENDING)
     progress = models.IntegerField(default=0)
     total = models.IntegerField(default=0)
@@ -131,7 +131,7 @@ class Target(Model):
 class CyclicTarget(Model):
     revival = models.ForeignKey(CyclicRevival)
     member = models.ForeignKey(Member)
-    revival_count = models.BooleanField(default=False)
+    revival_count = models.IntegerField(default=1)
 
 
 class CCMMonitoringMail(Model):
