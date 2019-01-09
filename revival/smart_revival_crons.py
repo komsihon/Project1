@@ -17,32 +17,31 @@ from django.db.models import get_model, Q
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
 from django.utils.translation import activate
+from django.conf import settings
 
 from echo.models import Balance
 from echo.utils import notify_for_empty_messaging_credit, EMAIL
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.core.constants import PENDING, COMPLETE, STARTED
 from ikwen.accesscontrol.models import Member
-from ikwen.core.utils import add_database, set_counters_many, increment_history_field_many
-from ikwen.revival.models import Revival, Target, ObjectProfile, MemberProfile, ProfileTag
+from ikwen.core.utils import add_database, set_counters_many, set_counters, increment_history_field
+from ikwen.revival.models import Revival, Target, MemberProfile, ProfileTag
 from ikwen.rewarding.utils import REFERRAL
 
-
-from ikwen.core.log import CRONS_LOGGING
-logging.config.dictConfig(CRONS_LOGGING)
 logger = logging.getLogger('ikwen.crons')
 
 MAX_BATCH_SEND = 500
-MAX_AUTO_REWARDS = 4  # Max number of mails sent for the same Revival topic
+MAX_AUTO_REWARDS = 3  # Max number of mails sent for the same Revival topic
 
 
-def notify_profiles():
+def notify_profiles(debug=False):
     """
     Cron job that revive users by mail. Must be configured
     to run with a settings file having 'umbrella' as default database.
     :return:
     """
     t0 = datetime.now()
+    seven_hours_ago = t0 - timedelta(hours=7)
     total_revival, total_mail = 0, 0
     for revival in Revival.objects.select_related('service').exclude(status=COMPLETE, is_active=False):
         try:
@@ -54,6 +53,17 @@ def notify_profiles():
             total_revival += 1
         except Revival.DoesNotExist:
             continue
+
+        try:
+            mail_renderer = import_by_path(revival.mail_renderer)
+            kwargs = {}
+            if revival.get_kwargs:
+                get_kwargs = import_by_path(revival.get_kwargs)
+                kwargs = get_kwargs(revival)
+        except:
+            logger.error("Error when starting revival %s for %s" % (revival.mail_renderer, revival.service))
+            continue
+
         service = revival.service
         db = service.database
         add_database(db)
@@ -65,28 +75,25 @@ def notify_profiles():
         model = get_model(tk[0], tk[1])
         try:
             obj = model._default_manager.using(db).get(pk=revival.object_id)
-            object_profile = ObjectProfile.objects.using(db).get(object_id=revival.object_id)
         except ObjectDoesNotExist:
             continue
-        profile_tag_list = []
-        for tag in object_profile.tag_list:
-            try:
-                profile_tag = ProfileTag.objects.using(db).get(slug=tag)
-                profile_tag_list.append(profile_tag)
-            except:
-                continue
+        try:
+            profile_tag = ProfileTag.objects.using(db).get(slug=revival.tag)
+        except:
+            continue
 
         if revival.status != PENDING:
             continue
 
-        set_counters_many(*profile_tag_list)
+        set_counters(profile_tag)
         revival_local = Revival.objects.using(db).get(pk=revival.id)
         if debug:
             member_queryset = Member.objects.using(db).filter(is_superuser=True)
         else:
-            member_queryset = Member.objects.using(db).all()
+            member_queryset = Member.objects.using(db).filter(date_joined__lte=seven_hours_ago)
         total = member_queryset.count()
         chunks = total / 500 + 1
+        target_count = 0
         for i in range(chunks):
             start = i * 500
             finish = (i + 1) * 500
@@ -95,12 +102,16 @@ def notify_profiles():
                     profile = MemberProfile.objects.using(db).get(member=member)
                 except MemberProfile.DoesNotExist:
                     profile = MemberProfile.objects.using(db).create(member=member, tag_list=[REFERRAL])
-                match = set(profile.tag_list) & set(object_profile.tag_list)
-                if len(match) > 0:
+                if revival.tag in profile.tag_list:
                     if debug:
-                        print "Profiles matching on %s for member %s" % (match, member)
+                        print "Profiles matching on %s for member %s" % (revival.tag, member)
                     if member.email:
                         Target.objects.using(db).get_or_create(revival=revival_local, member=member)
+                        target_count += 1
+
+        if target_count == 0:
+            continue
+
         revival.run_on = datetime.now()
         revival.status = STARTED
         revival.total = revival_local.target_set.all().count()
@@ -112,11 +123,6 @@ def notify_profiles():
         except:
             logger.error(u"Connexion error", exc_info=True)
 
-        kwargs = {}
-        if revival.get_kwargs:
-            get_kwargs = import_by_path(revival.get_kwargs)
-            kwargs = get_kwargs(revival)
-
         logger.debug("Running notify_profiles() %s for %s" % (revival.mail_renderer, revival.service))
         for target in revival_local.target_set.select_related('member').filter(notified=False)[:MAX_BATCH_SEND]:
             member = target.member
@@ -124,13 +130,20 @@ def notify_profiles():
                 activate(member.language)
             else:
                 activate('en')
-            mail_renderer = import_by_path(revival.mail_renderer)
-            sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
+
+            if getattr(settings, 'UNIT_TESTING', False):
+                sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
+            else:
+                try:
+                    sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
+                except:
+                    logger.error("Could not render mail for member %s, Revival %s, Obj: %s" % (member.email, revival.mail_renderer, str(obj)))
+                    continue
+
             if not html_content:
                 continue
             if debug:
                 subject = 'Test - ' + subject
-            sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
             msg = EmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
             try:
@@ -143,7 +156,7 @@ def notify_profiles():
                         target.notified = True
                         target.save()
                         total_mail += 1
-                        increment_history_field_many('smart_revival_history', args=profile_tag_list)
+                        increment_history_field(profile_tag, 'smart_revival_history')
                     else:
                         logger.error("Member %s not notified for Content %s" % (member.email, str(obj)),
                                      exc_info=True)
@@ -166,7 +179,7 @@ def notify_profiles():
     logger.debug("notify_profiles() run %d revivals. %d mails sent in %s" % (total_revival, total_mail, diff))
 
 
-def notify_profiles_retro():
+def notify_profiles_retro(debug=False):
     """
     Cron job that revive users by mail. Must be configured
     to run with a settings file having 'umbrella' as default database.
@@ -184,6 +197,17 @@ def notify_profiles_retro():
             total_revival += 1
         except Revival.DoesNotExist:
             continue
+
+        try:
+            mail_renderer = import_by_path(revival.mail_renderer)
+            kwargs = {}
+            if revival.get_kwargs:
+                get_kwargs = import_by_path(revival.get_kwargs)
+                kwargs = get_kwargs(revival)
+        except:
+            logger.error("Error when starting revival %s for %s" % (revival.mail_renderer, revival.service))
+            continue
+
         start_on = datetime.now()
         service = revival.service
         db = revival.service.database
@@ -196,23 +220,19 @@ def notify_profiles_retro():
         model = get_model(tk[0], tk[1])
         try:
             obj = model._default_manager.using(db).get(pk=revival.object_id)
-            object_profile = ObjectProfile.objects.using(db).get(object_id=revival.object_id)
         except ObjectDoesNotExist:
             continue
-        profile_tag_list = []
-        for tag in object_profile.tag_list:
-            try:
-                profile_tag = ProfileTag.objects.using(db).get(slug=tag)
-                profile_tag_list.append(profile_tag)
-            except:
-                continue
-        set_counters_many(*profile_tag_list)
+        try:
+            profile_tag = ProfileTag.objects.using(db).get(slug=revival.tag)
+        except:
+            continue
+        set_counters(profile_tag)
         revival_local = Revival.objects.using(db).get(pk=revival.id)
         extra = 0
         if debug:
             member_queryset = Member.objects.using(db).filter(is_superuser=True)
         else:
-            member_queryset = Member.objects.using(db).filter(date_joined__gt=revival.run_on)
+            member_queryset = Member.objects.using(db).all()
         total = member_queryset.count()
         chunks = total / 500 + 1
         for i in range(chunks):
@@ -223,11 +243,15 @@ def notify_profiles_retro():
                     profile = MemberProfile.objects.using(db).get(member=member)
                 except MemberProfile.DoesNotExist:
                     profile = MemberProfile.objects.using(db).create(member=member, tag_list=[REFERRAL])
-                match = set(profile.tag_list) & set(object_profile.tag_list)
-                if len(match) > 0:
+                if revival.tag in profile.tag_list:
+                    if debug:
+                        print "Profiles matching on %s for member %s" % (revival.tag, member)
                     if member.email:
                         Target.objects.using(db).get_or_create(revival=revival_local, member=member)
                         extra += 1
+
+        if extra == 0:
+            continue
 
         revival.run_on = datetime.now()
         revival.status = STARTED
@@ -239,11 +263,6 @@ def notify_profiles_retro():
         except:
             logger.error(u"Connexion error", exc_info=True)
 
-        kwargs = {}
-        if revival.get_kwargs:
-            get_kwargs = import_by_path(revival.get_kwargs)
-            kwargs = get_kwargs(revival)
-
         logger.debug("Running notify_profiles_retro() %s for %s" % (revival.mail_renderer, revival.service))
         for target in revival_local.target_set.select_related('member').filter(created_on__gte=start_on)[:MAX_BATCH_SEND]:
             member = target.member
@@ -251,13 +270,20 @@ def notify_profiles_retro():
                 activate(member.language)
             else:
                 activate('en')
-            mail_renderer = import_by_path(revival.mail_renderer)
-            sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
+
+            if getattr(settings, 'UNIT_TESTING', False):
+                sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
+            else:
+                try:
+                    sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
+                except:
+                    logger.error("Could not render mail for member %s, Revival %s, Obj: %s" % (member.email, revival.mail_renderer, str(obj)))
+                    continue
+
             if not html_content:
                 continue
             if debug:
                 subject = 'Test retro - ' + subject
-            sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
             msg = EmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
             try:
@@ -268,7 +294,7 @@ def notify_profiles_retro():
                     if msg.send():
                         target.revival_count += 1
                         target.save()
-                        increment_history_field_many('smart_revival_history', args=profile_tag_list)
+                        increment_history_field(profile_tag, 'smart_revival_history')
                         total_mail += 1
                     else:
                         logger.error("Member %s not notified for Content %s" % (member.email, str(obj)),
@@ -292,14 +318,14 @@ def notify_profiles_retro():
     logger.debug("notify_profiles_retro() run %d revivals. %d mails sent in %s" % (total_revival, total_mail, diff))
 
 
-def rerun_complete_revivals():
+def rerun_complete_revivals(debug=False):
     """
     Re-run Revivals with status = COMPLETE to keep users engaged
     """
     t0 = datetime.now()
     total_revival, total_mail = 0, 0
-    one_week_ago = timezone.now() - timedelta(days=3)
-    for revival in Revival.objects.select_related('service').filter(run_on__lte=one_week_ago, status=COMPLETE,
+    three_days_ago = timezone.now() - timedelta(days=3)
+    for revival in Revival.objects.select_related('service').filter(run_on__lte=three_days_ago, status=COMPLETE,
                                                                     is_active=True):
         try:
             refreshed = Revival.objects.get(pk=revival.id)
@@ -310,6 +336,17 @@ def rerun_complete_revivals():
             total_revival += 1
         except Revival.DoesNotExist:
             continue
+
+        try:
+            mail_renderer = import_by_path(revival.mail_renderer)
+            kwargs = {}
+            if revival.get_kwargs:
+                get_kwargs = import_by_path(revival.get_kwargs)
+                kwargs = get_kwargs(revival)
+        except:
+            logger.error("Error when starting revival %s for %s" % (revival.mail_renderer, revival.service))
+            continue
+
         service = revival.service
         db = revival.service.database
         add_database(db)
@@ -321,20 +358,19 @@ def rerun_complete_revivals():
         model = get_model(tk[0], tk[1])
         try:
             obj = model._default_manager.using(db).get(pk=revival.object_id)
-            object_profile = ObjectProfile.objects.using(db).get(object_id=revival.object_id)
         except ObjectDoesNotExist:
             continue
-        profile_tag_list = []
-        for tag in object_profile.tag_list:
-            try:
-                profile_tag = ProfileTag.objects.using(db).get(slug=tag)
-                profile_tag_list.append(profile_tag)
-            except:
-                continue
+        try:
+            profile_tag = ProfileTag.objects.using(db).get(slug=revival.tag)
+        except:
+            continue
 
-        set_counters_many(*profile_tag_list)
+        set_counters_many(profile_tag)
         revival_local = Revival.objects.using(db).get(pk=revival.id)
 
+        target_queryset = revival_local.target_set.select_related('member').filter(revival_count__lt=MAX_AUTO_REWARDS)
+        if target_queryset.count() == 0:
+            continue
         revival.run_on = timezone.now()
         revival.status = STARTED
         revival.save()
@@ -344,13 +380,8 @@ def rerun_complete_revivals():
         except:
             logger.error(u"Connexion error", exc_info=True)
 
-        kwargs = {}
-        if revival.get_kwargs:
-            get_kwargs = import_by_path(revival.get_kwargs)
-            kwargs = get_kwargs(revival)
-
         logger.debug("Running rerun_complete_revivals() %s for %s" % (revival.mail_renderer, revival.service))
-        for target in revival_local.target_set.select_related('member').filter(revival_count__lt=MAX_AUTO_REWARDS).order_by('updated_on')[:MAX_BATCH_SEND]:
+        for target in target_queryset.order_by('updated_on')[:MAX_BATCH_SEND]:
             member = target.member
             if debug and not member.is_superuser:
                 continue
@@ -358,8 +389,16 @@ def rerun_complete_revivals():
                 activate(member.language)
             else:
                 activate('en')
-            mail_renderer = import_by_path(revival.mail_renderer)
-            sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
+
+            if getattr(settings, 'UNIT_TESTING', False):
+                sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
+            else:
+                try:
+                    sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
+                except:
+                    logger.error("Could not render mail for member %s, Revival %s, Obj: %s" % (member.email, revival.mail_renderer, str(obj)))
+                    continue
+
             if not html_content:
                 continue
             if debug:
@@ -375,7 +414,7 @@ def rerun_complete_revivals():
                         target.revival_count += 1
                         target.save()
                         total_mail += 1
-                        increment_history_field_many('smart_revival_history', args=profile_tag_list)
+                        increment_history_field(profile_tag, 'smart_revival_history')
                     else:
                         logger.error("Member %s not notified for Content %s" % (member.email, str(obj)),
                                      exc_info=True)
@@ -399,14 +438,14 @@ if __name__ == '__main__':
     try:
         t0 = datetime.now()
         try:
-            debug = sys.argv[1] == 'debug'
+            DEBUG = sys.argv[1] == 'debug'
         except IndexError:
-            debug = False
-        if debug:
+            DEBUG = False
+        if DEBUG:
             print "Smart revivals started in debug mode"
-        notify_profiles()
-        notify_profiles_retro()
-        rerun_complete_revivals()
+        notify_profiles(DEBUG)
+        notify_profiles_retro(DEBUG)
+        rerun_complete_revivals(DEBUG)
 
         diff = datetime.now() - t0
         logger.debug("Smart revivals run in %s" % diff)

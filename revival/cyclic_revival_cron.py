@@ -25,17 +25,15 @@ from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.accesscontrol.models import Member
 from ikwen.core.utils import add_database, get_mail_content, send_sms, get_sms_label, set_counters
 from ikwen.revival.models import MemberProfile, CyclicRevival, CyclicTarget, ProfileTag
+from ikwen_kakocase.kako.models import Product
 
-
-from ikwen.core.log import CRONS_LOGGING
-logging.config.dictConfig(CRONS_LOGGING)
 
 logger = logging.getLogger('ikwen.crons')
 
 MAX_BATCH_SEND = 500
 
 
-def notify_profiles():
+def notify_profiles(debug=False):
     t0 = datetime.now()
     total_revival, total_mail, total_sms = 0, 0, 0
     logger.debug("Starting cyclic revival")
@@ -111,13 +109,21 @@ def notify_profiles():
                 currency = Currency.objects.using(using=db).get(is_base=True)
             except Currency.DoesNotExist:
                 currency = None
+            product_list = []
+            if service.app.slug == 'kakocase':
+                product_list = Product.objects.using(db).filter(pk__in=revival.items_fk_list)
             extra_context = {
                 'revival': revival,
                 'currency': currency,
-                'media_url': getattr(settings, 'CLUSTER_MEDIA_URL') + service.project_name_slug + '/'
+                'media_url': getattr(settings, 'CLUSTER_MEDIA_URL') + service.project_name_slug + '/',
+                'product_list': product_list
             }
-            html_content = get_mail_content(subject, message, template_name='revival/mails/default.html',
-                                            service=service, extra_context=extra_context)
+            try:
+                html_content = get_mail_content(subject, message, template_name='revival/mails/default.html',
+                                                service=service, extra_context=extra_context)
+            except:
+                logger.error("Could not render mail for member %s, Cyclic revival on %s" % (member.username, profile_tag))
+                break
             msg = EmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
 
@@ -174,9 +180,9 @@ def notify_profiles():
 if __name__ == '__main__':
     try:
         try:
-            debug = sys.argv[1] == 'debug'
+            DEBUG = sys.argv[1] == 'debug'
         except IndexError:
-            debug = False
-        notify_profiles()
+            DEBUG = False
+        notify_profiles(DEBUG)
     except:
         logger.error("Fatal error occured, cyclic revivals not run", exc_info=True)
