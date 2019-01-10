@@ -99,7 +99,7 @@
                     <ul class="people object-list">
                     {% for obj in nonrel_perm_list %}
                         {% with user=obj.user %}
-                        <li id="{{ user.id }}" class="member {{ user.get_status }}{% if user.is_ghost %} ghost{% endif %}"
+                        <li id="{{ user.id }}" class="ik-li member {{ user.get_status }}{% if user.is_ghost %} ghost{% endif %}"
                             data-id="{{ user.id }}" data-status="{{ user.get_status }}"
                             data-permissions="{% for perm in obj.permission_fk_list %},{{ perm }}{% endfor %}">
                             {% url 'ikwen:profile' user.id as member_url %}
@@ -112,10 +112,15 @@
                                 <a href="{{ member_url|ikwenize }}" class="full_name">{{ user.full_name }}</a>
                                 <p class="about">{{ user.phone }}, {{ user.email }}</p>
                             </div>
+                            {% if user.is_ghost %}
+                            <div class="actions">
+                                <i class="action glyphicon glyphicon-edit" title="{% trans "Edit" %}"></i>
+                            </div>
+                            {% endif %}
                         </li>
                         {% endwith %}
                     {% endfor %}
-                        <li class="member tpl" style="display: none">
+                        <li class="ik-li member tpl" style="display: none">
                             <a class="photo bg-img target_url"></a>
                             <div class="info">
                                 <a class="full_name target_url"></a>
@@ -360,7 +365,7 @@
                     }
                 });
             }).on('click', '#admin-tools .add', function() {
-                $('#modal-add-contact input, #modal-add-contact select').val('');
+                $('#modal-add-contact input[type=text], #modal-add-contact select').val('');
                 $('div#new-contact-profiles input[type=checkbox]').prop('checked', false);
                 $('div#new-contact-preferences input[type=checkbox]').prop('checked', false);
             }).on('click', '.add-contact', function() {
@@ -382,9 +387,11 @@
                         ikwen.showFloatingNotice(data.error, '', 6)
                     }
                     if (data.success) {
+                        $('.nav-tabs .tab').removeClass('active').hide();
+                        $('.nav-tabs .tab:first').addClass('active').show();
                         $('.tab-pane').removeClass('active').hide();
                         $('.tab-pane:first').addClass('active').show();
-                        var $member = $('.member.tpl').clone().removeClass('tpl');
+                        var $member = $('.tab-pane:first .member.tpl').clone().removeClass('tpl');
                         $member = applyMemberTemplate($member, data.member);
                         $member.prependTo('.tab-pane:first .people').show();
                         ikwen.showFloatingNotice("{% trans "Member added" %}", '', 6)
