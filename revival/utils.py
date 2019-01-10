@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
+from django.core.exceptions import MultipleObjectsReturned
 from django.utils.translation import gettext as _
 from ikwen.accesscontrol.models import Member
 from ikwen.core.utils import get_mail_content
@@ -19,6 +20,11 @@ def set_profile_tag_member_count():
                 member_profile = MemberProfile.objects.get(member=member)
             except MemberProfile.DoesNotExist:
                 continue
+            except MultipleObjectsReturned:
+                for profile in MemberProfile.objects.filter(member=member)[1:]:
+                    profile.delete()
+                member_profile = MemberProfile.objects.get(member=member)
+
             for profile_tag in ProfileTag.objects.filter(slug__in=member_profile.tag_list):
                 profile_tag.member_count += 1
                 profile_tag.save()
