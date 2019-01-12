@@ -19,7 +19,7 @@
         <div class="container-fluid">
             <h5 style="margin-top: 0">
                 <span>{% trans "Earnings" %} <span class="text-muted">({{ CRNCY.code }})</span> </span>
-                <a href="#" class="show-details">{% trans "Details" %}</a>
+                <a href="{% url 'billing:transaction_log' %}" class="show-details">{% trans "Details" %}</a>
             </h5>
             <div class="row" style="clear: both">
                 <div class="col-xs-6 col-sm-3 watch">
