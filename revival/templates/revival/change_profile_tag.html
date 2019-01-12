@@ -352,6 +352,9 @@
     <script src="{% static 'echo/js/sms-character-counter.js' %}" ></script>
     <script type="text/javascript">
         (function() {
+            {% if obj.is_reserved %}
+                $('#id_name').prop('readonly', true);
+            {% endif %}
             $('#end-on').prop('disabled', false).datepicker({
                 altField: "#end-on-alt",
                 altFormat: "yy-mm-dd",

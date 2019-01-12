@@ -49,13 +49,13 @@
                     {% url 'revival:change_profiletag' tag.id as change_profiletag_url %}
                     <li class="ik-li fancy xs colorful" id="{{ tag.id }}" data-id="{{ tag.id }}">
                         <div class="content">
-                            <div class="image"
+                            <a class="image" href="{{ change_profiletag_url }}"
                                  {% if tag.image.name %}
                                     style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ tag.image.name }})"
                                  {% endif %}>
                                 <div class="name">{% trans tag.name %}</div>
                                 <div class="meta">{{ tag.member_count }}</div>
-                            </div>
+                            </a>
                             <div class="info">
                                 <div class="name" style="float: left">&nbsp;</div>
                             </div>
@@ -65,6 +65,7 @@
                                 {% else %}
                                     <i class="action glyphicon glyphicon-ok toggle active on" title="{% trans "Activate" %}"></i>
                                 {% endif %}
+                                <a href="{{ change_profiletag_url }}" class="glyphicon glyphicon-edit" title="{% trans "Edit item" %}"></a>
                             </div>
                             <div class="clearfix"></div>
                         </div>
