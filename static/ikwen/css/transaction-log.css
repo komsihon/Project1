@@ -1,0 +1,39 @@
+/**
+    Document   : transaction-log
+    Created on : January 10, 2019, 17:01
+    Author     : Kom Sihon
+    Description:
+        Additional basic display rules for transaction log screen
+*/
+
+
+.category {border-radius: 3px; color: #fff; cursor: pointer; margin-top: 15px; padding: 1px 10px 10px}
+.category .amount {float:right; font-size: 18px; font-weight: 700}
+.category.successful {background: #449d44}
+.category.running {background: #f1b900}
+.category.failed {background: #e85f4c}
+.category.dropped {background: #740cda}
+.table>thead>tr>th {background: #f8f6f6; border-bottom: 2px solid #ddd}
+.tx-list td {cursor: pointer}
+.table>tbody>tr.warning>td, .table-hover>tbody>tr.warning:hover>td {background: #fff0d9; color: #545454}
+#content .spinner {background: #ffffffa8; height: 100%;left: 0;position: absolute;width: 100%;z-index: 1}
+.custom-period {display: none; font-size: .9em; margin-top: 33px}
+
+@media (max-width: 991px) {
+    #admin-content > .container-fluid {padding: 0 15px}
+}
+
+@media (max-width: 1199px) {
+    .category h4 {font-size: 17px}
+}
+
+@media (max-width: 767px) {
+    .category {padding: 1px 7px 10px}
+    .category h4 {font-size: 15px}
+    .row.summary .col-xs-6:nth-child(2n) {padding-left: 8px}
+    .row.summary .col-xs-6:nth-child(2n+1) {padding-right: 8px}
+}
+
+@media (min-width: 1200px) {
+    .category .amount {font-size: 30px}
+}
