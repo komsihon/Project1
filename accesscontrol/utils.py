@@ -33,6 +33,12 @@ from ikwen.rewarding.utils import JOIN
 logger = logging.getLogger('ikwen')
 
 
+def is_staff(member):
+    if member.is_anonymous():
+        return False
+    return member.is_staff
+
+
 def is_collaborator(member, service):
     if member.is_anonymous():
         return False
