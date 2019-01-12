@@ -27,7 +27,8 @@ from ikwen.core.utils import add_database, get_mail_content, send_sms, get_sms_l
 from ikwen.revival.models import MemberProfile, CyclicRevival, CyclicTarget, ProfileTag
 from ikwen_kakocase.kako.models import Product
 
-
+from ikwen.core.log import CRONS_LOGGING
+logging.config.dictConfig(CRONS_LOGGING)
 logger = logging.getLogger('ikwen.crons')
 
 MAX_BATCH_SEND = 500
@@ -122,7 +123,7 @@ def notify_profiles(debug=False):
                 html_content = get_mail_content(subject, message, template_name='revival/mails/default.html',
                                                 service=service, extra_context=extra_context)
             except:
-                logger.error("Could not render mail for member %s, Cyclic revival on %s" % (member.username, profile_tag))
+                logger.error("Could not render mail for member %s, Cyclic revival on %s" % (member.username, profile_tag), exc_info=True)
                 break
             msg = EmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"

@@ -28,6 +28,8 @@ from ikwen.core.utils import add_database, set_counters_many, set_counters, incr
 from ikwen.revival.models import Revival, Target, MemberProfile, ProfileTag
 from ikwen.rewarding.utils import REFERRAL
 
+from ikwen.core.log import CRONS_LOGGING
+logging.config.dictConfig(CRONS_LOGGING)
 logger = logging.getLogger('ikwen.crons')
 
 MAX_BATCH_SEND = 500
@@ -63,7 +65,7 @@ def notify_profiles(debug=False):
         except:
             revival.is_running = False
             revival.save()
-            logger.error("Error when starting revival %s for %s" % (revival.mail_renderer, revival.service))
+            logger.error("Error when starting revival %s for %s" % (revival.mail_renderer, revival.service), exc_info=True)
             continue
 
         service = revival.service
@@ -156,7 +158,7 @@ def notify_profiles(debug=False):
                 try:
                     sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
                 except:
-                    logger.error("Could not render mail for member %s, Revival %s, Obj: %s" % (member.email, revival.mail_renderer, str(obj)))
+                    logger.error("Could not render mail for member %s, Revival %s, Obj: %s" % (member.email, revival.mail_renderer, str(obj)), exc_info=True)
                     continue
 
             if not html_content:
@@ -227,7 +229,7 @@ def notify_profiles_retro(debug=False):
         except:
             revival.is_running = False
             revival.save()
-            logger.error("Error when starting revival %s for %s" % (revival.mail_renderer, revival.service))
+            logger.error("Error when starting revival %s for %s" % (revival.mail_renderer, revival.service), exc_info=True)
             continue
 
         start_on = datetime.now()
@@ -315,7 +317,7 @@ def notify_profiles_retro(debug=False):
                 try:
                     sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
                 except:
-                    logger.error("Could not render mail for member %s, Revival %s, Obj: %s" % (member.email, revival.mail_renderer, str(obj)))
+                    logger.error("Could not render mail for member %s, Revival %s, Obj: %s" % (member.email, revival.mail_renderer, str(obj)), exc_info=True)
                     continue
 
             if not html_content:
@@ -385,7 +387,7 @@ def rerun_complete_revivals(debug=False):
         except:
             revival.is_running = False
             revival.save()
-            logger.error("Error when starting revival %s for %s" % (revival.mail_renderer, revival.service))
+            logger.error("Error when starting revival %s for %s" % (revival.mail_renderer, revival.service), exc_info=True)
             continue
 
         service = revival.service
@@ -452,7 +454,7 @@ def rerun_complete_revivals(debug=False):
                 try:
                     sender, subject, html_content = mail_renderer(target, obj, revival, **kwargs)
                 except:
-                    logger.error("Could not render mail for member %s, Revival %s, Obj: %s" % (member.email, revival.mail_renderer, str(obj)))
+                    logger.error("Could not render mail for member %s, Revival %s, Obj: %s" % (member.email, revival.mail_renderer, str(obj)), exc_info=True)
                     continue
 
             if not html_content:
