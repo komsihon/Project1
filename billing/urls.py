@@ -7,7 +7,7 @@ from ikwen.billing.jumbopay.views import jumbopay_local_api
 
 from ikwen.billing.views import InvoiceList, InvoiceDetail, change_billing_cycle, list_members, \
     list_subscriptions, IframeAdmin, ProductList, ChangeProduct, PaymentMeanList, set_credentials, toggle_payment_mean, \
-    MoMoSetCheckout, DeployCloud, SubscriptionList, ChangeSubscription
+    MoMoSetCheckout, DeployCloud, SubscriptionList, ChangeSubscription, TransactionLog
 from ikwen.billing.public.views import Pricing, Donate
 from ikwen.billing.mtnmomo.views import init_momo_transaction, check_momo_transaction_status
 
@@ -35,6 +35,8 @@ urlpatterns = patterns(
     url(r'^MoMo/setCheckout/$', MoMoSetCheckout.as_view(), name='momo_set_checkout'),
     url(r'^MoMo/initTransaction/$', init_momo_transaction, name='init_momo_transaction'),
     url(r'^MoMo/checkTransaction/$', check_momo_transaction_status, name='check_momo_transaction_status'),
+
+    url(r'^transactions/$', permission_required('accesscontrol.sudo')(TransactionLog.as_view()), name='transaction_log'),
 
     url(r'^JumboPayAPI/$', jumbopay_local_api, name='jumbopay_local_api'),  # For Unit Tests only
     url(r'^JumboPayAPI/(?P<op>[-\w]+)$', jumbopay_local_api, name='jumbopay_local_api'),  # For Unit Tests only

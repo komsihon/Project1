@@ -3,12 +3,12 @@ import json
 import logging
 import random
 import string
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.urlresolvers import reverse
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.db.models.loading import get_model
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
@@ -419,6 +419,131 @@ def toggle_payment_mean(request, *args, **kwargs):
         payment_mean.is_active = True
     payment_mean.save()
     return HttpResponse(json.dumps({'success': True}), 'content-type: text/json')
+
+
+class TransactionLog(HybridListView):
+    context_object_name = 'transaction_list'
+    template_name = 'billing/transaction_log.html'
+    html_results_template_name = 'billing/snippets/transaction_log_results.html'
+    page_size = 200
+
+    def get_filter_criteria(self):
+        criteria = {}
+        operator = self.request.GET.get('operator')
+        if operator:
+            criteria['wallet'] = operator
+        status = self.request.GET.get('status')
+        if status:
+            criteria['status'] = status
+        is_running = self.request.GET.get('is_running')
+        if is_running:
+            criteria['is_running'] = True
+        period = self.request.GET.get('period', 'today')
+        now = datetime.now()
+        if period == 'today':
+            start_date = datetime(now.year, now.month, now.day, 0, 0, 0)
+            end_date = datetime(now.year, now.month, now.day, 23, 59, 59)
+        elif period == 'yesterday':
+            yst = now - timedelta(days=1)
+            start_date = datetime(yst.year, yst.month, yst.day, 0, 0, 0)
+            end_date = datetime(yst.year, yst.month, yst.day, 23, 59, 59)
+        elif period == 'last_7_days':
+            b = now - timedelta(days=1)
+            start_date = datetime(b.year, b.month, b.day, 0, 0, 0)
+            end_date = now
+        elif period == 'last_28_days':
+            b = now - timedelta(days=28)
+            start_date = datetime(b.year, b.month, b.day, 0, 0, 0)
+            end_date = now
+        elif period == 'since_the_1st':
+            start_date = datetime(now.year, now.month, 1, 0, 0, 0)
+            end_date = now
+        else:
+            start_date = None
+            end_date = None
+        criteria['start_date'] = start_date
+        criteria['end_date'] = end_date
+        return criteria
+
+    def get_queryset(self):
+        criteria = self.get_filter_criteria()
+        queryset = MoMoTransaction.objects.using('wallets').filter(service_id=getattr(settings, 'IKWEN_SERVICE_ID'))
+        # queryset = MoMoTransaction.objects.using('wallets').all()
+        return self.grab_transactions(queryset, **criteria)
+
+    def grab_transactions(self, queryset, **criteria):
+        start_date = criteria.pop('start_date')
+        end_date = criteria.pop('end_date')
+        if start_date and end_date:
+            queryset = queryset.filter(created_on__range=(start_date, end_date))
+        self.mark_dropped(queryset)
+        if criteria.get('status') == MoMoTransaction.FAILURE:
+            criteria.pop('status')
+            queryset = queryset.exclude(Q(status=MoMoTransaction.SUCCESS) |
+                                        Q(status=MoMoTransaction.DROPPED) |
+                                        Q(is_running=True))
+        return queryset.filter(**criteria)
+
+    def sum_transactions(self, queryset, **criteria):
+        count_successful, count_running, count_failed, count_dropped = 0, 0, 0, 0
+        amount_successful, amount_running, amount_failed, amount_dropped, amount_total = 0, 0, 0, 0, 0
+        start_date = criteria.pop('start_date')
+        end_date = criteria.pop('end_date')
+        if start_date and end_date:
+            queryset = queryset.filter(created_on__range=(start_date, end_date))
+        if criteria.get('status') is None and criteria.get('is_running') is None:
+            count_successful = queryset.filter(status=MoMoTransaction.SUCCESS, **criteria).count()
+            aggr = queryset.filter(status=MoMoTransaction.SUCCESS, **criteria).aggregate(Sum('amount'))
+            if aggr['amount__sum']:
+                amount_successful = aggr['amount__sum']
+            count_running = queryset.filter(is_running=True, **criteria).count()
+            aggr = queryset.filter(is_running=True, **criteria).aggregate(Sum('amount'))
+            if aggr['amount__sum']:
+                amount_running = aggr['amount__sum']
+            count_failed = queryset.exclude(Q(status=MoMoTransaction.SUCCESS) |
+                                             Q(status=MoMoTransaction.DROPPED) |
+                                             Q(is_running=True)).filter(**criteria).count()
+            aggr = queryset.exclude(Q(status=MoMoTransaction.SUCCESS) |
+                                    Q(status=MoMoTransaction.DROPPED) |
+                                    Q(is_running=True)).filter(**criteria).aggregate(Sum('amount'))
+            if aggr['amount__sum']:
+                amount_failed = aggr['amount__sum']
+            count_dropped = queryset.filter(status=MoMoTransaction.DROPPED, **criteria).count()
+            aggr = queryset.filter(status=MoMoTransaction.DROPPED, **criteria).aggregate(Sum('amount'))
+            if aggr['amount__sum']:
+                amount_dropped = aggr['amount__sum']
+        elif criteria.get('status') == MoMoTransaction.FAILURE:
+            criteria.pop('status')
+            queryset = queryset.exclude(Q(status=MoMoTransaction.SUCCESS) |
+                                        Q(status=MoMoTransaction.DROPPED) |
+                                        Q(is_running=True))
+        aggr = queryset.filter(**criteria).aggregate(Sum('amount'))
+        if aggr['amount__sum']:
+            amount_total += aggr['amount__sum']
+        count_total = queryset.filter(**criteria).count()
+        meta = {
+            'total': {'count': count_total, 'amount': amount_total},
+            'successful': {'count': count_successful, 'amount': amount_successful},
+            'running': {'count': count_running, 'amount': amount_running},
+            'failed': {'count': count_failed, 'amount': amount_failed},
+            'dropped': {'count': count_dropped, 'amount': amount_dropped},
+        }
+        return meta
+
+    def mark_dropped(self, queryset):
+        for tx in queryset.filter(is_running=True):
+            diff = datetime.now() - tx.created_on
+            if diff.seconds > 660:
+                tx.is_running = False
+                tx.status = MoMoTransaction.DROPPED
+                tx.save()
+
+    def get_context_data(self, **kwargs):
+        context = super(TransactionLog, self).get_context_data(**kwargs)
+        criteria = self.get_filter_criteria()
+        queryset = self.get_queryset()
+        context['meta'] = self.sum_transactions(queryset, **criteria)
+        return context
 
 
 class DeployCloud(TemplateView):
