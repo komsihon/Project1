@@ -78,8 +78,21 @@ class HybridListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(HybridListView, self).get_context_data(**kwargs)
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        max_chars = self.request.GET.get('max_chars', 4)
+        if start_date and end_date:
+            queryset = queryset.filter(created_on__range=(start_date, end_date))
+        elif start_date:
+            queryset = queryset.filter(created_on__gte=start_date)
+        elif end_date:
+            queryset = queryset.filter(created_on__lte=end_date)
+        queryset = self.get_search_results(queryset, max_chars=max_chars)
         context_object_name = self.get_context_object_name(self.object_list)
         context[context_object_name] = context[context_object_name].order_by(*self.ordering)[:self.page_size]
+        context['queryset'] = queryset
         context['page_size'] = self.page_size
         context['total_objects'] = self.get_queryset().count()
         context['filter'] = self.get_filter()
@@ -98,23 +111,12 @@ class HybridListView(ListView):
 
     def render_to_response(self, context, **response_kwargs):
         fmt = self.request.GET.get('format')
-        queryset = self.get_queryset()
-        queryset = self.filter_queryset(queryset)
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
-        max_chars = self.request.GET.get('max_chars', 4)
-        if start_date and end_date:
-            queryset = queryset.filter(created_on__range=(start_date, end_date))
-        elif start_date:
-            queryset = queryset.filter(created_on__gte=start_date)
-        elif end_date:
-            queryset = queryset.filter(created_on__lte=end_date)
-        start = int(self.request.GET.get('start', 0))
-        length = int(self.request.GET.get('length', self.page_size))
-        limit = start + length
-        queryset = self.get_search_results(queryset, max_chars=max_chars)
+        queryset = context['queryset']
         if fmt == 'json':
             queryset = queryset.order_by(*self.ajax_ordering)
+            start = int(self.request.GET.get('start', 0))
+            length = int(self.request.GET.get('length', self.page_size))
+            limit = start + length
             queryset = queryset[start:limit]
             response = []
             for item in queryset:
@@ -279,9 +281,9 @@ class ChangeObjectBase(TemplateView):
         model_admin = get_model_admin_instance(self.model, self.model_admin)
         obj = self.get_object(**kwargs)
         form = self.get_model_form(obj)
-        obj_form = helpers.AdminForm(form, list(model_admin.get_fieldsets(self.request)),
-                                     model_admin.get_prepopulated_fields(self.request),
-                                     model_admin.get_readonly_fields(self.request))
+        obj_form = helpers.AdminForm(form, list(model_admin.get_fieldsets(self.request, obj)),
+                                     model_admin.get_prepopulated_fields(self.request, obj),
+                                     model_admin.get_readonly_fields(self.request, obj))
 
         if self.profiles_aware:
             object_profile, update = ObjectProfile.objects.get_or_create(model_id=obj.id)
