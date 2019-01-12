@@ -6,9 +6,8 @@
         Rules for ikwen wallet management page
 */
 
-body {background: #f6f6f6}
 #app-nav {background: #fff}
-.box {background: #fff; padding: 10px}
+.box {background: #fff;border: 1px solid #eee;padding: 10px;}
 .box h3 {font-size: 18px; font-weight: 700; margin-top: 0}
 .box .action {border-top: 1px solid #ddd; font-weight: 700;
     margin-top: 2em; padding-top: 5px; text-align: right}
