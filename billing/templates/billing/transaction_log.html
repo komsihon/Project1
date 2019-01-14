@@ -39,8 +39,8 @@
                             <option value="since_the_1st">Since the 1st of month</option>
                             <option value="other" data-toggle="modal" data-target="#period-chooser">Other ...</option>
                         </select>
-                        <input type="hidden" id="start-alt" name="start_date" />
-                        <input type="hidden" id="end-alt" name="end_date" />
+                        <input type="hidden" id="start-alt" name="starting_on" />
+                        <input type="hidden" id="end-alt" name="ending_on" />
                         <input type="hidden" id="is-running" name="is_running" />
                         <input type="hidden" id="status" name="status" />
                         <input type="hidden" id="page" name="page" />
@@ -200,8 +200,8 @@
                 $('#period').val(period);
             });
             $('.confirm-period').click(function() {
-                var start = $('#start-date').val() + " 00:00",
-                    end = $('#end-date').val() + " 23:59";
+                var start = $('#start-date').val(),
+                    end = $('#end-date').val();
                 if (start && end) {
                     $('.custom-period .start').text(start);
                     $('.custom-period .end').text(end);

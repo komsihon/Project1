@@ -459,8 +459,10 @@ class TransactionLog(HybridListView):
             start_date = datetime(now.year, now.month, 1, 0, 0, 0)
             end_date = now
         else:
-            start_date = None
-            end_date = None
+            # Using rather 'starting_on' and 'ending_on' to avoid collisions with the
+            # default expected GET parameters used in core.HybridListView.get_context_data()
+            start_date = self.request.GET.get('starting_on') + " 00:00:00"
+            end_date = self.request.GET.get('ending_on') + " 23:59:59"
         criteria['start_date'] = start_date
         criteria['end_date'] = end_date
         return criteria
@@ -468,14 +470,12 @@ class TransactionLog(HybridListView):
     def get_queryset(self):
         criteria = self.get_filter_criteria()
         queryset = MoMoTransaction.objects.using('wallets').filter(service_id=getattr(settings, 'IKWEN_SERVICE_ID'))
-        # queryset = MoMoTransaction.objects.using('wallets').all()
         return self.grab_transactions(queryset, **criteria)
 
     def grab_transactions(self, queryset, **criteria):
         start_date = criteria.pop('start_date')
         end_date = criteria.pop('end_date')
-        if start_date and end_date:
-            queryset = queryset.filter(created_on__range=(start_date, end_date))
+        queryset = queryset.filter(created_on__range=(start_date, end_date))
         self.mark_dropped(queryset)
         if criteria.get('status') == MoMoTransaction.FAILURE:
             criteria.pop('status')
