@@ -168,7 +168,7 @@ class RevivalViewsTestCase(unittest.TestCase):
         self.assertEqual(target_count, 4)
 
         three_days_ago = now - timedelta(days=3)
-        Revival.objects.filter(pk='58eb3eb637b33795ddfd04b3').update(run_on=three_days_ago)
+        Target.objects.using(db).filter(revival='58eb3eb637b33795ddfd04b3').update(revived_on=three_days_ago)
         rerun_complete_revivals()
         target_count = Target.objects.using(db).filter(revival='58eb3eb637b33795ddfd04b3').filter(revival_count=2).count()
         self.assertEqual(target_count, 4)

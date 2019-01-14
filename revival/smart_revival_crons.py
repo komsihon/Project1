@@ -28,8 +28,8 @@ from ikwen.core.utils import add_database, set_counters_many, set_counters, incr
 from ikwen.revival.models import Revival, Target, MemberProfile, ProfileTag
 from ikwen.rewarding.utils import REFERRAL
 
-from ikwen.core.log import CRONS_LOGGING
-logging.config.dictConfig(CRONS_LOGGING)
+# from ikwen.core.log import CRONS_LOGGING
+# logging.config.dictConfig(CRONS_LOGGING)
 logger = logging.getLogger('ikwen.crons')
 
 MAX_BATCH_SEND = 500
@@ -175,6 +175,7 @@ def notify_profiles(debug=False):
                     if msg.send():
                         target.revival_count += 1
                         target.notified = True
+                        target.revived_on = t0
                         target.save()
                         total_mail += 1
                         increment_history_field(profile_tag, 'smart_revival_history')
@@ -333,6 +334,7 @@ def notify_profiles_retro(debug=False):
                         balance.save()
                     if msg.send():
                         target.revival_count += 1
+                        target.revived_on = t0
                         target.save()
                         increment_history_field(profile_tag, 'smart_revival_history')
                         total_mail += 1
@@ -366,8 +368,7 @@ def rerun_complete_revivals(debug=False):
     t0 = datetime.now()
     total_revival, total_mail = 0, 0
     three_days_ago = timezone.now() - timedelta(days=3)
-    for revival in Revival.objects.select_related('service').filter(run_on__lte=three_days_ago, status=COMPLETE,
-                                                                    is_active=True):
+    for revival in Revival.objects.select_related('service').filter(status=COMPLETE, is_active=True):
         try:
             refreshed = Revival.objects.get(pk=revival.id)
             if refreshed.is_running:
@@ -417,7 +418,8 @@ def rerun_complete_revivals(debug=False):
         set_counters_many(profile_tag)
         revival_local = Revival.objects.using(db).get(pk=revival.id)
 
-        target_queryset = revival_local.target_set.select_related('member').filter(revival_count__lt=MAX_AUTO_REWARDS)
+        target_queryset = revival_local.target_set.select_related('member').filter(revived_on__lte=three_days_ago,
+                                                                                   revival_count__lt=MAX_AUTO_REWARDS)
         if target_queryset.count() == 0:
             revival.is_running = False
             revival.save()
@@ -470,6 +472,7 @@ def rerun_complete_revivals(debug=False):
                         balance.save()
                     if msg.send():
                         target.revival_count += 1
+                        target.revived_on = t0
                         target.save()
                         total_mail += 1
                         increment_history_field(profile_tag, 'smart_revival_history')

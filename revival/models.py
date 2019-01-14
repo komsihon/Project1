@@ -125,6 +125,7 @@ class Target(Model):
     member = models.ForeignKey(Member)
     revival_count = models.IntegerField(default=0)
     notified = models.BooleanField(default=False)
+    revived_on = models.DateTimeField(blank=True, null=True, db_index=True)
     rand = models.FloatField(default=random, db_index=True)
 
 
