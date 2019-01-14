@@ -103,7 +103,7 @@
             </thead>
             <tbody>
                 {% for tx in transaction_list %}
-                    <tr class="{% if tx.status == 'Success' and tx.message != 'OK' %}warning{% endif %}"
+                    <tr{% if tx.status == 'Success' and tx.message != 'OK' %} class="warning"{% endif %}
                         data-message="{{ tx.message }}" data-operator-tx-id="{{ tx.processor_tx_id }}" data-object-id="{{ tx.object_id }}">
                         <td class="operator">{{ tx.wallet }}</td>
                         <td class="phone">{% if tx.phone == '<Unknown>' %}{{ tx.phone }}{% else %}{{ tx.phone|floatformat:"0" }}{% endif %}</td>
