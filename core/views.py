@@ -3,6 +3,7 @@ import json
 import os
 import random
 import string
+from copy import deepcopy
 from datetime import datetime, timedelta
 from time import strptime
 
@@ -228,7 +229,7 @@ class HybridListView(ListView):
                         'choices': filter.lookups()
                     })
             else:
-                item_values = set([obj.__getattribute__[item] for obj in self.get_queryset()])
+                item_values = set([obj.__getattribute__(item) for obj in self.get_queryset()])
                 item_values = list(sorted(item_values))
                 options.append({
                     'title': item.capitalize(),
@@ -326,8 +327,10 @@ class ChangeObjectBase(TemplateView):
     def post(self, request, *args, **kwargs):
         object_admin = get_model_admin_instance(self.model, self.model_admin)
         object_id = kwargs.get('object_id')
+        before = None
         if object_id:
             obj = self.get_object(**kwargs)
+            before = deepcopy(obj)
         else:
             obj = self.model()
         model_form = object_admin.get_form(request)
@@ -351,9 +354,14 @@ class ChangeObjectBase(TemplateView):
                 name_field_name = request.POST.get('name_field_name', 'name')
                 try:
                     name_field = obj.__getattribute__(name_field_name)
-                    tag_name = '__' + name_field
                     slug = '__' + slugify(name_field)
-                    ProfileTag.objects.create(name=tag_name, slug=slug, is_auto=True)
+                    if before:
+                        before_name = before.__getattribute__(name_field_name)
+                        before_slug = '__' + slugify(before_name)
+                        if before_name != name_field:
+                            ProfileTag.objects.filter(slug=before_slug).update(name=name_field, slug=slug)
+                    else:
+                        ProfileTag.objects.get_or_create(name=name_field, slug=slug, is_auto=True)
                 except:
                     pass
 
@@ -429,21 +437,14 @@ class ChangeObjectBase(TemplateView):
         profiletag_id_list = profiletag_ids.strip().split(',')
         profiletag_id_list.extend(auto_profiletag_id_list)
         model_name = obj._meta.app_label + '.' + obj._meta.model_name
-        tag_list = []
-        for pk in profiletag_id_list:
-            try:
-                tag = ProfileTag.objects.get(pk=pk)
-                tag_list.append(tag.slug)
-            except:
-                continue
         if do_revive and revival_mail_renderer:  # This is a newly created object
             service = get_service_instance()
             srvce = Service.objects.using(UMBRELLA).get(pk=service.id)
-            for tag in tag_list:
+            for tag_id in profiletag_id_list:
                 revival = Revival.objects.create(service=service, model_name=model_name, object_id=obj.id,
-                                                 tag=tag, mail_renderer=revival_mail_renderer)
+                                                 profile_tag_id=tag_id, mail_renderer=revival_mail_renderer)
                 Revival.objects.using(UMBRELLA).create(id=revival.id, service=srvce, model_name=model_name, object_id=obj.id,
-                                                       tag=tag, mail_renderer=revival_mail_renderer)
+                                                       profile_tag_id=tag_id, mail_renderer=revival_mail_renderer)
 
     def after_save(self, request, obj, *args, **kwargs):
         """
