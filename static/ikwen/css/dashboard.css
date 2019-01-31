@@ -163,6 +163,6 @@
     .figure-lg {text-align: center}
 }
 @media (min-width: 992px) {
-    #admin-content {padding-left: 240px;}
+    #admin-content {padding-left: 270px;}
     #admin-content > .container-fluid {padding-right: 15px}
 }
