@@ -41,6 +41,7 @@ def init_request_payment(request, *args, **kwargs):
     username = request.user.username if request.user.is_authenticated() else None
     try:
         tx = MoMoTransaction.objects.using('wallets').get(object_id=object_id)
+        return HttpResponse(json.dumps({'success': True, 'tx_id': tx.id}), 'content-type: text/json')
     except MoMoTransaction.DoesNotExist:
         tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
                                                              phone=phone, amount=amount, model=model_name,
