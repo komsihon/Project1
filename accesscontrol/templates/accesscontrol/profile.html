@@ -211,7 +211,7 @@
                                             </div>
                                             {% if user.is_authenticated %}
                                             <div class="progress">
-                                                <div class="progress-bar" style="width: {{ coupon.ratio }}%">
+                                                <div class="progress-bar" style="width: {{ coupon.ratio|floatformat:"0" }}%">
                                                     <span class="sr-only">{{ coupon.ratio }}% Complete</span>
                                                 </div>
                                             </div>
