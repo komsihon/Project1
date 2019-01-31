@@ -128,7 +128,7 @@ class RevivalViewsTestCase(unittest.TestCase):
         self.assertEqual(target_count, 1)
 
         for member_profile in MemberProfile.objects.using(db).exclude(member='56eb6d04b37b3379b531e011'):
-            member_profile.tag_list.append(REFERRAL)
+            member_profile.tag_fk_list.append('58088fc0c253e5ddf0563955')
             member_profile.save()
 
         notify_profiles_retro()
@@ -160,7 +160,7 @@ class RevivalViewsTestCase(unittest.TestCase):
         Revival.objects.filter(pk__in=['58eb3eb637b33795ddfd04b1', '58eb3eb637b33795ddfd04b2']).update(is_active=False)
 
         for member_profile in MemberProfile.objects.using(db).exclude(member='56eb6d04b37b3379b531e011'):
-            member_profile.tag_list.append(REFERRAL)
+            member_profile.tag_fk_list.append('58088fc0c253e5ddf0563955')
             member_profile.save()
 
         notify_profiles()

@@ -25,7 +25,7 @@ def set_profile_tag_member_count():
                     profile.delete()
                 member_profile = MemberProfile.objects.get(member=member)
 
-            for profile_tag in ProfileTag.objects.filter(slug__in=member_profile.tag_list):
+            for profile_tag in ProfileTag.objects.filter(pk__in=member_profile.tag_fk_list):
                 profile_tag.member_count += 1
                 profile_tag.save()
 

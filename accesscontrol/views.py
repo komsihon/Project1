@@ -722,7 +722,7 @@ class Community(HybridListView):
         member_profile, update = MemberProfile.objects.get_or_create(member=member)
         profiletag_list = list(ProfileTag.objects.filter(is_active=True, is_auto=False))
         for tag in profiletag_list:
-            if tag.slug in member_profile.tag_list:
+            if tag.id in member_profile.tag_fk_list:
                 tag.is_selected = True
         context['member'] = member
         context['permission_list'] = permission_list
@@ -730,15 +730,13 @@ class Community(HybridListView):
         return render(self.request, 'accesscontrol/snippets/member_detail.html', context)
 
     def set_member_profiles(self, *args, **kwargs):
-        tag_id_list = []
+        tag_fk_list = []
         tag_ids = self.request.GET['tag_ids']
         if tag_ids:
-            tag_id_list = tag_ids.split(',')
+            tag_fk_list = tag_ids.split(',')
         member_id = self.request.GET['member_id']
         member = Member.objects.get(pk=member_id)
-        tag_list = []
-        for tag in ProfileTag.objects.filter(pk__in=tag_id_list):
-            tag_list.append(tag.slug)
+        for tag in ProfileTag.objects.filter(pk__in=tag_fk_list):
             if tag.slug == 'men':
                 if not member.gender:
                     Member.objects.using('default').filter(pk=member_id).update(gender=MALE)
@@ -748,7 +746,7 @@ class Community(HybridListView):
                     Member.objects.using('default').filter(pk=member_id).update(gender=FEMALE)
                     Member.objects.using(UMBRELLA).filter(pk=member_id).update(gender=FEMALE)
         member_profile = MemberProfile.objects.get(member=member)
-        member_profile.tag_list = tag_list
+        member_profile.tag_fk_list = tag_fk_list
         member_profile.save()
         Thread(target=set_profile_tag_member_count).start()
         return HttpResponse(json.dumps({'success': True}), content_type='application/json')
@@ -783,9 +781,9 @@ class Community(HybridListView):
             except:
                 pass
 
-        tag_id_list = []
+        tag_fk_list = []
         if tag_ids:
-            tag_id_list = tag_ids.split(',')
+            tag_fk_list = tag_ids.split(',')
         first_name, last_name = '', ''
         if name:
             tk = name.split(' ')
@@ -796,19 +794,17 @@ class Community(HybridListView):
         username = email if email else phone
         member = Member.objects.create_user(username, DEFAULT_GHOST_PWD, first_name=first_name, last_name=last_name,
                                             email=email, phone=phone, gender=gender, is_ghost=True)
-        tag_list = [JOIN]
-        for tag in ProfileTag.objects.filter(pk__in=tag_id_list):
-            tag_list.append(tag.slug)
+        tag = JOIN
+        join_tag, update = ProfileTag.objects.get_or_create(name=tag, slug=tag, is_auto=True)
+        tag_fk_list.append(join_tag.id)
         member_profile = MemberProfile.objects.get(member=member)
-        member_profile.tag_list.extend(tag_list)
+        member_profile.tag_fk_list.extend(tag_fk_list)
         member_profile.save()
 
         service = Service.objects.using(UMBRELLA).get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
-        tag = JOIN
         Revival.objects.using(UMBRELLA).get_or_create(service=service, model_name='core.Service', object_id=service.id,
                                                       mail_renderer='ikwen.revival.utils.render_suggest_create_account_mail',
-                                                      tag=tag, get_kwargs='ikwen.rewarding.utils.get_join_reward_pack_list')
-        ProfileTag.objects.get_or_create(name=tag, slug=tag, is_auto=True)
+                                                      profile_tag_id=join_tag.id, get_kwargs='ikwen.rewarding.utils.get_join_reward_pack_list')
 
         Thread(target=set_profile_tag_member_count).start()
         response = {'success': True, 'member': member.to_dict()}
@@ -916,17 +912,20 @@ def join(request, *args, **kwargs):
     if referrer_id:
         referrer = Member.objects.get(pk=referrer_id)
         referrer_profile, update = MemberProfile.objects.get_or_create(member=referrer)
-        referrer_tag_list = referrer_profile.tag_list
-        if 'men' in referrer_tag_list:
-            referrer_tag_list.remove('men')
-        if 'women' in referrer_tag_list:
-            referrer_tag_list.remove('women')
+        men_tag, update = ProfileTag.objects.get_or_create(name='Men', slug='men', is_reserved=True)
+        women_tag, update = ProfileTag.objects.get_or_create(name='Women', slug='women', is_reserved=True)
+
+        referrer_tag_fk_list = referrer_profile.tag_fk_list
+        if men_tag.id in referrer_tag_fk_list:
+            referrer_tag_fk_list.remove(men_tag.id)
+        if women_tag.id in referrer_tag_fk_list:
+            referrer_tag_fk_list.remove(women_tag.id)
         member_profile, update = MemberProfile.objects.get_or_create(member=member)
-        member_profile.tag_list.extend(referrer_tag_list)
+        member_profile.tag_fk_list.extend(referrer_tag_fk_list)
         if member.gender == MALE:
-            member_profile.tag_list.append('men')
+            member_profile.tag_fk_list.append(men_tag.id)
         elif member.gender == FEMALE:
-            member_profile.tag_list.append('women')
+            member_profile.tag_fk_list.append(women_tag.id)
         member_profile.save()
         referral_pack_list, coupon_count = reward_member(service, referrer, Reward.REFERRAL)
         if referral_pack_list:

@@ -27,8 +27,8 @@ from ikwen.accesscontrol.models import Member
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.core.models import Service
 from ikwen.core.utils import get_service_instance, get_mail_content, send_sms
-from ikwen.revival.models import MemberProfile
-from ikwen.rewarding.utils import JOIN
+from ikwen.revival.models import MemberProfile, ProfileTag
+from ikwen.rewarding.utils import JOIN, REFERRAL
 
 logger = logging.getLogger('ikwen')
 
@@ -344,37 +344,39 @@ def import_ghost_profile_to_member(member, db='default'):
         phone = phone[3:]
     shifted_phone = '__' + phone
     shifted_email = '__' + member.email
-    ghost_tag_list = []
+    ghost_tag_fk_list = []
     try:
         ghost = Member.objects.using(db).get(phone=shifted_phone, is_ghost=True)
-        ghost_tag_list = MemberProfile.objects.using(db).get(member=ghost).tag_list
+        ghost_tag_fk_list = MemberProfile.objects.using(db).get(member=ghost).tag_fk_list
         UserPermissionList.objects.using(db).filter(user=ghost).delete()
     except:
         pass
     try:
         ghost = Member.objects.using(db).get(email=shifted_email, is_ghost=True)
-        ghost_tag_list.extend(MemberProfile.objects.using(db).get(member=ghost).tag_list)
+        ghost_tag_fk_list.extend(MemberProfile.objects.using(db).get(member=ghost).tag_fk_list)
         UserPermissionList.objects.using(db).filter(user=ghost).delete()
     except:
         pass
 
-    ghost_tag_list = list(set(ghost_tag_list))
+    ghost_tag_fk_list = list(set(ghost_tag_fk_list))
+    men_tag, update = ProfileTag.objects.using(db).get_or_create(name='Men', slug='men', is_reserved=True)
+    women_tag, update = ProfileTag.objects.using(db).get_or_create(name='Women', slug='women', is_reserved=True)
+    join_tag, update = ProfileTag.objects.using(db).get_or_create(name=JOIN, slug=JOIN, is_auto=True)
+    ref_tag, update = ProfileTag.objects.get_or_create(name=REFERRAL, slug=REFERRAL, is_auto=True)
     try:
         # Gender entered by user is more trustworthy that one set by website owner
-        ghost_tag_list.remove('men')
+        ghost_tag_fk_list.remove(men_tag.id)
     except:
         pass
     try:
-        ghost_tag_list.remove('women')
+        ghost_tag_fk_list.remove(women_tag.id)
     except:
         pass
     try:
-        ghost_tag_list.remove(JOIN)
+        ghost_tag_fk_list.remove(join_tag.id)
     except:
         pass
-
-    if len(ghost_tag_list) == 0:
-        return
+    ghost_tag_fk_list.append(ref_tag.id)
 
     if not member.phone and shifted_phone != '__':
         member.phone = shifted_phone[2:]
@@ -383,7 +385,7 @@ def import_ghost_profile_to_member(member, db='default'):
 
     member.save()
     member_profile, update = MemberProfile.objects.using(db).get_or_create(member=member)
-    member_profile.tag_list.extend(ghost_tag_list)
+    member_profile.tag_fk_list.extend(ghost_tag_fk_list)
     member_profile.save()
     Member.objects.using(db).filter(phone=shifted_phone, is_ghost=True).delete()
     Member.objects.using(db).filter(email=shifted_email, is_ghost=True).delete()

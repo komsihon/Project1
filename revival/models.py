@@ -36,7 +36,7 @@ class CyclicRevival(Model):
     UPLOAD_TO = 'revival/cyclic_mail_images'
 
     service = models.ForeignKey(Service, related_name='+')
-    profile_tag_id = models.CharField(max_length=24, unique=True)
+    profile_tag_id = models.CharField(max_length=24, db_index=True)
     hour_of_sending =  models.IntegerField(default=9, db_index=True)
     days_cycle = models.IntegerField(blank=True, null=True,
                                      help_text=_("Run revival every N days"))
@@ -51,6 +51,9 @@ class CyclicRevival(Model):
     items_fk_list = ListField()
     is_active = models.BooleanField(default=False, db_index=True)
     is_running = models.BooleanField(default=False, db_index=True)
+
+    class Meta:
+        unique_together = ('service', 'profile_tag_id', )
 
     def set_next_run_date(self):
         if self.days_cycle:
@@ -95,6 +98,7 @@ class CyclicRevival(Model):
 class MemberProfile(Model):
     member = models.ForeignKey(Member, unique=True)
     tag_list = ListField()
+    tag_fk_list = ListField()
 
 
 class ObjectProfile(Model):
@@ -109,7 +113,7 @@ class Revival(Model):
     service = models.ForeignKey(Service, related_name='+')
     model_name = models.CharField(max_length=150, db_index=True)
     object_id = models.CharField(max_length=60, db_index=True)
-    tag = models.CharField(max_length=100, blank=True, null=True)  # Tag targeted by this revival
+    profile_tag_id = models.CharField(max_length=24, blank=True, null=True, db_index=True)  # Tag targeted by this revival
     status = models.CharField(max_length=60, default=PENDING)
     progress = models.IntegerField(default=0)
     total = models.IntegerField(default=0)
@@ -118,6 +122,9 @@ class Revival(Model):
     run_on = models.DateTimeField(blank=True, null=True, editable=False, db_index=True)
     is_active = models.BooleanField(default=True)
     is_running = models.BooleanField(default=False, db_index=True)
+
+    class Meta:
+        unique_together = ('service', 'profile_tag_id', )
 
 
 class Target(Model):
@@ -136,5 +143,9 @@ class CyclicTarget(Model):
 
 
 class CCMMonitoringMail(Model):
+    JOINS = "Joins"
+    REVIVALS = "Revivals"
+
     service = models.ForeignKey(Service, related_name='+')
+    type = models.CharField(max_length=30, default=JOINS)
     subject = models.CharField(max_length=30)

@@ -84,7 +84,7 @@ def notify_profiles(debug=False):
                     profile = MemberProfile.objects.using(db).get(member=member)
                 except MemberProfile.DoesNotExist:
                     continue
-                match = set(profile.tag_list) & {profile_tag.slug}
+                match = set(profile.tag_fk_list) & {profile_tag.id}
                 if len(match) > 0:
                     if member.email:
                         CyclicTarget.objects.using(db).get_or_create(revival=revival_local, member=member)

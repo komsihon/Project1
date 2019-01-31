@@ -33,7 +33,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
     Thus, self.client is not automatically created and fixtures not automatically loaded. This
     will be achieved manually by a custom implementation of setUp()
     """
-    fixtures = ['ikwen_members.yaml', 'setup_data.yaml', 'member_profiles']
+    fixtures = ['ikwen_members.yaml', 'setup_data.yaml', 'member_profiles.yaml']
 
     def setUp(self):
         self.client = Client()
@@ -186,7 +186,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         member_profile = MemberProfile.objects.get(member='56eb6d04b37b3379b531e014')
         json_response = json.loads(response.content)
         self.assertTrue(json_response['success'])
-        self.assertListEqual(member_profile.tag_list, ['women', 'kakocase'])
+        self.assertListEqual(member_profile.tag_fk_list, ['58088fc0c253e5ddf0563952', '58088fc0c253e5ddf0563953'])
 
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
@@ -282,7 +282,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.assertTrue(json_response['success'])
         ghost = Member.objects.get(username='666000006', phone='666000006', is_ghost=True)
         ghost_profile = MemberProfile.objects.get(member=ghost)
-        self.assertEqual(set(ghost_profile.tag_list), {JOIN, 'women'})
+        self.assertEqual(set(ghost_profile.tag_fk_list), {'58088fc0c253e5ddf0563954', '58088fc0c253e5ddf0563952'})
         self.assertEqual(ghost.first_name, "Kom")
         self.assertEqual(ghost.last_name, "Ngnieng")
 
@@ -300,7 +300,7 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.assertTrue(json_response['success'])
         ghost = Member.objects.get(username='ngnieng@ikwen.com', email='ngnieng@ikwen.com', is_ghost=True)
         ghost_profile = MemberProfile.objects.get(member=ghost)
-        self.assertEqual(set(ghost_profile.tag_list), {JOIN, 'women'})
+        self.assertEqual(set(ghost_profile.tag_fk_list), {'58088fc0c253e5ddf0563954', '58088fc0c253e5ddf0563952'})
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102')
     def test_Community_add_ghost_member_with_email_and_phone(self):
@@ -316,4 +316,4 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         self.assertTrue(json_response['success'])
         ghost = Member.objects.get(username='ngnieng@ikwen.com', phone='666000006', is_ghost=True)
         ghost_profile = MemberProfile.objects.get(member=ghost)
-        self.assertEqual(set(ghost_profile.tag_list), {JOIN, 'women'})
+        self.assertEqual(set(ghost_profile.tag_fk_list), {'58088fc0c253e5ddf0563954', '58088fc0c253e5ddf0563952'})

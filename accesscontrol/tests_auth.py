@@ -100,7 +100,7 @@ class IkwenAuthTestCase(unittest.TestCase):
     Thus, self.client is not automatically created and fixtures not automatically loaded. This
     will be achieved manually by a custom implementation of setUp()
     """
-    fixtures = ['ikwen_members.yaml', 'setup_data.yaml']
+    fixtures = ['ikwen_members.yaml', 'setup_data.yaml', 'member_profiles.yaml']
 
     def setUp(self):
         self.client = Client()
@@ -292,7 +292,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         ghost = Member.objects.create_user(username='666000006', gender='Male', phone='666000006', is_ghost=True,
                                            first_name='Ngnieng', last_name='Makambou', password='secret')
         ghost_profile, update = MemberProfile.objects.get_or_create(member=ghost)
-        ghost_profile.tag_list.extend(['yogam', 'hardworker'])
+        ghost_profile.tag_fk_list.extend(['58088fc0c253e5ddf0563956', '58088fc0c253e5ddf0563957'])
         ghost_profile.save()
         origin = reverse('ikwen:register')
         response = self.client.post(origin, {'username': 'ngnieng@ikwen.com', 'password': 'secret', 'password2': 'secret',
@@ -302,7 +302,8 @@ class IkwenAuthTestCase(unittest.TestCase):
         self.assertEqual(location, 'console')
         member = Member.objects.get(username='ngnieng@ikwen.com', phone='237666000006', is_ghost=False)
         member_profile = MemberProfile.objects.get(member=member)
-        self.assertEqual(set(member_profile.tag_list), {REFERRAL, 'hardworker', 'yogam', 'women'})
+        self.assertEqual(set(member_profile.tag_fk_list), {'58088fc0c253e5ddf0563952', '58088fc0c253e5ddf0563955',
+                                                           '58088fc0c253e5ddf0563956', '58088fc0c253e5ddf0563957'})
         self.assertRaises(Member.DoesNotExist, Member.objects.get, phone='666000006', is_ghost=True)
         self.assertRaises(MemberProfile.DoesNotExist, MemberProfile.objects.get, member=ghost)
         self.assertRaises(UserPermissionList.DoesNotExist, UserPermissionList.objects.get, user=ghost)
@@ -320,7 +321,7 @@ class IkwenAuthTestCase(unittest.TestCase):
                                            phone='666000006', first_name='Ngnieng', last_name='Makambou',
                                            password='secret', is_ghost=True)
         ghost_profile, update = MemberProfile.objects.get_or_create(member=ghost)
-        ghost_profile.tag_list.extend(['yogam', 'hardworker'])
+        ghost_profile.tag_fk_list.extend(['58088fc0c253e5ddf0563956', '58088fc0c253e5ddf0563957'])
         ghost_profile.save()
         origin = reverse('ikwen:register')
         response = self.client.post(origin, {'username': 'ngnieng@ikwen.com', 'password': 'secret', 'password2': 'secret',
@@ -330,7 +331,8 @@ class IkwenAuthTestCase(unittest.TestCase):
         self.assertEqual(location, 'console')
         member = Member.objects.get(username='ngnieng@ikwen.com', phone='237666000006', is_ghost=False)
         member_profile = MemberProfile.objects.get(member=member)
-        self.assertEqual(set(member_profile.tag_list), {REFERRAL, 'hardworker', 'yogam', 'women'})
+        self.assertEqual(set(member_profile.tag_fk_list), {'58088fc0c253e5ddf0563952', '58088fc0c253e5ddf0563955',
+                                                           '58088fc0c253e5ddf0563956', '58088fc0c253e5ddf0563957'})
         self.assertRaises(Member.DoesNotExist, Member.objects.get, phone='666000006', is_ghost=True)
         self.assertRaises(MemberProfile.DoesNotExist, MemberProfile.objects.get, member=ghost)
         self.assertRaises(UserPermissionList.DoesNotExist, UserPermissionList.objects.get, user=ghost)

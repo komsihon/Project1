@@ -86,7 +86,7 @@ def notify_profiles(debug=False):
             revival.save()
             continue
         try:
-            profile_tag = ProfileTag.objects.using(db).get(slug=revival.tag)
+            profile_tag = ProfileTag.objects.using(db).get(pk=revival.profile_tag_id)
         except:
             revival.is_running = False
             revival.save()
@@ -113,10 +113,12 @@ def notify_profiles(debug=False):
                 try:
                     profile = MemberProfile.objects.using(db).get(member=member)
                 except MemberProfile.DoesNotExist:
-                    profile = MemberProfile.objects.using(db).create(member=member, tag_list=[REFERRAL])
-                if revival.tag in profile.tag_list:
+                    ref_tag = ProfileTag.objects.using(db).get(slug=REFERRAL)
+                    profile = MemberProfile.objects.using(db).create(member=member, tag_fk_list=[ref_tag.id])
+                if revival.profile_tag_id in profile.tag_fk_list:
                     if debug:
-                        print "Profiles matching on %s for member %s" % (revival.tag, member)
+                        tag = ProfileTag.objects.using(db).get(pk=revival.profile_tag_id)
+                        print "Profiles matching on %s for member %s" % (tag, member)
                     if member.email:
                         Target.objects.using(db).get_or_create(revival=revival_local, member=member)
                         target_count += 1
@@ -252,7 +254,7 @@ def notify_profiles_retro(debug=False):
             revival.save()
             continue
         try:
-            profile_tag = ProfileTag.objects.using(db).get(slug=revival.tag)
+            profile_tag = ProfileTag.objects.using(db).get(pk=revival.profile_tag_id)
         except:
             revival.is_running = False
             revival.save()
@@ -273,10 +275,12 @@ def notify_profiles_retro(debug=False):
                 try:
                     profile = MemberProfile.objects.using(db).get(member=member)
                 except MemberProfile.DoesNotExist:
-                    profile = MemberProfile.objects.using(db).create(member=member, tag_list=[REFERRAL])
-                if revival.tag in profile.tag_list:
+                    ref_tag = ProfileTag.objects.using(db).get(slug=REFERRAL)
+                    profile = MemberProfile.objects.using(db).create(member=member, tag_fk_list=[ref_tag.id])
+                if revival.profile_tag_id in profile.tag_fk_list:
                     if debug:
-                        print "Profiles matching on %s for member %s" % (revival.tag, member)
+                        tag = ProfileTag.objects.using(db).get(pk=revival.profile_tag_id)
+                        print "Profiles matching on %s for member %s" % (tag, member)
                     if member.email:
                         Target.objects.using(db).get_or_create(revival=revival_local, member=member)
                         extra += 1
@@ -409,7 +413,7 @@ def rerun_complete_revivals(debug=False):
             revival.save()
             continue
         try:
-            profile_tag = ProfileTag.objects.using(db).get(slug=revival.tag)
+            profile_tag = ProfileTag.objects.using(db).get(pk=revival.profile_tag_id)
         except:
             revival.is_running = False
             revival.save()

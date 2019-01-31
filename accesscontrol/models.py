@@ -66,12 +66,14 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         perm_list.group_fk_list.append(ikwen_community.id)
         perm_list.save(using=UMBRELLA)
 
-        from ikwen.revival.models import MemberProfile
+        from ikwen.revival.models import ProfileTag, MemberProfile
         member_profile, update = MemberProfile.objects.get_or_create(member=member)
+        men_tag, update = ProfileTag.objects.get_or_create(name='Men', slug='men', is_reserved=True)
+        women_tag, update = ProfileTag.objects.get_or_create(name='Women', slug='women', is_reserved=True)
         if member.gender == MALE:
-            member_profile.tag_list.append('men')
+            member_profile.tag_fk_list.append(men_tag.id)
         elif member.gender == FEMALE:
-            member_profile.tag_list.append('women')
+            member_profile.tag_fk_list.append(women_tag.id)
         member_profile.save()
 
         if not member.is_ghost:
