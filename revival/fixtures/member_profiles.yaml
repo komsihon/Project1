@@ -3,12 +3,14 @@
   fields:
     name: Men
     slug: men
+    is_reserved: Yes
 
 - model: revival.profiletag
   pk: 58088fc0c253e5ddf0563952
   fields:
     name: Women
     slug: women
+    is_reserved: Yes
 
 - model: revival.profiletag
   pk: 58088fc0c253e5ddf0563953
@@ -19,33 +21,49 @@
 - model: revival.profiletag
   pk: 58088fc0c253e5ddf0563954
   fields:
-    name: Join
+    name: __Join
     slug: __Join
     is_auto: Yes
 
 - model: revival.profiletag
   pk: 58088fc0c253e5ddf0563955
   fields:
-    name: Referral
+    name: __Referral
     slug: __Referral
     is_auto: Yes
+
+- model: revival.profiletag
+  pk: 58088fc0c253e5ddf0563956
+  fields:
+    name: Yogam
+    slug: yogam
+
+- model: revival.profiletag
+  pk: 58088fc0c253e5ddf0563957
+  fields:
+    name: Hardworker
+    slug: hardworker
 
 - model: revival.memberprofile
   fields:
     member: 56eb6d04b37b3379b531e011
-    tag_list: [men, kakocase, __Referral]
+#    tag_list: [men, kakocase, __Referral]
+    tag_fk_list: [58088fc0c253e5ddf0563951, 58088fc0c253e5ddf0563953, 58088fc0c253e5ddf0563955]
 
 - model: revival.memberprofile
   fields:
     member: 56eb6d04b37b3379b531e012
-    tag_list: [women, kakocase]
+#    tag_list: [women, kakocase]
+    tag_fk_list: [58088fc0c253e5ddf0563952, 58088fc0c253e5ddf0563953]
 
 - model: revival.memberprofile
   fields:
     member: 56eb6d04b37b3379b531e013
-    tag_list: [women, kakocase]
+#    tag_list: [women, kakocase]
+    tag_fk_list: [58088fc0c253e5ddf0563952, 58088fc0c253e5ddf0563953]
 
 - model: revival.memberprofile
   fields:
     member: 56eb6d04b37b3379b531e014
-    tag_list: [women, __Join]
+#    tag_list: [women, __Join]
+    tag_fk_list: [58088fc0c253e5ddf0563952, 58088fc0c253e5ddf0563954]

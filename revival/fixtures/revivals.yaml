@@ -28,7 +28,7 @@
   fields:
     service: 56eb6d04b37b3379b531b102
     model_name: core.Application
-    tag: kakocase
+    profile_tag_id: 58088fc0c253e5ddf0563953
     object_id: 56eb6d04b37b3379b531a001
     mail_renderer: ikwen.revival.utils.render_tsunami_revival_mail
 
@@ -38,7 +38,7 @@
     service: 56eb6d04b37b3379b531b102
     model_name: core.Service
     object_id: 56eb6d04b37b3379b531b102
-    tag: __Join
+    profile_tag_id: 58088fc0c253e5ddf0563954
     mail_renderer: ikwen.revival.utils.render_suggest_create_account_mail
     get_kwargs: ikwen.rewarding.utils.get_join_reward_pack_list
 
@@ -48,6 +48,6 @@
     service: 56eb6d04b37b3379b531b102
     model_name: core.Service
     object_id: 56eb6d04b37b3379b531b102
-    tag: __Referral
+    profile_tag_id: 58088fc0c253e5ddf0563955
     mail_renderer: ikwen.revival.utils.render_suggest_referral_mail
     get_kwargs: ikwen.rewarding.utils.get_referral_reward_pack_list
