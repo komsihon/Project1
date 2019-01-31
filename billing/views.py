@@ -448,7 +448,7 @@ class TransactionLog(HybridListView):
             start_date = datetime(yst.year, yst.month, yst.day, 0, 0, 0)
             end_date = datetime(yst.year, yst.month, yst.day, 23, 59, 59)
         elif period == 'last_7_days':
-            b = now - timedelta(days=1)
+            b = now - timedelta(days=7)
             start_date = datetime(b.year, b.month, b.day, 0, 0, 0)
             end_date = now
         elif period == 'last_28_days':
