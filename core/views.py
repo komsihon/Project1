@@ -427,14 +427,16 @@ class ChangeObjectBase(TemplateView):
 
     def save_object_profile_tags(self, request, obj, *args, **kwargs):
         auto_profiletag_id_list = kwargs.pop('auto_profiletag_id_list', [])
-        profiletag_ids = request.GET.get('profiletag_ids', '')
+        profiletag_ids = request.GET.get('profiletag_ids', '').strip()
         revival_mail_renderer = kwargs.pop('revival_mail_renderer', self.revival_mail_renderer)
         if not (profiletag_ids or auto_profiletag_id_list):
             return
         do_revive = kwargs.pop('do_revive', None)  # Set a revival if explicitly stated to do so
         if do_revive is None and not kwargs.get('object_id'):
             do_revive = True  # Set a revival in any case for a newly added item
-        profiletag_id_list = profiletag_ids.strip().split(',')
+        profiletag_id_list = []
+        if profiletag_ids:
+            profiletag_id_list = profiletag_ids.split(',')
         profiletag_id_list.extend(auto_profiletag_id_list)
         model_name = obj._meta.app_label + '.' + obj._meta.model_name
         if do_revive and revival_mail_renderer:  # This is a newly created object
