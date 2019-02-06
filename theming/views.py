@@ -28,7 +28,25 @@ from ikwen.core.views import HybridListView
 class ThemeList(HybridListView):
     template_name = 'theming/theme_list.html'
     model = Theme
+    queryset = Theme.objects.filter(is_active=True)
     context_object_name = 'theme_list'
+
+    def get(self, request, *args, **kwargs):
+        theme_id = request.GET.get('theme_id')
+        action = request.GET.get('action')
+        if theme_id:
+            theme = get_object_or_404(Theme, pk=theme_id)
+            request.session['theme'] = theme.to_dict()
+            return HttpResponseRedirect(reverse('home'))
+        if action == 'use_theme':
+            theme_dict = request.session.get('theme')
+            if theme_dict:
+                theme_id = theme_dict['id']
+                theme = get_object_or_404(Theme, pk=theme_id)
+                config = get_service_instance().config
+                config.theme = theme
+                config.save()
+        return super(ThemeList, self).get(request, *args, **kwargs)
 
 
 class ConfigureTheme(TemplateView):

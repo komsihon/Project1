@@ -10,6 +10,10 @@
     <style>
         .glyphicon.check:not(.active) {display: none}
         .glyphicon.check:not(.active):hover {display: block}
+        .tile.current .content {border-color: #f39c12}
+        .tile .content {overflow: hidden; position: relative}
+        .tile .overlay {background: rgba(0, 0, 0, .6); bottom: 0; left: 0; position:absolute; right: 0; top: 0}
+        .btn-preview {margin-top: 100px; max-width: 200px; width: 80%}
     </style>
 {% endblock %}
 
@@ -20,24 +24,29 @@
 {% block admin_content %}
     <div id="admin-content">
         <div class="container-fluid">
-            <div id="results">
-                <ul class="tiles object-list">
-                {% for theme in theme_list %}
-                    {% if theme == config.theme %} {# Only show active theme for now #}
-                    <li class="ik-li theme tile" id="{{ theme.id }}" data-id="{{ theme.id }}">
-                        <div class="content">
-                            <a href="{% url 'theming:configure_theme' theme.id %}" class="image" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ theme.preview.name }})"></a>
-                            <div class="info">
-                                <span class="name">{{ theme.name }}</span>
-                                <p class="about">{{ theme.template.name }}</p>
+            <div id="stage" style="margin: auto">
+                <h2 class="section-title text-center">
+                    {% blocktrans %}Choose your favorite theme{% endblocktrans %}
+                </h2>
+                <div id="results">
+                    <ul class="tiles object-list">
+                    {% for theme in theme_list %}
+                        <li class="ik-li theme tile{% if theme == config.theme %} current{% endif %}"
+                            id="{{ theme.id }}" data-id="{{ theme.id }}">
+                            <div class="content">
+                                <a href="{% url 'theming:configure_theme' theme.id %}" class="image" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ theme.preview.name }})"></a>
+                                <div class="info">
+                                    <span class="name">{{ theme.name }}</span>
+                                    <p class="about">{{ theme.template.name }}</p>
+                                </div>
+                                <div class="overlay text-center">
+                                    <a href="?theme_id={{ theme.id }}" class="btn btn-outline-white btn-preview">{% trans "Preview" %}</a>
+                                </div>
                             </div>
-                            <div class="actions"></div>
-                            <div class="clearfix"></div>
-                        </div>
-                    </li>
-                    {% endif %}
-                {% endfor %}
-                </ul>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
