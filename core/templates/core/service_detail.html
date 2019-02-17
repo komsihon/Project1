@@ -145,14 +145,14 @@
                         <label class="col-sm-3">{% trans "Mail Credit" %}</label>
                         <span>
                             {{ echo_balance.mail_count }}
-                            - <a class="action-edit" href="#"> {% trans "Top up" %} </a>
+                            - <a href="{% url 'echo:mail_bundle' %}"> {% trans "Top up" %} </a>
                         </span>
                     </div>
                     <div class="detail billing-cycle row">
                         <label class="col-sm-3">{% trans "SMS Credit" %}</label>
                         <span>
                             {{ echo_balance.sms_count }}
-                            - <a class="action-edit" href="#"> {% trans "Top up" %} </a>
+                            - <a href="{% url 'echo:sms_bundle' %}"> {% trans "Top up" %} </a>
                         </span>
                     </div>
                 </section>
