@@ -262,6 +262,9 @@ class ChangeObjectBase(TemplateView):
     profiles_aware = False  # If set to true, object ProfileTag management utilities will be integrated to the object
     auto_profile = False  # If true, this object generates a secret ProfileTag matching the actual object upon save
     revival_mail_renderer = None
+    image_field_name = None
+    label_field_name = None
+    image_help_text = None
 
     def get_object(self, **kwargs):
         object_id = kwargs.get('object_id')  # May be overridden with the one from GET data
@@ -300,6 +303,15 @@ class ChangeObjectBase(TemplateView):
         context['verbose_name_plural'] = self.model()._meta.verbose_name_plural
         context['object_list_url'] = self.get_object_list_url(self.request, obj, **kwargs)
         context['model_admin_form'] = obj_form
+        if self.image_field_name:
+            label_field_name = self.label_field_name if self.label_field_name else 'name'
+            img_obj = {
+                'image': obj.__getattribute__(self.image_field_name),
+                'field': self.image_field_name,
+                'label': label_field_name,
+                'help_text': self.image_help_text
+            }
+            context['img_obj'] = img_obj
         return context
 
     def get(self, request, *args, **kwargs):
@@ -443,9 +455,9 @@ class ChangeObjectBase(TemplateView):
             service = get_service_instance()
             srvce = Service.objects.using(UMBRELLA).get(pk=service.id)
             for tag_id in profiletag_id_list:
-                revival = Revival.objects.create(service=service, model_name=model_name, object_id=obj.id,
+                revival, update = Revival.objects.get_or_create(service=service, model_name=model_name, object_id=obj.id,
                                                  profile_tag_id=tag_id, mail_renderer=revival_mail_renderer)
-                Revival.objects.using(UMBRELLA).create(id=revival.id, service=srvce, model_name=model_name, object_id=obj.id,
+                Revival.objects.using(UMBRELLA).get_or_create(id=revival.id, service=srvce, model_name=model_name, object_id=obj.id,
                                                        profile_tag_id=tag_id, mail_renderer=revival_mail_renderer)
 
     def after_save(self, request, obj, *args, **kwargs):
