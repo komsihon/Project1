@@ -33,12 +33,14 @@ class ThemeList(HybridListView):
 
     def get(self, request, *args, **kwargs):
         theme_id = request.GET.get('theme_id')
-        action = request.GET.get('action')
+        apply = request.GET.get('apply')
         if theme_id:
             theme = get_object_or_404(Theme, pk=theme_id)
-            request.session['theme'] = theme.to_dict()
+            d = theme.to_dict()
+            d['template_slug'] = theme.template.slug
+            request.session['theme'] = d
             return HttpResponseRedirect(reverse('home'))
-        if action == 'use_theme':
+        if apply:
             theme_dict = request.session.get('theme')
             if theme_dict:
                 theme_id = theme_dict['id']
@@ -46,6 +48,7 @@ class ThemeList(HybridListView):
                 config = get_service_instance().config
                 config.theme = theme
                 config.save()
+                request.session['theme'] = None
         return super(ThemeList, self).get(request, *args, **kwargs)
 
 

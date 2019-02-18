@@ -12,8 +12,13 @@
         .glyphicon.check:not(.active):hover {display: block}
         .tile.current .content {border-color: #f39c12}
         .tile .content {overflow: hidden; position: relative}
-        .tile .overlay {background: rgba(0, 0, 0, .6); bottom: 0; left: 0; position:absolute; right: 0; top: 0}
-        .btn-preview {margin-top: 100px; max-width: 200px; width: 80%}
+        .tile .overlay {background: rgba(0, 0, 0, .6); bottom: 0; display: none; left: 0;
+            position:absolute; right: 0; top: 0; transition: display .3s}
+        .tile .content:hover .overlay {display: block; transition: display .3s}
+        .theme.tile .btn {margin: 100px 0 40px; max-width: 200px; width: 80%}
+        .theme.tile.current .btn {margin: 75px 0 40px}
+        .btn.configure {visibility: hidden}
+        .theme.tile.current .btn.configure {visibility: visible; margin-top: 0}
     </style>
 {% endblock %}
 
@@ -40,7 +45,8 @@
                                     <p class="about">{{ theme.template.name }}</p>
                                 </div>
                                 <div class="overlay text-center">
-                                    <a href="?theme_id={{ theme.id }}" class="btn btn-outline-white btn-preview">{% trans "Preview" %}</a>
+                                    <a href="?theme_id={{ theme.id }}" class="btn btn-outline-white">{% trans "Preview" %}</a>
+                                    <a href="{% url 'theming:configure_theme' theme.id %}" class="btn btn-outline-white configure">{% trans "Configure" %}</a>
                                 </div>
                             </div>
                         </li>
