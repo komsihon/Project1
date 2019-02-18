@@ -291,15 +291,26 @@ class SupportBundle(Model):
     """
     A customer support bundle
     """
+    TECHNICAL = 'Technical'
+    INFOGRAPHICS = 'Infographics'
+    MARKETING = 'Marketing'
+    TYPE_CHOICES = (
+        (TECHNICAL, _("Technical")),
+        (INFOGRAPHICS, _("Infographics")),
+        (MARKETING, _("Marketing")),
+    )
+
     EMAIL = 'Email'
     PHONE = 'Phone'
     ONSITE = 'Onsite'
-    TYPE_CHOICES = (
+    CHANNEL_CHOICES = (
         (EMAIL, _("Email")),
         (PHONE, _("Phone")),
         (ONSITE, _("Onsite")),
     )
-    type = models.CharField(max_length=30, default=EMAIL, choices=TYPE_CHOICES)
+    type = models.CharField(max_length=30, choices=TYPE_CHOICES, blank=True, null=True)
+    channel = models.CharField(max_length=30, default=EMAIL, choices=CHANNEL_CHOICES)
+    description = models.TextField(blank=True, null=True)
     quantity = models.IntegerField(default=0)
     duration = models.IntegerField()
     cost = models.IntegerField()
@@ -310,11 +321,12 @@ class SupportBundle(Model):
 
 class SupportCode(Model):
     """
-    A customer support code
+    A customer support code. Actually an instance of a
+    SupportBundle purchased by a customer
     """
     service = models.OneToOneField(Service, related_name='+')
     token = models.CharField(max_length=60)
-    type = models.CharField(max_length=30, choices=SupportBundle.TYPE_CHOICES)
+    bundle = models.ForeignKey(SupportBundle, blank=True, null=True)
     balance = models.IntegerField(default=0)
     expiry = models.DateTimeField(db_index=True)
 
@@ -517,7 +529,7 @@ class CloudBillingPlan(Model):
                                                  "Retailer may charge additional fees.")
 
     def __unicode__(self):
-        return self.app.name + ': ' + self.name
+        return '%s: %s (%d)' % (self.app.name, self.name, self.setup_cost)
 
 
 class BankAccount(Model):
