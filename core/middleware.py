@@ -49,3 +49,17 @@ class ServiceStatusCheckMiddleware(object):
             return HttpResponseRedirect(reverse('ikwen:' + SERVICE_EXPIRED))
         elif rm.namespace == 'ikwen' and rm.url_name == SERVICE_EXPIRED:
             return
+
+
+class HideError403Middleware(object):
+    """
+    This middleware sends the user back to website home in
+    case of Error 403
+    """
+    def process_response(self, request, response):
+        if getattr(settings, 'DEBUG', False):
+            return response
+        if response.status_code == 403:
+            logout = reverse('ikwen:logout')
+            return HttpResponseRedirect(logout)
+        return response
