@@ -389,9 +389,6 @@ class Service(models.Model):
         apache_tpl = get_template(web_server_config_template)
         apache_context = Context({'is_naked_domain': is_naked_domain, 'domain': new_domain, 'ikwen_name': self.project_name_slug})
         fh = open(self.home_folder + '/apache.conf', 'w')
-        go_ikwen_conf = '/etc/apache2/sites-enabled/go_ikwen/%s.conf' % self.project_name_slug
-        if os.path.exists(go_ikwen_conf):
-            os.unlink(go_ikwen_conf)
         fh.write(apache_tpl.render(apache_context))
         fh.close()
         subprocess.call(['sudo', 'unlink', '/etc/apache2/sites-enabled/' + previous_domain + '.conf'])
