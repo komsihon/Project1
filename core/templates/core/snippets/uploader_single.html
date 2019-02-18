@@ -35,7 +35,7 @@
                 var ratio = loaded / total,
                     percent = ratio * 100;
                 $('div#upload-container .image .progress').animate({width: percent + '%'});
-                if (ratio == 1) $('div#upload-container .image .spinner').show()
+                if (ratio === 1) $('div#upload-container .image .spinner').show()
             },
             onComplete: function(id, fileName, responseJSON) {
                 if(responseJSON.success) {
