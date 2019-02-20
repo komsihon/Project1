@@ -96,5 +96,5 @@ def render_tsunami_revival_mail(target, obj, revival, **kwargs):
     else:
         subject = _("Decide on your turnover")
         template_name = 'revival/mails/tsunami/revival_2_%s.html' % lang
-    html_content = get_mail_content(subject, template_name=template_name)
+    html_content = get_mail_content(subject, template_name=template_name, extra_context={'member': target.member})
     return sender, subject, html_content
