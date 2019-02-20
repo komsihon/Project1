@@ -20,7 +20,7 @@ from django.utils.translation import activate
 from django.conf import settings
 
 from echo.models import Balance
-from echo.utils import notify_for_empty_messaging_credit, EMAIL
+from echo.utils import notify_for_empty_messaging_credit, notify_for_low_messaging_credit, LOW_MAIL_LIMIT
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.core.constants import PENDING, COMPLETE, STARTED
 from ikwen.accesscontrol.models import Member
@@ -72,10 +72,18 @@ def notify_profiles(debug=False):
         db = service.database
         add_database(db)
         balance = Balance.objects.using(WALLETS_DB_ALIAS).get(service_id=service.id)
+        if 0 < balance.mail_count < LOW_MAIL_LIMIT:
+            try:
+                notify_for_low_messaging_credit(service, balance)
+            except:
+                logger.error("Failed to notify %s for low messaging credit." % service, exc_info=True)
         if balance.mail_count == 0:
             revival.is_running = False
             revival.save()
-            notify_for_empty_messaging_credit(service, EMAIL)
+            try:
+                notify_for_empty_messaging_credit(service, balance)
+            except:
+                logger.error("Failed to notify %s for empty messaging credit." % service, exc_info=True)
             continue
         tk = revival.model_name.split('.')
         model = get_model(tk[0], tk[1])
@@ -146,7 +154,10 @@ def notify_profiles(debug=False):
             if not debug and balance.mail_count == 0:
                 revival.is_running = False
                 revival.save()
-                notify_for_empty_messaging_credit(service, EMAIL)
+                try:
+                    notify_for_empty_messaging_credit(service, balance)
+                except:
+                    logger.error("Failed to notify %s for empty messaging credit." % service, exc_info=True)
                 break
             member = target.member
             if member.language:
@@ -240,10 +251,18 @@ def notify_profiles_retro(debug=False):
         db = revival.service.database
         add_database(db)
         balance = Balance.objects.using(WALLETS_DB_ALIAS).get(service_id=service.id)
+        if 0 < balance.mail_count < LOW_MAIL_LIMIT:
+            try:
+                notify_for_low_messaging_credit(service, balance)
+            except:
+                logger.error("Failed to notify %s for low messaging credit." % service, exc_info=True)
         if balance.mail_count == 0:
             revival.is_running = False
             revival.save()
-            notify_for_empty_messaging_credit(service, EMAIL)
+            try:
+                notify_for_empty_messaging_credit(service, balance)
+            except:
+                logger.error("Failed to notify %s for empty messaging credit." % service, exc_info=True)
             continue
         tk = revival.model_name.split('.')
         model = get_model(tk[0], tk[1])
@@ -308,7 +327,10 @@ def notify_profiles_retro(debug=False):
             if not debug and balance.mail_count == 0:
                 revival.is_running = False
                 revival.save()
-                notify_for_empty_messaging_credit(service, EMAIL)
+                try:
+                    notify_for_empty_messaging_credit(service, balance)
+                except:
+                    logger.error("Failed to notify %s for empty messaging credit." % service, exc_info=True)
                 break
             member = target.member
             if member.language:
@@ -399,10 +421,18 @@ def rerun_complete_revivals(debug=False):
         db = revival.service.database
         add_database(db)
         balance = Balance.objects.using(WALLETS_DB_ALIAS).get(service_id=service.id)
+        if 0 < balance.mail_count < LOW_MAIL_LIMIT:
+            try:
+                notify_for_low_messaging_credit(service, balance)
+            except:
+                logger.error("Failed to notify %s for low messaging credit." % service, exc_info=True)
         if balance.mail_count == 0:
             revival.is_running = False
             revival.save()
-            notify_for_empty_messaging_credit(service, EMAIL)
+            try:
+                notify_for_empty_messaging_credit(service, balance)
+            except:
+                logger.error("Failed to notify %s for empty messaging credit." % service, exc_info=True)
             continue
         tk = revival.model_name.split('.')
         model = get_model(tk[0], tk[1])
@@ -444,7 +474,10 @@ def rerun_complete_revivals(debug=False):
             if not debug and balance.mail_count == 0:
                 revival.is_running = False
                 revival.save()
-                notify_for_empty_messaging_credit(service, EMAIL)
+                try:
+                    notify_for_empty_messaging_credit(service, balance)
+                except:
+                    logger.error("Failed to notify %s for empty messaging credit." % service, exc_info=True)
                 break
             member = target.member
             if debug and not member.is_superuser:

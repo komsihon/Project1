@@ -8,7 +8,9 @@ from ikwen.revival.models import MemberProfile, ProfileTag
 
 
 def set_profile_tag_member_count():
-    ProfileTag.objects.all().update(member_count=0)
+    d = {}
+    for profile_tag in ProfileTag.objects.all():
+        d[profile_tag] = 0
     member_queryset = Member.objects.all()
     total = member_queryset.count()
     chunks = total / 500 + 1
@@ -26,8 +28,11 @@ def set_profile_tag_member_count():
                 member_profile = MemberProfile.objects.get(member=member)
 
             for profile_tag in ProfileTag.objects.filter(pk__in=member_profile.tag_fk_list):
-                profile_tag.member_count += 1
-                profile_tag.save()
+                d[profile_tag] += 1
+
+    for profile_tag, value in d.items():
+        profile_tag.member_count = value
+        profile_tag.save()
 
 
 def render_suggest_create_account_mail(target, service, revival, **kwargs):
@@ -78,11 +83,18 @@ def render_tsunami_revival_mail(target, obj, revival, **kwargs):
     if target.revival_count >= 2:
         return None, None, None
     sender = 'ikwen Tsunami <no-reply@ikwen.com>'
+    member = target.member
+    lang = member.language
+    if not lang:
+        lang = 'fr'
+    lang = lang[:2]
+    if lang != 'en' and lang != 'fr':
+        lang = 'en'
     if target.revival_count <= 0:
         subject = _("Secure your business by staying close to your customers")
-        template_name = 'revival/mails/tsunami/revival_1.html'
+        template_name = 'revival/mails/tsunami/revival_1_%s.html' % lang
     else:
         subject = _("Decide on your turnover")
-        template_name = 'revival/mails/tsunami/revival_2.html'
+        template_name = 'revival/mails/tsunami/revival_2_%s.html' % lang
     html_content = get_mail_content(subject, template_name=template_name)
     return sender, subject, html_content

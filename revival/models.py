@@ -124,7 +124,7 @@ class Revival(Model):
     is_running = models.BooleanField(default=False, db_index=True)
 
     class Meta:
-        unique_together = ('service', 'profile_tag_id', )
+        unique_together = ('service', 'profile_tag_id', 'mail_renderer', 'get_kwargs', )
 
 
 class Target(Model):

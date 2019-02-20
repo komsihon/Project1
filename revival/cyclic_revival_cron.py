@@ -18,8 +18,8 @@ from django.db import transaction
 from django.utils.translation import activate
 
 from core.utils import increment_history_field
-from echo.models import Balance, SMS, SMSObject
-from echo.utils import notify_for_empty_messaging_credit, EMAIL, SMS, EMAIL_AND_SMS
+from echo.models import Balance, SMSObject
+from echo.utils import notify_for_empty_messaging_credit, LOW_MAIL_LIMIT, LOW_SMS_LIMIT, notify_for_low_messaging_credit
 from echo.views import count_pages
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.accesscontrol.models import Member
@@ -55,8 +55,16 @@ def notify_profiles(debug=False):
         db = service.database
         add_database(db)
         balance = Balance.objects.using(WALLETS_DB_ALIAS).get(service_id=service.id)
+        if 0 < balance.mail_count < LOW_MAIL_LIMIT or 0 < balance.sms_count < LOW_SMS_LIMIT:
+            try:
+                notify_for_low_messaging_credit(service, balance)
+            except:
+                logger.error("Failed to notify %s for low messaging credit." % service, exc_info=True)
         if balance.mail_count == 0 and balance.sms_count == 0:
-            notify_for_empty_messaging_credit(service, EMAIL_AND_SMS)
+            try:
+                notify_for_empty_messaging_credit(service, balance)
+            except:
+                logger.error("Failed to notify %s for empty messaging credit." % service, exc_info=True)
             continue
 
         label = get_sms_label(service.config)
@@ -129,7 +137,7 @@ def notify_profiles(debug=False):
             msg.content_subtype = "html"
 
             if balance.mail_count == 0 and not notified_empty_mail_credit:
-                notify_for_empty_messaging_credit(service, EMAIL)
+                notify_for_empty_messaging_credit(service, balance)
                 notified_empty_mail_credit = True
             else:
                 try:
@@ -150,7 +158,7 @@ def notify_profiles(debug=False):
                                  exc_info=True)
             if revival.sms_text:
                 if balance.sms_count == 0 and not notified_empty_sms_credit:
-                    notify_for_empty_messaging_credit(service, SMS)
+                    notify_for_empty_messaging_credit(service, balance)
                     notified_empty_sms_credit = True
                 else:
                     sms_text = revival.sms_text.replace('$client', member.first_name)
