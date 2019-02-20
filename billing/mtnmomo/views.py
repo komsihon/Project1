@@ -114,16 +114,17 @@ def request_payment(request, transaction):
             if resp['StatusCode'] == '01':
                 logger.debug("MTN MoMo: Successful payment of %dF from %s: %s" % (amount, username, transaction.phone))
                 transaction.status = MoMoTransaction.SUCCESS
+                transaction.save(using='wallets')
                 if getattr(settings, 'DEBUG', False):
                     momo_after_checkout(request, signature=request.session['signature'])
                 else:
                     try:
                         momo_after_checkout(request, signature=request.session['signature'])
+                        transaction.message = 'OK'
                     except:
                         transaction.message = traceback.format_exc()
                         transaction.save(using='wallets')
                         logger.error("MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (request.user.username, int(request.session['amount'])), exc_info=True)
-                transaction.message = 'OK'
             else:
                 logger.error("MTN MoMo: Transaction of %dF from %s: %s failed with message %s" % (amount, username, transaction.phone, resp['StatusDesc']))
                 transaction.status = MoMoTransaction.API_ERROR
