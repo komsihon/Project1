@@ -59,11 +59,15 @@ def notify_profiles(debug=False):
             try:
                 notify_for_low_messaging_credit(service, balance)
             except:
+                revival.is_running = False
+                revival.save()
                 logger.error("Failed to notify %s for low messaging credit." % service, exc_info=True)
         if balance.mail_count == 0 and balance.sms_count == 0:
             try:
                 notify_for_empty_messaging_credit(service, balance)
             except:
+                revival.is_running = False
+                revival.save()
                 logger.error("Failed to notify %s for empty messaging credit." % service, exc_info=True)
             continue
 

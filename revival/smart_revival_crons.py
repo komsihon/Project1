@@ -148,6 +148,7 @@ def notify_profiles(debug=False):
             revival.is_running = False
             revival.save()
             logger.error(u"Connexion error", exc_info=True)
+            continue
 
         logger.debug("Running notify_profiles() %s for %s" % (revival.mail_renderer, revival.service))
         for target in revival_local.target_set.select_related('member').filter(notified=False)[:MAX_BATCH_SEND]:
@@ -380,8 +381,7 @@ def notify_profiles_retro(debug=False):
         try:
             connection.close()
         except:
-            revival.is_running = False
-            revival.save()
+            pass
 
     diff = datetime.now() - t0
     logger.debug("notify_profiles_retro() run %d revivals. %d mails sent in %s" % (total_revival, total_mail, diff))
@@ -468,6 +468,7 @@ def rerun_complete_revivals(debug=False):
             revival.is_running = False
             revival.save()
             logger.error(u"Connexion error", exc_info=True)
+            continue
 
         logger.debug("Running rerun_complete_revivals() %s for %s" % (revival.mail_renderer, revival.service))
         for target in target_queryset.order_by('updated_on')[:MAX_BATCH_SEND]:
