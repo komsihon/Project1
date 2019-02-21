@@ -197,7 +197,8 @@ class VerifiedEmailTemplateView(TemplateView):
                 member.email_verified = True
                 member.propagate_changes()
                 return super(VerifiedEmailTemplateView, self).get(request, *args, **kwargs)
-            next_url = reverse('ikwen:email_confirmation')
+            referrer = request.META.get('HTTP_REFERER')
+            next_url = reverse('ikwen:email_confirmation') + '?next=' + referrer
             return HttpResponseRedirect(next_url)
         return super(VerifiedEmailTemplateView, self).get(request, *args, **kwargs)
 
@@ -247,12 +248,13 @@ class EmailConfirmationPrompt(TemplateView):
             return HttpResponse(json.dumps(response), 'content-type: text/json')
         else:
             member = request.user
+            next_url = request.GET.get('next')
             if member.is_authenticated():
                 email_verified = Member.objects.using(UMBRELLA).get(pk=member.id).email_verified
                 if email_verified:
-                    next_url = getattr(settings, 'LOGIN_REDIRECT_URL', 'home')
+                    if not next_url:
+                        next_url = getattr(settings, 'LOGIN_REDIRECT_URL', 'home')
                     return HttpResponseRedirect(reverse(next_url))
-            next_url = request.GET.get('next')
             if getattr(settings, 'DEBUG', False):
                 self.send_code(request, next_url=next_url)
             else:
