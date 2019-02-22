@@ -113,7 +113,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 .ik-li .glyphicon.check.active:hover {border-color: transparent;background: #59c51b;}
 
 .tiles {margin-top: -15px}
-.tiles .ik-li {height: 280px;width: 100%;border-bottom: none;}
+.tiles .ik-li {height: 280px;margin-bottom: 15px;width: 100%;border-bottom: none;}
 .tiles .ik-li .select {
     margin: -10px 0 0 -6px;
 }
@@ -243,6 +243,13 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 
 .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {color: #7b8a8b;background-color: #eee}
 .btn .glyphicon, .btn .fa {margin: 0 10px 0 -10px}
+
+.btn-outline-success {background-color: transparent;background-image: none;border-color: #FFC107;color: #FFC107;}
+.btn-outline-success:hover, .btn-outline-success:active, .btn-outline-success:active:hover {background-color: #FFC107; border-color: #FFC107; color: #fff}
+.btn-outline-white {background-color: transparent;background-image: none;border-color: #fff;color: #fff;}
+.btn-outline-white:hover {background-color: #fff; border-color: #fff; color: #01244F}
+.btn-outline-success:focus, .btn-outline-success.focus {box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.5)}
+
 @media (max-width: 767px) {
     .card-xs {padding: 0}
     .modal .actions .action, .modal .actions .btn {margin-top: .6em}
