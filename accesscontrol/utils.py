@@ -253,8 +253,8 @@ class EmailConfirmationPrompt(TemplateView):
                 email_verified = Member.objects.using(UMBRELLA).get(pk=member.id).email_verified
                 if email_verified:
                     if not next_url:
-                        next_url = getattr(settings, 'LOGIN_REDIRECT_URL', 'home')
-                    return HttpResponseRedirect(reverse(next_url))
+                        next_url = reverse(getattr(settings, 'LOGIN_REDIRECT_URL', 'home'))
+                    return HttpResponseRedirect(next_url)
             if getattr(settings, 'DEBUG', False):
                 self.send_code(request, next_url=next_url)
             else:
