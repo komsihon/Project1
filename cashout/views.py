@@ -35,7 +35,7 @@ def request_cash_out(request, *args, **kwargs):
         return HttpResponse(json.dumps({'error': _("No Payment method. Please set one first.")}),
                             'content-type: text/json')
     try:
-        address = CashOutRequest.objects.using('wallets').get(service_id=business.id, provider=provider, status=PENDING)
+        CashOutRequest.objects.using('wallets').get(service_id=business.id, provider=provider, status=PENDING)
         return HttpResponse(json.dumps({'error': _("You already have a pending request for this wallet.")}),
                             'content-type: text/json')
     except CashOutRequest.DoesNotExist:
