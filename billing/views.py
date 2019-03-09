@@ -487,40 +487,31 @@ class TransactionLog(HybridListView):
     def sum_transactions(self, queryset, **criteria):
         count_successful, count_running, count_failed, count_dropped = 0, 0, 0, 0
         amount_successful, amount_running, amount_failed, amount_dropped, amount_total = 0, 0, 0, 0, 0
-        start_date = criteria.pop('start_date')
-        end_date = criteria.pop('end_date')
-        if start_date and end_date:
-            queryset = queryset.filter(created_on__range=(start_date, end_date))
         if criteria.get('status') is None and criteria.get('is_running') is None:
-            count_successful = queryset.filter(status=MoMoTransaction.SUCCESS, **criteria).count()
-            aggr = queryset.filter(status=MoMoTransaction.SUCCESS, **criteria).aggregate(Sum('amount'))
+            count_successful = queryset.filter(status=MoMoTransaction.SUCCESS).count()
+            aggr = queryset.filter(status=MoMoTransaction.SUCCESS).aggregate(Sum('amount'))
             if aggr['amount__sum']:
                 amount_successful = aggr['amount__sum']
-            count_running = queryset.filter(is_running=True, **criteria).count()
-            aggr = queryset.filter(is_running=True, **criteria).aggregate(Sum('amount'))
+            count_running = queryset.filter(is_running=True).count()
+            aggr = queryset.filter(is_running=True).aggregate(Sum('amount'))
             if aggr['amount__sum']:
                 amount_running = aggr['amount__sum']
             count_failed = queryset.exclude(Q(status=MoMoTransaction.SUCCESS) |
                                              Q(status=MoMoTransaction.DROPPED) |
-                                             Q(is_running=True)).filter(**criteria).count()
+                                             Q(is_running=True)).count()
             aggr = queryset.exclude(Q(status=MoMoTransaction.SUCCESS) |
                                     Q(status=MoMoTransaction.DROPPED) |
-                                    Q(is_running=True)).filter(**criteria).aggregate(Sum('amount'))
+                                    Q(is_running=True)).aggregate(Sum('amount'))
             if aggr['amount__sum']:
                 amount_failed = aggr['amount__sum']
-            count_dropped = queryset.filter(status=MoMoTransaction.DROPPED, **criteria).count()
-            aggr = queryset.filter(status=MoMoTransaction.DROPPED, **criteria).aggregate(Sum('amount'))
+            count_dropped = queryset.filter(status=MoMoTransaction.DROPPED).count()
+            aggr = queryset.filter(status=MoMoTransaction.DROPPED).aggregate(Sum('amount'))
             if aggr['amount__sum']:
                 amount_dropped = aggr['amount__sum']
-        elif criteria.get('status') == MoMoTransaction.FAILURE:
-            criteria.pop('status')
-            queryset = queryset.exclude(Q(status=MoMoTransaction.SUCCESS) |
-                                        Q(status=MoMoTransaction.DROPPED) |
-                                        Q(is_running=True))
-        aggr = queryset.filter(**criteria).aggregate(Sum('amount'))
+        aggr = queryset.aggregate(Sum('amount'))
         if aggr['amount__sum']:
             amount_total += aggr['amount__sum']
-        count_total = queryset.filter(**criteria).count()
+        count_total = queryset.count()
         meta = {
             'total': {'count': count_total, 'amount': amount_total},
             'successful': {'count': count_successful, 'amount': amount_successful},
@@ -542,6 +533,7 @@ class TransactionLog(HybridListView):
         context = super(TransactionLog, self).get_context_data(**kwargs)
         criteria = self.get_filter_criteria()
         queryset = self.get_queryset()
+        context['status'] = self.request.GET.get('status')
         context['meta'] = self.sum_transactions(queryset, **criteria)
         return context
 
