@@ -15,27 +15,29 @@
             <div id="admin-tools" class="ceil bottom-shade-xs">
                 <form id="admin-tools-form" onsubmit="return false">
                     <div>
-                        <i class="glyphicon glyphicon-search"></i>
-                        <i class="glyphicon glyphicon-menu-left hide-search back"></i>
-                        <input type="text" id="context-search" class="tool search form-input input-sm" placeholder="{% blocktrans %}Search {{ verbose_name }}{% endblocktrans %}"/>
-                    </div>
-                    {% if filter and filter|length > 0 %}
-                        <div class="filter-trigger">
-                            <i class="glyphicon glyphicon-filter"></i>
-                            <i class="glyphicon glyphicon-menu-left hide-filter back"></i>
-                            {% for elt in filter %}
-                            <div class="tool filter">
-                                <label for="{{ elt.parameter_name }}" class="sr-only">{% trans elt.title %}</label>
-                                <select id="{{ elt.parameter_name }}" style="float: left; width: 120px" class="form-control input-sm {{ elt.parameter_name }} widget" name="{{ elt.parameter_name }}">
-                                    <option value="">{% trans "All" %} {% trans elt.title %}</option>
-                                    {% for choice in elt.choices %}
-                                        <option value="{{ choice.0 }}">{{ choice.1 }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            {% endfor %}
+                        <div>
+                            <i class="glyphicon glyphicon-search"></i>
+                            <i class="glyphicon glyphicon-menu-left hide-search back"></i>
+                            <input type="text" id="context-search" class="tool search form-input input-sm" placeholder="{% blocktrans %}Search {{ verbose_name }}{% endblocktrans %}"/>
                         </div>
-                    {% endif %}
+                        {% if filter and filter|length > 0 %}
+                            <div class="filter-trigger">
+                                <i class="glyphicon glyphicon-filter"></i>
+                                <i class="glyphicon glyphicon-menu-left hide-filter back"></i>
+                                {% for elt in filter %}
+                                <div class="tool filter">
+                                    <label for="{{ elt.parameter_name }}" class="sr-only">{% trans elt.title %}</label>
+                                    <select id="{{ elt.parameter_name }}" style="float: left; width: 120px" class="form-control input-sm {{ elt.parameter_name }} widget" name="{{ elt.parameter_name }}">
+                                        <option value="">{% trans "All" %} {% trans elt.title %}</option>
+                                        {% for choice in elt.choices %}
+                                            <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
                 </form>
                 {% url change_object_url_name as change_object_url %}
                 <a href="{{ change_object_url }}" class="btn btn-sm btn-success cta add pull-right action"
