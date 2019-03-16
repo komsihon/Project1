@@ -107,8 +107,8 @@
                     $('div#modal-join-notice .project-name').text(data.project_name);
                     $('#modal-join-notice').modal('show').find('.claim').attr('href', data.ikwen_page);
                     $('#modal-join-notice .fb-link').attr('href', 'https://facebook.com/sharer/sharer.php?u=' + data.ikwen_page);
-                    $('#modal-join-notice .twtr-link').attr('href', 'https://facebook.com/sharer/sharer.php?u=' + data.ikwen_page);
-                    $('.wsap-link').data('url', 'https://facebook.com/sharer/sharer.php?u=' + data.ikwen_page);
+                    $('#modal-join-notice .twtr-link').attr('href', 'https://twitter.com/home?status=' + data.ikwen_page);
+                    $('.wsap-link').data('url', data.ikwen_page);
                 }
             })
         });
