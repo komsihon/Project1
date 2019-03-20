@@ -399,7 +399,9 @@ def calculate_watch_info(history_value_list, duration=0):
 
     if total_0 is not None:
         change = total - total_0
-        if total_0 == 0:
+        if total_0 == 0 and total == 0:
+            change_rate = 0  # When moving from 0 to 0, we consider change to be 0%
+        elif total_0 == 0 and total != 0:
             change_rate = 100  # When moving from 0 to another value, we consider change to be 100%
         else:
             change_rate = float(change) / total_0 * 100
