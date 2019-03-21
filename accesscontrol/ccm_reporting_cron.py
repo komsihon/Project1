@@ -42,7 +42,7 @@ def send_ccm_report():
             except Service.DoesNotExist:
                 continue
             set_counters(service_original)
-            ccm_watch = calculate_watch_info(service_original.community_history, 3)
+            ccm_watch = calculate_watch_info(service_original.community_history, 15)
             member = service.member
             if member.language:
                 activate(member.language)
@@ -55,7 +55,7 @@ def send_ccm_report():
             if last_mail:
                 now = datetime.now()
                 diff = now - last_mail.created_on
-                if diff.days <= 2:
+                if diff.days <= 14:
                     if ccm_watch['change_rate'] < 100:
                         continue
 
