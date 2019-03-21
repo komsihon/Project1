@@ -47,12 +47,10 @@
                         </div>
                         <div class="col-sm-4" style="text-align: right">
                         {% if can_cash_out %}
-{#                            {% if not last_payment or last_payment.status != 'Pending' %}#}
-                                <button id="show-addresses" class="btn btn-primary btn-sm pull-right"
-                                        data-toggle="modal" data-target="#confirm-cash-out">{% trans "REQUEST A PAYMENT" %}</button>
-                                <p class="request-result text-success" style="display: none">{% trans "Request successful" %}</p>
-                                <p class="request-result text-danger" style="display: none">{% trans "Request failed" %}</p>
-{#                            {% endif %}#}
+                            <button id="show-addresses" class="btn btn-primary btn-sm pull-right"
+                                    data-toggle="modal" data-target="#confirm-cash-out">{% trans "REQUEST A PAYMENT" %}</button>
+                            <p class="request-result text-success" style="display: none">{% trans "Request successful" %}</p>
+                            <p class="request-result text-danger" style="display: none">{% trans "Request failed" %}</p>
                         {% else %}
                             <div class="text-muted" style="margin-top: 1em">
                                 {% trans "You can cash out as from" %} <strong>{{ config.currency_symbol }} {{ config.cash_out_min|intcomma }}</strong>
