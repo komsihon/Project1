@@ -52,6 +52,11 @@
         j = (j = i.length) > 3 ? j % 3 : 0;
         return sign + (j ? i.substr(0, j) + thouSeparator : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thouSeparator) + (decPlaces ? decSeparator + Math.abs(n - i).toFixed(decPlaces).slice(2) : "");
     };
+    Number.prototype.pad = function(size) {
+        var s = String(this);
+        while (s.length < (size || 2)) {s = "0" + s;}
+        return s;
+    };
     String.prototype.isValidEmail = function() {
         return /^[a-zA-Z0-9_]+(\.*\-*[a-zA-Z0-9_]+)*\@[a-zA-Z0-9_]+(\-*[a-zA-Z0-9_])*(\.[a-zA-Z0-9_]+)*\.[a-zA-Z]{2,4}$/.test(this)
     };
