@@ -936,7 +936,7 @@ def join(request, *args, **kwargs):
                                             extra_context={'referral_pack_list': referral_pack_list, 'coupon_count': coupon_count,
                                                            'joined_service': service, 'referee_name': member.full_name,
                                                            'joined_logo': service.config.logo})
-            msg = EmailMessage(subject, html_content, sender, [member.email])
+            msg = EmailMessage(referrer_subject, html_content, sender, [referrer.email])
             msg.content_subtype = "html"
             Thread(target=lambda m: m.send(), args=(msg, )).start()
 
