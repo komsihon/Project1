@@ -28,6 +28,10 @@
             #groups {clear: both; margin-top: 15px}
             .form-group.new-contact-profile {margin-bottom: 50px}
         }
+        @media (max-width: 767px) {
+            #admin-tools-form {width: auto}
+            #page-navigation {margin-top: 3px}
+        }
     </style>
 {% endblock %}
 
@@ -55,7 +59,7 @@
                 <div id="page-navigation" class="text-muted" data-page-index="1" data-page-size="{{ page_size }}">
                     {% if total_objects > page_size %}
                         <div><strong class="start">1</strong> - <strong class="finish">{{ page_size }}</strong> {% trans "of" %} <strong class="total">{{ total_objects }}</strong></div>
-{#                        <div style="margin: -8px 0 0 10px"><i class="finished back"> < </i><i class="next"> > </i></div>#}
+                        <div style="margin: -8px 0 0 10px"><i class="finished back"> < </i><i class="next"> > </i></div>
                     {% else %}
                         <div>{{ total_objects }}/{{ total_objects }}</div>
                     {% endif %}
