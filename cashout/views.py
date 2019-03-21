@@ -162,12 +162,14 @@ class Payments(TemplateView):
         wallets = OperatorWallet.objects.using('wallets').filter(nonrel_id=service.id)
         context['wallets'] = wallets
         payments = []
-        for p in CashOutRequest.objects.using('wallets').filter(service_id=service.id).order_by('-id'):
+        for p in CashOutRequest.objects.using('wallets').filter(service_id=service.id).order_by('-id')[:10]:
             # Re-transform created_on into a datetime object
             try:
                 p.created_on = datetime(*strptime(p.created_on[:19], '%Y-%m-%d %H:%M:%S')[:6])
             except TypeError:
                 pass
+            if p.amount_paid:
+                p.amount = p.amount_paid
             payments.append(p)
         context['payments'] = payments
         context['payment_addresses'] = CashOutAddress.objects.using(UMBRELLA).filter(service=service)

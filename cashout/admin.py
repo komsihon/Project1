@@ -33,7 +33,7 @@ class CashOutRequestAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if obj.status == CashOutRequest.PAID:
-            return 'service_id', 'member_id', 'method', 'account_number', 'amount', 'reference', 'status', 'name', 'teller_username'
+            return 'service_id', 'member_id', 'method', 'account_number', 'amount', 'amount_paid', 'reference', 'status', 'name', 'teller_username'
         return 'service_id', 'member_id', 'amount', 'method', 'account_number', 'name', 'teller_username'
 
     def save_model(self, request, obj, form, change):
@@ -44,8 +44,8 @@ class CashOutRequestAdmin(admin.ModelAdmin):
             obj.teller_username = request.user.username
             service = Service.objects.get(pk=obj.service_id)
             wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=service.id, provider=obj.provider)
-            with transaction.atomic():
-                wallet.balance -= obj.amount
+            with transaction.atomic(using='wallets'):
+                wallet.balance -= obj.amount_paid
                 wallet.save(using='wallets')
                 iao = service.member
                 if getattr(settings, 'TESTING', False):

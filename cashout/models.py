@@ -66,7 +66,8 @@ class CashOutRequest(Model):
     service_id = models.CharField(max_length=24)
     # member = models.ForeignKey('accesscontrol.Member')
     member_id = models.CharField(max_length=24)
-    amount = models.IntegerField(default=0)
+    amount = models.IntegerField(default=0)  # Amount requested by the IAO at the time of cash-out request
+    amount_paid = models.IntegerField(default=0)  # Amount actually paid.
     provider = models.CharField(max_length=60, editable=False,
                                 help_text="Wallet operator from which we collected the money. "
                                           "It is actually the slug of the PaymentMean.")
