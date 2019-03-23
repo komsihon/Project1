@@ -397,8 +397,12 @@ class Service(models.Model):
         Thread(target=reload_server).start()
 
         self.domain = new_domain
-        self.url = self.url.replace('http://' + previous_domain, 'http://' + new_domain)
-        self.admin_url = self.admin_url.replace('http://' + previous_domain, 'http://' + new_domain)
+        if "go.ikwen.com" not in self.url:
+            self.url = self.url.replace('http://go.ikwen.com/' + self.project_name_slug, 'http://' + new_domain)
+            self.admin_url = self.admin_url.replace('http://go.ikwen.com/' + self.project_name_slug, 'http://' + new_domain)
+        else:
+            self.url = self.url.replace('http://' + previous_domain, 'http://' + new_domain)
+            self.admin_url = self.admin_url.replace('http://' + previous_domain, 'http://' + new_domain)
         self.save()
         db = self.database
         add_database_to_settings(db)
@@ -416,7 +420,9 @@ class Service(models.Model):
         from ikwen.core.tools import generate_django_secret_key
 
         secret_key = generate_django_secret_key()
-        is_naked_domain = "go.ikwen.com" not in self.url
+        is_naked_domain = kwargs.get('is_naked_domain')
+        if is_naked_domain is None:
+            is_naked_domain = "go.ikwen.com" not in self.url
         if is_naked_domain:
             allowed_hosts = '"%s", "www.%s"' % (self.domain, self.domain)
         else:
