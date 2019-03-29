@@ -106,9 +106,9 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="om-access-token" class="col-sm-5 col-md-4">{% trans "Access Token" %}</label>
+                            <label for="om-auth-header" class="col-sm-5 col-md-4">{% trans "Authorization header" %}</label>
                             <div class="col-sm-7">
-                                <input type="text" id="om-access-token" name="access_token" class="form-control input-sm" />
+                                <input type="text" id="om-auth-header" name="auth_header" class="form-control input-sm" />
                             </div>
                         </div>
                     </form>
@@ -179,9 +179,9 @@
             }).on('click', '.conf-orange-money', function() {
                 var meanId = $(this).parents('.ik-li').data('id'),
                     merchantKey = $(this).parents('.ik-li').data('merchant_key'),
-                    accessToken = $(this).parents('.ik-li').data('access_token');
+                    authHeader = $(this).parents('.ik-li').data('auth_header');
                 $('#om-merchant-key').val(merchantKey);
-                $('#om-access-token').val(accessToken);
+                $('#om-auth-header').val(authHeader);
                 $('div#conf-orange-money button.btn-success').data('mean-id', meanId);
             }).on('click', '.conf-mtn-momo', function() {
                 var meanId = $(this).parents('.ik-li').data('id'),
@@ -218,7 +218,7 @@
             $('div#conf-orange-money button.btn-success').click(function() {
                 var credentials = JSON.stringify({
                     merchant_key: $('#om-merchant-key').val(),
-                    access_token: $('#om-access-token').val()
+                    auth_header: $('#om-auth-header').val()
                 }),
                 meanId = $(this).data('mean-id');
                 $.getJSON('{% url 'billing:set_credentials' %}', {mean_id: meanId, credentials: credentials}, function(resp) {
