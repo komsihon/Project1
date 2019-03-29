@@ -18,7 +18,9 @@ from requests.exceptions import SSLError
 from requests import RequestException
 from requests import Timeout
 
-from ikwen.core.utils import get_service_instance
+from ikwen.accesscontrol.backends import UMBRELLA
+from ikwen.core.models import Service
+from ikwen.core.utils import get_service_instance, add_database
 
 from ikwen.billing.models import PaymentMean, MoMoTransaction
 
@@ -33,6 +35,8 @@ def init_web_payment(request, *args, **kwargs):
     api_url = getattr(settings, 'ORANGE_MONEY_API_URL') + '/webpayment'
     phone = UNKNOWN_PHONE
     service = get_service_instance()
+    payment_mean = PaymentMean.objects.get(slug=ORANGE_MONEY)
+    refresh_access_token(payment_mean)  # Eventually refresh access token if near to expire
     request.session['phone'] = phone
     if getattr(settings, 'DEBUG_MOMO', False):
         amount = 1
@@ -65,7 +69,7 @@ def init_web_payment(request, *args, **kwargs):
             'cancel_url': request.session['cancel_url'],
             'notif_url': notif_url}
     if getattr(settings, 'DEBUG', False):
-        om = json.loads(PaymentMean.objects.get(slug=ORANGE_MONEY).credentials)
+        om = json.loads(payment_mean.credentials)
         headers.update({'Authorization': 'Bearer ' + om['access_token']})
         data.update({'merchant_key': om['merchant_key'], 'currency': 'OUV'})
         r = requests.post(api_url, headers=headers, data=json.dumps(data), verify=False, timeout=130)
@@ -83,7 +87,7 @@ def init_web_payment(request, *args, **kwargs):
             momo_tx.save()
     else:
         try:
-            om = json.loads(PaymentMean.objects.get(slug=ORANGE_MONEY).credentials)
+            om = json.loads(payment_mean.credentials)
         except:
             return HttpResponse("Error, Could not parse Orange Money API parameters.")
         try:
@@ -197,3 +201,44 @@ def check_transaction_status(request):
         except:
             logger.error("Orange Money: Failure while querying transaction status", exc_info=True)
             continue
+
+
+def refresh_access_token(payment_mean):
+    diff = datetime.now() - payment_mean.updated_on
+    credentials = json.loads(payment_mean.credentials)
+    access_token_timeout = getattr(settings, 'OM_ACCESS_TOKEN_TIMEOUT', 80)
+    if credentials.get('access_token') and diff.days < (access_token_timeout - 1):
+        return
+    auth_header = credentials['auth_header']
+    auth_header = auth_header.replace('Basic ', '').strip()
+    headers = {'Authorization': 'Basic ' + auth_header}
+    data = {'grant_type': 'client_credentials'}
+    url = getattr(settings, 'OM_TOKEN_UPDATE_URL', "https://api.orange.com/oauth/v2/token")
+    logger.debug("OM: Updating Access Token")
+    try:
+        r = requests.post(url, headers=headers, data=data, verify=False, timeout=130)
+        resp = r.json()
+        access_token = resp['access_token']
+        credentials['access_token'] = access_token
+        payment_mean.credentials = json.dumps(credentials)
+        payment_mean.save()
+        logger.debug("OM: access_token successfully updated to %s" % access_token)
+
+        # Propagate that change to all ikwen apps using a centralized OM account.
+        # Those are the one with config.is_pro_version = False
+        config = get_service_instance().config
+        if config.is_pro_version:
+            return
+        Thread(target=propagate_access_token_refresh, args=(payment_mean, )).start()
+    except:
+        logger.error("OM: Failed to update access_token", exc_info=True)
+
+
+def propagate_access_token_refresh(payment_mean):
+    for service in Service.objects.using(UMBRELLA).all():
+        config = service.basic_config
+        if config.is_pro_version:
+            continue
+        db = service.database
+        add_database(db)
+        PaymentMean.objects.using(db).filter(slug=ORANGE_MONEY).update(credentials=payment_mean.credentials)
