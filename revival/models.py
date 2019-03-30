@@ -14,7 +14,7 @@ from ikwen.accesscontrol.models import Member
 
 
 class ProfileTag(AbstractWatchModel):
-    name = models.CharField(max_length=60, unique=True)
+    name = models.CharField(max_length=60)
     slug = models.SlugField(unique=True)
     member_count = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
@@ -27,6 +27,9 @@ class ProfileTag(AbstractWatchModel):
     smart_total_revival = models.IntegerField(default=0)
     total_cyclic_mail_revival = models.IntegerField(default=0)
     total_cyclic_sms_revival = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ('name', 'is_auto')
 
     def __unicode__(self):
         return self.name
