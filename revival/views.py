@@ -225,7 +225,7 @@ class ChangeProfileTag(ChangeObjectBase):
                     member = Member.objects.filter(phone=phone)[0]
                     sms_text = revival.sms_text.replace('$client', member.first_name)
                 except:
-                    sms_text = revival.mail_content.replace('$client', _("<Unknown>"))
+                    sms_text = revival.mail_content.replace('$client', "")
                 page_count = count_pages(sms_text)
                 with transaction.atomic():
                     try:

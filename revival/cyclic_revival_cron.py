@@ -107,6 +107,7 @@ def notify_profiles(debug=False):
             connection.open()
         except:
             logger.error(u"Connexion error", exc_info=True)
+            break
 
         logger.debug("Running revival %s for %s" % (revival.mail_subject, revival.service))
         for target in revival_local.cyclictarget_set.select_related('member'):
