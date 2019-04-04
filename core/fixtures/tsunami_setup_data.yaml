@@ -1,0 +1,74 @@
+- model: core.application
+  pk: 57eb6d04b3379b531a00b371
+  fields:
+    name: Kakocase
+    slug: kakocase
+    version: 1
+    logo: app_logos/kakocase.png
+    url: http://kakocase.com
+    base_monthly_cost: 5000
+
+- model: core.application
+  pk: 57eb6d04b3379b531a00b372
+  fields:
+    name: WebNode
+    slug: webnode
+    version: 1
+    logo: app_logos/webnode.png
+    url: http://webnode.com
+    base_monthly_cost: 5000
+
+- model: billing.supportbundle
+  pk: 5980870a3d29d34fc0c2aeb1
+  fields:
+    type: Technical
+    channel: Phone
+    quantity: -1
+    duration: 15
+    cost: 0
+
+- model: kakocase.tsunamibundle
+  pk: 59531a009d34fc0c2aeb13d1
+  fields:
+    name: Starter
+    slug: starter
+    sms_count: 1800
+    early_payment_sms_count: 2000
+    mail_count: 5000
+    early_payment_mail_count: 6000
+    support_bundle: 5980870a3d29d34fc0c2aeb1
+    cost: 79900
+
+- model: core.service
+  pk: 57d04b37b3379b531b10eb61
+  fields:
+    member: 56eb6d04b37b3379b531e012
+    app: 57eb6d04b3379b531a00b371
+    project_name: Super Shop
+    project_name_slug: super-shop
+    url: http://super-shop.com
+    domain: super-shop.com
+    database: test_super_shop
+    api_signature: super-shop-api-signature-1
+    monthly_cost: 15000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z
+
+- model: billing.invoice
+  pk: 56eb6b39d3731e7b35012d01
+  fields:
+    subscription: 57d04b37b3379b531b10eb61
+    number: A5
+    amount: 45000
+    due_date: 2016-01-01T10:31:11.345Z
+    reminders_sent: 1
+    months_count: 3
+
+- model: kakocase.operatorprofile
+  fields:
+    service: 57d04b37b3379b531b10eb61
+    company_name: Super Shop
+    contact_email: contact@super-shop.com
+    logo: logos/some_logo.png
+    bundle: 59531a009d34fc0c2aeb13d1
