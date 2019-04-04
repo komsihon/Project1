@@ -590,15 +590,10 @@ class ServiceDetail(TemplateView):
         try:
             support_code = SupportCode.objects.using(UMBRELLA).filter(service=srvce).order_by('-id')[0]
         except IndexError:
-            token = ''.join([random.SystemRandom().choice(string.digits) for _ in range(6)])
-            expiry = now + timedelta(days=45)  # Offer 45 days of Phone support for people who don't have it yet
-            support_code = SupportCode.objects.using(UMBRELLA)\
-                .create(service=srvce, type=SupportBundle.PHONE, token=token, expiry=expiry)
-        if support_code.expiry < now:
+            support_code = None
+        if support_code and support_code.expiry < now:
             support_code.expired = True
         echo_balance, update = Balance.objects.using('wallets').get_or_create(service_id=srvce.id)
-        if support_code.expiry < now:
-            support_code.expired = True
         context['srvce'] = srvce  # Service named srvce in context to avoid collision with service from template_context_processors
         context['support_code'] = support_code
         context['echo_balance'] = echo_balance
@@ -947,6 +942,8 @@ class DashboardBase(TemplateView):
                 last_cash_out.created_on = datetime(*strptime(last_cash_out.created_on[:19], '%Y-%m-%d %H:%M:%S')[:6])
             except TypeError:
                 pass
+            if last_cash_out.amount_paid:
+                last_cash_out.amount = last_cash_out.amount_paid
         service = get_service_instance()
         try:
             balance = 0
@@ -962,6 +959,20 @@ class DashboardBase(TemplateView):
         context['last_cash_out'] = last_cash_out
         context['CRNCY'] = Currency.active.base()
         return context
+
+
+class AdminHomeBase(TemplateView):
+
+    def get(self, request, *args, **kwargs):
+        action = request.GET.get('action')
+        if action == 'update_domain':
+            service = get_service_instance()
+            new_domain = request.GET['new_domain']
+            is_naked_domain = True if request.GET.get('is_naked_domain') else False
+            service.update_domain(new_domain, is_naked_domain)
+            service.reload_settings(service.settings_template, is_naked_domain=is_naked_domain)
+            return HttpResponse(json.dumps({'success': True}))
+        return super(AdminHomeBase, self).get(request, *args, **kwargs)
 
 
 class LegalMentions(TemplateView):

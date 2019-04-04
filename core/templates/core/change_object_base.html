@@ -22,6 +22,13 @@
             {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
             <form class="admin-form" method="post">{% csrf_token %}
                 {% include 'core/snippets/model_admin_form.html' %}
+                {% if img_obj %}
+                <div class="col-sm-4 col-lg-3">
+                    {% with model_name=model image=img_obj.image image_field_name=img_obj.image_field_name label_field_name=img_obj.label_field_name img_help_text=img.img_help_text %}
+                        {% include 'core/snippets/uploader_single.html' %}
+                    {% endwith %}
+                </div>
+                {% endif %}
                 <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
                     <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
                 </div>
