@@ -23,9 +23,11 @@ from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, COMMUNITY
 from ikwen.core.models import Service, Config, OperatorWallet, ConsoleEventType
 from ikwen.core.utils import add_database
+from ikwen.billing.models import MoMoTransaction
 from ikwen.rewarding.models import ReferralRewardPack, Reward, CumulatedCoupon, CouponSummary
 from ikwen.revival.models import MemberProfile
-from ikwen.rewarding.utils import REFERRAL
+
+from echo.models import Balance
 
 
 def wipe_test_data():
@@ -39,8 +41,11 @@ def wipe_test_data():
     import ikwen.partnership.models
     import ikwen.revival.models
     import ikwen.rewarding.models
+    import ikwen_kakocase.kakocase.models
     import permission_backend_nonrel.models
     OperatorWallet.objects.using('wallets').all().delete()
+    MoMoTransaction.objects.using('wallets').all().delete()
+    Balance.objects.using('wallets').all().delete()
     for alias in getattr(settings, 'DATABASES').keys():
         if alias == 'wallets':
             continue
@@ -69,6 +74,9 @@ def wipe_test_data():
                      'CouponUse', 'CouponWinner', 'CRProfile', 'CROperatorProfile',
                      'JoinRewardPack', 'ReferralRewardPack', 'PaymentRewardPack', ):
             model = getattr(ikwen.rewarding.models, name)
+            model.objects.using(alias).all().delete()
+        for name in ('TsunamiBundle', 'OperatorProfile', ):
+            model = getattr(ikwen_kakocase.kakocase.models, name)
             model.objects.using(alias).all().delete()
 
 
