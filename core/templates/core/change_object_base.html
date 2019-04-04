@@ -5,6 +5,15 @@
 <title> {% if obj %}{{ obj }}{% else %}{% trans "New" %}{% endif %} - {{ service.project_name }} </title>
 {% endblock %}
 
+{% block head_style %}
+    {{ block.super }}
+    <link href="{% static 'ikwen/css/uploader-single.css' %}" media="screen" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block head_js %}
+    <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
+{% endblock %}
+
 {% block breadcrumb_location %}
     <li>
         <a href="{{ object_list_url }}">{{ verbose_name_plural|capfirst }}</a>

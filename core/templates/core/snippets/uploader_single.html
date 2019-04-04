@@ -2,7 +2,7 @@
 
 <section class="photos" style="width: 100%">
     <label class="required upload-title" style="float: left; width: 100%">{% trans "Upload image" %}</label>
-    <div id="upload-container{{ img_counter }}">
+    <div id="upload-container{{ img_counter }}" class="upload-container">
         {% if image.name %}
         <div class="image" style="background-image: url('{{ image.url }}')">
         {% else %}

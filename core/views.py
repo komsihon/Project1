@@ -263,9 +263,7 @@ class ChangeObjectBase(TemplateView):
     profiles_aware = False  # If set to true, object ProfileTag management utilities will be integrated to the object
     auto_profile = False  # If true, this object generates a secret ProfileTag matching the actual object upon save
     revival_mail_renderer = None
-    image_field = None
     label_field = None
-    image_help_text = None
 
     def get_object(self, **kwargs):
         object_id = kwargs.get('object_id')  # May be overridden with the one from GET data
