@@ -2,7 +2,7 @@
 
 <section class="photos" style="width: 100%">
     <label class="required upload-title" style="float: left; width: 100%">{% trans "Upload image" %}</label>
-    <div id="upload-container">
+    <div id="upload-container{{ img_counter }}">
         {% if image.name %}
         <div class="image" style="background-image: url('{{ image.url }}')">
         {% else %}
@@ -28,21 +28,21 @@
         $('.form-row textarea').addClass('form-control input-sm');
         var uploader = new qq.FileUploader({
             action: "{% url 'ikwen:upload_image' %}",
-            element: $('div#upload-container .uploader')[0],
+            element: $('div#upload-container{{ img_counter }} .uploader')[0],
             buttonText: "{% trans "Upload image" %}",
             multiple: false,
             onProgress: function(id, fileName, loaded, total) {
                 var ratio = loaded / total,
                     percent = ratio * 100;
-                $('div#upload-container .image .progress').animate({width: percent + '%'});
-                if (ratio === 1) $('div#upload-container .image .spinner').show()
+                $('div#upload-container{{ img_counter }} .image .progress').animate({width: percent + '%'});
+                if (ratio === 1) $('div#upload-container{{ img_counter }} .image .spinner').show()
             },
             onComplete: function(id, fileName, responseJSON) {
                 if(responseJSON.success) {
                     var imageUrl = responseJSON.path,
                         img = new Image();
                     img.onload = function() {
-                        $('div#upload-container .image').css('background-color', "#fff")  // Causes the placeholder image to disappear
+                        $('div#upload-container{{ img_counter }} .image').css('background-color', "#fff")  // Causes the placeholder image to disappear
                                 .css('background-image', "url('" + imageUrl +"')")
                                 .find('.progress, .spinner').hide();
                     };

@@ -20,6 +20,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.db.models import get_model
+from django.db.models.fields.files import ImageFieldFile
 from django.forms.models import modelform_factory
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -39,7 +40,7 @@ import ikwen.conf.settings
 from echo.models import Balance
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT
-from ikwen.billing.models import Invoice, SupportCode, SupportBundle
+from ikwen.billing.models import Invoice, SupportCode
 from ikwen.billing.utils import get_invoicing_config_instance, get_billing_cycle_days_count, \
     get_billing_cycle_months_count, refresh_currencies_exchange_rates
 from ikwen.cashout.models import CashOutRequest
@@ -48,7 +49,7 @@ from ikwen.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent
 from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons, add_database_to_settings, \
     add_database, calculate_watch_info, set_counters, get_model_admin_instance
 from ikwen.rewarding.models import CROperatorProfile
-from ikwen.revival.models import ObjectProfile, ProfileTag, Revival
+from ikwen.revival.models import ProfileTag, Revival
 
 try:
     ikwen_service = Service.objects.using(UMBRELLA).get(pk=ikwen.conf.settings.IKWEN_SERVICE_ID)
@@ -262,8 +263,8 @@ class ChangeObjectBase(TemplateView):
     profiles_aware = False  # If set to true, object ProfileTag management utilities will be integrated to the object
     auto_profile = False  # If true, this object generates a secret ProfileTag matching the actual object upon save
     revival_mail_renderer = None
-    image_field_name = None
-    label_field_name = None
+    image_field = None
+    label_field = None
     image_help_text = None
 
     def get_object(self, **kwargs):
@@ -289,29 +290,28 @@ class ChangeObjectBase(TemplateView):
                                      model_admin.get_prepopulated_fields(self.request, obj),
                                      model_admin.get_readonly_fields(self.request, obj))
 
-        if self.profiles_aware:
-            object_profile, update = ObjectProfile.objects.get_or_create(model_id=obj.id)
-            profiletag_list = list(ProfileTag.objects.filter(is_active=True, is_auto=False))
-            for tag in profiletag_list:
-                if tag.name in object_profile.tag_list:
-                    tag.is_selected = True
-            context['profiletag_list'] = profiletag_list
-
         context[self.context_object_name] = obj
+        model_obj = self.model()
         context['obj'] = obj  # Base template recognize the context object only with the name 'obj'
-        context['verbose_name'] = self.model()._meta.verbose_name
-        context['verbose_name_plural'] = self.model()._meta.verbose_name_plural
+        context['verbose_name'] = model_obj._meta.verbose_name
+        context['verbose_name_plural'] = model_obj._meta.verbose_name_plural
         context['object_list_url'] = self.get_object_list_url(self.request, obj, **kwargs)
         context['model_admin_form'] = obj_form
-        if self.image_field_name:
-            label_field_name = self.label_field_name if self.label_field_name else 'name'
-            img_obj = {
-                'image': obj.__getattribute__(self.image_field_name),
-                'field': self.image_field_name,
-                'label': label_field_name,
-                'help_text': self.image_help_text
-            }
-            context['img_obj'] = img_obj
+        context['label_field'] = self.label_field if self.label_field else 'name'
+        img_field_list = []
+        i = 0
+        for key in model_obj.__dict__.keys():
+            field = model_obj.__getattribute__(key)
+            if isinstance(field, ImageFieldFile):
+                img_obj = {
+                    'image': field,
+                    'field': key,
+                    'help_text': field.field.help_text,
+                    'counter': i
+                }
+                img_field_list.append(img_obj)
+                i += 1
+        context['img_field_list'] = img_field_list
         return context
 
     def get(self, request, *args, **kwargs):
