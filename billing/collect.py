@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
+import string
 from datetime import datetime, timedelta
+import random
 from threading import Thread
 
 from django.conf import settings
@@ -12,15 +14,17 @@ from django.db.models.loading import get_model
 from django.http import HttpResponseRedirect
 from django.utils.http import urlquote
 from django.utils.translation import gettext as _
+
+from billing.models import SupportCode
 from ikwen.core.constants import CONFIRMED
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import SUDO
-from ikwen.billing.models import Invoice, Payment, PAYMENT_CONFIRMATION, InvoiceEntry, Product, InvoiceItem, Donation
+from ikwen.billing.models import Invoice, Payment, PAYMENT_CONFIRMATION, InvoiceEntry, Product, InvoiceItem, Donation, \
+    SupportBundle
 from ikwen.billing.mtnmomo.views import MTN_MOMO
-from ikwen.billing.orangemoney.views import ORANGE_MONEY
-from ikwen.billing.utils import get_invoicing_config_instance, get_days_count, \
-    get_payment_confirmation_message, share_payment_and_set_stats, get_next_invoice_number
+from ikwen.billing.utils import get_invoicing_config_instance, get_days_count, get_payment_confirmation_message, \
+    share_payment_and_set_stats, get_next_invoice_number, refill_tsunami_messaging_bundle
 from ikwen.core.models import Service
 from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content
 
@@ -73,8 +77,9 @@ def confirm_invoice_payment(request, *args, **kwargs):
     This function has no URL associated with it.
     It serves as ikwen setting "MOMO_AFTER_CHECKOUT"
     """
-    service = get_service_instance()
-    config = service.config
+    now = datetime.now()
+    ikwen_service = get_service_instance()
+    config = ikwen_service.config
     invoice_id = request.session['object_id']
     invoice = Invoice.objects.get(pk=invoice_id)
     invoice.status = Invoice.PAID
@@ -83,7 +88,7 @@ def confirm_invoice_payment(request, *args, **kwargs):
     invoice.save()
     amount = request.session['amount']
     payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY, amount=amount)
-    s = invoice.service
+    service = invoice.service
     if config.__dict__.get('separate_billing_cycle', True):
         extra_months = request.session['extra_months']
         total_months = invoice.months_count + extra_months
@@ -91,39 +96,59 @@ def confirm_invoice_payment(request, *args, **kwargs):
     else:
         days = invoice.subscription.product.duration
         total_months = None
-    if s.status == Service.SUSPENDED:
+    if service.status == Service.SUSPENDED:
         invoicing_config = get_invoicing_config_instance()
         days -= invoicing_config.tolerance  # Catch-up days that were offered before service suspension
-        expiry = datetime.now() + timedelta(days=days)
+        expiry = now + timedelta(days=days)
         expiry = expiry.date()
-    elif s.expiry:
-        expiry = s.expiry + timedelta(days=days)
+    elif service.expiry:
+        expiry = service.expiry + timedelta(days=days)
     else:
-        expiry = datetime.now() + timedelta(days=days)
+        expiry = now + timedelta(days=days)
         expiry = expiry.date()
-    s.expiry = expiry
-    s.status = Service.ACTIVE
+    service.expiry = expiry
+    service.status = Service.ACTIVE
     if invoice.is_one_off:
-        s.version = Service.FULL
-    s.save()
+        service.version = Service.FULL
+        try:
+            support_bundle = SupportBundle.objects.get(type=SupportBundle.TECHNICAL, channel=SupportBundle.PHONE, cost=0)
+            token = ''.join([random.SystemRandom().choice(string.digits) for i in range(6)])
+            support_expiry = now + timedelta(days=support_bundle.duration)
+            SupportCode.objects.create(service=service, token=token, bundle=support_bundle,
+                                       balance=support_bundle.quantity, expiry=support_expiry)
+            logger.debug("Free Support Code created for %s" % service)
+        except SupportBundle.DoesNotExist:
+            logger.error("Free Support Code not created for %s" % service, exc_info=True)
+    service.save()
     mean = request.session['mean']
+    is_early_payment = False
+    if service.app.slug == 'kakocase' or service.app.slug == 'webnode':
+        if invoice.due_date <= now.date():
+            is_early_payment = True
+        refill_tsunami_messaging_bundle(service, is_early_payment)
     share_payment_and_set_stats(invoice, total_months, mean)
     member = request.user
-    add_event(service, PAYMENT_CONFIRMATION, member=member, object_id=invoice.id)
-    partner = s.retailer
-    if partner:
-        add_database_to_settings(partner.database)
-        sudo_group = Group.objects.using(partner.database).get(name=SUDO)
+    vendor = service.retailer
+    if vendor:
+        add_database_to_settings(vendor.database)
+        sudo_group = Group.objects.using(vendor.database).get(name=SUDO)
     else:
+        vendor = ikwen_service
         sudo_group = Group.objects.using(UMBRELLA).get(name=SUDO)
-    add_event(service, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
+    add_event(vendor, PAYMENT_CONFIRMATION, member=member, object_id=invoice.id)
+    add_event(vendor, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
+
     if member.email:
         invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
         subject, message, sms_text = get_payment_confirmation_message(payment, member)
-        html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+        html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html', service=vendor,
                                         extra_context={'member_name': member.first_name, 'invoice': invoice,
-                                                       'cta': _("View invoice"), 'invoice_url': invoice_url})
-        sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
+                                                       'cta': _("View invoice"), 'invoice_url': invoice_url,
+                                                       'config': vendor.config, 'logo': vendor.config.logo,
+                                                       'project_name': vendor.project_name,
+                                                       'company_name': vendor.config.company_name,
+                                                       'early_payment': is_early_payment})
+        sender = '%s <no-reply@%s>' % (vendor.config.company_name, ikwen_service.domain)
         msg = EmailMessage(subject, html_content, sender, [member.email])
         msg.content_subtype = "html"
         Thread(target=lambda m: m.send(), args=(msg,)).start()

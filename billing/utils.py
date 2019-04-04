@@ -589,3 +589,30 @@ def refresh_currencies_exchange_rates():
             config.save()
         except:
             logger.error("Failure while querying Exchange Rates API", exc_info=True)
+
+
+def refill_tsunami_messaging_bundle(service, is_early_payment):
+    from ikwen_kakocase.kakocase.models import OperatorProfile as KakocaseProfile
+    from ikwen_webnode.webnode.models import OperatorProfile as WebNodeProfile
+    from echo.models import Balance
+
+    if service.app.slug == 'kakocase':
+        config = KakocaseProfile.objects.get(service=service)
+    elif service.app.slug == 'webnode':
+        config = WebNodeProfile.objects.get(service=service)
+    bundle = config.__getattribute__('bundle')
+    if bundle:
+        balance, update = Balance.objects.using('wallets').get_or_create(service_id=service.id)
+        if is_early_payment:
+            if bundle.early_payment_sms_count:
+                balance.sms_count = bundle.early_payment_sms_count
+            else:
+                balance.sms_count = bundle.sms_count
+            if bundle.early_payment_mail_count:
+                balance.mail_count = bundle.early_payment_mail_count
+            else:
+                balance.mail_count = bundle.mail_count
+        else:
+            balance.sms_count = bundle.sms_count
+            balance.mail_count = bundle.mail_count
+        balance.save()

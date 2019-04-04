@@ -41,8 +41,8 @@ def wipe_test_data():
         for name in ('Config', 'Service', 'ConsoleEvent', ):
             model = getattr(ikwen.core.models, name)
             model.objects.using(alias).all().delete()
-        for name in ('Product', 'Payment', 'Invoice', 'Subscription',
-                     'InvoicingConfig', 'PaymentMean', 'MoMoTransaction'):
+        for name in ('Product', 'Payment', 'Invoice', 'Subscription', 'InvoicingConfig',
+                     'PaymentMean', 'MoMoTransaction', 'SupportBundle', 'SupportCode'):
             model = getattr(ikwen.billing.models, name)
             model.objects.using(alias).all().delete()
 

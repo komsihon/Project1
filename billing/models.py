@@ -314,6 +314,7 @@ class SupportBundle(Model):
     quantity = models.IntegerField(default=0)
     duration = models.IntegerField()
     cost = models.IntegerField()
+    is_active = models.BooleanField(default=True)
 
     def __unicode__(self):
         return '%s (%d): %d days' % (self.type, self.quantity, self.duration)
@@ -495,6 +496,7 @@ class MoMoTransaction(Model):
                                        help_text="ID of the transaction in the Payment Processor system")
     task_id = models.CharField(max_length=30, blank=True, null=True,
                                help_text="Task ID (Payment Processor API)")
+    callback = models.CharField(max_length=255, blank=True, null=True)
     message = models.TextField(blank=True, null=True)
     is_running = models.BooleanField(default=True)
     status = models.CharField(max_length=30, blank=True, null=True)

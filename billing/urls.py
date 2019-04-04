@@ -3,13 +3,11 @@ from django.conf.urls import patterns, url
 from django.contrib.auth.decorators import login_required, permission_required
 from ikwen.billing.paypal.views import SetExpressCheckout
 
-from ikwen.billing.jumbopay.views import jumbopay_local_api
-
 from ikwen.billing.views import InvoiceList, InvoiceDetail, change_billing_cycle, list_members, \
     list_subscriptions, IframeAdmin, ProductList, ChangeProduct, PaymentMeanList, set_credentials, toggle_payment_mean, \
     MoMoSetCheckout, DeployCloud, SubscriptionList, ChangeSubscription, TransactionLog
 from ikwen.billing.public.views import Pricing, Donate
-from ikwen.billing.mtnmomo.views import init_momo_transaction, check_momo_transaction_status
+from ikwen.billing.mtnmomo.views import init_momo_transaction, check_momo_transaction_status, process_notification
 
 urlpatterns = patterns(
     '',
@@ -36,10 +34,9 @@ urlpatterns = patterns(
     url(r'^MoMo/initTransaction/$', init_momo_transaction, name='init_momo_transaction'),
     url(r'^MoMo/checkTransaction/$', check_momo_transaction_status, name='check_momo_transaction_status'),
 
-    url(r'^transactions/$', permission_required('accesscontrol.sudo')(TransactionLog.as_view()), name='transaction_log'),
+    url(r'^mtnmomo/notify$', process_notification, name='process_notification'),
 
-    url(r'^JumboPayAPI/$', jumbopay_local_api, name='jumbopay_local_api'),  # For Unit Tests only
-    url(r'^JumboPayAPI/(?P<op>[-\w]+)$', jumbopay_local_api, name='jumbopay_local_api'),  # For Unit Tests only
+    url(r'^transactions/$', permission_required('accesscontrol.sudo')(TransactionLog.as_view()), name='transaction_log'),
 
     url(r'^paypal/setCheckout/$', SetExpressCheckout.as_view(), name='paypal_set_checkout'),
 
