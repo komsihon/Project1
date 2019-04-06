@@ -106,6 +106,10 @@ class HybridListView(ListView):
             context['has_is_active_field'] = model().is_active
         except AttributeError:
             pass
+        try:
+            context['is_sortable'] = model().order_of_appearance
+        except AttributeError:
+            pass
         if not self.change_object_url_name:
             self.change_object_url_name = '%s:change_%s' % (meta.app_label, meta.model_name)
         context['change_object_url_name'] = self.change_object_url_name
@@ -190,7 +194,7 @@ class HybridListView(ListView):
             for token in sorted_keys.split(','):
                 object_id, order_of_appearance = token.split(':')
                 try:
-                    model.objects.filter(pk=object_id).update(order_of_appearance=order_of_appearance)
+                    model._default_manager.filter(pk=object_id).update(order_of_appearance=order_of_appearance)
                 except:
                     continue
         return super(HybridListView, self).get(request, *args, **kwargs)

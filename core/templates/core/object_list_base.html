@@ -57,7 +57,9 @@
 
 {% block js %}
     {{ block.super }}
-    {% include 'core/snippets/sort_and_actions.html' %}
+    {% if is_sortable %}
+        {% include 'core/snippets/sort_and_actions.html' %}
+    {% endif %}
     <script type="text/javascript">
         (function() {
             var target = '{{ verbose_name_plural|slugify }}' ? '{{ verbose_name_plural|slugify }}' : 'blank';
