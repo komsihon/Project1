@@ -329,11 +329,7 @@ class Service(models.Model):
         The replication is made by adding the actual Service database to DATABASES in settings and calling
         save(using=database).
         """
-        using = kwargs.get('using')
-        if using:
-            del(kwargs['using'])
-        else:
-            using = 'default'
+        using = kwargs.pop('using', 'default')
         if getattr(settings, 'IS_IKWEN', False):
             # If we are on Ikwen itself, replicate save or update on the current Service database
             add_database_to_settings(self.database)
@@ -704,11 +700,7 @@ class Config(AbstractConfig):
         db_table = 'ikwen_config'
 
     def save(self, *args, **kwargs):
-        using = kwargs.get('using')
-        if using:
-            del(kwargs['using'])
-        else:
-            using = 'default'
+        using = kwargs.pop('using', 'default')
         if getattr(settings, 'IS_IKWEN', False):
             db = self.service.database
             add_database_to_settings(db)
@@ -719,6 +711,7 @@ class Config(AbstractConfig):
                 obj_mirror.cash_out_min = self.cash_out_min
                 obj_mirror.is_pro_version = self.is_pro_version
                 obj_mirror.can_manage_currencies = self.can_manage_currencies
+                obj_mirror.sms_api_script_url = self.sms_api_script_url
                 super(Config, obj_mirror).save(using=db)
             except Config.DoesNotExist:
                 pass
