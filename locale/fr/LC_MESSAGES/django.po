@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-11-23 21:31+0100\n"
-"PO-Revision-Date: 2018-12-02 19:39+0100\n"
+"POT-Creation-Date: 2019-04-06 11:47+0100\n"
+"PO-Revision-Date: 2018-12-12 12:54+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -18,48 +18,51 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Poedit 1.8.7.1\n"
 
-#: accesscontrol/ccm_mail.py:46
+#: accesscontrol/ccm_reporting_cron.py:66
 msgid "Community progression report"
 msgstr "Rapport de progression de la communauté"
 
-#: accesscontrol/forms.py:35 billing/models.py:298
+#: accesscontrol/forms.py:36
+#: accesscontrol/templates/accesscontrol/community.html:213
+#: billing/models.py:307
 msgid "Email"
 msgstr "Email"
 
-#: accesscontrol/forms.py:58
+#: accesscontrol/forms.py:59
 msgid "Password reset instructions"
 msgstr "Instructions de réinitialisation de mot de passe"
 
-#: accesscontrol/forms.py:69
+#: accesscontrol/forms.py:70
 #: accesscontrol/templates/accesscontrol/account.html:86
+#: accesscontrol/templates/accesscontrol/community.html:217
 #: accesscontrol/templates/accesscontrol/forgotten_password.html:39
-#: accesscontrol/templates/accesscontrol/profile.html:274 billing/models.py:299
+#: accesscontrol/templates/accesscontrol/profile.html:274 billing/models.py:308
 #: templates/apps/webnode.html:152
 msgid "Phone"
 msgstr "Téléphone"
 
-#: accesscontrol/forms.py:78
+#: accesscontrol/forms.py:79
 msgid "The two password fields didn't match."
 msgstr "Les deux mots de passe ne correspondent pas."
 
-#: accesscontrol/forms.py:80 accesscontrol/forms.py:113
+#: accesscontrol/forms.py:81 accesscontrol/forms.py:114
 #: accesscontrol/templates/accesscontrol/account.html:160
 msgid "New password"
 msgstr "Nouveau mot de passe"
 
-#: accesscontrol/forms.py:82 accesscontrol/forms.py:115
+#: accesscontrol/forms.py:83 accesscontrol/forms.py:116
 msgid "New password confirmation"
 msgstr "Confirmation du nouveau mot de passe"
 
-#: accesscontrol/forms.py:111
+#: accesscontrol/forms.py:112
 msgid "Verification password"
 msgstr "Mot de passe de vérification"
 
-#: accesscontrol/models.py:108
+#: accesscontrol/models.py:134
 msgid "Service where user registered for the first time on ikwen"
 msgstr "Service où l'utilisateur s'est inscrit pour la première fois sur ikwen"
 
-#: accesscontrol/models.py:110
+#: accesscontrol/models.py:136
 msgid ""
 "Designates whether this user is an <strong>IAO</strong> (Ikwen Application "
 "Operator)."
@@ -67,7 +70,7 @@ msgstr ""
 "Indique si cet utilisateur est un< strong> OAI< / strong>/ (Opérateur "
 "d'Application Ikwen)."
 
-#: accesscontrol/models.py:113
+#: accesscontrol/models.py:139
 msgid ""
 "Designates whether this user is the Bao in the current service. Bao is the "
 "highest person in a deployed ikwen application. The only that can change or "
@@ -77,19 +80,19 @@ msgstr ""
 "personne la plus élevée dans une application ikwen déployée. Le seul qui "
 "peut changer ou bloquer Sudo."
 
-#: accesscontrol/models.py:122
+#: accesscontrol/models.py:148
 msgid "Email verification status"
 msgstr "État de vérification d'Email"
 
-#: accesscontrol/models.py:123
+#: accesscontrol/models.py:149
 msgid "Designates whether this email has been verified."
 msgstr "Indique si cet email a été vérifié. "
 
-#: accesscontrol/models.py:124
+#: accesscontrol/models.py:150
 msgid "Phone verification status"
 msgstr "État de vérification du téléphone"
 
-#: accesscontrol/models.py:125
+#: accesscontrol/models.py:151
 msgid ""
 "Designates whether this phone number has been verified by sending a "
 "confirmation code by SMS."
@@ -97,13 +100,124 @@ msgstr ""
 "Indique si ce numéro de téléphone a été vérifié en envoyant un code de "
 "confirmation par SMS."
 
-#: accesscontrol/models.py:297
+#: accesscontrol/models.py:324
 msgid "This person would like to have access and collaborate with you"
 msgstr "Cette personne aimerait  avoir accès et collaborer avec vous"
 
-#: accesscontrol/models.py:298
+#: accesscontrol/models.py:325
 msgid "This person would like to have access to your services"
 msgstr "Cette personne aimerait avoir accès à vos services"
+
+#: accesscontrol/tests_auth.py:389 accesscontrol/views.py:512
+msgid "This e-mail already exists."
+msgstr "Cet email existe déjà."
+
+#: accesscontrol/tests_auth.py:399 accesscontrol/views.py:521
+msgid "This phone already exists."
+msgstr "Ce numéro de téléphone existe déjà."
+
+#: accesscontrol/tests_auth.py:419 accesscontrol/views.py:538
+msgid "Your information were successfully updated."
+msgstr "Vos informations ont été mises à jour avec succès."
+
+#: accesscontrol/tests_auth.py:441 accesscontrol/views.py:561
+msgid "The current password is incorrect!"
+msgstr "Le mot de passe actuel est incorrect!"
+
+#: accesscontrol/tests_auth.py:451 accesscontrol/views.py:556
+msgid "Passwords don't match."
+msgstr "Les mots de passe diffèrent."
+
+#: accesscontrol/tests_auth.py:457 accesscontrol/views.py:553
+#: accesscontrol/views.py:559
+msgid "Your password was successfully updated."
+msgstr "Votre mot de passe a été mis à jour avec succès."
+
+#: accesscontrol/utils.py:103
+#, python-format
+msgid "Welcome to %s"
+msgstr "Bienvenue chez %s"
+
+#: accesscontrol/utils.py:157 accesscontrol/utils.py:169
+#: accesscontrol/utils.py:247 accesscontrol/utils.py:265
+#: accesscontrol/views.py:445 accesscontrol/views.py:457
+msgid "Could not send code. Please try again later"
+msgstr "Impossible d'envoyer le code. Réessayez plutard"
+
+#: accesscontrol/utils.py:179 accesscontrol/utils.py:273
+#: accesscontrol/views.py:471
+msgid "Invalid code. Please try again"
+msgstr "Code invalide. Réessayez SVP"
+
+#: accesscontrol/utils.py:225
+msgid "Confirm your email and get started !"
+msgstr "Confirmez votre adresse mail et commencez !"
+
+#: accesscontrol/utils.py:327
+msgid "Could not confirm email"
+msgstr "Impossible de confirmer votre email"
+
+#: accesscontrol/views.py:121
+#, python-format
+msgid ""
+"You already have an account on ikwen with this phone. It was created on %s. "
+"Use it to login."
+msgstr ""
+"Vous avez déjà un compte sur ikwen avec ce numéro. Il a été crée sur %s. "
+"Utilisez-le pour vous connecter."
+
+#: accesscontrol/views.py:130
+msgid "Sorry, passwords mismatch."
+msgstr "Désolé, les mots de passe diffèrent."
+
+#: accesscontrol/views.py:176
+#, python-format
+msgid ""
+"You already have an account on ikwen with this username. It was created on "
+"%s. Use it to login."
+msgstr ""
+"Vous avez déjà un compte sur ikwen avec ce nom d'utilisateur. Il a été créé "
+"sur %s. Utilisez-le pour vous connecter."
+
+#: accesscontrol/views.py:243
+msgid "Invalid username/password or account inactive"
+msgstr "Nom d'utilisateur/mot de passe invalide ou compte inactif"
+
+#: accesscontrol/views.py:396 accesscontrol/views.py:488
+msgid "Password successfully reset."
+msgstr "Mot de passe réinitialisé."
+
+#: accesscontrol/views.py:477
+msgid "Passwords mismatch. Please try again"
+msgstr "Les mots de passe diffèrent. Bien vouloir réessayer"
+
+#: accesscontrol/views.py:763
+#, fuzzy
+msgid "This email already exists"
+msgstr "Cet email existe déjà."
+
+#: accesscontrol/views.py:773 accesscontrol/views.py:779
+#, fuzzy
+msgid "This phone already exists"
+msgstr "Ce numéro de téléphone existe déjà."
+
+#: accesscontrol/views.py:854 accesscontrol/views.py:956
+msgid "You were added to our community. Thank you for joining us."
+msgstr ""
+"Vous avez été ajouté à notre communauté avec joie. Merci de nous avoir "
+"rejoint. "
+
+#: accesscontrol/views.py:892
+#, python-format
+msgid "You just joined %s community"
+msgstr "Vous venez de rejoindre la communauté %s"
+
+#: accesscontrol/views.py:932
+#, fuzzy, python-format
+msgid ""
+"%(project_name)s is offering you %(count)d coupons for your referral to "
+"%(friend)s"
+msgstr "%s vous offre %d coupons pour votre recommendation à %s"
 
 #: accesscontrol/templates/accesscontrol/access_request_list.html:5
 msgid "Access requests"
@@ -158,7 +272,7 @@ msgstr "À propos de vous"
 #: accesscontrol/templates/accesscontrol/account.html:78
 #: accesscontrol/templates/accesscontrol/account.html:100
 #: accesscontrol/templates/accesscontrol/account.html:154
-#: core/templates/core/service_detail.html:96
+#: core/templates/core/service_detail.html:101
 msgid "Change"
 msgstr "Changer"
 
@@ -180,16 +294,20 @@ msgstr "Nom complet"
 #: accesscontrol/templates/accesscontrol/account.html:93
 #: accesscontrol/templates/accesscontrol/account.html:115
 #: accesscontrol/templates/accesscontrol/account.html:167
+#: accesscontrol/templates/accesscontrol/community.html:254
 #: billing/templates/billing/momo_checkout.html:43
 #: billing/templates/billing/payment_mean_list.html:29
 #: billing/templates/billing/payment_mean_list.html:85
 #: billing/templates/billing/payment_mean_list.html:122
 #: billing/templates/billing/payment_mean_list.html:153
-#: cashout/templates/cashout/payments.html:209
-#: cashout/templates/cashout/payments.html:247
-#: core/templates/core/service_detail.html:110
-#: revival/templates/revival/change_profile_tag.html:298
-#: revival/templates/revival/change_profile_tag.html:336
+#: billing/templates/billing/transaction_log.html:88
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:209 2019-03-06).html:247
+#: cashout/templates/cashout/payments.html:207
+#: cashout/templates/cashout/payments.html:245
+#: core/templates/core/service_detail.html:115
+#: revival/templates/revival/change_profile_tag.html:300
+#: revival/templates/revival/change_profile_tag.html:338
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -208,7 +326,7 @@ msgstr "Sécurité"
 #: accesscontrol/templates/accesscontrol/account.html:153
 #: accesscontrol/templates/accesscontrol/sign_in.html:46
 #: accesscontrol/templates/accesscontrol/sign_in_minimal.html:93
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:148
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:146
 #: templates/admin/login.html:118
 msgid "Password"
 msgstr "Mot de passe"
@@ -222,74 +340,138 @@ msgid "Confirm new password"
 msgstr "Confirmer le nouveau mot de passe"
 
 #: accesscontrol/templates/accesscontrol/community.html:5
-#: accesscontrol/templates/accesscontrol/community.html:36
-#: core/templates/core/base_admin.html:78
+#: accesscontrol/templates/accesscontrol/community.html:44
+#: core/templates/core/base_admin.html:77
 msgid "Community"
 msgstr "Communauté"
 
-#: accesscontrol/templates/accesscontrol/community.html:48
+#: accesscontrol/templates/accesscontrol/community.html:56
 #: core/templates/admin/search_form.html:7 core/templates/core/base_bs.html:108
 #: core/templates/core/snippets/admin_tools.html:7
 #: partnership/templates/partnership/snippets/service_list_results.html:7
 msgid "Search"
 msgstr "Recherche"
 
-#: accesscontrol/templates/accesscontrol/community.html:53
+#: accesscontrol/templates/accesscontrol/community.html:61
 msgid "of"
 msgstr "de"
 
-#: accesscontrol/templates/accesscontrol/community.html:77
+#: accesscontrol/templates/accesscontrol/community.html:73
+#, fuzzy
+msgid "Add new contact"
+msgstr "Nouvel ajout "
+
+#: accesscontrol/templates/accesscontrol/community.html:75
+#: billing/templates/billing/product_list.html:46
+#: core/templates/core/object_list_base.html:46
+#: revival/templates/revival/profile_tag_list.html:41
+msgid "Add"
+msgstr "Ajouter"
+
+#: accesscontrol/templates/accesscontrol/community.html:95
 #: accesscontrol/templates/accesscontrol/member_list.html:38
 msgid "Search: "
 msgstr "Recherche :"
 
-#: accesscontrol/templates/accesscontrol/community.html:141
+#: accesscontrol/templates/accesscontrol/community.html:121
+#, fuzzy
+msgid "Edit"
+msgstr "Éditer l'article"
+
+#: accesscontrol/templates/accesscontrol/community.html:165
 #: accesscontrol/templates/accesscontrol/member_list.html:72
 msgid "No result"
 msgstr "Aucun résultat"
 
-#: accesscontrol/templates/accesscontrol/community.html:160
+#: accesscontrol/templates/accesscontrol/community.html:184
 msgid "Click on a member in the list to view and manage."
 msgstr "Cliquer sur un membre de la liste pour afficher et gérer."
 
-#: accesscontrol/templates/accesscontrol/community.html:231
-#: accesscontrol/templates/accesscontrol/community.html:272
+#: accesscontrol/templates/accesscontrol/community.html:196
+msgid "Add contact to CCM"
+msgstr ""
+
+#: accesscontrol/templates/accesscontrol/community.html:201
+msgid "Name"
+msgstr ""
+
+#: accesscontrol/templates/accesscontrol/community.html:205
+#: accesscontrol/templates/accesscontrol/profile.html:262
+#: templates/apps/webnode.html:140
+msgid "Gender"
+msgstr "Sexe"
+
+#: accesscontrol/templates/accesscontrol/community.html:208
+#: core/constants.py:13
+msgid "Male"
+msgstr "Homme"
+
+#: accesscontrol/templates/accesscontrol/community.html:209
+#: core/constants.py:14
+msgid "Female"
+msgstr "Femme"
+
+#: accesscontrol/templates/accesscontrol/community.html:221
+#, fuzzy
+msgid "Profiles"
+msgstr "Profil"
+
+#: accesscontrol/templates/accesscontrol/community.html:234
+#, fuzzy
+msgid "Preferences"
+msgstr "Performances"
+
+#: accesscontrol/templates/accesscontrol/community.html:250
+#: billing/templates/billing/payment_mean_list.html:81
+#: billing/templates/billing/payment_mean_list.html:118
+#: billing/templates/billing/payment_mean_list.html:149
+#: billing/templates/billing/transaction_log.html:84
+msgid "OK"
+msgstr "OK"
+
+#: accesscontrol/templates/accesscontrol/community.html:327
+#: accesscontrol/templates/accesscontrol/community.html:368
 msgid "Permissions successfully updated"
 msgstr "Permissions mises à jour avec succès"
 
-#: accesscontrol/templates/accesscontrol/community.html:242
+#: accesscontrol/templates/accesscontrol/community.html:338
 msgid "Profiles successfully updated"
 msgstr "Profils mis à jour avec succès."
 
-#: accesscontrol/templates/accesscontrol/community.html:255
+#: accesscontrol/templates/accesscontrol/community.html:351
 msgid "Member moved to group"
 msgstr "Membre déplacé dans le groupe"
 
-#: accesscontrol/templates/accesscontrol/community.html:266
+#: accesscontrol/templates/accesscontrol/community.html:362
 #: accesscontrol/templates/accesscontrol/member_list.html:99
 #: accesscontrol/templates/accesscontrol/member_list.html:140
 #: accesscontrol/templates/accesscontrol/member_list.html:151
-#: accesscontrol/templates/accesscontrol/snippets/member_detail.html:71
+#: accesscontrol/templates/accesscontrol/snippets/member_detail.html:75
 msgid "Block"
 msgstr "Bloquer"
 
-#: accesscontrol/templates/accesscontrol/community.html:269
+#: accesscontrol/templates/accesscontrol/community.html:365
 #: accesscontrol/templates/accesscontrol/member_list.html:138
 #: accesscontrol/templates/accesscontrol/member_list.html:154
-#: accesscontrol/templates/accesscontrol/snippets/member_detail.html:73
+#: accesscontrol/templates/accesscontrol/snippets/member_detail.html:77
 #: billing/templates/billing/payment_mean_list.html:29
 #: billing/templates/billing/product_list.html:35
 #: core/templates/core/module_list.html:52
 #: core/templates/core/snippets/object_list_results.html:17
-#: revival/templates/revival/change_profile_tag.html:94
-#: revival/templates/revival/change_profile_tag.html:467
+#: revival/templates/revival/change_profile_tag.html:95
+#: revival/templates/revival/change_profile_tag.html:474
 #: revival/templates/revival/profile_tag_list.html:66
-#: revival/templates/revival/profile_tag_list.html:91
+#: revival/templates/revival/profile_tag_list.html:92
 msgid "Activate"
 msgstr "Activer"
 
+#: accesscontrol/templates/accesscontrol/community.html:401
+#, fuzzy
+msgid "Member added"
+msgstr "Membre"
+
 #: accesscontrol/templates/accesscontrol/email_confirmation.html:4
-#: accesscontrol/templates/accesscontrol/email_confirmation.html:61
+#: accesscontrol/templates/accesscontrol/email_confirmation.html:62
 msgid "Confirm your email"
 msgstr "Confirmer votre email"
 
@@ -310,11 +492,15 @@ msgstr ""
 "\n"
 "                    Votre email <strong>%(email)s</strong> a été confirmée."
 
-#: accesscontrol/templates/accesscontrol/email_confirmation.html:57
-msgid "Return to home"
-msgstr "Retour à la page d'accueil "
+#: accesscontrol/templates/accesscontrol/email_confirmation.html:58
+#: accesscontrol/templates/accesscontrol/phone_confirmation.html:57
+#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:58
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:127
+#: core/templates/core/utils/momo_checkout.html:64
+msgid "Continue"
+msgstr "Continuer"
 
-#: accesscontrol/templates/accesscontrol/email_confirmation.html:65
+#: accesscontrol/templates/accesscontrol/email_confirmation.html:66
 #, python-format
 msgid ""
 "\n"
@@ -326,23 +512,24 @@ msgstr ""
 "                    Un lien de confirmation a été envoyé à <strong>"
 "%(email)s</strong>, veuillez vérifier."
 
-#: accesscontrol/templates/accesscontrol/email_confirmation.html:71
+#: accesscontrol/templates/accesscontrol/email_confirmation.html:72
 msgid ""
 "Please be patient ! Email can sometimes take about 1-2 mn to get to you."
 msgstr ""
-"SVP soyez patient ! Le SMS peut prendre environ 1 à 2 min pour vous parvenir."
+"SVP soyez patient ! L'email peut prendre environ 1 à 2 min pour vous "
+"parvenir."
 
-#: accesscontrol/templates/accesscontrol/email_confirmation.html:72
+#: accesscontrol/templates/accesscontrol/email_confirmation.html:73
 msgid "Resend confirmation link"
 msgstr "Renvoyer le lien de confirmation"
 
-#: accesscontrol/templates/accesscontrol/email_confirmation.html:75
+#: accesscontrol/templates/accesscontrol/email_confirmation.html:76
 #: accesscontrol/templates/accesscontrol/phone_confirmation.html:69
 #: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:68
 msgid "A new code was sent to you."
 msgstr "Un nouveau code vous a été envoyé."
 
-#: accesscontrol/templates/accesscontrol/email_confirmation.html:78
+#: accesscontrol/templates/accesscontrol/email_confirmation.html:79
 #, python-format
 msgid ""
 "\n"
@@ -351,9 +538,503 @@ msgid ""
 "                    "
 msgstr ""
 "\n"
-"                        N'est ce pas votre email ?\n"
+"                        Email erroné ?\n"
 "                        <a href=\"%(account_setup)s\">Changez le maintenant</"
 "a>"
+
+#: accesscontrol/templates/accesscontrol/forgotten_password.html:5
+msgid "Forgotten password"
+msgstr "Mot de passe oublié"
+
+#: accesscontrol/templates/accesscontrol/forgotten_password.html:21
+msgid "Instructions to reset you password were sent to your e-mail."
+msgstr ""
+"Les instructions pour réinitialiser votre mot de passe ont été envoyées à "
+"votre email."
+
+#: accesscontrol/templates/accesscontrol/forgotten_password.html:23
+#: core/templates/admin/change_list.html:40
+#: core/templates/core/base_bs.html:139
+#: partnership/templates/partnership/admin_home.html:5
+#: partnership/templates/partnership/admin_home.html:17
+#: templates/admin/base.html:49
+msgid "Home"
+msgstr "Accueil"
+
+#: accesscontrol/templates/accesscontrol/forgotten_password.html:30
+msgid "Please enter your phone to receive password a reset code."
+msgstr ""
+"Veuillez entrer votre numéro pour recevoir un code de réinitialisation."
+
+#: accesscontrol/templates/accesscontrol/forgotten_password.html:32
+msgid "Please enter your email to receive password reset information."
+msgstr ""
+"Veuillez entrer votre email pour recevoir les informations de "
+"réinitialisation du mot de passe."
+
+#: accesscontrol/templates/accesscontrol/forgotten_password.html:49
+#: accesscontrol/templates/accesscontrol/mails/password_reset_instructions.html:10
+msgid "Reset password"
+msgstr "Réinitialiser le mot de passe"
+
+#: accesscontrol/templates/accesscontrol/member_list.html:5
+msgid "Customers"
+msgstr "Clients"
+
+#: accesscontrol/templates/accesscontrol/member_list.html:27
+msgid "Members"
+msgstr "Membres"
+
+#: accesscontrol/templates/accesscontrol/member_list.html:89
+msgid "Click on a member in the list to view information."
+msgstr "Cliquer sur un membre de la liste pour voir les informations."
+
+#: accesscontrol/templates/accesscontrol/member_list.html:93
+msgid "Customer details"
+msgstr "Détails du client"
+
+#: accesscontrol/templates/accesscontrol/member_list.html:98
+#: accesscontrol/templates/accesscontrol/snippets/member_detail.html:73
+msgid "Block/Activate"
+msgstr "Bloquer/Activer"
+
+#: accesscontrol/templates/accesscontrol/member_list.html:156
+msgid "Customer status successfully changed."
+msgstr "Le détail des clients a été correctement changé."
+
+#: accesscontrol/templates/accesscontrol/phone_confirmation.html:4
+#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:4
+#: accesscontrol/templates/accesscontrol/sign_in.html:4
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:4
+#: billing/templates/billing/public/pricing.html:76
+#: billing/templates/billing/public/pricing.html:82
+#: core/templates/core/utils/momo_checkout.html:5
+msgid "Sign in"
+msgstr "Connexion"
+
+#: accesscontrol/templates/accesscontrol/phone_confirmation.html:49
+msgid "Confirm your phone"
+msgstr "Confirmer votre numéro"
+
+#: accesscontrol/templates/accesscontrol/phone_confirmation.html:50
+msgid "Type the 4 digits code we sent you by SMS"
+msgstr "Entrer le code à 4 chiffres reçu par SMS"
+
+#: accesscontrol/templates/accesscontrol/phone_confirmation.html:53
+#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:45
+#: core/templates/core/utils/momo_checkout.html:60
+msgid "Confirmation code"
+msgstr "Code de confirmation"
+
+#: accesscontrol/templates/accesscontrol/phone_confirmation.html:63
+#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:64
+msgid "Please be patient ! SMS can sometimes take about 1-2 mn to get to you."
+msgstr ""
+"SVP soyez patient ! Le SMS peut prendre environ 1 à 2 min pour vous parvenir."
+
+#: accesscontrol/templates/accesscontrol/phone_confirmation.html:64
+#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:65
+msgid "Resend confirmation code"
+msgstr "Renvoyer le code de confirmation"
+
+#: accesscontrol/templates/accesscontrol/phone_confirmation.html:65
+msgid "OR"
+msgstr "OU"
+
+#: accesscontrol/templates/accesscontrol/phone_confirmation.html:66
+msgid "Change phone number"
+msgstr "Changer le numéro de téléphone"
+
+#: accesscontrol/templates/accesscontrol/phone_confirmation.html:84
+msgid "Please enter a valid 4 digits code"
+msgstr "Veuillez entrer un code à 4 chiffres valide"
+
+#: accesscontrol/templates/accesscontrol/profile.html:20
+#, python-format
+msgid ""
+"%(user.first_name)s is inviting you to join %(profile_name)s and earn some "
+"free gifts."
+msgstr ""
+"%(user.first_name)s vous invite à rejoindre %(profile_name)s et gagner des "
+"cadeaux gratuits."
+
+#: accesscontrol/templates/accesscontrol/profile.html:22
+msgid "We have some free gifts for you. Collect them now."
+msgstr ""
+"Nous avons quelques cadeaux gratuits pour vous. Récupérez-les maintenant."
+
+#: accesscontrol/templates/accesscontrol/profile.html:24
+#, python-format
+msgid "Join %(profile_name)s on ikwen and get some free gifts !"
+msgstr "Join %(profile_name)s sur ikwen et gagner des cadeaux gratuits !"
+
+#: accesscontrol/templates/accesscontrol/profile.html:29
+#: accesscontrol/templates/accesscontrol/profile.html:30
+#, python-format
+msgid "Join %(profile_name)s on ikwen !"
+msgstr "Join %(profile_name)s sur ikwen !"
+
+#: accesscontrol/templates/accesscontrol/profile.html:112
+#: core/templates/core/console.html:134
+msgid "My collection"
+msgstr "Ma collection"
+
+#: accesscontrol/templates/accesscontrol/profile.html:127
+#: core/templates/core/console.html:148
+msgid "Coupons"
+msgstr "Coupons"
+
+#: accesscontrol/templates/accesscontrol/profile.html:141
+msgid "Please, login to see your collected coupons"
+msgstr "Veuillez vous connecter pour voir vos coupons récupérés SVP"
+
+#: accesscontrol/templates/accesscontrol/profile.html:142
+#: accesscontrol/templates/accesscontrol/sign_in.html:37
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:22
+#: core/templates/core/base_bs.html:96 core/templates/core/base_bs.html:174
+#: templates/admin/login.html:105
+msgid "Login"
+msgstr "Connexion"
+
+#: accesscontrol/templates/accesscontrol/profile.html:148
+#: billing/templates/billing/invoice_list.html:97
+#: core/templates/core/base_admin.html:125 core/templates/core/base_bs.html:190
+#: core/templates/core/cloud_setup/deploy.html:260
+#: core/templates/core/mails/base.html:65 templates/404.html:27
+#: templates/500.html:39
+msgid "All rights reserved."
+msgstr "Tous droits reservés."
+
+#: accesscontrol/templates/accesscontrol/profile.html:149
+#: billing/templates/billing/invoice_list.html:99
+#: core/templates/core/base.html:57 core/templates/core/base_admin.html:126
+#: core/templates/core/base_bs.html:192
+#: core/templates/core/cloud_setup/deploy.html:262
+#: core/templates/core/mails/base.html:67
+msgid "Legal mentions"
+msgstr "Mentions légales"
+
+#: accesscontrol/templates/accesscontrol/profile.html:171
+msgid "Our free coupons"
+msgstr "Nos coupons gratuits"
+
+#: accesscontrol/templates/accesscontrol/profile.html:224
+#: accesscontrol/templates/accesscontrol/snippets/request_management.html:71
+msgid "Claim your reward"
+msgstr "Récupérez-les"
+
+#: accesscontrol/templates/accesscontrol/profile.html:240
+#, python-format
+msgid ""
+"\n"
+"                                Refer %(profile_name)s to a friend by "
+"sharing and earn %(referral_coupon_count)s more free coupons.\n"
+"                            "
+msgstr ""
+"\n"
+"                                Recommendez %(profile_name)s à un ami en "
+"partageant et  gagner plus de %(referral_coupon_count)s coupons gratuits."
+
+#: accesscontrol/templates/accesscontrol/profile.html:257
+#: templates/apps/webnode.html:135
+msgid "About"
+msgstr "À propos"
+
+#: accesscontrol/templates/accesscontrol/profile.html:280
+#: templates/apps/webnode.html:158
+msgid "Website"
+msgstr "Site web"
+
+#: accesscontrol/templates/accesscontrol/profile.html:287
+msgid "Address"
+msgstr "Contact"
+
+#: accesscontrol/templates/accesscontrol/profile.html:301
+#: accesscontrol/templates/accesscontrol/profile.html:308
+#: core/templates/core/console.html:110 templates/apps/webnode.html:171
+#: templates/apps/webnode.html.py:175
+msgid "Join"
+msgstr "Join"
+
+#: accesscontrol/templates/accesscontrol/profile.html:314
+#: templates/apps/webnode.html:180
+msgid "DEPLOY"
+msgstr "DÉPLOYER"
+
+#: accesscontrol/templates/accesscontrol/register.html:4
+#: accesscontrol/templates/accesscontrol/register.html:25
+#: accesscontrol/templates/accesscontrol/sign_in.html:64
+#: billing/templates/billing/public/pricing.html:86
+msgid "Register"
+msgstr "S'inscrire"
+
+#: accesscontrol/templates/accesscontrol/register.html:30
+#: accesscontrol/templates/accesscontrol/sign_in.html:41
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:26
+#: templates/admin/login.html:113
+msgid "Username or email"
+msgstr "Nom d'utilisateur ou email"
+
+#: accesscontrol/templates/accesscontrol/register.html:37
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:315
+msgid "Choose a password"
+msgstr "Choisissez un mot de passe"
+
+#: accesscontrol/templates/accesscontrol/register.html:44
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:46
+msgid "Confirm password"
+msgstr "Confirmez le mot de passe"
+
+#: accesscontrol/templates/accesscontrol/register.html:51
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:52
+msgid "E-mail"
+msgstr "E-mail"
+
+#: accesscontrol/templates/accesscontrol/register.html:59
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:58
+#: billing/templates/billing/momo_checkout.html:32
+msgid "Phone number"
+msgstr "Numéro de téléphone"
+
+#: accesscontrol/templates/accesscontrol/register.html:68
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:64
+msgid "First name"
+msgstr "Prénom"
+
+#: accesscontrol/templates/accesscontrol/register.html:75
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:70
+msgid "Last name"
+msgstr "Nom"
+
+#: accesscontrol/templates/accesscontrol/register.html:82
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:76
+msgid "Your are ..."
+msgstr "Vous êtes ..."
+
+#: accesscontrol/templates/accesscontrol/register.html:85
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:79
+msgid "A woman"
+msgstr "Une femme "
+
+#: accesscontrol/templates/accesscontrol/register.html:90
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:84
+msgid "A man"
+msgstr "Un homme"
+
+#: accesscontrol/templates/accesscontrol/register.html:100
+msgid "By creating an account you agree our "
+msgstr "En créant un compte vous acceptez nos"
+
+#: accesscontrol/templates/accesscontrol/register.html:101
+#: accesscontrol/templates/accesscontrol/register.html:111
+#: accesscontrol/templates/accesscontrol/register.html:113
+msgid "Terms & Conditions"
+msgstr "Termes et Conditions"
+
+#: accesscontrol/templates/accesscontrol/register.html:106
+msgid "You are about to create an account managed by"
+msgstr "Vous êtes sur le point de créer un compte géré par"
+
+#: accesscontrol/templates/accesscontrol/register.html:109
+msgid "on"
+msgstr "sur"
+
+#: accesscontrol/templates/accesscontrol/register.html:110
+msgid "By doing so you accept"
+msgstr "En le faisant vous acceptez"
+
+#: accesscontrol/templates/accesscontrol/register.html:112
+msgid "as well as"
+msgstr "aussi bien que"
+
+#: accesscontrol/templates/accesscontrol/register.html:120
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:120
+msgid "Yes, I read and accept."
+msgstr "Oui, J'ai lu et j'accepte."
+
+#: accesscontrol/templates/accesscontrol/register.html:126
+#: accesscontrol/templates/accesscontrol/set_new_password.html:31
+#: accesscontrol/templates/accesscontrol/sign_in.html:51
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:33
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:128
+#: billing/templates/billing/momo_checkout.html:36
+#: billing/templates/billing/public/donate.html:54
+#: core/templates/core/cloud_setup/deploy.html:250
+#: templates/admin/login.html:122
+msgid "Submit"
+msgstr "Envoyer"
+
+#: accesscontrol/templates/accesscontrol/register.html:178
+#: accesscontrol/templates/accesscontrol/register.html:196
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:225
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:243
+msgid "Please, enter valid email"
+msgstr "S'il vous plaît, entrez un email valide"
+
+#: accesscontrol/templates/accesscontrol/register.html:184
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:231
+msgid "Please use at least 3 characters."
+msgstr "Utilisez au moins 3 caractères SVP."
+
+#: accesscontrol/templates/accesscontrol/register.html:185
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:232
+msgid "Start with a letter."
+msgstr "Commencer par une lettre."
+
+#: accesscontrol/templates/accesscontrol/register.html:208
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:255
+msgid "Please use digits only."
+msgstr "Veuillez utiliser uniquement les chiffres SVP."
+
+#: accesscontrol/templates/accesscontrol/register.html:209
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:256
+msgid "Prepend country code if you are not in Cameroon."
+msgstr "Préfixez par le code du pays si vous n'êtes pas au Cameroun."
+
+#: accesscontrol/templates/accesscontrol/register.html:210
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:257
+msgid "DO NOT prepend 00."
+msgstr "NE PAS préfixer par 00."
+
+#: accesscontrol/templates/accesscontrol/register.html:222
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:276
+msgid "Passwords mismatch! Please check."
+msgstr "Mots de passe diffèrent! Vérifiez s'il vous plait."
+
+#: accesscontrol/templates/accesscontrol/register.html:229
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:269
+msgid "Password too short. Use at least 6 characters."
+msgstr "Mot de passe trop court. Utilisez au moins 6 caractères."
+
+#: accesscontrol/templates/accesscontrol/register.html:243
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:329
+msgid "Invalid date. Please check."
+msgstr "Date invalide. Vérifiez s'il vous plaît "
+
+#: accesscontrol/templates/accesscontrol/set_new_password.html:4
+msgid "Set your new password"
+msgstr "Définissez votre nouveau mot de passe"
+
+#: accesscontrol/templates/accesscontrol/set_new_password.html:18
+msgid "Please choose a new password and confirm."
+msgstr "Veuillez choisir un nouveau mot de passe et confirmer."
+
+#: accesscontrol/templates/accesscontrol/set_new_password.html:23
+#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:50
+msgid "New Password"
+msgstr "Nouveau mot passe"
+
+#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:41
+msgid "Reset your password"
+msgstr "Réinitialisez votre mot de passe"
+
+#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:42
+msgid "Type the 4 digits code we sent you by SMS and choose a new password"
+msgstr ""
+"Entrez le code à 4 chiffres reçu par SMS et choisir un nouveau mot de passe"
+
+#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:85
+msgid "Please enter a valid 4 digits code."
+msgstr "S'il vous plaît entrer un code de 4 chiffres valide."
+
+#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:89
+msgid "Please enter a new password."
+msgstr "S'il vous plaît entrez un nouveau mot de passe."
+
+#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:93
+msgid "Passwords mismatch, please enter the same word."
+msgstr "Les mots de passe ne correspondent pas, veuillez entrer le même mot."
+
+#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:97
+msgid "Passwords too short. Use at least 4 characters."
+msgstr "Mots de passe trop courts. Utilisez au moins 4 caractères."
+
+#: accesscontrol/templates/accesscontrol/sign_in.html:24
+msgid "Your password was successfully reset, login now."
+msgstr "Votre mot de passe a bien été réinitialisé, connectez-vous maintenant."
+
+#: accesscontrol/templates/accesscontrol/sign_in.html:54
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:37
+msgid "Login with <strong>ikwen</strong>"
+msgstr "Se connecter sur <strong> ikwen</strong>"
+
+#: accesscontrol/templates/accesscontrol/sign_in.html:58
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:130
+msgid "Forgotten password ?"
+msgstr "Mot de passe oublié ?"
+
+#: accesscontrol/templates/accesscontrol/sign_in.html:62
+msgid "No account yet ?"
+msgstr "Vous n'avez pas encore de compte ?"
+
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:102
+#, python-format
+msgid ""
+"\n"
+"                                By creating an account you agree our\n"
+"                                <a href=\"%(ikwen_eula_url)s\">Terms & "
+"Conditions</a>\n"
+"                            "
+msgstr ""
+"\n"
+"                                En créant un compte, vous acceptez nos\n"
+"                                <a href=\"%(ikwen_eula_url)s\">Termes & "
+"Conditions</a>"
+
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:107
+#, python-format
+msgid ""
+"\n"
+"                                You are about to create an account managed "
+"by\n"
+"                                <a href=\"%(settings.IKWEN_BASE_URL)s\" "
+"style=\"color: #999; text-decoration: underline\"><strong>ikwen</strong></"
+"a>,\n"
+"                                on %(service.project_name)s. By doing so you "
+"accept\n"
+"                                <a href=\"%(ikwen_eula_url|ikwenize)s"
+"\"><strong>ikwen</strong> Terms & Conditions</a>,\n"
+"                                    as well as\n"
+"                                <a href=\"%(settings.AGREEMENT_URL)s\">"
+"%(service.project_name)sTerms & Conditions.</a>\n"
+"                            "
+msgstr ""
+"\n"
+"                                Vous êtes sur le point de créer un compte "
+"managé par\n"
+"                                <a href=\"%(settings.IKWEN_BASE_URL)s\" "
+"style=\"color: #999; text-decoration: underline\"><strong>ikwen</strong></"
+"a>,\n"
+"                                sur %(service.project_name)s. En le faisant, "
+"vous acceptez les\n"
+"                                <a href=\"%(ikwen_eula_url|ikwenize)s\"> "
+"Termes & Conditions <strong>ikwen</strong></a>,\n"
+"                                    ainsi que les\n"
+"                                <a href=\"%(settings.AGREEMENT_URL)s"
+"\">Termes & Conditions de %(service.project_name)s.</a>\n"
+"                            "
+
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:126
+msgid "Back"
+msgstr "Retour"
+
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:294
+msgid "Oops! An error occurred. Check your internet."
+msgstr "Oups! Une erreur est survenue. Vérifiez votre connection internet."
+
+#: accesscontrol/templates/accesscontrol/staff_without_permission.html:5
+msgid "No permission granted"
+msgstr "Aucune permission accordée"
+
+#: accesscontrol/templates/accesscontrol/staff_without_permission.html:9
+msgid ""
+"You were added as a collaborator on this application but were granted no "
+"permission.\n"
+"            Please contact Administrator"
+msgstr ""
+"Vous avez été ajouté en tant que collaborateur mais aucune permission ne "
+"vous a été accordée.\n"
+"              Bien vouloir contacter l'Administrateur"
 
 #: accesscontrol/templates/accesscontrol/events/access_granted.html:6
 msgid "New collaborator"
@@ -406,41 +1087,9 @@ msgstr ""
 "Vous avez été ajouté à notre communauté avec joie. Merci de nous avoir "
 "rejoint."
 
-#: accesscontrol/templates/accesscontrol/forgotten_password.html:5
-msgid "Forgotten password"
-msgstr "Mot de passe oublié"
-
-#: accesscontrol/templates/accesscontrol/forgotten_password.html:21
-msgid "Instructions to reset you password were sent to your e-mail."
-msgstr ""
-"Les instructions pour réinitialiser votre mot de passe ont été envoyées à "
-"votre email."
-
-#: accesscontrol/templates/accesscontrol/forgotten_password.html:23
-#: core/templates/admin/change_list.html:40
-#: core/templates/core/base_bs.html:139 templates/admin/base.html:49
-msgid "Home"
-msgstr "Accueil"
-
-#: accesscontrol/templates/accesscontrol/forgotten_password.html:30
-msgid "Please enter your phone to receive password a reset code."
-msgstr ""
-"Veuillez entrer votre numéro pour recevoir un code de réinitialisation."
-
-#: accesscontrol/templates/accesscontrol/forgotten_password.html:32
-msgid "Please enter your email to receive password reset information."
-msgstr ""
-"Veuillez entrer votre email pour recevoir les informations de "
-"réinitialisation du mot de passe."
-
-#: accesscontrol/templates/accesscontrol/forgotten_password.html:49
-#: accesscontrol/templates/accesscontrol/mails/password_reset_instructions.html:10
-msgid "Reset password"
-msgstr "Réinitialiser du mot de passe"
-
 #: accesscontrol/templates/accesscontrol/mails/password_reset_instructions.html:6
 msgid "Hello"
-msgstr "Bonjour"
+msgstr "Hello"
 
 #: accesscontrol/templates/accesscontrol/mails/password_reset_instructions.html:7
 msgid "You asked a password reset for email"
@@ -449,423 +1098,6 @@ msgstr "Vous avez demandé à réinitialiser un mot de passe pour l'email"
 #: accesscontrol/templates/accesscontrol/mails/password_reset_instructions.html:7
 msgid "Click the button below"
 msgstr "Cliquer le bouton ci-dessous"
-
-#: accesscontrol/templates/accesscontrol/member_list.html:5
-msgid "Customers"
-msgstr "Clients"
-
-#: accesscontrol/templates/accesscontrol/member_list.html:27
-msgid "Members"
-msgstr "Membres"
-
-#: accesscontrol/templates/accesscontrol/member_list.html:89
-msgid "Click on a member in the list to view information."
-msgstr "Cliquer sur un membre de la liste pour voir les informations."
-
-#: accesscontrol/templates/accesscontrol/member_list.html:93
-msgid "Customer details"
-msgstr "Détails du client"
-
-#: accesscontrol/templates/accesscontrol/member_list.html:98
-#: accesscontrol/templates/accesscontrol/snippets/member_detail.html:69
-msgid "Block/Activate"
-msgstr "Bloquer/Activer"
-
-#: accesscontrol/templates/accesscontrol/member_list.html:156
-msgid "Customer status successfully changed."
-msgstr "Le détail des clients a été correctement changé."
-
-#: accesscontrol/templates/accesscontrol/phone_confirmation.html:4
-#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:4
-#: accesscontrol/templates/accesscontrol/sign_in.html:4
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:4
-#: billing/templates/billing/public/pricing.html:76
-#: billing/templates/billing/public/pricing.html:82
-#: core/templates/core/utils/momo_checkout.html:5
-msgid "Sign in"
-msgstr "Connexion"
-
-#: accesscontrol/templates/accesscontrol/phone_confirmation.html:49
-msgid "Confirm your phone"
-msgstr "Confirmer votre numéro"
-
-#: accesscontrol/templates/accesscontrol/phone_confirmation.html:50
-msgid "Type the 4 digits code we sent you by SMS"
-msgstr "Taper le code à 4 chiffres reçu par SMS"
-
-#: accesscontrol/templates/accesscontrol/phone_confirmation.html:53
-#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:45
-#: core/templates/core/utils/momo_checkout.html:60
-msgid "Confirmation code"
-msgstr "Code de confirmation"
-
-#: accesscontrol/templates/accesscontrol/phone_confirmation.html:57
-#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:58
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:129
-#: core/templates/core/utils/momo_checkout.html:64
-msgid "Continue"
-msgstr "Continuer"
-
-#: accesscontrol/templates/accesscontrol/phone_confirmation.html:63
-#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:64
-msgid "Please be patient ! SMS can sometimes take about 1-2 mn to get to you."
-msgstr ""
-"SVP soyez patient ! Le SMS peut prendre environ 1 à 2 min pour vous parvenir."
-
-#: accesscontrol/templates/accesscontrol/phone_confirmation.html:64
-#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:65
-msgid "Resend confirmation code"
-msgstr "Renvoyer le code de confirmation"
-
-#: accesscontrol/templates/accesscontrol/phone_confirmation.html:65
-msgid "OR"
-msgstr "OU"
-
-#: accesscontrol/templates/accesscontrol/phone_confirmation.html:66
-msgid "Change phone number"
-msgstr "Changer le numéro de téléphone"
-
-#: accesscontrol/templates/accesscontrol/phone_confirmation.html:84
-msgid "Please enter a valid 4 digits code"
-msgstr "Veuillez entrer un code à 4 chiffres valide"
-
-#: accesscontrol/templates/accesscontrol/profile.html:20
-#, python-format
-msgid ""
-"%(user.first_name)s is inviting you to join %(profile_name)s and earn some "
-"free gifts."
-msgstr ""
-"%(user.first_name)s vous invite à rejoindre %(profile_name)s et gagner des "
-"cadeaux gratuits."
-
-#: accesscontrol/templates/accesscontrol/profile.html:22
-msgid "We have some free gifts for you. Collect them now."
-msgstr ""
-"Nous avons quelques cadeaux gratuits pour vous. Récupérez-les maintenant."
-
-#: accesscontrol/templates/accesscontrol/profile.html:24
-#, python-format
-msgid "Join %(profile_name)s on ikwen and get some free gifts !"
-msgstr "Rejoindre %(profile_name)s sur ikwen et gagner des cadeaux gratuits !"
-
-#: accesscontrol/templates/accesscontrol/profile.html:29
-#: accesscontrol/templates/accesscontrol/profile.html:30
-#, python-format
-msgid "Join %(profile_name)s on ikwen !"
-msgstr "Rejoindre %(profile_name)s sur ikwen !"
-
-#: accesscontrol/templates/accesscontrol/profile.html:112
-#: core/templates/core/console.html:134
-msgid "My collection"
-msgstr "Ma collection"
-
-#: accesscontrol/templates/accesscontrol/profile.html:127
-#: core/templates/core/console.html:148
-msgid "Coupons"
-msgstr "Coupons"
-
-#: accesscontrol/templates/accesscontrol/profile.html:141
-msgid "Please, login to see your collected coupons"
-msgstr ""
-"S'il vous plaît, veuillez vous connecter pour voir vos coupons récupérés"
-
-#: accesscontrol/templates/accesscontrol/profile.html:142
-#: accesscontrol/templates/accesscontrol/sign_in.html:37
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:22
-#: core/templates/core/base_bs.html:96 core/templates/core/base_bs.html:174
-#: templates/admin/login.html:105
-msgid "Login"
-msgstr "Se connecter"
-
-#: accesscontrol/templates/accesscontrol/profile.html:148
-#: billing/templates/billing/invoice_list.html:97
-#: core/templates/core/base_admin.html:126 core/templates/core/base_bs.html:190
-#: core/templates/core/cloud_setup/deploy.html:260
-#: core/templates/core/mails/base.html:65 templates/404.html:27
-#: templates/500.html:27
-msgid "All rights reserved."
-msgstr "Tous droits reservés."
-
-#: accesscontrol/templates/accesscontrol/profile.html:149
-#: billing/templates/billing/invoice_list.html:99
-#: core/templates/core/base.html:57 core/templates/core/base_admin.html:127
-#: core/templates/core/base_bs.html:192
-#: core/templates/core/cloud_setup/deploy.html:262
-#: core/templates/core/mails/base.html:67
-msgid "Legal mentions"
-msgstr "Mentions légales"
-
-#: accesscontrol/templates/accesscontrol/profile.html:171
-msgid "Our free coupons"
-msgstr "Nos coupons gratuits"
-
-#: accesscontrol/templates/accesscontrol/profile.html:224
-#: accesscontrol/templates/accesscontrol/snippets/request_management.html:71
-msgid "Claim your reward"
-msgstr "Réclamez votre récompense "
-
-#: accesscontrol/templates/accesscontrol/profile.html:240
-#, python-format
-msgid ""
-"\n"
-"                                Refer %(profile_name)s to a friend by "
-"sharing and earn %(referral_coupon_count)s more free coupons.\n"
-"                            "
-msgstr ""
-"\n"
-"                                Faites référence de %(profile_name)s à un "
-"ami en partageant et  gagner plus de %(referral_coupon_count)s coupons "
-"gratuits."
-
-#: accesscontrol/templates/accesscontrol/profile.html:257
-#: templates/apps/webnode.html:135
-msgid "About"
-msgstr "À propos"
-
-#: accesscontrol/templates/accesscontrol/profile.html:262
-#: templates/apps/webnode.html:140
-msgid "Gender"
-msgstr "Sexe"
-
-#: accesscontrol/templates/accesscontrol/profile.html:280
-#: templates/apps/webnode.html:158
-msgid "Website"
-msgstr "Site web"
-
-#: accesscontrol/templates/accesscontrol/profile.html:287
-msgid "Address"
-msgstr "Contact"
-
-#: accesscontrol/templates/accesscontrol/profile.html:301
-#: accesscontrol/templates/accesscontrol/profile.html:308
-#: core/templates/core/console.html:110 templates/apps/webnode.html:171
-#: templates/apps/webnode.html:175
-msgid "Join"
-msgstr "Rejoindre"
-
-#: accesscontrol/templates/accesscontrol/profile.html:314
-#: templates/apps/webnode.html:180
-msgid "DEPLOY"
-msgstr "DÉPLOYER"
-
-#: accesscontrol/templates/accesscontrol/register.html:4
-#: accesscontrol/templates/accesscontrol/register.html:25
-#: accesscontrol/templates/accesscontrol/sign_in.html:64
-#: billing/templates/billing/public/pricing.html:86
-msgid "Register"
-msgstr "S'inscrire"
-
-#: accesscontrol/templates/accesscontrol/register.html:30
-#: accesscontrol/templates/accesscontrol/sign_in.html:41
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:26
-#: templates/admin/login.html:113
-msgid "Username or email"
-msgstr "Nom d'utilisateur ou email"
-
-#: accesscontrol/templates/accesscontrol/register.html:37
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:317
-msgid "Choose a password"
-msgstr "Choisisser un mot de passe"
-
-#: accesscontrol/templates/accesscontrol/register.html:44
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:46
-msgid "Confirm password"
-msgstr "Confirmer le mot de passe"
-
-#: accesscontrol/templates/accesscontrol/register.html:51
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:52
-msgid "E-mail"
-msgstr "E-mail"
-
-#: accesscontrol/templates/accesscontrol/register.html:59
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:58
-#: billing/templates/billing/momo_checkout.html:32
-msgid "Phone number"
-msgstr "Numéro de téléphone"
-
-#: accesscontrol/templates/accesscontrol/register.html:68
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:64
-msgid "First name"
-msgstr "Prénom"
-
-#: accesscontrol/templates/accesscontrol/register.html:75
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:70
-msgid "Last name"
-msgstr "Nom"
-
-#: accesscontrol/templates/accesscontrol/register.html:87
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:102
-msgid "By creating an account you agree our "
-msgstr "En créant un compte vous acceptez nos"
-
-#: accesscontrol/templates/accesscontrol/register.html:88
-#: accesscontrol/templates/accesscontrol/register.html:98
-#: accesscontrol/templates/accesscontrol/register.html:100
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:103
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:113
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:115
-msgid "Terms & Conditions"
-msgstr "Termes et Conditions"
-
-#: accesscontrol/templates/accesscontrol/register.html:93
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:108
-msgid "You are about to create an account managed by"
-msgstr "Vous êtes sur le point de créer un compte géré par"
-
-#: accesscontrol/templates/accesscontrol/register.html:96
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:111
-msgid "on"
-msgstr "sur"
-
-#: accesscontrol/templates/accesscontrol/register.html:97
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:112
-msgid "By doing so you accept"
-msgstr "En le faisant vous acceptez"
-
-#: accesscontrol/templates/accesscontrol/register.html:99
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:114
-msgid "as well as"
-msgstr "aussi bien que"
-
-#: accesscontrol/templates/accesscontrol/register.html:107
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:122
-msgid "Yes, I read and accept."
-msgstr "Oui, J'ai lu et j'accepte."
-
-#: accesscontrol/templates/accesscontrol/register.html:113
-#: accesscontrol/templates/accesscontrol/set_new_password.html:31
-#: accesscontrol/templates/accesscontrol/sign_in.html:51
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:33
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:130
-#: billing/templates/billing/momo_checkout.html:36
-#: billing/templates/billing/public/donate.html:54
-#: core/templates/core/cloud_setup/deploy.html:250
-#: templates/admin/login.html:122
-msgid "Submit"
-msgstr "Envoyer"
-
-#: accesscontrol/templates/accesscontrol/register.html:165
-#: accesscontrol/templates/accesscontrol/register.html:183
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:227
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:245
-msgid "Please, enter valid email"
-msgstr "S'il vous plaît, entrez un email valide"
-
-#: accesscontrol/templates/accesscontrol/register.html:171
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:233
-msgid "Please use at least 3 characters."
-msgstr "Utilisez au moins 3 caractères SVP."
-
-#: accesscontrol/templates/accesscontrol/register.html:172
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:234
-msgid "Start with a letter."
-msgstr "Commencer par une lettre."
-
-#: accesscontrol/templates/accesscontrol/register.html:195
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:257
-msgid "Please use digits only."
-msgstr "Veuillez utiliser uniquement les chiffres SVP."
-
-#: accesscontrol/templates/accesscontrol/register.html:196
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:258
-msgid "Prepend country code if you are not in Cameroon."
-msgstr "Préfixez par le code du pays si vous n'êtes pas au Cameroun."
-
-#: accesscontrol/templates/accesscontrol/register.html:197
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:259
-msgid "DO NOT prepend 00."
-msgstr "NE PAS préfixer par 00."
-
-#: accesscontrol/templates/accesscontrol/register.html:209
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:278
-msgid "Passwords mismatch! Please check."
-msgstr "Mots de passe incompatibles! Vérifiez s'il vous plait."
-
-#: accesscontrol/templates/accesscontrol/register.html:216
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:271
-msgid "Password too short. Use at least 6 characters."
-msgstr "Mot de passe trop court. Utilisez au moins 6 caractères."
-
-#: accesscontrol/templates/accesscontrol/register.html:230
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:331
-msgid "Invalid date. Please check."
-msgstr "Date invalide. Vérifiez s'il vous plaît "
-
-#: accesscontrol/templates/accesscontrol/set_new_password.html:4
-msgid "Set your new password"
-msgstr "Initialisez votre nouveau mot de passe"
-
-#: accesscontrol/templates/accesscontrol/set_new_password.html:18
-msgid "Please choose a new password and confirm."
-msgstr "Veuillez choisir un nouveau mot de passe et confirmer."
-
-#: accesscontrol/templates/accesscontrol/set_new_password.html:23
-#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:50
-msgid "New Password"
-msgstr "Nouveau mot passe"
-
-#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:41
-msgid "Reset your password"
-msgstr "Réinitialisez votre mot de passe"
-
-#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:42
-msgid "Type the 4 digits code we sent you by SMS and choose a new password"
-msgstr ""
-"Entrez le code à 4 chiffres reçu par SMS et choisir un nouveau mot de passe"
-
-#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:85
-msgid "Please enter a valid 4 digits code."
-msgstr "S'il vous plaît entrer un code de 4 chiffres valide."
-
-#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:89
-msgid "Please enter a new password."
-msgstr "S'il vous plaît entrez un nouveau mot de passe."
-
-#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:93
-msgid "Passwords mismatch, please enter the same word."
-msgstr "Les mots de passe ne correspondent pas, veuillez entrer le même mot."
-
-#: accesscontrol/templates/accesscontrol/set_new_password_sms_recovery.html:97
-msgid "Passwords too short. Use at least 4 characters."
-msgstr "Mots de passe trop courts. Utilisez au moins 4 caractères."
-
-#: accesscontrol/templates/accesscontrol/sign_in.html:24
-msgid "Your password was successfully reset, login now."
-msgstr "Votre mot de passe a bien été réinitialisé, connectez-vous maintenant."
-
-#: accesscontrol/templates/accesscontrol/sign_in.html:54
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:37
-msgid "Login with <strong>ikwen</strong>"
-msgstr "Se connecter sur <strong> ikwen</strong>"
-
-#: accesscontrol/templates/accesscontrol/sign_in.html:58
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:132
-msgid "Forgotten password ?"
-msgstr "Mot de passe oublié ?"
-
-#: accesscontrol/templates/accesscontrol/sign_in.html:62
-msgid "No account yet ?"
-msgstr "Vous n'avez pas encore de compte ?"
-
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:76
-msgid "Your are ..."
-msgstr "Vous êtes ..."
-
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:79
-msgid "A woman"
-msgstr "Une femme "
-
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:84
-msgid "A man"
-msgstr "Un homme"
-
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:128
-msgid "Back"
-msgstr "Retour"
-
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:296
-msgid "Oops! An error occurred. Check your internet."
-msgstr "Oups! Une erreur est survenue. Vérifiez votre connection internet."
 
 #: accesscontrol/templates/accesscontrol/snippets/dob_widget.html:4
 msgid "Date of birth"
@@ -977,111 +1209,7 @@ msgstr ""
 
 #: accesscontrol/templates/accesscontrol/snippets/request_management.html:43
 msgid "Invite friends"
-msgstr "Invitez les amis"
-
-#: accesscontrol/templates/accesscontrol/staff_without_permission.html:5
-msgid "No permission granted"
-msgstr "Aucune permission accordée"
-
-#: accesscontrol/templates/accesscontrol/staff_without_permission.html:9
-msgid ""
-"You were added as a collaborator on this application but were granted no "
-"permission.\n"
-"            Please contact Administrator"
-msgstr ""
-"Vous avez été ajouté en tant que collaborateur mais aucune permission ne "
-"vous a été accordée.\n"
-"              Bien vouloir contacter l'Administrateur"
-
-#: accesscontrol/tests_auth.py:322 accesscontrol/views.py:505
-msgid "This e-mail already exists."
-msgstr "Cet email existe déjà."
-
-#: accesscontrol/tests_auth.py:332 accesscontrol/views.py:512
-msgid "This phone already exists."
-msgstr "Ce numéro de téléphone existe déjà."
-
-#: accesscontrol/tests_auth.py:352 accesscontrol/views.py:527
-msgid "Your information were successfully updated."
-msgstr "Vos informations ont été mises à jour avec succès."
-
-#: accesscontrol/tests_auth.py:374 accesscontrol/views.py:550
-msgid "The current password is incorrect!"
-msgstr "Le mot de passe actuel est incorrect!"
-
-#: accesscontrol/tests_auth.py:384 accesscontrol/views.py:545
-msgid "Passwords don't match."
-msgstr "Les mots de passe diffèrent."
-
-#: accesscontrol/tests_auth.py:390 accesscontrol/views.py:542
-#: accesscontrol/views.py:548
-msgid "Your password was successfully updated."
-msgstr "Votre mot de passe a été mis à jour avec succès."
-
-#: accesscontrol/utils.py:93
-#, python-format
-msgid "Welcome to %s"
-msgstr "Bienvenue chez %s"
-
-#: accesscontrol/utils.py:147 accesscontrol/utils.py:159
-#: accesscontrol/utils.py:232 accesscontrol/utils.py:244
-#: accesscontrol/views.py:438 accesscontrol/views.py:450
-msgid "Could not send code. Please try again later"
-msgstr "Impossible d'envoyer le code. Réessayez plutard"
-
-#: accesscontrol/utils.py:169 accesscontrol/utils.py:254
-#: accesscontrol/views.py:464
-msgid "Invalid code. Please try again"
-msgstr "Code invalide. Réessayez SVP"
-
-#: accesscontrol/utils.py:207
-msgid "Confirm your email and get started !"
-msgstr "Confirmez votre adresse mail et commencez !"
-
-#: accesscontrol/views.py:117
-#, python-format
-msgid ""
-"You already have an account on ikwen with this phone. It was created on %s. "
-"Use it to login."
-msgstr ""
-"Vous avez déjà un compte sur ikwen avec ce numéro. Il a été crée sur %s. "
-"Utilisez-le pour vous connecter."
-
-#: accesscontrol/views.py:126
-msgid "Sorry, passwords mismatch."
-msgstr "Désolé, les mots de passe diffèrent."
-
-#: accesscontrol/views.py:170
-#, python-format
-msgid ""
-"You already have an account on ikwen with this username. It was created on "
-"%s. Use it to login."
-msgstr ""
-"Vous avez déjà un compte sur ikwen avec ce nom d'utilisateur. Il a été créé "
-"sur %s. Utilisez-le pour vous connecter."
-
-#: accesscontrol/views.py:237
-msgid "Invalid username/password or account inactive"
-msgstr "Nom d'utilisateur/mot de passe invalide ou compte inactif"
-
-#: accesscontrol/views.py:389 accesscontrol/views.py:481
-msgid "Password successfully reset."
-msgstr "Mot de passe réinitialisé."
-
-#: accesscontrol/views.py:470
-msgid "Passwords mismatch. Please try again"
-msgstr "Les mots de passe diffèrent. Bien vouloir réessayer"
-
-#: accesscontrol/views.py:781 accesscontrol/views.py:862
-msgid "You were added to our community. Thank you for joining us."
-msgstr ""
-"Vous avez été ajouté à notre communauté avec joie. Merci de nous avoir "
-"rejoint. "
-
-#: accesscontrol/views.py:808
-#, python-format
-msgid "You just joined %s community"
-msgstr "Vous venez de rejoindre la communauté %s"
+msgstr "Invitez des amis"
 
 #: billing/admin.py:40
 msgid "Invoice generation"
@@ -1099,8 +1227,8 @@ msgstr "En retard"
 msgid "Service suspension"
 msgstr "Suspension de service"
 
-#: billing/admin.py:65 core/templates/core/cloud_setup/deploy.html:110
-#: core/templates/core/service_detail.html:74
+#: billing/admin.py:65 core/templates/core/service_detail.html:79
+#: core/templates/core/cloud_setup/deploy.html:110
 msgid "Billing"
 msgstr "Facturation"
 
@@ -1125,15 +1253,15 @@ msgstr "partenaire"
 msgid "Your Web Billing Platform %s was created"
 msgstr "Votre Plateforme de facturation Web %s a été créée"
 
-#: billing/collect.py:125 billing/collect.py:178 billing/crons.py:133
+#: billing/collect.py:146 billing/collect.py:203 billing/crons.py:133
 msgid "View invoice"
 msgstr "Voir la facture"
 
-#: billing/collect.py:183
+#: billing/collect.py:208
 msgid "Successful payment. Your subscription is now active."
 msgstr "Paiement réussi ! Votre abonnement est actif maintenant."
 
-#: billing/collect.py:224
+#: billing/collect.py:249
 msgid "Successful payment. Thank you soooo much for your donation."
 msgstr "Paiement réussi. Merci infiniment pour votre don."
 
@@ -1155,8 +1283,8 @@ msgid "Thanks for your payment"
 msgstr "Merci pour votre paiement"
 
 #: billing/crons.py:138 billing/crons.py:220 billing/crons.py:299
-#: billing/crons.py:382 billing/templates/billing/events/notice.html:27
-#: billing/templates/billing/invoice_detail.html:62
+#: billing/crons.py:382 billing/templates/billing/invoice_detail.html:62
+#: billing/templates/billing/events/notice.html:27
 #: billing/templates/billing/snippets/modal_payment_options.html:7
 #: core/templates/core/events/service_deployed.html:19
 msgid "Pay now"
@@ -1216,7 +1344,7 @@ msgstr "Modèle de message à envoyer pour rappeler le paiement d'une facture."
 
 #: billing/models.py:57
 msgid "Reminder subject"
-msgstr "Objet du rappel"
+msgstr "Objet du mail de rappel"
 
 #: billing/models.py:58
 msgid "Subject of the mail that reminds invoice payment."
@@ -1261,7 +1389,7 @@ msgstr ""
 
 #: billing/models.py:70
 msgid "Reminder delay"
-msgstr "Objet du rappel"
+msgstr "Délais de rappel"
 
 #: billing/models.py:71 billing/models.py:79
 msgid "Number of days after which a reminder must be re-sent to client."
@@ -1270,31 +1398,31 @@ msgstr ""
 
 #: billing/models.py:72
 msgid "Overdue subject"
-msgstr "Sujet en retard"
+msgstr "Objet du mail de retard"
 
 #: billing/models.py:73
 msgid "Subject of the mail that informs of invoice overdue."
-msgstr "Objet du message informant du retard de la facture."
+msgstr "Objet du mail informant du retard de la facture."
 
 #: billing/models.py:74
 msgid "Overdue message"
-msgstr "Retard du message"
+msgstr "Message de délai dépassé"
 
 #: billing/models.py:75
 msgid "Model of mail to send to inform of invoice overdue"
-msgstr "Modèle de courrier à envoyer pour informer du retard de la facture"
+msgstr "Modèle de mail à envoyer pour informer du retard de la facture"
 
 #: billing/models.py:76
 msgid "Overdue SMS"
-msgstr "Message en retard"
+msgstr "SMS de notification de retard"
 
 #: billing/models.py:77
 msgid "Model of SMS to send to inform of invoice overdue"
-msgstr "Modèle de message à envoyer pour informer du retard de la facture"
+msgstr "Modèle de SMS à envoyer pour informer du retard de la facture"
 
 #: billing/models.py:78
 msgid "Overdue delay"
-msgstr "Delai passé"
+msgstr "Délai dépassé"
 
 #: billing/models.py:80
 msgid "Payment confirmation subject"
@@ -1353,7 +1481,7 @@ msgstr ""
 
 #: billing/models.py:96
 msgid "Configurations of the invoicing system"
-msgstr "Configuration du système de facturation"
+msgstr "Configurations du système de facturation"
 
 #: billing/models.py:119
 msgid "Short description understandable by the customer."
@@ -1364,12 +1492,12 @@ msgid ""
 "How you want the customer to see the duration.<br>Eg:<strong>1 month</"
 "strong>, <strong>3 months</strong>, etc."
 msgstr ""
-"Comment voulez-vous que le client voit la durée.<br>Eg:<strong>1 mois</"
+"Comment vous voulez que le client voit la durée.<br>Ex:<strong>1 mois</"
 "strong> , <strong>3 mois</strong>, etc."
 
 #: billing/models.py:125
 msgid "Cost of the product on the duration set previously."
-msgstr "Coût du produit précédemment fixé sur la durée."
+msgstr "Coût du produit sur la durée précédemment fixée ."
 
 #: billing/models.py:128
 msgid "Detailed description of the product."
@@ -1380,8 +1508,10 @@ msgid "Check to make the product active."
 msgstr "Cocher pour activer le produit."
 
 #: billing/models.py:156 billing/models.py:214
-#: cashout/templates/cashout/payments.html:81 core/constants.py:6
-#: core/models.py:151 core/templates/core/service_detail.html:129
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:81 cashout/templates/cashout/payments.html:79
+#: core/constants.py:6 core/models.py:151
+#: core/templates/core/service_detail.html:134
 msgid "Pending"
 msgstr "En attente"
 
@@ -1447,500 +1577,54 @@ msgstr "Dernière fois que l'avis de retard a été envoyé au client."
 msgid "Invoice No. "
 msgstr "Facture No."
 
+#: billing/models.py:298
+msgid "Technical"
+msgstr ""
+
+#: billing/models.py:299
+msgid "Infographics"
+msgstr ""
+
 #: billing/models.py:300
+#, fuzzy
+msgid "Marketing"
+msgstr "Démarrage"
+
+#: billing/models.py:309
 msgid "Onsite"
 msgstr "Sur place"
 
-#: billing/models.py:368
+#: billing/models.py:394
 msgid "Cash"
 msgstr "Espèces"
 
-#: billing/models.py:371
+#: billing/models.py:397
 msgid "Check"
 msgstr "Chèque"
 
-#: billing/models.py:372
+#: billing/models.py:398
 msgid "Bank card"
 msgstr "Carte bancaire"
 
-#: billing/models.py:373
+#: billing/models.py:399
 msgid "Bank transfer"
 msgstr "Virement"
 
-#: billing/models.py:374
+#: billing/models.py:400
 msgid "Money transfer"
 msgstr "Transfert d'argent"
 
-#: billing/models.py:375
+#: billing/models.py:401
 msgid "Wallet debit"
 msgstr "Débit du wallet"
 
-#: billing/models.py:380
+#: billing/models.py:406
 msgid "If the payment was in cash, this is who collected the money"
-msgstr "Si l'argent était en espèces, voici qui devrait le perçevoir"
+msgstr "Si le paiement était en espèces, voici qui devrait le perçevoir"
 
-#: billing/models.py:391
+#: billing/models.py:417
 msgid "Member"
 msgstr "Membre"
-
-#: billing/templates/billing/change_product.html:5
-msgid "New product"
-msgstr "Nouveau produit"
-
-#: billing/templates/billing/change_product.html:39
-#: billing/templates/billing/product_list.html:6
-#: billing/templates/billing/product_list.html:17
-msgid "Products"
-msgstr "Produits"
-
-#: billing/templates/billing/change_product.html:44
-#: core/templates/core/change_module.html:5
-#: core/templates/core/change_module.html:47
-#: core/templates/core/change_object_base.html:5
-#: core/templates/core/change_object_base.html:15
-#: core/templates/core/configure_module.html:5
-#: flatpages/templates/flatpages/change_flatpage.html:26
-msgid "New"
-msgstr "Nouveau"
-
-#: billing/templates/billing/change_product.html:56
-#: core/templates/core/change_module.html:70
-#: core/templates/core/change_object_base.html:26
-#: core/templates/core/configuration.html:72
-#: core/templates/core/configure_module.html:58
-#: flatpages/templates/flatpages/change_flatpage.html:50
-#: partnership/templates/partnership/service_detail.html:99
-#: revival/templates/revival/change_profile_tag.html:230
-#: theming/templates/theming/configure_theme_base.html:50
-msgid "Save"
-msgstr "Sauvegarder"
-
-#: billing/templates/billing/change_subscription.html:15
-#: billing/templates/billing/subscription_list.html:6
-#: billing/templates/billing/subscription_list.html:17
-msgid "Subscriptions"
-msgstr "Abonnements"
-
-#: billing/templates/billing/change_subscription.html:43
-msgid "Subscription details"
-msgstr "Détails de l'abonnement"
-
-#: billing/templates/billing/change_subscription.html:45
-#: core/templates/core/service_detail.html:58
-#: core/templates/core/service_detail.html:75
-#: partnership/templates/partnership/service_detail.html:46
-msgid "Expired"
-msgstr "Expiré"
-
-#: billing/templates/billing/change_subscription.html:52
-#: billing/templates/billing/snippets/subscription_list_results.html:24
-msgid "Plan"
-msgstr "Option tarifaire"
-
-#: billing/templates/billing/change_subscription.html:58
-#: billing/templates/billing/snippets/subscription_list_results.html:29
-msgid "Duration"
-msgstr "Durée"
-
-#: billing/templates/billing/change_subscription.html:59
-#: revival/templates/revival/change_profile_tag.html:413
-msgid "days"
-msgstr "jours"
-
-#: billing/templates/billing/change_subscription.html:62
-#: billing/templates/billing/snippets/subscription_list_results.html:20
-msgid "Cost"
-msgstr "Coût"
-
-#: billing/templates/billing/change_subscription.html:69
-msgid "Since"
-msgstr "Depuis"
-
-#: billing/templates/billing/change_subscription.html:73
-#: core/templates/core/service_detail.html:118
-#: partnership/templates/partnership/service_detail.html:60
-#: partnership/templates/partnership/service_list.html:52
-#: partnership/templates/partnership/snippets/service_list_results.html:47
-msgid "Expiry"
-msgstr "Expiration"
-
-#: billing/templates/billing/events/notice.html:14
-msgid "Service details"
-msgstr "Détails du service"
-
-#: billing/templates/billing/events/notice.html:21
-#: billing/templates/billing/invoice_list.html:67
-#: core/templates/core/dashboard_base.html:22
-#: core/templates/core/events/service_deployed.html:13
-#: partnership/templates/partnership/dashboard.html:21
-#: partnership/templates/partnership/dashboard.html:28
-#: partnership/templates/partnership/dashboard.html:43
-#: partnership/templates/partnership/dashboard.html:60
-#: partnership/templates/partnership/dashboard.html:137
-msgid "Details"
-msgstr "Détails"
-
-#: billing/templates/billing/events/subscription.html:12
-#, python-format
-msgid "You were registered to <strong>%(product_name)s</strong>"
-msgstr "Vous vous êtes abonné à <strong>%(product_name)s</strong>"
-
-#: billing/templates/billing/events/subscription.html:16
-msgctxt "billing cycle"
-msgid "Charged"
-msgstr "Facturé"
-
-#: billing/templates/billing/invoice_detail.html:4
-#: billing/templates/billing/invoice_detail.html:73
-#: core/templates/core/invoice_detail.html:4
-#: core/templates/core/invoice_detail.html:59
-#: core/templates/core/mails/service_deployed.html:25
-msgid "Invoice"
-msgstr "Facture"
-
-#: billing/templates/billing/invoice_detail.html:51
-#: billing/templates/billing/momo_checkout.html:24
-#: core/templates/core/invoice_detail.html:39
-msgid "Pay with"
-msgstr "Payer avec"
-
-#: billing/templates/billing/invoice_detail.html:75
-#: core/templates/core/invoice_detail.html:61
-msgid "Date issued"
-msgstr "Date d'émission"
-
-#: billing/templates/billing/invoice_detail.html:76
-#: billing/templates/billing/invoice_list.html:51
-#: core/templates/core/invoice_detail.html:62
-msgid "Due date"
-msgstr "Date d'échéance"
-
-#: billing/templates/billing/invoice_detail.html:80
-#: core/templates/core/invoice_detail.html:66
-msgid "Invoiced To"
-msgstr "Addressé à"
-
-#: billing/templates/billing/invoice_detail.html:94
-#: core/templates/core/invoice_detail.html:76
-msgid "Pay To"
-msgstr "Payé à"
-
-#: billing/templates/billing/invoice_detail.html:106
-#: core/templates/core/invoice_detail.html:88
-msgid "Description"
-msgstr "Description"
-
-#: billing/templates/billing/invoice_detail.html:107
-#: billing/templates/billing/invoice_detail.html:178
-#: billing/templates/billing/invoice_list.html:50
-#: billing/templates/billing/public/donate.html:48
-#: core/templates/core/cloud_setup/deploy.html:228
-#: core/templates/core/cloud_setup/deploy.html:239
-#: core/templates/core/invoice_detail.html:90
-#: core/templates/core/invoice_detail.html:129
-#: core/templates/core/mails/service_deployed.html:29
-msgid "Amount"
-msgstr "Montant"
-
-#: billing/templates/billing/invoice_detail.html:129
-#: core/templates/core/invoice_detail.html:96
-msgid "Extend payment until"
-msgstr "Étendre le paiement jusqu'au"
-
-#: billing/templates/billing/invoice_detail.html:134
-#: core/templates/core/invoice_detail.html:105
-#: core/templates/core/invoice_detail.html:107
-msgid "Month(s)"
-msgstr "Mois"
-
-#: billing/templates/billing/invoice_detail.html:147
-#: core/templates/core/invoice_detail.html:118
-msgid "Total"
-msgstr "Total"
-
-#: billing/templates/billing/invoice_detail.html:155
-#: billing/templates/billing/invoice_detail.html:161
-msgid "Processing fees"
-msgstr "Frais de traitement"
-
-#: billing/templates/billing/invoice_detail.html:172
-#: cashout/templates/cashout/payments.html:5
-#: cashout/templates/cashout/payments.html:14
-#: cashout/templates/cashout/payments.html:71
-#: core/templates/core/dashboard_base.html:98
-msgid "Payments"
-msgstr "Paiements"
-
-#: billing/templates/billing/invoice_detail.html:175
-#: core/templates/core/invoice_detail.html:126
-msgid "Transaction date"
-msgstr "Date de la transaction"
-
-#: billing/templates/billing/invoice_detail.html:176
-#: billing/templates/billing/invoice_list.html:53
-#: cashout/templates/cashout/payments.html:179
-#: core/templates/core/invoice_detail.html:127
-msgid "Method"
-msgstr "Méthode"
-
-#: billing/templates/billing/invoice_detail.html:177
-#: core/templates/core/invoice_detail.html:128
-msgid "Transaction ID"
-msgstr "ID de transaction"
-
-#: billing/templates/billing/invoice_detail.html:194
-#: core/templates/core/invoice_detail.html:146
-msgid "Back to Client Area"
-msgstr "Retour à la Zone Client"
-
-#: billing/templates/billing/invoice_list.html:8
-#: core/templates/billing/core/invoice_list.html:4
-#: core/templates/core/base_admin.html:104
-#: core/templates/core/service_detail.html:126
-#: core/templates/core/snippets/profile_custom_menu_items.html:8
-msgid "Invoices"
-msgstr "Factures"
-
-#: billing/templates/billing/invoice_list.html:30
-msgid "My Invoices"
-msgstr "Mes Factures"
-
-#: billing/templates/billing/invoice_list.html:49
-msgid "Product"
-msgstr "Produit"
-
-#: billing/templates/billing/invoice_list.html:52
-msgid "Payment"
-msgstr "Paiement"
-
-#: billing/templates/billing/invoice_list.html:76
-msgid "No pending invoice"
-msgstr "Pas de facture en attente"
-
-#: billing/templates/billing/invoice_list.html:88
-#: core/templates/core/base.html:45 core/templates/core/contact.html:4
-#: core/templates/core/mails/base.html:53
-msgid "Contact"
-msgstr "Contact"
-
-#: billing/templates/billing/invoice_list.html:91
-#: core/templates/core/base.html:46 core/templates/core/mails/base.html:58
-msgid "About us"
-msgstr "À propos de nous"
-
-#: billing/templates/billing/invoice_list.html:103
-#, python-format
-msgid ""
-"\n"
-"                    Powered by <a href="
-"\"%(settings.IKWEN_BASE_URL|append_auth_tokens:request)s\" style=\"color: "
-"#666; text-decoration: none\"><strong>ikwen</strong></a> &reg;.\n"
-"                "
-msgstr ""
-"\n"
-"                    Soutenue par  <a href="
-"\"%(settings.IKWEN_BASE_URL|append_auth_tokens:request)s\" style=\"color: "
-"#666; text-decoration: none\"><strong>ikwen</strong></a> &reg;.\n"
-"                \n"
-"                "
-
-#: billing/templates/billing/mails/notice.html:8
-msgid "Thanks for your business with ikwen"
-msgstr "Merci d'être client chez ikwen"
-
-#: billing/templates/billing/mails/notice.html:10
-msgid ""
-"\n"
-"                We successfully charged your wallet for your service fees, "
-"so you're all set !\n"
-"            "
-msgstr ""
-"\n"
-"               Nous avons débité votre solde avec succès pour le règlement "
-"de votre service, vous êtes à jour !"
-
-#: billing/templates/billing/mails/notice.html:14
-#, python-format
-msgid "Summary for %(member_name)s"
-msgstr "Détails pour %(member_name)s"
-
-#: billing/templates/billing/mails/notice.html:16
-#, python-format
-msgid ""
-"\n"
-"                    Fees for %(months_count)s month(s), ending on %(exp)s\n"
-"                "
-msgstr ""
-"\n"
-"                    Frais pour %(months_count)s mois(s), jusqu'au %(exp)s"
-
-#: billing/templates/billing/mails/notice.html:22
-msgid "Amount paid"
-msgstr "Montant payé"
-
-#: billing/templates/billing/momo_checkout.html:4
-msgid "Mobile Money Checkout"
-msgstr "Paiement Mobile Money"
-
-#: billing/templates/billing/momo_checkout.html:25
-msgid "Type your phone number and submit"
-msgstr "Saisissez votre numéro de téléphone et envoyez"
-
-#: billing/templates/billing/momo_checkout.html:26
-msgid ""
-"\n"
-"                Your phone number must be registered to\n"
-"                <a href=\"https://www.mtncameroon.net/en/mtn-mobile-money/\" "
-"target=\"_blank\">MTN Mobile Money</a> service"
-msgstr ""
-"\n"
-"               Votre numéro de téléphone doit être enregistré au service\n"
-"<a href=\"https://www.mtncameroon.net/net/en/mtn-mobile-money/\" target="
-"\"_blank\">MTN Mobile Money </a>\n"
-"               "
-
-#: billing/templates/billing/momo_checkout.html:73
-#: billing/templates/billing/momo_checkout.html:133
-msgid "Good! Please confirm transaction on your phone."
-msgstr "Bien! Veuillez confirmer la transaction sur votre téléphone."
-
-#: billing/templates/billing/momo_checkout.html:95
-msgid "Unknow server error"
-msgstr "Erreur serveur inconnue"
-
-#: billing/templates/billing/momo_checkout.html:112
-msgid "Transaction successful, you will be redirected."
-msgstr "Transaction réussie, vous allez être redirigé."
-
-#: billing/templates/billing/momo_checkout.html:137
-msgid "You have a running transaction. Leaving now may cause it to fail."
-msgstr ""
-"Vous avez une transaction en cours. Quitter maintenant pourrait la faire "
-"échouer."
-
-#: billing/templates/billing/payment_mean_list.html:6
-#: billing/templates/billing/payment_mean_list.html:17
-#: core/templates/core/base_admin.html:88
-msgid "Payment means"
-msgstr "Moyens de paiement"
-
-#: billing/templates/billing/payment_mean_list.html:35
-#: billing/templates/billing/payment_mean_list.html:48
-#: billing/templates/billing/payment_mean_list.html:98
-#: billing/templates/billing/payment_mean_list.html:135
-msgid "Configure"
-msgstr "Configurer"
-
-#: billing/templates/billing/payment_mean_list.html:53
-msgid "Paypal Username"
-msgstr "Paypal Username"
-
-#: billing/templates/billing/payment_mean_list.html:59
-msgid "Paypal Password"
-msgstr "Mot de passe Paypal"
-
-#: billing/templates/billing/payment_mean_list.html:65
-msgid "Paypal API Signature"
-msgstr "API de Signature Paypal "
-
-#: billing/templates/billing/payment_mean_list.html:71
-msgid "Paypal Merchant ID"
-msgstr "ID marchand Paypal"
-
-#: billing/templates/billing/payment_mean_list.html:81
-#: billing/templates/billing/payment_mean_list.html:118
-#: billing/templates/billing/payment_mean_list.html:149
-msgid "OK"
-msgstr "OK"
-
-#: billing/templates/billing/payment_mean_list.html:103
-msgid "Merchant Key"
-msgstr "Clé Marchand"
-
-#: billing/templates/billing/payment_mean_list.html:109
-msgid "Access Token"
-msgstr "Jeton d'accès"
-
-#: billing/templates/billing/payment_mean_list.html:140
-msgid "Merchant Email"
-msgstr "Email Marchand"
-
-#: billing/templates/billing/payment_mean_list.html:215
-msgid "PayPal successfully configured"
-msgstr "Paypal configuré avec succès"
-
-#: billing/templates/billing/payment_mean_list.html:229
-msgid "Orange Money successfully configured"
-msgstr "Orange Money configuré avec succès"
-
-#: billing/templates/billing/payment_mean_list.html:242
-msgid "MTN Mobile Money successfully configured"
-msgstr "MTN Mobile Money configuré avec succès"
-
-#: billing/templates/billing/product_list.html:33
-#: core/templates/core/module_list.html:50
-#: core/templates/core/snippets/object_list_results.html:15
-#: revival/templates/revival/profile_tag_list.html:64
-#: revival/templates/revival/profile_tag_list.html:89
-msgid "Deactivate"
-msgstr "Désactiver"
-
-#: billing/templates/billing/product_list.html:37
-#: core/templates/core/snippets/object_list_results.html:20
-#: flatpages/templates/flatpages/flatpage_list.html:35
-#: revival/templates/revival/change_profile_tag.html:216
-#: revival/templates/revival/profile_tag_list.html:94
-msgid "Delete item"
-msgstr "Supprimer l'élément"
-
-#: billing/templates/billing/product_list.html:46
-#: core/templates/core/object_list_base.html:44
-#: revival/templates/revival/profile_tag_list.html:41
-msgid "Add"
-msgstr "Ajouter"
-
-#: billing/templates/billing/public/donate.html:74
-msgid "Please use digits only. (Eg. 1000)"
-msgstr "Veuillez utiliser uniquement les chiffres SVP. (Ex: 1000)"
-
-#: billing/templates/billing/public/donate.html:75
-msgid "Minimum is 10"
-msgstr "Le minimum est 10"
-
-#: billing/templates/billing/public/pricing.html:61
-msgid "Buy Now"
-msgstr "Payez maintenant"
-
-#: billing/templates/billing/public/pricing.html:79
-msgid "Please sign in to continue"
-msgstr "Connectez-vous pour continuer SVP."
-
-#: billing/templates/billing/snippets/modal_payment_options.html:17
-#: core/templates/core/utils/momo_checkout.html:44
-msgid "Pay with MTN Mobile Money"
-msgstr "Payez avec MTN Mobile Money"
-
-#: billing/templates/billing/snippets/modal_payment_options.html:23
-#: core/templates/core/utils/momo_checkout.html:49
-msgid "Pay with Orange Money"
-msgstr "Payez avec Orange Money"
-
-#: billing/templates/billing/snippets/subscription_list_results.html:64
-#: core/templates/core/snippets/object_list_results.html:40
-#, python-format
-msgid ""
-"\n"
-"            %(start)s – %(end)s of %(count)s results"
-msgstr ""
-"\n"
-"                 %(start)s – %(end)s de %(count)s résultats"
-
-#: billing/templates/billing/snippets/subscription_list_results.html:67
-#: core/templates/core/snippets/object_list_results.html:43
-#: partnership/templates/partnership/snippets/service_list_results.html:15
-#, python-format
-msgid "%(count)s results"
-msgstr "%(count)s résultats"
 
 #: billing/utils.py:114
 msgid "Subscription activated"
@@ -1981,7 +1665,7 @@ msgid ""
 "was generated on %(date_issued)s is due on %(due_date)s."
 msgstr ""
 "Ceci est un rappel que votre facture No. %(invoice_number)s qui a été "
-"générée le %(date_issued)s expire le %(due_date)s."
+"générée le %(date_issued)s est due au %(due_date)s."
 
 #: billing/utils.py:253
 #, python-format
@@ -1990,7 +1674,7 @@ msgstr "Premier %s"
 
 #: billing/utils.py:253
 msgid "First notice of Invoice Overdue"
-msgstr "Premier avis de facture retardé"
+msgstr "Premier avis de facture en retard"
 
 #: billing/utils.py:255
 #, python-format
@@ -1999,7 +1683,7 @@ msgstr "Deuxième %s"
 
 #: billing/utils.py:255
 msgid "Second notice of Invoice Overdue"
-msgstr "Deuxième avis de facture retardé"
+msgstr "Deuxième avis de facture en retard"
 
 #: billing/utils.py:257
 #, python-format
@@ -2008,7 +1692,7 @@ msgstr "Troisième et dernier %s"
 
 #: billing/utils.py:257
 msgid "Third and last notice of Invoice Overdue"
-msgstr "Troisième et dernier avis de retardé"
+msgstr "Troisième et dernier avis de facture en retard"
 
 #: billing/utils.py:268
 #, python-format
@@ -2032,11 +1716,11 @@ msgid ""
 msgstr ""
 "Ceci est un rappel de <strong>suspension de service</strong> pour cause de "
 "non payement de la facture <strong>No. %(invoice_number)s</strong> générée "
-"le %(date_issued)s et expirée le %(due_date)s."
+"le %(date_issued)s et due au %(due_date)s."
 
 #: billing/utils.py:338
 msgid "Invoice Payment Confirmation"
-msgstr "Confirmation de Paiement de la Facture"
+msgstr "Confirmation de Paiement de Facture"
 
 #: billing/utils.py:353
 #, python-format
@@ -2046,28 +1730,612 @@ msgid ""
 "the services provided by us. Below is a summary of the invoice."
 msgstr ""
 "Votre reçu de paiement de %(currency)s %(amount).2f pour la facture "
-"<strong>No. %(invoice_number)s</strong> générée sur %(date_issued)s pour les "
+"<strong>No. %(invoice_number)s</strong> générée le %(date_issued)s pour les "
 "services que nous proposons. Ci-dessous récapitulatif de la facture. "
+
+#: billing/templates/billing/change_product.html:5
+msgid "New product"
+msgstr "Nouveau produit"
+
+#: billing/templates/billing/change_product.html:39
+#: billing/templates/billing/product_list.html:6
+#: billing/templates/billing/product_list.html:17
+msgid "Products"
+msgstr "Produits"
+
+#: billing/templates/billing/change_product.html:44
+#: core/templates/core/change_module.html:5
+#: core/templates/core/change_module.html:47
+#: core/templates/core/change_object_base.html:5
+#: core/templates/core/change_object_base.html:25
+#: core/templates/core/configure_module.html:5
+#: flatpages/templates/flatpages/change_flatpage.html:26
+msgid "New"
+msgstr "Nouveau"
+
+#: billing/templates/billing/change_product.html:56
+#: core/templates/core/change_module.html:70
+#: core/templates/core/change_object_base.html:43
+#: core/templates/core/configuration.html:73
+#: core/templates/core/configure_module.html:58
+#: flatpages/templates/flatpages/change_flatpage.html:50
+#: partnership/templates/partnership/service_detail.html:99
+#: revival/templates/revival/change_profile_tag.html:232
+#: theming/templates/theming/configure_theme_base.html:50
+msgid "Save"
+msgstr "Sauvegarder"
+
+#: billing/templates/billing/change_subscription.html:15
+#: billing/templates/billing/subscription_list.html:6
+#: billing/templates/billing/subscription_list.html:17
+msgid "Subscriptions"
+msgstr "Abonnements"
+
+#: billing/templates/billing/change_subscription.html:43
+msgid "Subscription details"
+msgstr "Détails de l'abonnement"
+
+#: billing/templates/billing/change_subscription.html:45
+#: core/templates/core/service_detail.html:59
+#: core/templates/core/service_detail.html:80
+#: partnership/templates/partnership/service_detail.html:46
+msgid "Expired"
+msgstr "Expiré"
+
+#: billing/templates/billing/change_subscription.html:52
+#: billing/templates/billing/snippets/subscription_list_results.html:24
+msgid "Plan"
+msgstr "Option tarifaire"
+
+#: billing/templates/billing/change_subscription.html:58
+#: billing/templates/billing/snippets/subscription_list_results.html:29
+msgid "Duration"
+msgstr "Durée"
+
+#: billing/templates/billing/change_subscription.html:59
+#: revival/templates/revival/change_profile_tag.html:420
+msgid "days"
+msgstr "jours"
+
+#: billing/templates/billing/change_subscription.html:62
+#: billing/templates/billing/snippets/subscription_list_results.html:20
+msgid "Cost"
+msgstr "Coût"
+
+#: billing/templates/billing/change_subscription.html:69
+msgid "Since"
+msgstr "Depuis"
+
+#: billing/templates/billing/change_subscription.html:73
+#: core/templates/core/service_detail.html:123
+#: partnership/templates/partnership/admin_home.html:49
+#: partnership/templates/partnership/service_detail.html:60
+#: partnership/templates/partnership/service_list.html:52
+#: partnership/templates/partnership/snippets/service_list_results.html:47
+msgid "Expiry"
+msgstr "Expiration"
+
+#: billing/templates/billing/invoice_detail.html:4
+#: billing/templates/billing/invoice_detail.html:73
+#: core/templates/core/invoice_detail.html:4
+#: core/templates/core/invoice_detail.html:59
+#: core/templates/core/mails/service_deployed.html:25
+msgid "Invoice"
+msgstr "Facture"
+
+#: billing/templates/billing/invoice_detail.html:51
+#: billing/templates/billing/momo_checkout.html:24
+#: core/templates/core/invoice_detail.html:39
+msgid "Pay with"
+msgstr "Payer avec"
+
+#: billing/templates/billing/invoice_detail.html:75
+#: core/templates/core/invoice_detail.html:61
+msgid "Date issued"
+msgstr "Date d'émission"
+
+#: billing/templates/billing/invoice_detail.html:76
+#: billing/templates/billing/invoice_list.html:51
+#: core/templates/core/invoice_detail.html:62
+msgid "Due date"
+msgstr "Date d'échéance"
+
+#: billing/templates/billing/invoice_detail.html:80
+#: core/templates/core/invoice_detail.html:66
+msgid "Invoiced To"
+msgstr "Addressé à"
+
+#: billing/templates/billing/invoice_detail.html:94
+#: core/templates/core/invoice_detail.html:76
+msgid "Pay To"
+msgstr "Payer à"
+
+#: billing/templates/billing/invoice_detail.html:106
+#: core/templates/core/invoice_detail.html:88
+msgid "Description"
+msgstr "Description"
+
+#: billing/templates/billing/invoice_detail.html:107
+#: billing/templates/billing/invoice_detail.html:178
+#: billing/templates/billing/invoice_list.html:50
+#: billing/templates/billing/public/donate.html:48
+#: core/templates/core/invoice_detail.html:90
+#: core/templates/core/invoice_detail.html:129
+#: core/templates/core/cloud_setup/deploy.html:228
+#: core/templates/core/cloud_setup/deploy.html:239
+#: core/templates/core/mails/service_deployed.html:29
+msgid "Amount"
+msgstr "Montant"
+
+#: billing/templates/billing/invoice_detail.html:129
+#: core/templates/core/invoice_detail.html:96
+msgid "Extend payment until"
+msgstr "Étendre le paiement jusqu'au"
+
+#: billing/templates/billing/invoice_detail.html:134
+#: core/templates/core/invoice_detail.html:105
+#: core/templates/core/invoice_detail.html:107
+msgid "Month(s)"
+msgstr "Mois"
+
+#: billing/templates/billing/invoice_detail.html:147
+#: core/templates/core/invoice_detail.html:118
+msgid "Total"
+msgstr "Total"
+
+#: billing/templates/billing/invoice_detail.html:155
+#: billing/templates/billing/invoice_detail.html:161
+msgid "Processing fees"
+msgstr "Frais de traitement"
+
+#: billing/templates/billing/invoice_detail.html:172
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:5 2019-03-06).html:14 2019-03-06).html:71
+#: cashout/templates/cashout/payments.html:5
+#: cashout/templates/cashout/payments.html:14
+#: cashout/templates/cashout/payments.html:69
+#: core/templates/core/dashboard_base.html:98
+msgid "Payments"
+msgstr "Paiements"
+
+#: billing/templates/billing/invoice_detail.html:175
+#: core/templates/core/invoice_detail.html:126
+msgid "Transaction date"
+msgstr "Date de la transaction"
+
+#: billing/templates/billing/invoice_detail.html:176
+#: billing/templates/billing/invoice_list.html:53
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:179 cashout/templates/cashout/payments.html:177
+#: core/templates/core/invoice_detail.html:127
+msgid "Method"
+msgstr "Méthode"
+
+#: billing/templates/billing/invoice_detail.html:177
+#: core/templates/core/invoice_detail.html:128
+msgid "Transaction ID"
+msgstr "ID de transaction"
+
+#: billing/templates/billing/invoice_detail.html:194
+#: core/templates/core/invoice_detail.html:146
+msgid "Back to Client Area"
+msgstr "Retour à la Zone Client"
+
+#: billing/templates/billing/invoice_list.html:8
+#: core/templates/billing/core/invoice_list.html:4
+#: core/templates/core/base_admin.html:103
+#: core/templates/core/service_detail.html:131
+#: core/templates/core/snippets/profile_custom_menu_items.html:8
+msgid "Invoices"
+msgstr "Factures"
+
+#: billing/templates/billing/invoice_list.html:30
+msgid "My Invoices"
+msgstr "Mes Factures"
+
+#: billing/templates/billing/invoice_list.html:49
+msgid "Product"
+msgstr "Produit"
+
+#: billing/templates/billing/invoice_list.html:52
+msgid "Payment"
+msgstr "Paiement"
+
+#: billing/templates/billing/invoice_list.html:67
+#: billing/templates/billing/events/notice.html:21
+#: core/templates/core/dashboard_base.html:22
+#: core/templates/core/events/service_deployed.html:13
+#: partnership/templates/partnership/dashboard.html:21
+#: partnership/templates/partnership/dashboard.html:28
+#: partnership/templates/partnership/dashboard.html:43
+#: partnership/templates/partnership/dashboard.html:60
+#: partnership/templates/partnership/dashboard.html:137
+msgid "Details"
+msgstr "Détails"
+
+#: billing/templates/billing/invoice_list.html:76
+msgid "No pending invoice"
+msgstr "Pas de facture en attente"
+
+#: billing/templates/billing/invoice_list.html:88
+#: core/templates/core/base.html:45 core/templates/core/contact.html:4
+#: core/templates/core/mails/base.html:53
+msgid "Contact"
+msgstr "Contact"
+
+#: billing/templates/billing/invoice_list.html:91
+#: core/templates/core/base.html:46 core/templates/core/mails/base.html:58
+msgid "About us"
+msgstr "À propos de nous"
+
+#: billing/templates/billing/invoice_list.html:103
+#, python-format
+msgid ""
+"\n"
+"                    Powered by <a href="
+"\"%(settings.IKWEN_BASE_URL|append_auth_tokens:request)s\" style=\"color: "
+"#666; text-decoration: none\"><strong>ikwen</strong></a> &reg;.\n"
+"                "
+msgstr ""
+"\n"
+"                    Propulsé par  <a href="
+"\"%(settings.IKWEN_BASE_URL|append_auth_tokens:request)s\" style=\"color: "
+"#666; text-decoration: none\"><strong>ikwen</strong></a> &reg;.\n"
+"                \n"
+"                "
+
+#: billing/templates/billing/momo_checkout.html:4
+msgid "Mobile Money Checkout"
+msgstr "Paiement Mobile Money"
+
+#: billing/templates/billing/momo_checkout.html:25
+msgid "Type your phone number and submit"
+msgstr "Saisissez votre numéro de téléphone et envoyez"
+
+#: billing/templates/billing/momo_checkout.html:26
+msgid ""
+"\n"
+"                Your phone number must be registered to\n"
+"                <a href=\"https://www.mtncameroon.net/en/mtn-mobile-money/\" "
+"target=\"_blank\">MTN Mobile Money</a> service"
+msgstr ""
+"\n"
+"               Votre numéro doit être enregistré au service\n"
+"<a href=\"https://www.mtncameroon.net/net/en/mtn-mobile-money/\" target="
+"\"_blank\">MTN Mobile Money </a>\n"
+"               "
+
+#: billing/templates/billing/momo_checkout.html:73
+#: billing/templates/billing/momo_checkout.html:133
+msgid "Good! Please confirm transaction on your phone."
+msgstr "Bien! Veuillez confirmer la transaction sur votre téléphone."
+
+#: billing/templates/billing/momo_checkout.html:95
+msgid "Unknow server error"
+msgstr "Erreur serveur inconnue"
+
+#: billing/templates/billing/momo_checkout.html:112
+msgid "Transaction successful, you will be redirected."
+msgstr "Transaction réussie, vous allez être redirigé."
+
+#: billing/templates/billing/momo_checkout.html:137
+msgid "You have a running transaction. Leaving now may cause it to fail."
+msgstr ""
+"Vous avez une transaction en cours. Quitter maintenant pourrait la faire "
+"échouer."
+
+#: billing/templates/billing/payment_mean_list.html:6
+#: billing/templates/billing/payment_mean_list.html:17
+#: core/templates/core/base_admin.html:87
+msgid "Payment means"
+msgstr "Moyens de paiement"
+
+#: billing/templates/billing/payment_mean_list.html:35
+#: billing/templates/billing/payment_mean_list.html:48
+#: billing/templates/billing/payment_mean_list.html:98
+#: billing/templates/billing/payment_mean_list.html:135
+#: theming/templates/theming/theme_list.html:49
+msgid "Configure"
+msgstr "Configurer"
+
+#: billing/templates/billing/payment_mean_list.html:53
+msgid "Paypal Username"
+msgstr ""
+
+#: billing/templates/billing/payment_mean_list.html:59
+msgid "Paypal Password"
+msgstr ""
+
+#: billing/templates/billing/payment_mean_list.html:65
+msgid "Paypal API Signature"
+msgstr ""
+
+#: billing/templates/billing/payment_mean_list.html:71
+msgid "Paypal Merchant ID"
+msgstr ""
+
+#: billing/templates/billing/payment_mean_list.html:103
+msgid "Merchant Key"
+msgstr ""
+
+#: billing/templates/billing/payment_mean_list.html:109
+msgid "Authorization header"
+msgstr ""
+
+#: billing/templates/billing/payment_mean_list.html:140
+msgid "Merchant Email"
+msgstr ""
+
+#: billing/templates/billing/payment_mean_list.html:215
+msgid "PayPal successfully configured"
+msgstr "Paypal configuré avec succès"
+
+#: billing/templates/billing/payment_mean_list.html:229
+msgid "Orange Money successfully configured"
+msgstr "Orange Money configuré avec succès"
+
+#: billing/templates/billing/payment_mean_list.html:242
+msgid "MTN Mobile Money successfully configured"
+msgstr "MTN Mobile Money configuré avec succès"
+
+#: billing/templates/billing/product_list.html:33
+#: core/templates/core/module_list.html:50
+#: core/templates/core/snippets/object_list_results.html:15
+#: revival/templates/revival/profile_tag_list.html:64
+#: revival/templates/revival/profile_tag_list.html:90
+msgid "Deactivate"
+msgstr "Désactiver"
+
+#: billing/templates/billing/product_list.html:37
+#: core/templates/core/snippets/object_list_results.html:20
+#: flatpages/templates/flatpages/flatpage_list.html:35
+#: revival/templates/revival/change_profile_tag.html:218
+#: revival/templates/revival/profile_tag_list.html:95
+msgid "Delete item"
+msgstr "Supprimer l'élément"
+
+#: billing/templates/billing/transaction_log.html:6
+#, fuzzy
+msgid "Transaction log"
+msgstr "ID de transaction"
+
+#: billing/templates/billing/transaction_log.html:16
+#, fuzzy
+msgid "Transactions log"
+msgstr "Transactions"
+
+#: billing/templates/billing/transaction_log.html:68
+#, fuzzy
+msgid "Choose custom period"
+msgstr "Choisir un thème"
+
+#: billing/templates/billing/transaction_log.html:101
+#, fuzzy
+msgid "Transaction details"
+msgstr "Date de la transaction"
+
+#: billing/templates/billing/events/notice.html:14
+msgid "Service details"
+msgstr "Détails du service"
+
+#: billing/templates/billing/events/subscription.html:12
+#, python-format
+msgid "You were registered to <strong>%(product_name)s</strong>"
+msgstr "Vous vous êtes abonné à <strong>%(product_name)s</strong>"
+
+#: billing/templates/billing/events/subscription.html:16
+msgctxt "billing cycle"
+msgid "Charged"
+msgstr "Facturé"
+
+#: billing/templates/billing/mails/notice.html:8
+msgid "Thanks for your business with ikwen"
+msgstr "Merci d'être client chez ikwen"
+
+#: billing/templates/billing/mails/notice.html:10
+msgid ""
+"\n"
+"                We successfully charged your wallet for your service fees, "
+"so you're all set !\n"
+"            "
+msgstr ""
+"\n"
+"               Nous avons débité votre wallet avec succès pour le règlement "
+"de votre service, vous êtes à jour !"
+
+#: billing/templates/billing/mails/notice.html:14
+#, python-format
+msgid "Summary for %(member_name)s"
+msgstr "Détails pour %(member_name)s"
+
+#: billing/templates/billing/mails/notice.html:16
+#, python-format
+msgid ""
+"\n"
+"                    Fees for %(months_count)s month(s), ending on %(exp)s\n"
+"                "
+msgstr ""
+"\n"
+"                    Frais pour %(months_count)s mois(s), jusqu'au %(exp)s"
+
+#: billing/templates/billing/mails/notice.html:22
+msgid "Amount paid"
+msgstr "Montant payé"
+
+#: billing/templates/billing/public/donate.html:74
+msgid "Please use digits only. (Eg. 1000)"
+msgstr "Veuillez utiliser uniquement les chiffres SVP. (Ex: 1000)"
+
+#: billing/templates/billing/public/donate.html:75
+msgid "Minimum is 10"
+msgstr "Le minimum est 10"
+
+#: billing/templates/billing/public/pricing.html:61
+msgid "Buy Now"
+msgstr "J'achète"
+
+#: billing/templates/billing/public/pricing.html:79
+msgid "Please sign in to continue"
+msgstr "Connectez-vous pour continuer SVP."
+
+#: billing/templates/billing/snippets/modal_payment_options.html:17
+#: core/templates/core/utils/momo_checkout.html:44
+msgid "Pay with MTN Mobile Money"
+msgstr "Payez avec MTN Mobile Money"
+
+#: billing/templates/billing/snippets/modal_payment_options.html:23
+#: core/templates/core/utils/momo_checkout.html:49
+msgid "Pay with Orange Money"
+msgstr "Payez avec Orange Money"
+
+#: billing/templates/billing/snippets/subscription_list_results.html:64
+#: core/templates/core/snippets/object_list_results.html:40
+#, python-format
+msgid ""
+"\n"
+"            %(start)s – %(end)s of %(count)s results"
+msgstr ""
+"\n"
+"                 %(start)s – %(end)s de %(count)s résultats"
+
+#: billing/templates/billing/snippets/subscription_list_results.html:67
+#: core/templates/core/snippets/object_list_results.html:43
+#: partnership/templates/partnership/snippets/service_list_results.html:15
+#, python-format
+msgid "%(count)s results"
+msgstr "%(count)s résultats"
 
 #: cashout/admin.py:68 cashout/templates/cashout/events/payment_notice.html:3
 msgid "Money transfer confirmation"
 msgstr "Confirmation du transfert d'argent"
 
-#: cashout/models.py:76
+#: cashout/models.py:77
 msgid "payment method"
 msgstr "méthode de paiement"
 
-#: cashout/models.py:77
+#: cashout/models.py:78
 msgid "Method used to pay the member"
 msgstr "Moyen de payement utilisé par le membre"
 
-#: cashout/models.py:82
+#: cashout/models.py:83
 msgid "Teller who processed this request"
 msgstr "Caissier qui a traité la requête"
 
-#: cashout/models.py:87
+#: cashout/models.py:88
 msgid "Request cash-out"
 msgstr "Demander un retrait"
+
+#: cashout/views (KS-ikwen's conflicted copy 2019-03-06).py:35
+#: cashout/views.py:35
+msgid "No Payment method. Please set one first."
+msgstr "Aucune méthode de Paiement. Veuillez en définir une."
+
+#: cashout/views (KS-ikwen's conflicted copy 2019-03-06).py:39
+#: cashout/views.py:39
+msgid "You already have a pending request for this wallet."
+msgstr "Vous avez déjà une demande en attente pour ce porte-feuille."
+
+#: cashout/views (KS-ikwen's conflicted copy 2019-03-06).py:81
+#: cashout/views.py:81
+#, python-format
+msgid "Cash-out request on %s"
+msgstr "Demande de retrait sur %s"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:23 cashout/templates/cashout/payments.html:23
+msgid "Your wallet"
+msgstr "Votre solde"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:43 cashout/templates/cashout/payments.html:43
+msgid "Your last payment was on"
+msgstr "Votre dernier paiement était sur"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:45 2019-03-06).html:88
+#: cashout/templates/cashout/payments.html:45
+#: cashout/templates/cashout/payments.html:86
+msgid "No payment yet"
+msgstr "Aucun paiement"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:52 cashout/templates/cashout/payments.html:51
+msgid "REQUEST A PAYMENT"
+msgstr "DEMANDER UN PAIEMENT"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:53 cashout/templates/cashout/payments.html:52
+msgid "Request successful"
+msgstr "Demande réussie"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:54 cashout/templates/cashout/payments.html:53
+msgid "Request failed"
+msgstr "Demande échouée"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:58 cashout/templates/cashout/payments.html:56
+msgid "You can cash out as from"
+msgstr "Vous pouvez retirer à partir de"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:98 cashout/templates/cashout/payments.html:96
+msgid "How you get paid"
+msgstr "Comment vous êtes payé"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:119 2019-03-06).html:148
+#: cashout/templates/cashout/payments.html:117
+#: cashout/templates/cashout/payments.html:146
+msgid "Update"
+msgstr "Mise à jour"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:122 2019-03-06).html:151
+#: cashout/templates/cashout/payments.html:120
+#: cashout/templates/cashout/payments.html:149
+msgid "Delete"
+msgstr "Effacer"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:130 cashout/templates/cashout/payments.html:128
+msgid "No payment method set"
+msgstr "Aucune méthode de paiement configurée"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:159 cashout/templates/cashout/payments.html:157
+msgid "ADD NEW"
+msgstr "AJOUTER"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:190 cashout/templates/cashout/payments.html:188
+msgid "Account number"
+msgstr "Nom du compte"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:196 cashout/templates/cashout/payments.html:194
+msgid "Recipient name"
+msgstr "Nom du destinataire"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:222 cashout/templates/cashout/payments.html:220
+msgid "Choose wallet provider"
+msgstr "Choisir l'opérateur"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:228 cashout/templates/cashout/payments.html:226
+msgid "Cash-out from"
+msgstr "Retrait sur"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:262 cashout/templates/cashout/payments.html:260
+msgid "New payment address"
+msgstr "Nouvelle addresse de paiement"
+
+#: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
+#: 2019-03-06).html:271 cashout/templates/cashout/payments.html:269
+msgid "Update address"
+msgstr "Addresse mise à jour"
 
 #: cashout/templates/cashout/events/payment_notice.html:7
 #, python-format
@@ -2103,7 +2371,7 @@ msgstr ""
 "\n"
 "        Ceci est une confirmation pour transfert de <ins>%(currency_symbol)s "
 "%(amount)s</ins>\n"
-"                    au compte <ins>%(account_number)s</ins>en réponse à sa "
+"                    au compte <ins>%(account_number)s</ins> en réponse à sa "
 "demande de retrait\n"
 "                    d'argent sur <strong>%(project_name)s</strong>.\n"
 "                "
@@ -2125,12 +2393,12 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"                Votre demande de retrait<ins style=\"color: #666\">"
+"                Votre demande de retrait de <ins style=\"color: #666\">"
 "%(currency_symbol)s %(amount)s</ins>\n"
-"                de <a href=\"%(url)s\" target=\"_blank\">%(project_name)s</"
-"a> compte accrédité avec succès.\n"
-"                L'argent sera encaissé à <ins>%(account_number)s</ins> "
-"durant les prochaines 24h."
+"                sur <a href=\"%(url)s\" target=\"_blank\">%(project_name)s</"
+"a> a été soumise avec succès.\n"
+"                L'argent sera déposé sur le compte <ins>%(account_number)s</"
+"ins> durant les prochaines 24h."
 
 #: cashout/templates/cashout/events/request_notice.html:23
 #, python-format
@@ -2149,8 +2417,8 @@ msgstr ""
 "#666\">%(currency_symbol)s %(amount)s</ins>\n"
 "                    de votre  compte <a href=\"%(url)s\" target=\"_blank\">"
 "%(project_name)s</a>.\n"
-"                    L'argent sera encaissé <ins>%(account_number)s</ins> "
-"durant les prochaines 24h.\n"
+"                    L'argent sera déposé sur le compte <ins>"
+"%(account_number)s</ins> durant les prochaines 24h.\n"
 "                "
 
 #: cashout/templates/cashout/mails/payment_notice.html:6
@@ -2172,8 +2440,8 @@ msgstr ""
 "\n"
 "                Rappel de confirmation en réponse de votre demande de "
 "retrait de\n"
-"                votre argent chez nous sur<strong>%(project_name)s</strong>. "
-"Voir les details ci-dessous.\n"
+"                votre argent chez nous sur <strong>%(project_name)s</"
+"strong>. Voir les details ci-dessous.\n"
 "            "
 
 #: cashout/templates/cashout/mails/payment_notice.html:17
@@ -2201,94 +2469,6 @@ msgstr ""
 msgid "Pay to"
 msgstr "Payer à"
 
-#: cashout/templates/cashout/payments.html:23
-msgid "Your wallet"
-msgstr "Votre solde"
-
-#: cashout/templates/cashout/payments.html:43
-msgid "Your last payment was on"
-msgstr "Votre dernier paiement était sur"
-
-#: cashout/templates/cashout/payments.html:45
-#: cashout/templates/cashout/payments.html:88
-msgid "No payment yet"
-msgstr "Aucun paiement"
-
-#: cashout/templates/cashout/payments.html:52
-msgid "REQUEST A PAYMENT"
-msgstr "DEMANDE UN PAIEMENT"
-
-#: cashout/templates/cashout/payments.html:53
-msgid "Request successful"
-msgstr "Demande réussie"
-
-#: cashout/templates/cashout/payments.html:54
-msgid "Request failed"
-msgstr "Demande échouée"
-
-#: cashout/templates/cashout/payments.html:58
-msgid "You can cash out as from"
-msgstr "Vous pouvez retirer à partir de"
-
-#: cashout/templates/cashout/payments.html:98
-msgid "How you get paid"
-msgstr "Comment vous êtes payé"
-
-#: cashout/templates/cashout/payments.html:119
-#: cashout/templates/cashout/payments.html:148
-msgid "Update"
-msgstr "Mise à jour"
-
-#: cashout/templates/cashout/payments.html:122
-#: cashout/templates/cashout/payments.html:151
-msgid "Delete"
-msgstr "Effacer"
-
-#: cashout/templates/cashout/payments.html:130
-msgid "No payment method set"
-msgstr "Aucune méthode de paiement configurée"
-
-#: cashout/templates/cashout/payments.html:159
-msgid "ADD NEW"
-msgstr "AJOUTER UN NOUVEAU"
-
-#: cashout/templates/cashout/payments.html:190
-msgid "Account number"
-msgstr "Nom de compte"
-
-#: cashout/templates/cashout/payments.html:196
-msgid "Recipient name"
-msgstr "Nom du destinataire"
-
-#: cashout/templates/cashout/payments.html:222
-msgid "Choose wallet provider"
-msgstr "Choisir le fournisseur"
-
-#: cashout/templates/cashout/payments.html:228
-msgid "Cash-out from"
-msgstr "Retrait à partir de"
-
-#: cashout/templates/cashout/payments.html:262
-msgid "New payment address"
-msgstr "Nouvelle addresse de paiement"
-
-#: cashout/templates/cashout/payments.html:271
-msgid "Update address"
-msgstr "Addresse mise à jour"
-
-#: cashout/views.py:35
-msgid "No Payment method. Please set one first."
-msgstr "Aucune méthode de Paiement. Veuillez en définir une."
-
-#: cashout/views.py:39
-msgid "You already have a pending request for this wallet."
-msgstr "Vous avez déjà une demande en attente pour ce porte-feuille."
-
-#: cashout/views.py:81
-#, python-format
-msgid "Cash-out request on %s"
-msgstr "Demande de retrait sur %s"
-
 #: core/admin.py:101
 msgid "Your domain name was changed"
 msgstr "Votre nom de domaine a été changé"
@@ -2309,22 +2489,9 @@ msgstr "Social"
 msgid "Mailing"
 msgstr "Envoi postal"
 
-#: core/appmodule/views.py:66 core/views.py:385 partnership/views.py:79
-#: theming/views.py:83
-msgid "successfully updated"
-msgstr "mis à jour avec succès"
-
 #: core/constants.py:7
 msgid "Confirmed"
 msgstr "Confirmé"
-
-#: core/constants.py:13
-msgid "Male"
-msgstr "Homme"
-
-#: core/constants.py:14
-msgid "Female"
-msgstr "Femme"
 
 #: core/models.py:92
 msgid ""
@@ -2390,7 +2557,7 @@ msgstr "URL du panneau d'administration du service.ECRIVEZ LE SANS LE SLASH"
 
 #: core/models.py:201 core/templates/core/service_detail.html:49
 msgid "API Signature"
-msgstr "Signature API"
+msgstr ""
 
 #: core/models.py:211
 msgid "If true, the service can appear in ikwen search results."
@@ -2398,145 +2565,150 @@ msgstr ""
 "Si vrai, le service pourrait apparaitre dans les resultats de recherche "
 "ikwen."
 
-#: core/models.py:508
+#: core/models.py:530
 msgid "HTTP API"
 msgstr "HTTP API"
 
-#: core/models.py:509
+#: core/models.py:531
 msgid "GSM Modem"
 msgstr "Modem GSM"
 
-#: core/models.py:514 core/models.py:704
+#: core/models.py:536 core/models.py:726
 msgid "balance"
 msgstr "solde"
 
-#: core/models.py:515
+#: core/models.py:537
 msgid "Website / Company name"
 msgstr "Nom du site/de l'entreprise"
 
-#: core/models.py:516
+#: core/models.py:538
 msgid "Website/Company name as you want it to appear in mails and pages."
 msgstr ""
 "Nom du site/de l'entreprise tel que vous voulez qu'il apparaisse dans les "
 "mails et les pages."
 
-#: core/models.py:518
+#: core/models.py:540
 msgid "Company address"
 msgstr "Adresse de l'entreprise"
 
-#: core/models.py:519
+#: core/models.py:541
 msgid "Your company address."
 msgstr "Adresse de votre entreprise."
 
-#: core/models.py:521
+#: core/models.py:543
 msgid "Country where HQ of the company are located."
 msgstr "Pays où se trouve la DG de l'entreprise."
 
-#: core/models.py:523
+#: core/models.py:545
 msgid "City where HQ of the company are located."
 msgstr "Ville où se trouve la DG de l'entreprise."
 
-#: core/models.py:525
+#: core/models.py:547
 msgid "Latitude of the Company location."
 msgstr "Latitude de l'emplacement de l'entreprise."
 
-#: core/models.py:527
+#: core/models.py:549
 msgid "Longitude of the Company location."
 msgstr "Longitude de l'emplacement de l'entreprise."
 
-#: core/models.py:529
+#: core/models.py:551
 msgid "Short description of your business <em>(150 chars max.)</em>."
 msgstr "Brève description de votre activité<em>(150 caractéres max)</em>."
 
-#: core/models.py:531
+#: core/models.py:553
 msgid "More detailed description of your business."
 msgstr "Description plus détaillée de votre activité."
 
-#: core/models.py:533
+#: core/models.py:555
 msgid "Your slogan <em>(60 chars max.)</em>."
 msgstr "Votre slogan<em>(60 caractéres max)</em>."
 
-#: core/models.py:535
+#: core/models.py:557
 msgid "Code of your currency. Eg: <strong>USD, GBP, EUR, XAF,</strong> ..."
 msgstr "Code de votre devise. Exple :<strong>US ,EURO, FCFA,GBP,</strong> ..."
 
-#: core/models.py:537
+#: core/models.py:559
 msgid "Symbol of your currency, Eg: <strong>$, £, €, XAF</strong>."
 msgstr "Symbole de votre devise, Ex :<strong>$, £, €, XAF</strong>."
 
-#: core/models.py:538
+#: core/models.py:560
 msgid "cash-out minimum"
 msgstr "retrait minimum"
 
-#: core/models.py:541 theming/templates/theming/configure_theme_base.html:42
+#: core/models.py:563 theming/templates/theming/configure_theme_base.html:42
 msgid "Your logo"
 msgstr "Votre logo"
 
-#: core/models.py:542
+#: core/models.py:564
 msgid ""
 "Image in <strong>PNG with transparent background</strong> is advised. "
 "(Maximum 400 x 400px)"
 msgstr ""
 "Image dans <strong>PNG avec l'arriere-plan transparent</strong> est "
-"conseille. (Maximum 400*400px)"
+"conseillée. (Maximum 400 x 400px)"
 
-#: core/models.py:545
+#: core/models.py:567
 msgid ""
 "Cover image used as decoration of company's profile page and also to use on "
 "top of the mails. (Max. 800px width)"
 msgstr ""
 "Image de couverture utilisée comme décoration de la page de profil de la "
-"compagnie et également utilisé au dessus des courriers. (Max. 800px witdth)"
+"compagnie et également utilisé au dessus des courriers. (Max. 1000px witdth)"
 
-#: core/models.py:547
+#: core/models.py:569
 msgid "Mail signature"
 msgstr "Signature de mail"
 
-#: core/models.py:548
+#: core/models.py:570
 msgid "Signature on all mails. HTML allowed."
-msgstr "Signe sur tous les mails. HTML autorisé."
+msgstr "Signature sur tous les mails. HTML autorisé."
 
-#: core/models.py:549
+#: core/models.py:571
+#, fuzzy
+msgid "Invitation message"
+msgstr "Message de confirmation du paiement"
+
+#: core/models.py:573
 msgid "Welcome message"
 msgstr "Message de bienvenue"
 
-#: core/models.py:551
+#: core/models.py:575
 msgid "Contact email"
 msgstr "Adresse email"
 
-#: core/models.py:554
+#: core/models.py:578
 msgid "Main phone number for your customers to contact you."
 msgstr "Numéro de téléphone principal où vos clients pourront vous joindre."
 
-#: core/models.py:556
+#: core/models.py:580
 msgid "Facebook link. Eg: https://www.facebook.com/mywebsite"
 msgstr "Lien Facebook. Expl: https://www.facebook.com/mywebsite"
 
-#: core/models.py:558
+#: core/models.py:582
 msgid "Twitter link. Eg: https://www.twitter.com/mywebsite"
 msgstr "Lien Twitter. Exple :https/:/www.twitter.com/mywebsite"
 
-#: core/models.py:560
+#: core/models.py:584
 msgid "Google+ link. Eg: https://www.googleplus.com/mywebsite"
 msgstr "Lien Google+. Exple: https://www.googleplus.com/mywebsite"
 
-#: core/models.py:562
+#: core/models.py:586
 msgid "Youtube link. Eg: https://www.youtube.com/mywebsite"
 msgstr "Lien Youtube. Exple: https://www.youtube.com/mywebsite"
 
-#: core/models.py:564
+#: core/models.py:588
 msgid "Instagram link. Eg: https://www.instagram.com/mywebsite"
 msgstr "Lien Instagram. Exple: https://www.instagram.com/mywebsite"
 
-#: core/models.py:566
+#: core/models.py:590
 msgid "Tumblr link. Eg: https://www.tumblr.com/mywebsite"
 msgstr "Lien Tumblr. Exple: https://www.tumblr.com/mywebsite"
 
-#: core/models.py:568
+#: core/models.py:592
 msgid "LinkedIn link. Eg: https://www.linkedin.com/mywebsite"
 msgstr "Lien LinkedIn. Exple: https://www.linkedin.com/mywebsite"
 
-#: core/models.py:570
+#: core/models.py:594
 msgid ""
 "External scripts like <em>Google Analytics tracking code, Facebook Pixels</"
 "em>, etc. <br> Please refer to <a href='http://support.ikwen.com/tutorials/"
@@ -2544,11 +2716,11 @@ msgid ""
 "detailed instructions on how to add external scripts to your platform."
 msgstr ""
 "Scripts externes tels que <em>Google Analytics, Facebook pixels</em>,etc. "
-"<br> RDV sur <a href='http.//support.ikwen.com/tutorials/external-scripts's> "
+"<br> RDV sur <a href='http.//support.ikwen.com/tutorials/external-scripts'> "
 "support.ikwen.com/tutorials-scripts</a> pour avoir les instructions "
 "détaillées sur l'ajout des scripts externes à votre plate-forme."
 
-#: core/models.py:575
+#: core/models.py:599
 msgid ""
 "Check to allow <strong>PayPal Direct Checkout</strong> that lets user enter "
 "his bank card directly."
@@ -2556,11 +2728,11 @@ msgstr ""
 "Cochez afin de permettre le <strong>Paiement Direct PayPal</strong>qui "
 "permettra a l'utilisateur d'entrer directement sa carte bancaire."
 
-#: core/models.py:577
+#: core/models.py:601
 msgid "SMS Sending method"
 msgstr "Méthode d'envoi de SMS"
 
-#: core/models.py:579
+#: core/models.py:603
 msgid ""
 "Method used to send SMS from the platform. If <strong>Modem</strong>, SMS "
 "will be queued and later read by a modem from the remote url <em>/ikwen/"
@@ -2570,11 +2742,11 @@ msgstr ""
 "strong>,le SMS sera en attente et plus tard lu part le modem à partir de la "
 "télécommande url<em>/ikwen/get_queued_sms</em>et envoyé précisement."
 
-#: core/models.py:582
+#: core/models.py:606
 msgid "Script URL"
 msgstr "URL du script"
 
-#: core/models.py:583
+#: core/models.py:607
 msgid ""
 "Model of SMS script url with parameters values written as <strong>"
 "$parameter</strong>. They will be replaced when sending. Eg: <em>http://"
@@ -2590,11 +2762,11 @@ msgstr ""
 "$label</strong>&recipient_param=<strong>$recipient</"
 "strong>&text_param=<strong>$text</strong></em>"
 
-#: core/models.py:587
+#: core/models.py:611
 msgid "pro version"
 msgstr "version pro"
 
-#: core/models.py:588
+#: core/models.py:612
 msgid ""
 "Standard version uses <strong>ikwen</strong> payment accounts (PayPal, "
 "MobileMoney, BankCard, etc.) and collects user's money upon purchases. He "
@@ -2612,9 +2784,31 @@ msgstr ""
 "Personnel de Paiement (Personnel PayPal, Personnel Mobile Money,etc.)</"
 "li><li>"
 
-#: core/models.py:600
+#: core/models.py:624
 msgid "Configurations of the platform"
-msgstr "Configurations de la plate-forme"
+msgstr "Configurations de la plateforme"
+
+#: core/views.py:405 core/appmodule/views.py:66 partnership/views.py:83
+#: theming/views.py:104
+msgid "successfully updated"
+msgstr "mis à jour avec succès"
+
+#: core/views.py:407
+msgid "successfully created"
+msgstr "créé avec succès"
+
+#: core/views.py:681
+msgid "Configuration successfully updated."
+msgstr "Configuration mise à jour avec succès."
+
+#: core/views.py:883 core/templates/core/invoice_detail.html:123
+#: partnership/templates/partnership/dashboard.html:27
+msgid "Transactions"
+msgstr "Transactions"
+
+#: core/views.py:884
+msgid "ARPT <i class=\"text-muted\">Avg. Eearning Per Transaction</i>"
+msgstr "GMPT <i class=\"text-muted\">Gain Moy. Par Transaction</i>"
 
 #: core/templates/admin/actions.html:4
 msgid "Run the selected action"
@@ -2633,14 +2827,14 @@ msgstr "Cliquer ici pour sélectionner les objets à travers toutes les pages"
 msgid "Select all %(total_count)s %(module_name)s"
 msgstr "Choisir toutes %(total_count)s %(module_name)s"
 
-#: core/templates/admin/actions.html:13 core/templates/core/base_admin.html:23
+#: core/templates/admin/actions.html:13 core/templates/core/base_admin.html:22
 msgid "Clear selection"
-msgstr "Effacer le choix"
+msgstr "Annuler la sélection"
 
 #: core/templates/admin/change_list.html:58
 #, python-format
 msgid "Add %(name)s"
-msgstr "Ajouter%(name)s"
+msgstr "Ajouter %(name)s"
 
 #: core/templates/admin/change_list.html:67 templates/admin/login.html:90
 msgid "Please correct the error below."
@@ -2693,43 +2887,43 @@ msgstr "Français"
 msgid "English"
 msgstr "Anglais"
 
-#: core/templates/core/base_admin.html:25
+#: core/templates/core/base_admin.html:24
 msgid "Selected"
 msgstr "Sélectionné"
 
-#: core/templates/core/base_admin.html:43
+#: core/templates/core/base_admin.html:42
 msgid "Go to public website"
 msgstr "Aller sur le site public"
 
-#: core/templates/core/base_admin.html:45
+#: core/templates/core/base_admin.html:44
 msgid "Go to website"
 msgstr "Aller au site web"
 
-#: core/templates/core/base_admin.html:69
+#: core/templates/core/base_admin.html:68
 msgid "Pages"
 msgstr "Pages"
 
-#: core/templates/core/base_admin.html:73
+#: core/templates/core/base_admin.html:72
 msgid "Theming"
 msgstr "Thème"
 
-#: core/templates/core/base_admin.html:94
+#: core/templates/core/base_admin.html:93
 #: core/templates/core/module_list.html:5
 #: core/templates/core/module_list.html:9
 msgid "Modules"
 msgstr "Modules"
 
-#: core/templates/core/base_admin.html:99
-#: core/templates/core/configuration.html:23
+#: core/templates/core/base_admin.html:98
+#: core/templates/core/configuration.html:24
 msgid "Configuration"
 msgstr "Configuration"
 
-#: core/templates/core/base_admin.html:108
+#: core/templates/core/base_admin.html:107
 #: core/templates/core/service_detail.html:19
 msgid "Info & Billing"
 msgstr "Info et Facturation"
 
-#: core/templates/core/base_admin.html:205
+#: core/templates/core/base_admin.html:204
 msgid "Confirm deletion ?"
 msgstr "Confirmer l'annulation?"
 
@@ -2749,103 +2943,11 @@ msgstr "Configurations détaillées"
 #: core/templates/core/change_module.html:100
 #: core/templates/core/configure_module.html:80
 msgid "Missing information. Please check."
-msgstr "Info manquante! Vérifiez s'il vous plait."
+msgstr "Info manquante! Vérifiez s'il vous plaît."
 
 #: core/templates/core/change_module.html:107
 msgid "Page look better with image. Continue without it ?"
 msgstr "Les pages sont mieux avec image. Continuer sans ?"
-
-#: core/templates/core/cloud_setup/deploy.html:4
-#: partnership/templates/partnership/application_list.html:51
-msgid "Deploy Cloud"
-msgstr "Déployer le Cloud"
-
-#: core/templates/core/cloud_setup/deploy.html:28
-#, python-format
-msgid "Create your %(app_name)s website"
-msgstr "Créer votre site internet %(app_name)s"
-
-#: core/templates/core/cloud_setup/deploy.html:48
-#: partnership/templates/partnership/dashboard.html:141
-msgid "Customer"
-msgstr "Client"
-
-#: core/templates/core/cloud_setup/deploy.html:50
-msgid "Customer name"
-msgstr "Nom du client"
-
-#: core/templates/core/cloud_setup/deploy.html:72
-msgid "Website info"
-msgstr "Information du site web"
-
-#: core/templates/core/cloud_setup/deploy.html:74
-#: core/templates/core/service_detail.html:41
-#: partnership/templates/partnership/service_detail.html:50
-msgid "Project name"
-msgstr "Nom du projet"
-
-#: core/templates/core/cloud_setup/deploy.html:81
-msgid "Domain"
-msgstr "Domaine"
-
-#: core/templates/core/cloud_setup/deploy.html:93
-msgid "Choose theme"
-msgstr "Choisir un thème"
-
-#: core/templates/core/cloud_setup/deploy.html:112
-#: core/templates/core/service_detail.html:93
-#: partnership/templates/partnership/service_detail.html:64
-msgid "Billing cycle"
-msgstr "Cycle de facturation"
-
-#: core/templates/core/cloud_setup/deploy.html:125
-msgid "Billing plan"
-msgstr "Plan de facturation"
-
-#: core/templates/core/cloud_setup/deploy.html:141
-msgid "ikwen charges"
-msgstr "frais d'ikwen"
-
-#: core/templates/core/cloud_setup/deploy.html:142
-msgid "your charges"
-msgstr "vos frais"
-
-#: core/templates/core/cloud_setup/deploy.html:146
-msgid "Setup Cost"
-msgstr "Coût d'installation"
-
-#: core/templates/core/cloud_setup/deploy.html:178
-#, python-format
-msgid ""
-"\n"
-"                                <em>Setup cost covers <span class=\"setup-"
-"months-count\">%(setup_months_count)s</span> months of service.</em>\n"
-"                            "
-msgstr ""
-"\n"
-"\t\t<em>Le coût d'installation couvre <span class=\"setup-months-count\">"
-"%(setup_months_count)s</span> mois de service</em>"
-
-#: core/templates/core/cloud_setup/deploy.html:184
-msgid "Monthly Cost"
-msgstr "Coût mensuel"
-
-#: core/templates/core/cloud_setup/deploy.html:219
-msgid "Additional services"
-msgstr "Services supplémentaires"
-
-#: core/templates/core/cloud_setup/deploy.html:221
-msgid ""
-"Custom services you charge your customer for. Those will be part of the "
-"cloud setup invoice."
-msgstr ""
-"Services personnalisés que vous facturez à votre client. Ils apparaîtront "
-"dans la facture d'installation."
-
-#: core/templates/core/cloud_setup/deploy.html:225
-#: core/templates/core/cloud_setup/deploy.html:236
-msgid "Title"
-msgstr "Titre"
 
 #: core/templates/core/configuration.html:5
 msgid "Configurations"
@@ -2853,7 +2955,7 @@ msgstr "Configurations"
 
 #: core/templates/core/console.html:83
 msgid "Top communities"
-msgstr "Excellents clients "
+msgstr "Top communautés"
 
 #: core/templates/core/contact.html:19
 msgid "Need further assistance ? Send an e-mail or call"
@@ -2918,7 +3020,7 @@ msgid "Payment details"
 msgstr "Détails de paiement"
 
 #: core/templates/core/dashboard_base.html:110
-#: core/templates/core/service_detail.html:114
+#: core/templates/core/service_detail.html:119
 msgid "Last payment"
 msgstr "Dernier paiement"
 
@@ -2930,23 +3032,6 @@ msgstr "Voir les paiements"
 #: partnership/templates/partnership/dashboard.html:7
 msgid "Performances"
 msgstr "Performances"
-
-#: core/templates/core/events/service_deployed.html:6
-msgid "You are online"
-msgstr "Vous êtes en ligne"
-
-#: core/templates/core/events/service_deployed.html:7
-#, python-format
-msgid ""
-"Your platform <a href=\"%(service_url)s\" target=\"_blank\">"
-"%(project_name)s</a> was successfully deployed.<br>\n"
-"        The invoice for service setup has been generated, and is due on <ins "
-"class=\"text-muted\">%(due_date)s</ins>."
-msgstr ""
-"Votre plate-forme <a href=\"%(service_url)s\" target=\"_blank\">"
-"%(project_name)s</a>à été déployée avec succès.<br>\n"
-"La facture du service a été générée avec succès, et est dûe le <ins class="
-"\"text-muted\">%(due_date)s</ins>."
 
 #: core/templates/core/invoice_detail.html:43
 msgid ""
@@ -2968,14 +3053,216 @@ msgstr "(Clients internationaux)"
 msgid "N/A"
 msgstr "N/A"
 
-#: core/templates/core/invoice_detail.html:123 core/views.py:871
-#: partnership/templates/partnership/dashboard.html:27
-msgid "Transactions"
-msgstr "Transactions"
-
 #: core/templates/core/invoice_detail.html:147
 msgid "Download"
 msgstr "Télécharger"
+
+#: core/templates/core/module_list.html:41
+msgid "month"
+msgstr "mois"
+
+#: core/templates/core/object_list_base.html:21
+#: revival/templates/revival/profile_tag_list.html:17
+#, python-format
+msgid "Search %(verbose_name)s"
+msgstr "Chercher %(verbose_name)s"
+
+#: core/templates/core/object_list_base.html:31
+#: core/templates/core/snippets/admin_tools.html:21
+#: revival/templates/revival/profile_tag_list.html:27
+msgid "All"
+msgstr "Tout"
+
+#: core/templates/core/object_list_base.html:44
+msgid "Add new "
+msgstr "Nouvel ajout "
+
+#: core/templates/core/service_detail.html:5
+msgid "Service info"
+msgstr "Informations du service"
+
+#: core/templates/core/service_detail.html:35
+msgid "Application"
+msgstr "Application"
+
+#: core/templates/core/service_detail.html:41
+#: core/templates/core/cloud_setup/deploy.html:74
+#: partnership/templates/partnership/service_detail.html:50
+msgid "Project name"
+msgstr "Nom du projet"
+
+#: core/templates/core/service_detail.html:45
+msgid "Online since"
+msgstr "En ligne depuis"
+
+#: core/templates/core/service_detail.html:54
+msgid "Support Code"
+msgstr "Code de Support"
+
+#: core/templates/core/service_detail.html:60
+msgid "Renew"
+msgstr "Renouveller"
+
+#: core/templates/core/service_detail.html:63
+msgid "No code"
+msgstr ""
+
+#: core/templates/core/service_detail.html:64
+#, fuzzy
+msgid "Get it now"
+msgstr "Renseigner"
+
+#: core/templates/core/service_detail.html:84
+msgid "Version"
+msgstr "Version"
+
+#: core/templates/core/service_detail.html:94
+#: core/templates/core/mails/service_deployed.html:13
+#: partnership/templates/partnership/service_detail.html:75
+#: partnership/templates/partnership/service_detail.html:79
+#: partnership/templates/partnership/service_detail.html:90
+msgid "Monthly cost"
+msgstr "Coût mensuel"
+
+#: core/templates/core/service_detail.html:98
+#: core/templates/core/cloud_setup/deploy.html:112
+#: partnership/templates/partnership/service_detail.html:64
+msgid "Billing cycle"
+msgstr "Cycle de facturation"
+
+#: core/templates/core/service_detail.html:106
+msgid "New billing cycle"
+msgstr "Nouveau cycle de facturation"
+
+#: core/templates/core/service_detail.html:136
+msgid "See"
+msgstr "Voir"
+
+#: core/templates/core/service_detail.html:146
+msgid "Credits"
+msgstr "Crédits"
+
+#: core/templates/core/service_detail.html:150
+msgid "Mail Credit"
+msgstr "Crédit Mail"
+
+#: core/templates/core/service_detail.html:153
+#: core/templates/core/service_detail.html:160
+msgid "Top up"
+msgstr "Recharger"
+
+#: core/templates/core/service_detail.html:157
+msgid "SMS Credit"
+msgstr "Crédit SMS"
+
+#: core/templates/core/service_detail.html:192
+msgid "Error while updating billing cycle. Try again later."
+msgstr "Erreur survenue pendant la mise àjour de la facturation. Réessayez."
+
+#: core/templates/core/service_detail.html:197
+msgid "Billing cycle successfully updated."
+msgstr "Mise à jour avec succès de la facturation."
+
+#: core/templates/core/service_expired.html:14
+msgid "Error 909. Try again later"
+msgstr "Erreur 909. Réessayez plus tard"
+
+#: core/templates/core/cloud_setup/deploy.html:4
+#: partnership/templates/partnership/application_list.html:51
+msgid "Deploy Cloud"
+msgstr "Déployer en Cloud"
+
+#: core/templates/core/cloud_setup/deploy.html:28
+#, python-format
+msgid "Create your %(app_name)s website"
+msgstr "Créer votre site internet %(app_name)s"
+
+#: core/templates/core/cloud_setup/deploy.html:48
+#: partnership/templates/partnership/dashboard.html:141
+msgid "Customer"
+msgstr "Client"
+
+#: core/templates/core/cloud_setup/deploy.html:50
+msgid "Customer name"
+msgstr "Nom du client"
+
+#: core/templates/core/cloud_setup/deploy.html:72
+msgid "Website info"
+msgstr "Information du site web"
+
+#: core/templates/core/cloud_setup/deploy.html:81
+msgid "Domain"
+msgstr "Domaine"
+
+#: core/templates/core/cloud_setup/deploy.html:93
+msgid "Choose theme"
+msgstr "Choisir un thème"
+
+#: core/templates/core/cloud_setup/deploy.html:125
+msgid "Billing plan"
+msgstr "Plan de facturation"
+
+#: core/templates/core/cloud_setup/deploy.html:141
+msgid "ikwen charges"
+msgstr "frais d'ikwen"
+
+#: core/templates/core/cloud_setup/deploy.html:142
+msgid "your charges"
+msgstr "vos frais"
+
+#: core/templates/core/cloud_setup/deploy.html:146
+msgid "Setup Cost"
+msgstr "Coût d'installation"
+
+#: core/templates/core/cloud_setup/deploy.html:178
+#, python-format
+msgid ""
+"\n"
+"                                <em>Setup cost covers <span class=\"setup-"
+"months-count\">%(setup_months_count)s</span> months of service.</em>\n"
+"                            "
+msgstr ""
+"\n"
+"\t\t<em>Le coût d'installation couvre <span class=\"setup-months-count\">"
+"%(setup_months_count)s</span> mois de service</em>"
+
+#: core/templates/core/cloud_setup/deploy.html:184
+msgid "Monthly Cost"
+msgstr "Coût mensuel"
+
+#: core/templates/core/cloud_setup/deploy.html:219
+msgid "Additional services"
+msgstr "Services supplémentaires"
+
+#: core/templates/core/cloud_setup/deploy.html:221
+msgid ""
+"Custom services you charge your customer for. Those will be part of the "
+"cloud setup invoice."
+msgstr ""
+"Services personnalisés que vous facturez à votre client. Ils apparaîtront "
+"dans la facture de mise en service."
+
+#: core/templates/core/cloud_setup/deploy.html:225
+#: core/templates/core/cloud_setup/deploy.html:236
+msgid "Title"
+msgstr "Titre"
+
+#: core/templates/core/events/service_deployed.html:6
+msgid "You are online"
+msgstr "Vous êtes en ligne"
+
+#: core/templates/core/events/service_deployed.html:7
+#, python-format
+msgid ""
+"Your platform <a href=\"%(service_url)s\" target=\"_blank\">"
+"%(project_name)s</a> was successfully deployed.<br>\n"
+"        The invoice for service setup has been generated, and is due on <ins "
+"class=\"text-muted\">%(due_date)s</ins>."
+msgstr ""
+"Votre plateforme <a href=\"%(service_url)s\" target=\"_blank\">"
+"%(project_name)s</a>a été déployée avec succès.<br>\n"
+"La facture du service a été générée avec succès, et est due le <ins class="
+"\"text-muted\">%(due_date)s</ins>."
 
 #: core/templates/core/mails/base.html:72
 msgid ""
@@ -2986,7 +3273,7 @@ msgid ""
 "                        "
 msgstr ""
 "\n"
-"                            Soutenue par <a href=\"http://www.ikwen.com\" "
+"                            Propulsé par <a href=\"http://www.ikwen.com\" "
 "style=\"color: #666; text-decoration: none\"><strong>ikwen</strong></a> "
 "&reg;.\n"
 " "
@@ -3014,14 +3301,6 @@ msgstr "Félicitations,vous êtes en ligne !"
 #: core/templates/core/mails/service_deployed.html:10
 msgid "Your service details are as follow"
 msgstr "Les détails de votre service sont les suivants"
-
-#: core/templates/core/mails/service_deployed.html:13
-#: core/templates/core/service_detail.html:89
-#: partnership/templates/partnership/service_detail.html:75
-#: partnership/templates/partnership/service_detail.html:79
-#: partnership/templates/partnership/service_detail.html:90
-msgid "Monthly cost"
-msgstr "Coût mensuel"
 
 #: core/templates/core/mails/service_deployed.html:15
 msgid "Invoiced to"
@@ -3053,88 +3332,7 @@ msgstr "Payez maintenant"
 #: core/templates/core/mails/service_deployed.html:49
 #, python-format
 msgid "Thank you for your business with %(company_name)s."
-msgstr "Nous vous remercions pour votre partenariat avec%(company_name)s."
-
-#: core/templates/core/module_list.html:41
-msgid "month"
-msgstr "mois"
-
-#: core/templates/core/object_list_base.html:20
-#: revival/templates/revival/profile_tag_list.html:17
-#, python-format
-msgid "Search %(verbose_name)s"
-msgstr "Chercher %(verbose_name)s"
-
-#: core/templates/core/object_list_base.html:30
-#: core/templates/core/snippets/admin_tools.html:21
-#: revival/templates/revival/profile_tag_list.html:27
-msgid "All"
-msgstr "Tout"
-
-#: core/templates/core/object_list_base.html:42
-msgid "Add new "
-msgstr "Nouvel ajout "
-
-#: core/templates/core/service_detail.html:5
-msgid "Service info"
-msgstr "Informations du service"
-
-#: core/templates/core/service_detail.html:35
-msgid "Application"
-msgstr "Application"
-
-#: core/templates/core/service_detail.html:45
-msgid "Online since"
-msgstr "En ligne depuis"
-
-#: core/templates/core/service_detail.html:54
-msgid "Support Code"
-msgstr "Code de Support"
-
-#: core/templates/core/service_detail.html:59
-msgid "Renew"
-msgstr "Renouveller"
-
-#: core/templates/core/service_detail.html:79
-msgid "Version"
-msgstr "Version"
-
-#: core/templates/core/service_detail.html:101
-msgid "New billing cycle"
-msgstr "Nouveau cycle de facturation"
-
-#: core/templates/core/service_detail.html:131
-msgid "See"
-msgstr "Voir"
-
-#: core/templates/core/service_detail.html:141
-msgid "Credits"
-msgstr "Crédits"
-
-#: core/templates/core/service_detail.html:145
-msgid "Mail Credit"
-msgstr "Crédit Mail"
-
-#: core/templates/core/service_detail.html:148
-#: core/templates/core/service_detail.html:155
-msgid "Top up"
-msgstr "Meilleurs Applications "
-
-#: core/templates/core/service_detail.html:152
-msgid "SMS Credit"
-msgstr "Crédit SMS"
-
-#: core/templates/core/service_detail.html:187
-msgid "Error while updating billing cycle. Try again later."
-msgstr "Erreur survenue pendant la mise àjour de la facturation. Réessayez."
-
-#: core/templates/core/service_detail.html:192
-msgid "Billing cycle successfully updated."
-msgstr "Mise à jour avec succès de la facturation."
-
-#: core/templates/core/service_expired.html:14
-msgid "Error 909. Try again later"
-msgstr "Erreur 909. Réessayez plus tard"
+msgstr "Nous vous remercions d'être client chez %(company_name)s."
 
 #: core/templates/core/snippets/admin_tools.html:27
 msgid "Filters"
@@ -3177,29 +3375,21 @@ msgid "View your invoices"
 msgstr "Voir ses factures"
 
 #: core/templates/core/snippets/uploader_single.html:4
-#: core/templates/core/snippets/uploader_single.html:32
-msgid "Upload image"
+#, fuzzy, python-format
+msgid "Upload %(image_field_name)s"
 msgstr "Uploader une image"
 
 #: core/templates/core/snippets/uploader_single.html:18
 msgid "Delete image"
 msgstr "Supprimerl''image"
 
+#: core/templates/core/snippets/uploader_single.html:32
+msgid "Upload image"
+msgstr "Uploader une image"
+
 #: core/templates/core/utils/momo_checkout.html:51
 msgid "Type your phone number and confirm"
 msgstr "Saisir votre numéro de téléphone et confirmer"
-
-#: core/views.py:387
-msgid "successfully created"
-msgstr "créé avec succès"
-
-#: core/views.py:670
-msgid "Configuration successfully updated."
-msgstr "Configuration mise à jour avec succès."
-
-#: core/views.py:872
-msgid "ARPT <i class=\"text-muted\">Avg. Eearning Per Transaction</i>"
-msgstr "MGPT <i class=\"text-muted\">Moy. Gain Par Transaction</i>"
 
 #: flatpages/models.py:11
 #: partnership/templates/partnership/service_detail.html:54
@@ -3223,12 +3413,12 @@ msgid ""
 "Example: 'flatpages/contact_page.html'. If this isn't provided, the system "
 "will use 'flatpages/default.html'."
 msgstr ""
-"Exemple:'flatpages/contact_page.html'. Si ça ne provient pas, le système "
+"Exemple:'flatpages/contact_page.html'. Si ce n'est pas re,seigné, le système "
 "utilisera 'flatpages/default.html'."
 
 #: flatpages/models.py:16
 msgid "registration required"
-msgstr "inscription requise"
+msgstr "Authentification requise"
 
 #: flatpages/models.py:17
 msgid "If this is checked, only logged-in users will be able to view the page."
@@ -3237,11 +3427,21 @@ msgstr ""
 
 #: flatpages/models.py:22
 msgid "flat page"
-msgstr "page vide"
+msgstr "page simple"
 
 #: flatpages/models.py:23
 msgid "flat pages"
-msgstr "pages vides"
+msgstr "pages simples"
+
+#: flatpages/views.py:92
+#, python-format
+msgid "Page %s successfully updated."
+msgstr "Page %s mise à jour avec succès."
+
+#: flatpages/views.py:95
+#, python-format
+msgid "Page %s successfully created."
+msgstr "Page %s créée avec succès."
 
 #: flatpages/templates/flatpages/change_flatpage.html:5
 msgid "New page"
@@ -3250,7 +3450,7 @@ msgstr "Nouvelle page"
 #: flatpages/templates/flatpages/change_flatpage.html:21
 #: flatpages/templates/flatpages/flatpage_list.html:5
 msgid "Flat pages"
-msgstr "Pages vides"
+msgstr "Pages simples"
 
 #: flatpages/templates/flatpages/change_flatpage.html:45
 msgid "Page URL"
@@ -3266,25 +3466,15 @@ msgstr "Page ajoutée avec succès."
 
 #: flatpages/templates/flatpages/flatpage_list.html:18
 msgid "Flat Pages"
-msgstr "Pages Vides"
+msgstr "Pages Simples"
 
 #: flatpages/templates/flatpages/flatpage_list.html:25
 msgid "Add new"
-msgstr "Nouvel ajout"
+msgstr "Ajouter"
 
 #: flatpages/templates/flatpages/flatpage_list.html:55
 msgid "Flat page info successfully updated."
-msgstr "Information de la mise à jour avec succès d'une page vide."
-
-#: flatpages/views.py:92
-#, python-format
-msgid "Page %s successfully updated."
-msgstr "Page %s mise à jour avec succès."
-
-#: flatpages/views.py:95
-#, python-format
-msgid "Page %s successfully created."
-msgstr "Page %s créée avec succès."
+msgstr "Page mise à jour avec succès."
 
 #: partnership/admin.py:12 partnership/admin.py:22
 msgid "Company"
@@ -3295,8 +3485,8 @@ msgid "Business"
 msgstr "Activité"
 
 #: partnership/admin.py:15
-#: revival/templates/revival/change_profile_tag.html:159
-#: revival/templates/revival/change_profile_tag.html:254
+#: revival/templates/revival/change_profile_tag.html:161
+#: revival/templates/revival/change_profile_tag.html:256
 msgid "SMS"
 msgstr "SMS"
 
@@ -3340,6 +3530,54 @@ msgstr "Posts"
 msgid "Comments"
 msgstr "Commentaires"
 
+#: partnership/templates/partnership/admin_home.html:25
+#, fuzzy, python-format
+msgid "Welcome %(name)s"
+msgstr "Message de bienvenue"
+
+#: partnership/templates/partnership/admin_home.html:29
+msgid "Get a new customer on ikwen Tsunami today"
+msgstr ""
+
+#: partnership/templates/partnership/admin_home.html:31
+#, fuzzy
+msgid "Deploy"
+msgstr "Déployer en Cloud"
+
+#: partnership/templates/partnership/admin_home.html:34
+msgid "Recent deployments"
+msgstr ""
+
+#: partnership/templates/partnership/admin_home.html:37
+msgid "Customers contacts and community"
+msgstr ""
+
+#: partnership/templates/partnership/admin_home.html:45
+msgid "Bundle"
+msgstr ""
+
+#: partnership/templates/partnership/admin_home.html:55
+#, fuzzy
+msgid "Website preview"
+msgstr "Information du site web"
+
+#: partnership/templates/partnership/admin_home.html:56
+#, fuzzy
+msgid ""
+"\n"
+"                                Register your customers contacts here. Our "
+"system will be in charge of\n"
+"                            "
+msgstr ""
+"\n"
+"                                Recommendez %(profile_name)s à un ami en "
+"partageant et  gagner plus de %(referral_coupon_count)s coupons gratuits."
+
+#: partnership/templates/partnership/admin_home.html:62
+#, fuzzy
+msgid "Recent cash-out"
+msgstr "Demander un retrait"
+
 #: partnership/templates/partnership/application_list.html:5
 #: partnership/templates/partnership/application_list.html:14
 msgid "Applications"
@@ -3355,19 +3593,19 @@ msgstr "RMPT"
 
 #: partnership/templates/partnership/dashboard.html:59
 msgid "Top apps"
-msgstr "Meilleurs Applications"
+msgstr "Top applications"
 
 #: partnership/templates/partnership/dashboard.html:64
 msgid "App"
-msgstr "Applilication"
+msgstr "Application"
 
 #: partnership/templates/partnership/dashboard.html:136
 msgid "Top customers"
-msgstr "Excellents clients"
+msgstr "Top clients"
 
 #: partnership/templates/partnership/service_detail.html:45
 msgid "Website details"
-msgstr "Détails du Site Internet"
+msgstr "Détails du Site web"
 
 #: partnership/templates/partnership/service_detail.html:86
 msgid "ikwen fees"
@@ -3386,178 +3624,209 @@ msgstr ""
 "\n"
 "                 %(start)s – %(end)s de %(count)s résultats"
 
-#: revival/models.py:43
+#: revival/models.py:45
 msgid "Run revival every N days"
-msgstr "Effectuer la relance tous les N jours"
+msgstr "Relancer tous les N jours"
 
-#: revival/templates/revival/change_profile_tag.html:71
+#: revival/revival_report_cron.py:75
+msgid "No customer revived. Take decisive action"
+msgstr ""
+
+#: revival/revival_report_cron.py:77
+#, python-format
+msgid "%d people revived. See details"
+msgstr ""
+
+#: revival/utils.py:47
+#, fuzzy
+msgid "Join us on ikwen and earn free coupons."
+msgstr "Invitez vos amis sur %s et gagnez des coupons gratuits."
+
+#: revival/utils.py:49
+msgid "Join our community on ikwen."
+msgstr ""
+
+#: revival/utils.py:65
+#, python-format
+msgid "Invite your friends on %s and earn free coupons."
+msgstr "Invitez vos amis sur %s et gagnez des coupons gratuits."
+
+#: revival/utils.py:94
+msgid "Secure your business by staying close to your customers"
+msgstr ""
+
+#: revival/utils.py:97
+msgid "Decide on your turnover"
+msgstr ""
+
+#: revival/views.py:156
+msgid "Successful update"
+msgstr "Mise à jour réussie"
+
+#: revival/views.py:189
+msgid "<Unknown>"
+msgstr "<Inconnu>"
+
+#: revival/templates/revival/change_profile_tag.html:72
 msgid "Set repeated revival"
 msgstr "Activer la relance périodique"
 
-#: revival/templates/revival/change_profile_tag.html:75
+#: revival/templates/revival/change_profile_tag.html:76
 msgid "Configure repeated revivals"
 msgstr "Configurer les relances répétées"
 
-#: revival/templates/revival/change_profile_tag.html:80
+#: revival/templates/revival/change_profile_tag.html:81
 msgid "Your revivals are active, click to stop sending mails and SMS"
 msgstr ""
-"Vos relances sont activées, cliquez pour arrêter l'envoie des mails et SMS"
+"Vos relances sont activées, cliquez pour arrêter l'envoi des mails et SMS"
 
-#: revival/templates/revival/change_profile_tag.html:84
+#: revival/templates/revival/change_profile_tag.html:85
 msgid "Your revivals are paused, click to activate sending of mails and SMS"
 msgstr ""
 "Vos relances sont suspendues, veuillez cliquer pour activer l'envoi des "
 "mails et SMS"
 
-#: revival/templates/revival/change_profile_tag.html:91
-#: revival/templates/revival/change_profile_tag.html:464
+#: revival/templates/revival/change_profile_tag.html:92
+#: revival/templates/revival/change_profile_tag.html:471
 msgid "Stop"
 msgstr "Arrêter"
 
-#: revival/templates/revival/change_profile_tag.html:101
+#: revival/templates/revival/change_profile_tag.html:102
 msgid "Test"
 msgstr "Essayer"
 
-#: revival/templates/revival/change_profile_tag.html:112
+#: revival/templates/revival/change_profile_tag.html:113
 msgid "Month day(s)"
 msgstr "Jour(s) du Mois"
 
-#: revival/templates/revival/change_profile_tag.html:114
+#: revival/templates/revival/change_profile_tag.html:115
 msgid "Ex: 10, 15, 25"
 msgstr "Ex: 10, 15, 25"
 
-#: revival/templates/revival/change_profile_tag.html:121
+#: revival/templates/revival/change_profile_tag.html:122
 msgid "Week day(s)"
 msgstr "Jour(s) de la semaine"
 
-#: revival/templates/revival/change_profile_tag.html:125
+#: revival/templates/revival/change_profile_tag.html:126
 msgid "Ex: 1, 5, 6"
 msgstr "Ex: 1, 5, 6"
 
-#: revival/templates/revival/change_profile_tag.html:131
+#: revival/templates/revival/change_profile_tag.html:132
 msgid "Every <em>N</em> days"
 msgstr "Tous les <em>N</em> jours"
 
-#: revival/templates/revival/change_profile_tag.html:135
+#: revival/templates/revival/change_profile_tag.html:136
 msgid "Ex: 2"
 msgstr "Ex: 2"
 
-#: revival/templates/revival/change_profile_tag.html:139
+#: revival/templates/revival/change_profile_tag.html:140
 msgid "Hour of sending"
 msgstr "Heure d'envoi"
 
-#: revival/templates/revival/change_profile_tag.html:144
+#: revival/templates/revival/change_profile_tag.html:146
 msgid "Run it until"
-msgstr "Exécutez le jusqu'à"
+msgstr "Exécuter jusqu'à"
 
-#: revival/templates/revival/change_profile_tag.html:154
-#: revival/templates/revival/change_profile_tag.html:249
+#: revival/templates/revival/change_profile_tag.html:156
+#: revival/templates/revival/change_profile_tag.html:251
 msgid "Mail"
 msgstr "Mail"
 
-#: revival/templates/revival/change_profile_tag.html:166
-#: revival/templates/revival/change_profile_tag.html:261
+#: revival/templates/revival/change_profile_tag.html:168
+#: revival/templates/revival/change_profile_tag.html:263
 msgid "Subject"
 msgstr "Objet"
 
-#: revival/templates/revival/change_profile_tag.html:175
+#: revival/templates/revival/change_profile_tag.html:177
 msgid "Message"
 msgstr "Message"
 
-#: revival/templates/revival/change_profile_tag.html:184
+#: revival/templates/revival/change_profile_tag.html:186
 msgid "Your SMS text"
 msgstr "Votre SMS"
 
-#: revival/templates/revival/change_profile_tag.html:223
+#: revival/templates/revival/change_profile_tag.html:225
 msgid "Add products"
-msgstr "Ajouter produits"
+msgstr "Ajouter des produits"
 
-#: revival/templates/revival/change_profile_tag.html:240
-#: revival/templates/revival/change_profile_tag.html:311
+#: revival/templates/revival/change_profile_tag.html:242
+#: revival/templates/revival/change_profile_tag.html:313
 msgid "Please review and confirm"
 msgstr "Veuillez revérifier et confirmer"
 
-#: revival/templates/revival/change_profile_tag.html:244
+#: revival/templates/revival/change_profile_tag.html:246
 msgid "Your revival will be run <span class=\"run-every\"></span>."
 msgstr "Votre relance se fera  <span class=\"run-every\"></span>. "
 
-#: revival/templates/revival/change_profile_tag.html:294
+#: revival/templates/revival/change_profile_tag.html:296
 msgid "Confirm & submit"
-msgstr "Confirmer & envoyer"
+msgstr "Confirmer & soumettre"
 
-#: revival/templates/revival/change_profile_tag.html:315
+#: revival/templates/revival/change_profile_tag.html:317
 msgid "Input test emails and phones"
-msgstr "Détails d'entrée du site Internet et des SMS "
+msgstr "Entrer des emails et phones tests"
 
-#: revival/templates/revival/change_profile_tag.html:318
+#: revival/templates/revival/change_profile_tag.html:320
 msgid "Test emails"
-msgstr "Tester emails"
+msgstr "Emails tests"
 
-#: revival/templates/revival/change_profile_tag.html:322
+#: revival/templates/revival/change_profile_tag.html:324
 msgid "Test phones"
-msgstr "Tester SMS"
+msgstr "Phones tests"
 
-#: revival/templates/revival/change_profile_tag.html:332
+#: revival/templates/revival/change_profile_tag.html:334
 msgid "Send test"
 msgstr "Envoyer un test"
 
-#: revival/templates/revival/change_profile_tag.html:411
+#: revival/templates/revival/change_profile_tag.html:418
 msgid "everyday"
 msgstr "tous les jours"
 
-#: revival/templates/revival/change_profile_tag.html:413
+#: revival/templates/revival/change_profile_tag.html:420
 msgid "every"
-msgstr "tous"
+msgstr "chaque"
 
-#: revival/templates/revival/change_profile_tag.html:424
+#: revival/templates/revival/change_profile_tag.html:431
 msgid "on week days"
-msgstr "pendant les jours de la semaine"
+msgstr "les jours de la semaine"
 
-#: revival/templates/revival/change_profile_tag.html:430
+#: revival/templates/revival/change_profile_tag.html:437
 msgid "on month days"
-msgstr "pendant les jours du mois"
+msgstr "les dates du mois"
 
-#: revival/templates/revival/change_profile_tag.html:432
+#: revival/templates/revival/change_profile_tag.html:439
 msgid "at"
 msgstr "à"
 
-#: revival/templates/revival/change_profile_tag.html:432
-msgid "until"
-msgstr "jusqu'à"
-
 #: revival/templates/revival/change_profile_tag.html:439
-msgid "Some fields have errors. Please check"
-msgstr "Quelques champs ont des erreurs. Veuillez vérifier"
+msgid "until"
+msgstr "jusqu'au"
 
-#: revival/templates/revival/change_profile_tag.html:486
+#: revival/templates/revival/change_profile_tag.html:446
+msgid "Some fields have errors. Please check"
+msgstr "Certains champs ont des erreurs. Veuillez vérifier"
+
+#: revival/templates/revival/change_profile_tag.html:497
 msgid "Your tests were sent"
 msgstr "Vos tests ont été envoyés"
 
 #: revival/templates/revival/profile_tag_list.html:39
-msgid "Add new classroom"
+#, fuzzy
+msgid "Add new profile"
 msgstr "Nouvel ajout "
 
-#: revival/templates/revival/profile_tag_list.html:93
+#: revival/templates/revival/profile_tag_list.html:68
+#: revival/templates/revival/profile_tag_list.html:94
 msgid "Edit item"
 msgstr "Éditer l'article"
 
-#: revival/utils.py:28
-#, python-format
-msgid "Invite your friends on %s and earn free coupons."
-msgstr "Invitez vos amis sur %s et gagnez des coupons gratuits."
+#: templates/500.html:26
+msgid "Something went wrong ..."
+msgstr ""
 
-#: revival/utils.py:41
-#, python-format
-msgid "Rediscover %s"
-msgstr "Redécouvir %s"
-
-#: revival/views.py:154
-msgid "Successful update"
-msgstr "mis à jour avec succès "
-
-#: revival/views.py:188 revival/views.py:217
-msgid "<Unknown>"
-msgstr "<Inconnu>"
+#: templates/500.html:28
+msgid "Let's try again"
+msgstr ""
 
 #: templates/admin/base.html:30
 msgid "Welcome,"
@@ -3593,11 +3862,11 @@ msgstr "Visiter"
 
 #: theming/models.py:28
 msgid "Compact"
-msgstr "Rassembler"
+msgstr "Compact"
 
 #: theming/models.py:29
 msgid "Cozy"
-msgstr "Confortable"
+msgstr "Cozy"
 
 #: theming/models.py:30
 msgid "Comfortable"
@@ -3609,7 +3878,7 @@ msgstr "Configurer le thème"
 
 #: theming/templates/theming/configure_theme_base.html:15
 #: theming/templates/theming/theme_list.html:5
-#: theming/templates/theming/theme_list.html:17
+#: theming/templates/theming/theme_list.html:26
 msgid "Themes"
 msgstr "Thèmes"
 
@@ -3624,6 +3893,24 @@ msgstr "Configuration enregistrée avec succès."
 #: theming/templates/theming/configure_theme_base.html:71
 msgid "Upload Logo"
 msgstr "Uploader le logo"
+
+#: theming/templates/theming/theme_list.html:34
+#, fuzzy
+msgid "Choose your favorite theme"
+msgstr "Choisir un thème"
+
+#: theming/templates/theming/theme_list.html:48
+msgid "Preview"
+msgstr ""
+
+#~ msgid "Rediscover %s"
+#~ msgstr "Redécouvir %s"
+
+#~ msgid "Add new classroom"
+#~ msgstr "Nouvel ajout "
+
+#~ msgid "Return to home"
+#~ msgstr "Retour à la page d'accueil "
 
 #~ msgid ""
 #~ "Hi %(member_name)s,<br><br>You were added to <b>%(project_name)s</b> "

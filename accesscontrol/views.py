@@ -929,7 +929,9 @@ def join(request, *args, **kwargs):
         member_profile.save()
         referral_pack_list, coupon_count = reward_member(service, referrer, Reward.REFERRAL)
         if referral_pack_list:
-            referrer_subject = _("%s is offering you %d coupons for your referral to %s" % (service.project_name, coupon_count, member.full_name))
+            referrer_subject = _("%(project_name)s is offering you %(count)d coupons for "
+                                 "your referral to %(friend)s" % {'project_name': service.project_name,
+                                                                  'count': coupon_count, 'friend': member.full_name})
             template_name = 'rewarding/mails/referral_reward.html'
             CouponSummary.objects.using(UMBRELLA).get(service=service, member=referrer)
             html_content = get_mail_content(referrer_subject, template_name=template_name,
