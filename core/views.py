@@ -103,7 +103,7 @@ class HybridListView(ListView):
         context['verbose_name'] = meta.verbose_name
         context['verbose_name_plural'] = meta.verbose_name_plural
         try:
-            context['has_is_active_field'] = model().is_active
+            context['has_is_active_field'] = True if model().is_active is not None else False
         except AttributeError:
             pass
         try:
