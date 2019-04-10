@@ -93,7 +93,7 @@ class HybridListView(ListView):
             queryset = queryset.filter(created_on__lte=end_date)
         queryset = self.get_search_results(queryset, max_chars=max_chars)
         context_object_name = self.get_context_object_name(self.object_list)
-        context[context_object_name] = context[context_object_name].order_by(*self.ordering)[:self.page_size]
+        context[context_object_name] = queryset.order_by(*self.ordering)[:self.page_size]
         context['queryset'] = queryset
         context['page_size'] = self.page_size
         context['total_objects'] = self.get_queryset().count()
@@ -107,7 +107,7 @@ class HybridListView(ListView):
         except AttributeError:
             pass
         try:
-            context['is_sortable'] = model().order_of_appearance
+            context['is_sortable'] = True if model().order_of_appearance is not None else False
         except AttributeError:
             pass
         if not self.change_object_url_name:
@@ -970,7 +970,7 @@ class AdminHomeBase(TemplateView):
         if action == 'update_domain':
             service = get_service_instance()
             new_domain = request.GET['new_domain']
-            is_naked_domain = True if request.GET.get('is_naked_domain') else False
+            is_naked_domain = True if request.GET['type'] == Service.MAIN else False
             service.update_domain(new_domain, is_naked_domain)
             service.reload_settings(service.settings_template, is_naked_domain=is_naked_domain)
             return HttpResponse(json.dumps({'success': True}))
