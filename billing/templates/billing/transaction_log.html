@@ -21,7 +21,17 @@
         <div class="container-fluid">
             <div id="filter">
                 <form id="criteria" onsubmit="return false" class="row">
-                    <div class="form-group col-sm-4 col-lg-3">
+                    <div class="form-group col-sm-3">
+                        <label for="search-tx-id">{% trans "Search" %}</label>
+                        <input id="search-tx-id" class="form-control input-sm" type="text" placeholder="{% trans "Transaction ID" %}" />
+                    </div>
+                    {% if settings.IS_UMBRELLA %}
+                    <div class="form-group col-sm-2">
+                        <label for="service-id">{% trans "Service" %}</label>
+                        <input id="service-id" name="service_id" class="form-control input-sm" type="text" />
+                    </div>
+                    {% endif %}
+                    <div class="form-group {% if settings.IS_UMBRELLA %}col-sm-2{% else %}col-sm-3{% endif %}">
                         <label for="operator">Operator</label>
                         <select id="operator" name="operator" class="form-control input-sm">
                             <option value="">All</option>
@@ -29,7 +39,7 @@
                             <option value="orange-money">Orange Money</option>
                         </select>
                     </div>
-                    <div class="form-group col-sm-4 col-lg-3">
+                    <div class="form-group {% if settings.IS_UMBRELLA %}col-sm-2{% else %}col-sm-3{% endif %}">
                         <label for="period">Period</label>
                         <select id="period" name="period" class="form-control input-sm">
                             <option value="today">Today</option>
@@ -45,7 +55,7 @@
                         <input type="hidden" id="status" name="status" />
                         <input type="hidden" id="page" name="page" />
                     </div>
-                    <div class="form-group col-sm-4 col-lg-3">
+                    <div class="form-group col-sm-3">
                         <div class="custom-period">
                             <span class="start text-muted">17/02/2018</span> -
                             <span class="end text-muted">19/02/2018</span>                                &nbsp;&nbsp;
@@ -207,6 +217,14 @@
                     $('.custom-period .end').text(end);
                     $('.custom-period').show();
                     loadResults();
+                }
+            });
+            $('#search-tx-id').keyup(function() {
+                var txId = $(this).val(),
+                    params = 'q=' + txId + '&format=html_results';
+                if (txId.length === 0 || txId.length >= 3) {
+                    $('div#results .spinner').show();
+                    $('#results').load('', params);
                 }
             });
             $('#results').on('click', '.tx-list tr', function() {

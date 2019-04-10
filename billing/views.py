@@ -426,9 +426,14 @@ class TransactionLog(HybridListView):
     template_name = 'billing/transaction_log.html'
     html_results_template_name = 'billing/snippets/transaction_log_results.html'
     page_size = 200
+    search_field = 'processor_tx_id'
 
     def get_filter_criteria(self):
         criteria = {}
+        if getattr(settings, 'IS_UMBRELLA', False):
+            criteria['service_id'] = self.request.GET.get('service_id')
+        else:
+            criteria['service_id'] = getattr(settings, 'IKWEN_SERVICE_ID')
         operator = self.request.GET.get('operator')
         if operator:
             criteria['wallet'] = operator
@@ -469,7 +474,7 @@ class TransactionLog(HybridListView):
 
     def get_queryset(self):
         criteria = self.get_filter_criteria()
-        queryset = MoMoTransaction.objects.using('wallets').filter(service_id=getattr(settings, 'IKWEN_SERVICE_ID'))
+        queryset = MoMoTransaction.objects.using('wallets')
         return self.grab_transactions(queryset, **criteria)
 
     def grab_transactions(self, queryset, **criteria):
@@ -531,8 +536,8 @@ class TransactionLog(HybridListView):
 
     def get_context_data(self, **kwargs):
         context = super(TransactionLog, self).get_context_data(**kwargs)
+        queryset = context['queryset']
         criteria = self.get_filter_criteria()
-        queryset = self.get_queryset()
         context['status'] = self.request.GET.get('status')
         context['meta'] = self.sum_transactions(queryset, **criteria)
         return context
