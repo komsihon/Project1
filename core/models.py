@@ -416,13 +416,7 @@ class Service(models.Model):
         from ikwen.core.tools import generate_django_secret_key
 
         secret_key = generate_django_secret_key()
-        is_naked_domain = kwargs.get('is_naked_domain')
-        if is_naked_domain is None:
-            is_naked_domain = "go.ikwen.com" not in self.url
-        if is_naked_domain:
-            allowed_hosts = '"%s", "www.%s"' % (self.domain, self.domain)
-        else:
-            allowed_hosts = '"go.ikwen.com"'
+        allowed_hosts = '"go.ikwen.com", "%s", "www.%s"' % (self.domain, self.domain)
         media_root = CLUSTER_MEDIA_ROOT + self.project_name_slug + '/'
         media_url = CLUSTER_MEDIA_URL + self.project_name_slug + '/'
         c = {'secret_key': secret_key, 'ikwen_name': self.project_name_slug, 'service': self,
