@@ -416,7 +416,7 @@ class Service(models.Model):
         from ikwen.core.tools import generate_django_secret_key
 
         secret_key = generate_django_secret_key()
-        allowed_hosts = '"go.ikwen.com", "%s", "www.%s"' % (self.domain, self.domain)
+        allowed_hosts = '"%s", "www.%s", "ikwen.com", "go.ikwen.com"' % (self.domain, self.domain)
         media_root = CLUSTER_MEDIA_ROOT + self.project_name_slug + '/'
         media_url = CLUSTER_MEDIA_URL + self.project_name_slug + '/'
         c = {'secret_key': secret_key, 'ikwen_name': self.project_name_slug, 'service': self,
