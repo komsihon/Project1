@@ -836,6 +836,8 @@ def list_collaborators(request, *args, **kwargs):
 
 @login_required   # The user must be logged in to ikwen and not his own service, this view runs on ikwen
 def join(request, *args, **kwargs):
+    host_service = get_service_instance()
+    host_config = host_service.config
     service_id = request.GET.get('service_id')
     slug = request.GET.get('join')
     referrer_id = request.GET.get('referrer')
@@ -905,7 +907,7 @@ def join(request, *args, **kwargs):
                                     extra_context={'reward_pack_list': reward_pack_list,
                                                    'joined_service': service, 'joined_project_name': service.project_name,
                                                    'joined_logo': service.config.logo})
-    sender = 'ikwen <no-reply@ikwen.com>'
+    sender = '%s <no-reply@%s>' % (host_config.company_name, host_service.domain)
     msg = EmailMessage(subject, html_content, sender, [member.email])
     msg.content_subtype = "html"
     Thread(target=lambda m: m.send(), args=(msg, )).start()
@@ -952,7 +954,10 @@ def join(request, *args, **kwargs):
             query += '&join_coupon_count=%d' % join_coupon_count
         if referral_coupon_count:
             query += '&referral_coupon_count=%d' % referral_coupon_count
-        next_url = service.get_profile_url() + query
+        if getattr(settings, 'STANDALONE_PLATFORM', False):
+            next_url = host_service.url + query
+        else:
+            next_url = service.get_profile_url() + query
         notice = _("You were added to our community. Thank you for joining us.")
         messages.success(request, notice)
         return HttpResponseRedirect(next_url)
