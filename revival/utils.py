@@ -40,7 +40,10 @@ def render_suggest_create_account_mail(target, service, revival, **kwargs):
         return None, None, None
     sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
     config = service.config
-    invitation_message = config.__getattribute__('invitation_message')
+    try:
+        invitation_message = config.__getattribute__('invitation_message')
+    except AttributeError:
+        return None, None, None
     template_name = 'revival/mails/suggest_create_account.html'
     join_reward_pack_list = kwargs.pop('reward_pack_list', None)
     if join_reward_pack_list:
