@@ -294,7 +294,7 @@
                         </ul>
                         {% if is_company and not app and not cr_profile %}
                             <div class="actions">
-                                {% if request.user.is_authenticated %}
+                                {% if user.is_authenticated %}
                                     {% if not is_member %}
                                         <button class="btn btn-primary btn-sm join-community" data-service-id="{{ page_service.id }}">
                                             <img src="{% static 'ikwen/img/Join_button_white.svg' %}" height="15" style="margin: -4px 5px 0 0" />
