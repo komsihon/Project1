@@ -35,7 +35,8 @@ from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_group
 
 from ikwen.accesscontrol.backends import UMBRELLA
-from ikwen.accesscontrol.utils import send_welcome_email, shift_ghost_member, import_ghost_profile_to_member
+from ikwen.accesscontrol.utils import send_welcome_email, shift_ghost_member, import_ghost_profile_to_member, \
+    invite_member
 from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SMSPasswordResetForm, SetPasswordForm, \
     SetPasswordFormSMSRecovery
 from ikwen.accesscontrol.models import Member, AccessRequest, \
@@ -628,28 +629,29 @@ class CompanyProfile(TemplateView):
         context['profile_city'] = config.city
         context['profile_photo_url'] = config.logo.url if config.logo.name else ''
         context['profile_cover_url'] = config.cover_image.url if config.cover_image.name else ''
+        member = request.user
+        if member.is_authenticated():
+            try:
+                AccessRequest.objects.get(member=member, service=service)
+                context['is_member'] = True  # Causes the "Join" button not to appear when there's a pending Access Request
+            except AccessRequest.DoesNotExist:
+                try:
+                    add_database_to_settings(service.database)
+                    Member.objects.using(service.database).get(pk=member.id)
+                    context['is_member'] = True
+                except Member.DoesNotExist:
+                    context['is_member'] = False
         try:
             cr_profile = CROperatorProfile.objects.get(service=service, is_active=True)
         except CROperatorProfile.DoesNotExist:
             pass
         else:
             coupon_qs = Coupon.objects.filter(service=service, status=Coupon.APPROVED, is_active=True)
-            if request.user.is_authenticated():
-                try:
-                    AccessRequest.objects.get(member=request.user, service=service,
-                                              status=AccessRequest.PENDING)
-                    context['is_member'] = True  # Causes the "Join" button not to appear when there's a pending Access Request
-                except AccessRequest.DoesNotExist:
-                    try:
-                        add_database_to_settings(service.database)
-                        Member.objects.using(service.database).get(pk=request.user.id)
-                        context['is_member'] = True
-                    except Member.DoesNotExist:
-                        context['is_member'] = False
+            if member.is_authenticated():
                 coupon_list = []
                 for coupon in coupon_qs:
                     try:
-                        cumul = CumulatedCoupon.objects.get(coupon=coupon, member=request.user)
+                        cumul = CumulatedCoupon.objects.get(coupon=coupon, member=member)
                         coupon.count = cumul.count
                         coupon.ratio = float(cumul.count) / coupon.heap_size * 100
                     except CumulatedCoupon.DoesNotExist:
@@ -659,9 +661,9 @@ class CompanyProfile(TemplateView):
             else:
                 coupon_list = coupon_qs
             url = getattr(settings, 'PROJECT_URL') + reverse('ikwen:company_profile', args=(project_name_slug, ))
-            if request.user.is_authenticated():
-                url += '?referrer=' + request.user.id
-                context['coupon_summary_list'] = get_coupon_summary_list(request.user)
+            if member.is_authenticated():
+                url += '?referrer=' + member.id
+                context['coupon_summary_list'] = get_coupon_summary_list(member)
             context['url'] = urlquote(url)
             context['cr_profile'] = cr_profile
             context['coupon_list'] = coupon_list
@@ -752,6 +754,7 @@ class Community(HybridListView):
         return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
     def add_ghost_member(self, *args, **kwargs):
+        service = get_service_instance()
         name = self.request.GET.get('name', '')
         gender = self.request.GET.get('gender', '')
         email = self.request.GET.get('email', '')
@@ -759,8 +762,9 @@ class Community(HybridListView):
         tag_ids = self.request.GET.get('tag_ids')
         if email:
             try:
-                Member.objects.filter(email=email)[0]
+                member = Member.objects.filter(email=email)[0]
                 response = {'error': _("This email already exists")}
+                invite_member(service, member)
                 HttpResponse(json.dumps(response), content_type='application/json')
             except:
                 pass
@@ -769,13 +773,15 @@ class Community(HybridListView):
             if phone.startswith('237') and len(phone) == 12:
                 phone = phone[3:]
             try:
-                Member.objects.filter(phone=phone)[0]
+                member = Member.objects.filter(phone=phone)[0]
+                invite_member(service, member)
                 response = {'error': _("This phone already exists")}
                 HttpResponse(json.dumps(response), content_type='application/json')
             except:
                 pass
             try:
-                Member.objects.filter(phone='237' + phone)[0]
+                member = Member.objects.filter(phone='237' + phone)[0]
+                invite_member(service, member)
                 response = {'error': _("This phone already exists")}
                 HttpResponse(json.dumps(response), content_type='application/json')
             except:
@@ -859,7 +865,7 @@ def join(request, *args, **kwargs):
     try:
         rq = AccessRequest.objects.get(member=member, service=service)
     except AccessRequest.DoesNotExist:
-        rq = AccessRequest.objects.create(member=member, service=service)
+        rq = AccessRequest.objects.create(member=member, service=service, status=AccessRequest.CONFIRMED)
     db = service.database
     add_database_to_settings(db)
     group = Group.objects.using(db).get(name=COMMUNITY)
