@@ -28,7 +28,7 @@ from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.core.models import Service
 from ikwen.core.utils import get_service_instance, get_mail_content, send_sms
 from ikwen.revival.models import MemberProfile, ProfileTag
-from ikwen.rewarding.utils import JOIN, REFERRAL
+from ikwen.rewarding.utils import get_join_reward_pack_list, JOIN, REFERRAL
 
 logger = logging.getLogger('ikwen')
 
@@ -326,6 +326,39 @@ class ConfirmEmail(TemplateView):
         else:
             messages.error(request, _("Could not confirm email"))
         return render(request, self.template_name, context)
+
+
+def invite_member(service, member):
+    sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
+    config = service.config
+    try:
+        invitation_message = config.__getattribute__('invitation_message')
+    except AttributeError:
+        return
+    template_name = 'revival/mails/suggest_create_account.html'
+    kwargs = get_join_reward_pack_list(service=service)
+    join_reward_pack_list = kwargs['reward_pack_list']
+    if join_reward_pack_list:
+        subject = _("Join us on ikwen and earn free coupons." % service.project_name)
+    else:
+        subject = _("Join our community on ikwen.")
+    if invitation_message or join_reward_pack_list:
+        extra_context = {
+            'member_name': member.first_name,
+            'join_reward_pack_list': join_reward_pack_list,
+            'invitation_message': invitation_message
+        }
+        try:
+            html_content = get_mail_content(subject, service=service, template_name=template_name,
+                                            extra_context=extra_context)
+            msg = EmailMessage(subject, html_content, sender, [member.email])
+            msg.content_subtype = "html"
+            Thread(target=lambda m: m.send(), args=(msg,)).start()
+            notice = "%s: Invitation sent message to member after ghost registration attempt" % service.project_name_slug
+            logger.error(notice, exc_info=True)
+        except:
+            notice = "%s: Failed to send invite message to member after ghost registration attempt" % service.project_name_slug
+            logger.error(notice, exc_info=True)
 
 
 def shift_ghost_member(member, db='default'):
