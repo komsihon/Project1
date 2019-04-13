@@ -968,7 +968,7 @@ class AdminHomeBase(TemplateView):
     def get(self, request, *args, **kwargs):
         action = request.GET.get('action')
         if action == 'update_domain':
-            service = get_service_instance()
+            service = get_service_instance(using=UMBRELLA)
             new_domain = request.GET['new_domain']
             is_naked_domain = True if request.GET['type'] == Service.MAIN else False
             service.update_domain(new_domain, is_naked_domain)
@@ -995,3 +995,9 @@ class BaseExtMail(TemplateView):
 
 class ServiceExpired(TemplateView):
     template_name = 'core/service_expired.html'
+
+    def get(self, request, *args, **kwargs):
+        service = get_service_instance(using=UMBRELLA)
+        if service.status == Service.PENDING or service.status == Service.ACTIVE:
+            return HttpResponseRedirect(reverse('home'))
+        return super(ServiceExpired, self).get(request, *args, **kwargs)
