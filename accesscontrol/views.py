@@ -220,6 +220,8 @@ class SignIn(TemplateView):
             for path in events:
                 event = import_by_path(path)
                 event(request, *args, **kwargs)
+            if request.GET.get('join'):
+                return join(request, *args, **kwargs)
             query_string = request.META.get('QUERY_STRING')
             next_url = request.REQUEST.get('next')
             if next_url:
