@@ -1,0 +1,56 @@
+{% load i18n static %}
+<div class="card-section subtle-shade">
+    <h4 class="card-section-title">{% trans "Domain name" %}</h4>
+    <div class="row-card-section">
+        <div class="col-md-4 col-md-offset-1 card-img">
+            <img  style="max-width: 250px;" src="{% static 'kakocase/img/glogal-market.png' %}">
+        </div>
+        <div class="col-md-6">
+            <p class="section-about">
+                {% blocktrans with service_url=service.url %}
+                Your website is actually running with the name <b>{{ service_url }}</b>.<br>
+                You can change it to yourcompany.com, yourcompany.cm or whatever you want.
+                You have to buy a domain name and configure for this to work. Read this very simple tutorial on how to do that.
+                {% endblocktrans %}
+            </p>
+        </div>
+    </div>
+    <form class="set-domain-name form-inline col-xs-12">
+        <div class="form-group">
+            <label for="domain-type" class="sr-only">{% trans "Type" %}</label>
+            <select class="form-control" id="domain-type">
+                <option value="Main">{% trans "Main domain" %}</option>
+                <option value="Sub">{% trans "Subdomain" %}</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="new-domain-name" class="sr-only">{% trans "New domain name" %}</label>
+            <input class="form-control" name="new_domain_name" id="new-domain-name"
+                   placeholder="{% trans "Ex: yourcompany.cm" %}" />
+        </div>
+        <button class="btn btn-outline-primary pull-right update-domain" type="button" role="button">{% trans "Set new domain" %}</button>
+    </form>
+    <div class="clearfix"></div>
+</div>
+<script>
+    (function() {
+        $('#domain-type').change(function() {
+            var type = $(this).val(),
+                placeholder = "{% trans "Ex: yourcompany.cm" %}";
+            if (type === "Main") {
+                $('#new-domain-name').prop('placeholder', placeholder);
+            } else {
+                placeholder = "{% trans "Ex: shop.yourcompany.cm" %}";
+                $('#new-domain-name').prop('placeholder', placeholder);
+            }
+        });
+        $('.update-domain').click(function() {
+            var newDomain = $('#new-domain-name').val(),
+                type = $('#domain-type').val();
+            $.getJSON('', {action: 'update_domain', new_domain: newDomain, type: type}, function(resp) {
+                if (resp.error) ikwen.showFloatingNotice('', resp.error, 6);
+                else ikwen.showFloatingNotice('', 'Domain successfully updated.', 6)
+            })
+        });
+    })()
+</script>
