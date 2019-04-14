@@ -55,13 +55,6 @@ def notify_profiles(debug=False):
         db = service.database
         add_database(db)
         balance = Balance.objects.using(WALLETS_DB_ALIAS).get(service_id=service.id)
-        if 0 < balance.mail_count < LOW_MAIL_LIMIT or 0 < balance.sms_count < LOW_SMS_LIMIT:
-            try:
-                notify_for_low_messaging_credit(service, balance)
-            except:
-                revival.is_running = False
-                revival.save()
-                logger.error("Failed to notify %s for low messaging credit." % service, exc_info=True)
         if balance.mail_count == 0 and balance.sms_count == 0:
             try:
                 notify_for_empty_messaging_credit(service, balance)
@@ -70,6 +63,13 @@ def notify_profiles(debug=False):
                 revival.save()
                 logger.error("Failed to notify %s for empty messaging credit." % service, exc_info=True)
             continue
+        if 0 < balance.mail_count < LOW_MAIL_LIMIT or 0 < balance.sms_count < LOW_SMS_LIMIT:
+            try:
+                notify_for_low_messaging_credit(service, balance)
+            except:
+                revival.is_running = False
+                revival.save()
+                logger.error("Failed to notify %s for low messaging credit." % service, exc_info=True)
 
         label = get_sms_label(service.config)
         notified_empty_mail_credit = False
