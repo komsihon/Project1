@@ -193,8 +193,8 @@ def get_mail_content(subject, message=None, template_name='core/mails/notice.htm
 
 def get_sms_label(config):
     label = config.company_name.strip()
-    if len(label) > 15:
-        label = label.split(' ')[0][:15]
+    if len(label) > 11:
+        label = label.split(' ')[0][:11]
     label = slugify(label)
     label = ''.join([tk.capitalize() for tk in label.split('-') if tk])
     return label
