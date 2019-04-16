@@ -305,6 +305,8 @@ class ChangeObjectBase(TemplateView):
         for key in model_obj.__dict__.keys():
             field = model_obj.__getattribute__(key)
             if isinstance(field, ImageFieldFile):
+                if not field.field.editable:
+                    continue
                 img_obj = {
                     'image': field,
                     'field': key,
