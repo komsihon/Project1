@@ -393,7 +393,7 @@ class Service(models.Model):
         Thread(target=reload_server).start()
 
         self.domain = new_domain
-        if "go.ikwen.com" not in self.url:
+        if "go.ikwen.com" in self.url:
             self.url = self.url.replace('http://go.ikwen.com/' + self.project_name_slug, 'http://' + new_domain)
             self.admin_url = self.admin_url.replace('http://go.ikwen.com/' + self.project_name_slug, 'http://' + new_domain)
         else:
