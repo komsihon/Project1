@@ -33,7 +33,7 @@
             <form class="admin-form" method="post">{% csrf_token %}
                 {% include 'core/snippets/model_admin_form.html' %}
                 {% for img_obj in img_field_list %}
-                <div class="col-sm-4 col-lg-3">
+                <div class="col-sm-4 col-lg-3" style="padding-left: 0">
                     {% with model_name=model image=img_obj.image image_field_name=img_obj.field label_field_name=label_field img_help_text=img_obj.help_text img_counter=img_obj.counter %}
                         {% include 'core/snippets/uploader_single.html' %}
                     {% endwith %}
