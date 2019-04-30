@@ -48,8 +48,8 @@
             var newDomain = $('#new-domain-name').val(),
                 type = $('#domain-type').val();
             $.getJSON('', {action: 'update_domain', new_domain: newDomain, type: type}, function(resp) {
-                if (resp.error) ikwen.showFloatingNotice('', resp.error, 6);
-                else ikwen.showFloatingNotice('', 'Domain successfully updated.', 6)
+                if (resp.error) ikwen.showFloatingNotice(resp.error, '', 6);
+                else ikwen.showFloatingNotice("{% trans "Your domain name was successfully updated." %}", '', 6)
             })
         });
     })()
