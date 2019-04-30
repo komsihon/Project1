@@ -92,7 +92,8 @@ div#container.admin {padding-top: 92px;}
 
 #admin-tools {background: #fff;clear: both;padding: 0 15px;position: fixed;width: 100%;z-index: 11}
 #admin-tools input, #admin-tools select {border: 1px solid #ddd;font-size: 13px;padding-left: 40px;}
-#admin-tools .btn.action .glyphicon {float: left;margin: 1px 10px 0 0;}
+#admin-tools .btn.action .glyphicon, #admin-tools .btn.action .fa {float: left;margin: 1px 10px 0 0;}
+#admin-tools .btn.action .fa {font-size: 17px}
 #admin-tools .btn.filter {padding-left: 30px;}
 #admin-tools-form {float: left}
 #admin-tools-form .glyphicon-search {margin-right: -26px;margin-left: 9px;}
@@ -185,7 +186,7 @@ footer a {color: #999}
 
 @media (max-width: 767px) {
     #selection-control.visible {padding-top: 15px}
-    #admin-content > .container-fluid {padding: 0}
+    #admin-content > .container-fluid {/* padding: 0 */}
     #app-nav .breadcrumb li:not(:last-of-type) {display: none}
     #admin-tools {margin-top: -20px;border-bottom: 1px solid #eee;height: 45px;overflow:auto;padding-top: 13px;}
     #admin-tools .glyphicon {float: left;font-size: 18px;color: #888;}
@@ -200,6 +201,7 @@ footer a {color: #999}
     #admin-tools-form {width:90%}
     #admin-tools-form > div {width: 200%}
     #admin-tools-form .glyphicon-search {margin: 2px 0 0}
+    #admin-tools .btn.action .fa {margin-top: 3px}
     #results {padding-top: 20px}
     .filter-trigger > .glyphicon-filter {float: left;margin: 2px 0 0 10px;}
     .content-tab-list {background: #f8f6f6}
@@ -294,4 +296,4 @@ iframe#billing-stage {
 /* Object Details ik-li info width must be overriden */
 #object-detail .ik-li .info {width: auto;max-width: 174px;}
 #delete-theme-logo {color: #ff3030; cursor: pointer; float: right}
-#delete-image {color: #ff3030; cursor: pointer; margin: 0 10px}
+#delete-image {color: #ff3030;cursor: pointer;margin: 10px 10px 0 0;}
