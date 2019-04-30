@@ -142,6 +142,7 @@
             });
             if ($(window).width() < 768)
                 $('.tiles .ik-li a').each(function() {
+                    if ($(this).parents('.ik-li').find('.actions').length === 0) return;
                     if ($(this).parents('.actions').length === 0) $(this).removeAttr('href');
                 });
             $('body').on('click', '.ik-li', function() {
