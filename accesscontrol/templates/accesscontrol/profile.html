@@ -17,7 +17,7 @@
             <meta property="og:image" content="{% get_media_prefix %}{{ config.logo.name }}" />
         {% endif %}
         {% if user.is_authenticated %}
-            <meta property="og:description" content="{% blocktrans %}{{ user.first_name }} is inviting you to join {{ profile_name }} and earn some free gifts.{% endblocktrans %}" />
+            <meta property="og:description" content="{% blocktrans with first_name=user.first_name %}{{ first_name }} is inviting you to join {{ profile_name }} and earn some free gifts.{% endblocktrans %}" />
         {% else %}
             <meta property="og:description" content="{% trans "We have some free gifts for you. Collect them now." %}" />
         {% endif %}

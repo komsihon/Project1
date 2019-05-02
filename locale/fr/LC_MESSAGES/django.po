@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-06 11:47+0100\n"
-"PO-Revision-Date: 2018-12-12 12:54+0100\n"
+"POT-Creation-Date: 2019-05-02 20:20+0100\n"
+"PO-Revision-Date: 2019-05-02 20:44+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 
 #: accesscontrol/ccm_reporting_cron.py:66
 msgid "Community progression report"
@@ -86,7 +86,7 @@ msgstr "État de vérification d'Email"
 
 #: accesscontrol/models.py:149
 msgid "Designates whether this email has been verified."
-msgstr "Indique si cet email a été vérifié. "
+msgstr "Indique si cet e-mail a été vérifié."
 
 #: accesscontrol/models.py:150
 msgid "Phone verification status"
@@ -108,28 +108,28 @@ msgstr "Cette personne aimerait  avoir accès et collaborer avec vous"
 msgid "This person would like to have access to your services"
 msgstr "Cette personne aimerait avoir accès à vos services"
 
-#: accesscontrol/tests_auth.py:389 accesscontrol/views.py:512
+#: accesscontrol/tests_auth.py:389 accesscontrol/views.py:522
 msgid "This e-mail already exists."
 msgstr "Cet email existe déjà."
 
-#: accesscontrol/tests_auth.py:399 accesscontrol/views.py:521
+#: accesscontrol/tests_auth.py:399 accesscontrol/views.py:531
 msgid "This phone already exists."
 msgstr "Ce numéro de téléphone existe déjà."
 
-#: accesscontrol/tests_auth.py:419 accesscontrol/views.py:538
+#: accesscontrol/tests_auth.py:419 accesscontrol/views.py:548
 msgid "Your information were successfully updated."
 msgstr "Vos informations ont été mises à jour avec succès."
 
-#: accesscontrol/tests_auth.py:441 accesscontrol/views.py:561
+#: accesscontrol/tests_auth.py:441 accesscontrol/views.py:571
 msgid "The current password is incorrect!"
 msgstr "Le mot de passe actuel est incorrect!"
 
-#: accesscontrol/tests_auth.py:451 accesscontrol/views.py:556
+#: accesscontrol/tests_auth.py:451 accesscontrol/views.py:566
 msgid "Passwords don't match."
 msgstr "Les mots de passe diffèrent."
 
-#: accesscontrol/tests_auth.py:457 accesscontrol/views.py:553
-#: accesscontrol/views.py:559
+#: accesscontrol/tests_auth.py:457 accesscontrol/views.py:563
+#: accesscontrol/views.py:569
 msgid "Your password was successfully updated."
 msgstr "Votre mot de passe a été mis à jour avec succès."
 
@@ -140,12 +140,12 @@ msgstr "Bienvenue chez %s"
 
 #: accesscontrol/utils.py:157 accesscontrol/utils.py:169
 #: accesscontrol/utils.py:247 accesscontrol/utils.py:265
-#: accesscontrol/views.py:445 accesscontrol/views.py:457
+#: accesscontrol/views.py:455 accesscontrol/views.py:467
 msgid "Could not send code. Please try again later"
 msgstr "Impossible d'envoyer le code. Réessayez plutard"
 
 #: accesscontrol/utils.py:179 accesscontrol/utils.py:273
-#: accesscontrol/views.py:471
+#: accesscontrol/views.py:481
 msgid "Invalid code. Please try again"
 msgstr "Code invalide. Réessayez SVP"
 
@@ -157,7 +157,15 @@ msgstr "Confirmez votre adresse mail et commencez !"
 msgid "Could not confirm email"
 msgstr "Impossible de confirmer votre email"
 
-#: accesscontrol/views.py:121
+#: accesscontrol/utils.py:342 revival/utils.py:50
+msgid "Join us on ikwen and earn free coupons."
+msgstr "Rejoignez nous sur ikwen et gagnez des coupons gratuits."
+
+#: accesscontrol/utils.py:344 revival/utils.py:52
+msgid "Join our community on ikwen."
+msgstr "Rejoignez notre communauté sur ikwen."
+
+#: accesscontrol/views.py:122
 #, python-format
 msgid ""
 "You already have an account on ikwen with this phone. It was created on %s. "
@@ -166,11 +174,11 @@ msgstr ""
 "Vous avez déjà un compte sur ikwen avec ce numéro. Il a été crée sur %s. "
 "Utilisez-le pour vous connecter."
 
-#: accesscontrol/views.py:130
+#: accesscontrol/views.py:131
 msgid "Sorry, passwords mismatch."
 msgstr "Désolé, les mots de passe diffèrent."
 
-#: accesscontrol/views.py:176
+#: accesscontrol/views.py:177
 #, python-format
 msgid ""
 "You already have an account on ikwen with this username. It was created on "
@@ -179,45 +187,45 @@ msgstr ""
 "Vous avez déjà un compte sur ikwen avec ce nom d'utilisateur. Il a été créé "
 "sur %s. Utilisez-le pour vous connecter."
 
-#: accesscontrol/views.py:243
+#: accesscontrol/views.py:246
 msgid "Invalid username/password or account inactive"
 msgstr "Nom d'utilisateur/mot de passe invalide ou compte inactif"
 
-#: accesscontrol/views.py:396 accesscontrol/views.py:488
+#: accesscontrol/views.py:406 accesscontrol/views.py:498
 msgid "Password successfully reset."
 msgstr "Mot de passe réinitialisé."
 
-#: accesscontrol/views.py:477
+#: accesscontrol/views.py:487
 msgid "Passwords mismatch. Please try again"
 msgstr "Les mots de passe diffèrent. Bien vouloir réessayer"
 
-#: accesscontrol/views.py:763
-#, fuzzy
+#: accesscontrol/views.py:775
 msgid "This email already exists"
-msgstr "Cet email existe déjà."
+msgstr "Cet e-mail existe déjà"
 
-#: accesscontrol/views.py:773 accesscontrol/views.py:779
-#, fuzzy
+#: accesscontrol/views.py:787 accesscontrol/views.py:794
 msgid "This phone already exists"
-msgstr "Ce numéro de téléphone existe déjà."
+msgstr "Ce numéro de téléphone existe déjà"
 
-#: accesscontrol/views.py:854 accesscontrol/views.py:956
+#: accesscontrol/views.py:871 accesscontrol/views.py:976
 msgid "You were added to our community. Thank you for joining us."
 msgstr ""
 "Vous avez été ajouté à notre communauté avec joie. Merci de nous avoir "
-"rejoint. "
+"rejoint."
 
-#: accesscontrol/views.py:892
+#: accesscontrol/views.py:909
 #, python-format
 msgid "You just joined %s community"
 msgstr "Vous venez de rejoindre la communauté %s"
 
-#: accesscontrol/views.py:932
-#, fuzzy, python-format
+#: accesscontrol/views.py:949
+#, python-format
 msgid ""
 "%(project_name)s is offering you %(count)d coupons for your referral to "
 "%(friend)s"
-msgstr "%s vous offre %d coupons pour votre recommendation à %s"
+msgstr ""
+"%(project_name)s vous offre %(count)d coupons pour avoir recommendé à "
+"%(friend)s"
 
 #: accesscontrol/templates/accesscontrol/access_request_list.html:5
 msgid "Access requests"
@@ -300,7 +308,7 @@ msgstr "Nom complet"
 #: billing/templates/billing/payment_mean_list.html:85
 #: billing/templates/billing/payment_mean_list.html:122
 #: billing/templates/billing/payment_mean_list.html:153
-#: billing/templates/billing/transaction_log.html:88
+#: billing/templates/billing/transaction_log.html:98
 #: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
 #: 2019-03-06).html:209 2019-03-06).html:247
 #: cashout/templates/cashout/payments.html:207
@@ -346,6 +354,7 @@ msgid "Community"
 msgstr "Communauté"
 
 #: accesscontrol/templates/accesscontrol/community.html:56
+#: billing/templates/billing/transaction_log.html:25
 #: core/templates/admin/search_form.html:7 core/templates/core/base_bs.html:108
 #: core/templates/core/snippets/admin_tools.html:7
 #: partnership/templates/partnership/snippets/service_list_results.html:7
@@ -357,9 +366,8 @@ msgid "of"
 msgstr "de"
 
 #: accesscontrol/templates/accesscontrol/community.html:73
-#, fuzzy
 msgid "Add new contact"
-msgstr "Nouvel ajout "
+msgstr "Ajouter ouveau contact"
 
 #: accesscontrol/templates/accesscontrol/community.html:75
 #: billing/templates/billing/product_list.html:46
@@ -371,12 +379,11 @@ msgstr "Ajouter"
 #: accesscontrol/templates/accesscontrol/community.html:95
 #: accesscontrol/templates/accesscontrol/member_list.html:38
 msgid "Search: "
-msgstr "Recherche :"
+msgstr "Recherche : "
 
 #: accesscontrol/templates/accesscontrol/community.html:121
-#, fuzzy
 msgid "Edit"
-msgstr "Éditer l'article"
+msgstr "Éditer"
 
 #: accesscontrol/templates/accesscontrol/community.html:165
 #: accesscontrol/templates/accesscontrol/member_list.html:72
@@ -389,11 +396,11 @@ msgstr "Cliquer sur un membre de la liste pour afficher et gérer."
 
 #: accesscontrol/templates/accesscontrol/community.html:196
 msgid "Add contact to CCM"
-msgstr ""
+msgstr "Ajouter un contact au CCM"
 
 #: accesscontrol/templates/accesscontrol/community.html:201
 msgid "Name"
-msgstr ""
+msgstr "Nom"
 
 #: accesscontrol/templates/accesscontrol/community.html:205
 #: accesscontrol/templates/accesscontrol/profile.html:262
@@ -412,20 +419,18 @@ msgid "Female"
 msgstr "Femme"
 
 #: accesscontrol/templates/accesscontrol/community.html:221
-#, fuzzy
 msgid "Profiles"
-msgstr "Profil"
+msgstr "Profils"
 
 #: accesscontrol/templates/accesscontrol/community.html:234
-#, fuzzy
 msgid "Preferences"
-msgstr "Performances"
+msgstr "Préférences"
 
 #: accesscontrol/templates/accesscontrol/community.html:250
 #: billing/templates/billing/payment_mean_list.html:81
 #: billing/templates/billing/payment_mean_list.html:118
 #: billing/templates/billing/payment_mean_list.html:149
-#: billing/templates/billing/transaction_log.html:84
+#: billing/templates/billing/transaction_log.html:94
 msgid "OK"
 msgstr "OK"
 
@@ -436,7 +441,7 @@ msgstr "Permissions mises à jour avec succès"
 
 #: accesscontrol/templates/accesscontrol/community.html:338
 msgid "Profiles successfully updated"
-msgstr "Profils mis à jour avec succès."
+msgstr "Profils mis à jour avec succès"
 
 #: accesscontrol/templates/accesscontrol/community.html:351
 msgid "Member moved to group"
@@ -466,9 +471,8 @@ msgid "Activate"
 msgstr "Activer"
 
 #: accesscontrol/templates/accesscontrol/community.html:401
-#, fuzzy
 msgid "Member added"
-msgstr "Membre"
+msgstr "Membre ajouté"
 
 #: accesscontrol/templates/accesscontrol/email_confirmation.html:4
 #: accesscontrol/templates/accesscontrol/email_confirmation.html:62
@@ -490,7 +494,8 @@ msgid ""
 "                "
 msgstr ""
 "\n"
-"                    Votre email <strong>%(email)s</strong> a été confirmée."
+"                    Votre email <strong>%(email)s</strong> a été confirmé.\n"
+"\t\t"
 
 #: accesscontrol/templates/accesscontrol/email_confirmation.html:58
 #: accesscontrol/templates/accesscontrol/phone_confirmation.html:57
@@ -510,7 +515,8 @@ msgid ""
 msgstr ""
 "\n"
 "                    Un lien de confirmation a été envoyé à <strong>"
-"%(email)s</strong>, veuillez vérifier."
+"%(email)s</strong>, veuillez vérifier.\n"
+"\t\t"
 
 #: accesscontrol/templates/accesscontrol/email_confirmation.html:72
 msgid ""
@@ -540,7 +546,8 @@ msgstr ""
 "\n"
 "                        Email erroné ?\n"
 "                        <a href=\"%(account_setup)s\">Changez le maintenant</"
-"a>"
+"a>\n"
+"\t\t"
 
 #: accesscontrol/templates/accesscontrol/forgotten_password.html:5
 msgid "Forgotten password"
@@ -652,10 +659,10 @@ msgstr "Veuillez entrer un code à 4 chiffres valide"
 #: accesscontrol/templates/accesscontrol/profile.html:20
 #, python-format
 msgid ""
-"%(user.first_name)s is inviting you to join %(profile_name)s and earn some "
-"free gifts."
+"%(first_name)s is inviting you to join %(profile_name)s and earn some free "
+"gifts."
 msgstr ""
-"%(user.first_name)s vous invite à rejoindre %(profile_name)s et gagner des "
+"%(first_name)s vous invite à rejoindre %(profile_name)s et gagner des "
 "cadeaux gratuits."
 
 #: accesscontrol/templates/accesscontrol/profile.html:22
@@ -666,7 +673,7 @@ msgstr ""
 #: accesscontrol/templates/accesscontrol/profile.html:24
 #, python-format
 msgid "Join %(profile_name)s on ikwen and get some free gifts !"
-msgstr "Join %(profile_name)s sur ikwen et gagner des cadeaux gratuits !"
+msgstr "Join %(profile_name)s sur ikwen et gagne des cadeaux gratuits !"
 
 #: accesscontrol/templates/accesscontrol/profile.html:29
 #: accesscontrol/templates/accesscontrol/profile.html:30
@@ -686,7 +693,7 @@ msgstr "Coupons"
 
 #: accesscontrol/templates/accesscontrol/profile.html:141
 msgid "Please, login to see your collected coupons"
-msgstr "Veuillez vous connecter pour voir vos coupons récupérés SVP"
+msgstr "Veuillez vous connecter pour voir vos coupons récoltés SVP"
 
 #: accesscontrol/templates/accesscontrol/profile.html:142
 #: accesscontrol/templates/accesscontrol/sign_in.html:37
@@ -733,7 +740,8 @@ msgid ""
 msgstr ""
 "\n"
 "                                Recommendez %(profile_name)s à un ami en "
-"partageant et  gagner plus de %(referral_coupon_count)s coupons gratuits."
+"partageant et gagnez %(referral_coupon_count)s coupons gratuits.\n"
+"\t\t\t"
 
 #: accesscontrol/templates/accesscontrol/profile.html:257
 #: templates/apps/webnode.html:135
@@ -814,7 +822,7 @@ msgstr "Vous êtes ..."
 #: accesscontrol/templates/accesscontrol/register.html:85
 #: accesscontrol/templates/accesscontrol/sign_in_minimal.html:79
 msgid "A woman"
-msgstr "Une femme "
+msgstr "Une femme"
 
 #: accesscontrol/templates/accesscontrol/register.html:90
 #: accesscontrol/templates/accesscontrol/sign_in_minimal.html:84
@@ -823,7 +831,7 @@ msgstr "Un homme"
 
 #: accesscontrol/templates/accesscontrol/register.html:100
 msgid "By creating an account you agree our "
-msgstr "En créant un compte vous acceptez nos"
+msgstr "En créant un compte vous acceptez nos "
 
 #: accesscontrol/templates/accesscontrol/register.html:101
 #: accesscontrol/templates/accesscontrol/register.html:111
@@ -909,7 +917,7 @@ msgstr "Mot de passe trop court. Utilisez au moins 6 caractères."
 #: accesscontrol/templates/accesscontrol/register.html:243
 #: accesscontrol/templates/accesscontrol/sign_in_minimal.html:329
 msgid "Invalid date. Please check."
-msgstr "Date invalide. Vérifiez s'il vous plaît "
+msgstr "Date invalide. Vérifiez s'il vous plaît."
 
 #: accesscontrol/templates/accesscontrol/set_new_password.html:4
 msgid "Set your new password"
@@ -979,7 +987,8 @@ msgstr ""
 "\n"
 "                                En créant un compte, vous acceptez nos\n"
 "                                <a href=\"%(ikwen_eula_url)s\">Termes & "
-"Conditions</a>"
+"Conditions</a>\n"
+"\t\t\t"
 
 #: accesscontrol/templates/accesscontrol/sign_in_minimal.html:107
 #, python-format
@@ -987,31 +996,28 @@ msgid ""
 "\n"
 "                                You are about to create an account managed "
 "by\n"
-"                                <a href=\"%(settings.IKWEN_BASE_URL)s\" "
-"style=\"color: #999; text-decoration: underline\"><strong>ikwen</strong></"
-"a>,\n"
-"                                on %(service.project_name)s. By doing so you "
-"accept\n"
-"                                <a href=\"%(ikwen_eula_url|ikwenize)s"
-"\"><strong>ikwen</strong> Terms & Conditions</a>,\n"
+"                                <a href=\"http://ikwen.com\" style=\"color: "
+"#999; text-decoration: underline\"><strong>ikwen</strong></a>,\n"
+"                                on %(project_name)s. By doing so you accept\n"
+"                                <a href=\"%(ikwen_eula)s\"><strong>ikwen</"
+"strong> Terms & Conditions</a>,\n"
 "                                    as well as\n"
-"                                <a href=\"%(settings.AGREEMENT_URL)s\">"
-"%(service.project_name)sTerms & Conditions.</a>\n"
+"                                <a href=\"%(agreement_url)s\">"
+"%(project_name)sTerms & Conditions.</a>\n"
 "                            "
 msgstr ""
 "\n"
 "                                Vous êtes sur le point de créer un compte "
 "managé par\n"
-"                                <a href=\"%(settings.IKWEN_BASE_URL)s\" "
-"style=\"color: #999; text-decoration: underline\"><strong>ikwen</strong></"
-"a>,\n"
-"                                sur %(service.project_name)s. En le faisant, "
-"vous acceptez les\n"
-"                                <a href=\"%(ikwen_eula_url|ikwenize)s\"> "
-"Termes & Conditions <strong>ikwen</strong></a>,\n"
+"                                <a href=\"http://ikwen.com\" style=\"color: "
+"#999; text-decoration: underline\"><strong>ikwen</strong></a>,\n"
+"                                sur %(project_name)s. En le faisant, vous "
+"acceptez les\n"
+"                                <a href=\"%(ikwen_eula)s\"> Termes & "
+"Conditions <strong>ikwen</strong></a>,\n"
 "                                    ainsi que les\n"
-"                                <a href=\"%(settings.AGREEMENT_URL)s"
-"\">Termes & Conditions de %(service.project_name)s.</a>\n"
+"                                <a href=\"%(agreement_url)s\">Termes & "
+"Conditions de %(project_name)s.</a>\n"
 "                            "
 
 #: accesscontrol/templates/accesscontrol/sign_in_minimal.html:126
@@ -1073,7 +1079,8 @@ msgstr ""
 "\n"
 "                        A rejoint votre communauté.\n"
 "                        <a href=\"%(service_url)s%(community_url)s\" style="
-"\"cursor: pointer\"> Voir</a>"
+"\"cursor: pointer\"> Voir</a>\n"
+"\t\t"
 
 #: accesscontrol/templates/accesscontrol/events/access_granted.html:41
 #: accesscontrol/templates/accesscontrol/events/welcome_event.html:3
@@ -1140,7 +1147,7 @@ msgstr "Profil"
 
 #: accesscontrol/templates/accesscontrol/snippets/member_detail.html:42
 msgid "Set member profile"
-msgstr "Ajouter profil"
+msgstr "Ajouter un profil"
 
 #: accesscontrol/templates/accesscontrol/snippets/member_detail.html:48
 msgid "Group"
@@ -1292,7 +1299,7 @@ msgstr "Payer maintenant"
 
 #: billing/models.py:35
 msgid "ikwen share rate"
-msgstr "Pourcentage d'ikwen"
+msgstr "pourcentage d'ikwen"
 
 #: billing/models.py:36
 msgid "Percentage ikwen collects on the turnover made by this person."
@@ -1324,11 +1331,11 @@ msgstr "Nouveau sujet de facture"
 
 #: billing/models.py:52
 msgid "Subject of the mail of notice of invoice generation."
-msgstr "Objet du mail de l'avis de la production de la facture."
+msgstr "Objet du mail de l'avis de la nouvelle de la facture."
 
 #: billing/models.py:53
 msgid "New invoice mail message"
-msgstr "Nouveau message mail de facture"
+msgstr "Mail pour Nouvelle Facture"
 
 #: billing/models.py:54
 msgid "Model of mail to send for notice of invoice generation."
@@ -1340,7 +1347,7 @@ msgstr "SMS de la nouvelle facture"
 
 #: billing/models.py:56
 msgid "Model of SMS to send for notice of invoice generation."
-msgstr "Modèle de message à envoyer pour rappeler le paiement d'une facture."
+msgstr "Modèle de SMS à envoyer pour rappeler le paiement d'une facture."
 
 #: billing/models.py:57
 msgid "Reminder subject"
@@ -1497,7 +1504,7 @@ msgstr ""
 
 #: billing/models.py:125
 msgid "Cost of the product on the duration set previously."
-msgstr "Coût du produit sur la durée précédemment fixée ."
+msgstr "Coût du produit sur la durée précédemment fixée."
 
 #: billing/models.py:128
 msgid "Detailed description of the product."
@@ -1575,20 +1582,19 @@ msgstr "Dernière fois que l'avis de retard a été envoyé au client."
 
 #: billing/models.py:244
 msgid "Invoice No. "
-msgstr "Facture No."
+msgstr "Facture No. "
 
 #: billing/models.py:298
 msgid "Technical"
-msgstr ""
+msgstr "Technique"
 
 #: billing/models.py:299
 msgid "Infographics"
-msgstr ""
+msgstr "Infographie"
 
 #: billing/models.py:300
-#, fuzzy
 msgid "Marketing"
-msgstr "Démarrage"
+msgstr "Marketing"
 
 #: billing/models.py:309
 msgid "Onsite"
@@ -1620,7 +1626,7 @@ msgstr "Débit du wallet"
 
 #: billing/models.py:406
 msgid "If the payment was in cash, this is who collected the money"
-msgstr "Si le paiement était en espèces, voici qui devrait le perçevoir"
+msgstr "Si le paiement était en espèces, voici qui a encaissé"
 
 #: billing/models.py:417
 msgid "Member"
@@ -1731,7 +1737,7 @@ msgid ""
 msgstr ""
 "Votre reçu de paiement de %(currency)s %(amount).2f pour la facture "
 "<strong>No. %(invoice_number)s</strong> générée le %(date_issued)s pour les "
-"services que nous proposons. Ci-dessous récapitulatif de la facture. "
+"services que nous offrons. Ci-dessous récapitulatif de la facture."
 
 #: billing/templates/billing/change_product.html:5
 msgid "New product"
@@ -1912,6 +1918,7 @@ msgid "Method"
 msgstr "Méthode"
 
 #: billing/templates/billing/invoice_detail.html:177
+#: billing/templates/billing/transaction_log.html:26
 #: core/templates/core/invoice_detail.html:128
 msgid "Transaction ID"
 msgstr "ID de transaction"
@@ -2002,8 +2009,7 @@ msgstr ""
 "\n"
 "               Votre numéro doit être enregistré au service\n"
 "<a href=\"https://www.mtncameroon.net/net/en/mtn-mobile-money/\" target="
-"\"_blank\">MTN Mobile Money </a>\n"
-"               "
+"\"_blank\">MTN Mobile Money </a>"
 
 #: billing/templates/billing/momo_checkout.html:73
 #: billing/templates/billing/momo_checkout.html:133
@@ -2095,24 +2101,21 @@ msgid "Delete item"
 msgstr "Supprimer l'élément"
 
 #: billing/templates/billing/transaction_log.html:6
-#, fuzzy
-msgid "Transaction log"
-msgstr "ID de transaction"
-
 #: billing/templates/billing/transaction_log.html:16
-#, fuzzy
 msgid "Transactions log"
-msgstr "Transactions"
+msgstr "Log des Transactions"
 
-#: billing/templates/billing/transaction_log.html:68
-#, fuzzy
+#: billing/templates/billing/transaction_log.html:30
+msgid "Service"
+msgstr "Service"
+
+#: billing/templates/billing/transaction_log.html:78
 msgid "Choose custom period"
-msgstr "Choisir un thème"
+msgstr "Choisir une période"
 
-#: billing/templates/billing/transaction_log.html:101
-#, fuzzy
+#: billing/templates/billing/transaction_log.html:111
 msgid "Transaction details"
-msgstr "Date de la transaction"
+msgstr "Détails de la transaction"
 
 #: billing/templates/billing/events/notice.html:14
 msgid "Service details"
@@ -2141,7 +2144,8 @@ msgid ""
 msgstr ""
 "\n"
 "               Nous avons débité votre wallet avec succès pour le règlement "
-"de votre service, vous êtes à jour !"
+"de votre service, vous êtes à jour !\n"
+"\t"
 
 #: billing/templates/billing/mails/notice.html:14
 #, python-format
@@ -2156,7 +2160,8 @@ msgid ""
 "                "
 msgstr ""
 "\n"
-"                    Frais pour %(months_count)s mois(s), jusqu'au %(exp)s"
+"                    Frais pour %(months_count)s mois(s), jusqu'au %(exp)s\n"
+"\t\t"
 
 #: billing/templates/billing/mails/notice.html:22
 msgid "Amount paid"
@@ -2176,7 +2181,7 @@ msgstr "J'achète"
 
 #: billing/templates/billing/public/pricing.html:79
 msgid "Please sign in to continue"
-msgstr "Connectez-vous pour continuer SVP."
+msgstr "Connectez-vous pour continuer SVP"
 
 #: billing/templates/billing/snippets/modal_payment_options.html:17
 #: core/templates/core/utils/momo_checkout.html:44
@@ -2215,7 +2220,7 @@ msgstr "méthode de paiement"
 
 #: cashout/models.py:78
 msgid "Method used to pay the member"
-msgstr "Moyen de payement utilisé par le membre"
+msgstr "Moyen utilisé pour le payement"
 
 #: cashout/models.py:83
 msgid "Teller who processed this request"
@@ -2244,12 +2249,12 @@ msgstr "Demande de retrait sur %s"
 #: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
 #: 2019-03-06).html:23 cashout/templates/cashout/payments.html:23
 msgid "Your wallet"
-msgstr "Votre solde"
+msgstr "Votre wallet"
 
 #: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
 #: 2019-03-06).html:43 cashout/templates/cashout/payments.html:43
 msgid "Your last payment was on"
-msgstr "Votre dernier paiement était sur"
+msgstr "Votre dernier paiement était le"
 
 #: cashout/templates/cashout/payments (KS-ikwen's conflicted copy
 #: 2019-03-06).html:45 2019-03-06).html:88
@@ -2354,8 +2359,9 @@ msgstr ""
 "%(amount)s</ins> ont été transférés\n"
 "                dans votre compte <ins>%(account_number)s</ins> en réponse à "
 "votre demande de retrait\n"
-"                de votre argent chez nous sur <a href=\"%(url)s\" target="
-"\"_blank\">%(project_name)s</a>."
+"                d'argent chez nous sur <a href=\"%(url)s\" target=\"_blank\">"
+"%(project_name)s</a>.\n"
+"\t"
 
 #: cashout/templates/cashout/events/payment_notice.html:24
 #, python-format
@@ -2398,7 +2404,8 @@ msgstr ""
 "                sur <a href=\"%(url)s\" target=\"_blank\">%(project_name)s</"
 "a> a été soumise avec succès.\n"
 "                L'argent sera déposé sur le compte <ins>%(account_number)s</"
-"ins> durant les prochaines 24h."
+"ins> durant les prochaines 24h.\n"
+"\t"
 
 #: cashout/templates/cashout/events/request_notice.html:23
 #, python-format
@@ -2487,7 +2494,7 @@ msgstr "Social"
 
 #: core/admin.py:163 partnership/admin.py:16 partnership/admin.py:24
 msgid "Mailing"
-msgstr "Envoi postal"
+msgstr "Mailing"
 
 #: core/constants.py:7
 msgid "Confirmed"
@@ -2515,7 +2522,7 @@ msgstr "Annuel"
 
 #: core/models.py:163
 msgid "Bi-Annually"
-msgstr "Deux fois par an"
+msgstr "Semestriel"
 
 #: core/models.py:164
 msgid "Quarterly"
@@ -2532,7 +2539,7 @@ msgstr "Principal"
 
 #: core/models.py:172
 msgid "Sub"
-msgstr "Sous"
+msgstr "Sous-domaine"
 
 #: core/models.py:179 core/templates/core/cloud_setup/deploy.html:160
 #: core/templates/core/cloud_setup/deploy.html:166
@@ -2553,7 +2560,8 @@ msgstr "Complet"
 
 #: core/models.py:200
 msgid "URL of the service's admin panel. WRITE IT WITHOUT A TRAILING SLASH"
-msgstr "URL du panneau d'administration du service.ECRIVEZ LE SANS LE SLASH"
+msgstr ""
+"URL du panneau d'administration du service.ECRIVEZ LE SANS LE SLASH FINAL"
 
 #: core/models.py:201 core/templates/core/service_detail.html:49
 msgid "API Signature"
@@ -2562,84 +2570,84 @@ msgstr ""
 #: core/models.py:211
 msgid "If true, the service can appear in ikwen search results."
 msgstr ""
-"Si vrai, le service pourrait apparaitre dans les resultats de recherche "
+"Si coché, le service pourrait apparaitre dans les resultats de recherche "
 "ikwen."
 
-#: core/models.py:530
+#: core/models.py:525
 msgid "HTTP API"
 msgstr "HTTP API"
 
-#: core/models.py:531
+#: core/models.py:526
 msgid "GSM Modem"
 msgstr "Modem GSM"
 
-#: core/models.py:536 core/models.py:726
+#: core/models.py:531 core/models.py:721
 msgid "balance"
 msgstr "solde"
 
-#: core/models.py:537
+#: core/models.py:532
 msgid "Website / Company name"
 msgstr "Nom du site/de l'entreprise"
 
-#: core/models.py:538
+#: core/models.py:533
 msgid "Website/Company name as you want it to appear in mails and pages."
 msgstr ""
 "Nom du site/de l'entreprise tel que vous voulez qu'il apparaisse dans les "
 "mails et les pages."
 
-#: core/models.py:540
+#: core/models.py:535
 msgid "Company address"
 msgstr "Adresse de l'entreprise"
 
-#: core/models.py:541
+#: core/models.py:536
 msgid "Your company address."
 msgstr "Adresse de votre entreprise."
 
-#: core/models.py:543
+#: core/models.py:538
 msgid "Country where HQ of the company are located."
 msgstr "Pays où se trouve la DG de l'entreprise."
 
-#: core/models.py:545
+#: core/models.py:540
 msgid "City where HQ of the company are located."
 msgstr "Ville où se trouve la DG de l'entreprise."
 
-#: core/models.py:547
+#: core/models.py:542
 msgid "Latitude of the Company location."
 msgstr "Latitude de l'emplacement de l'entreprise."
 
-#: core/models.py:549
+#: core/models.py:544
 msgid "Longitude of the Company location."
 msgstr "Longitude de l'emplacement de l'entreprise."
 
-#: core/models.py:551
+#: core/models.py:546
 msgid "Short description of your business <em>(150 chars max.)</em>."
 msgstr "Brève description de votre activité<em>(150 caractéres max)</em>."
 
-#: core/models.py:553
+#: core/models.py:548
 msgid "More detailed description of your business."
 msgstr "Description plus détaillée de votre activité."
 
-#: core/models.py:555
+#: core/models.py:550
 msgid "Your slogan <em>(60 chars max.)</em>."
 msgstr "Votre slogan<em>(60 caractéres max)</em>."
 
-#: core/models.py:557
+#: core/models.py:552
 msgid "Code of your currency. Eg: <strong>USD, GBP, EUR, XAF,</strong> ..."
 msgstr "Code de votre devise. Exple :<strong>US ,EURO, FCFA,GBP,</strong> ..."
 
-#: core/models.py:559
+#: core/models.py:554
 msgid "Symbol of your currency, Eg: <strong>$, £, €, XAF</strong>."
 msgstr "Symbole de votre devise, Ex :<strong>$, £, €, XAF</strong>."
 
-#: core/models.py:560
+#: core/models.py:555
 msgid "cash-out minimum"
 msgstr "retrait minimum"
 
-#: core/models.py:563 theming/templates/theming/configure_theme_base.html:42
+#: core/models.py:558 theming/templates/theming/configure_theme_base.html:42
 msgid "Your logo"
 msgstr "Votre logo"
 
-#: core/models.py:564
+#: core/models.py:559
 msgid ""
 "Image in <strong>PNG with transparent background</strong> is advised. "
 "(Maximum 400 x 400px)"
@@ -2647,7 +2655,7 @@ msgstr ""
 "Image dans <strong>PNG avec l'arriere-plan transparent</strong> est "
 "conseillée. (Maximum 400 x 400px)"
 
-#: core/models.py:567
+#: core/models.py:562
 msgid ""
 "Cover image used as decoration of company's profile page and also to use on "
 "top of the mails. (Max. 800px width)"
@@ -2655,60 +2663,59 @@ msgstr ""
 "Image de couverture utilisée comme décoration de la page de profil de la "
 "compagnie et également utilisé au dessus des courriers. (Max. 1000px witdth)"
 
-#: core/models.py:569
+#: core/models.py:564
 msgid "Mail signature"
 msgstr "Signature de mail"
 
-#: core/models.py:570
+#: core/models.py:565
 msgid "Signature on all mails. HTML allowed."
 msgstr "Signature sur tous les mails. HTML autorisé."
 
-#: core/models.py:571
-#, fuzzy
+#: core/models.py:566
 msgid "Invitation message"
-msgstr "Message de confirmation du paiement"
+msgstr "Message d'invitation"
 
-#: core/models.py:573
+#: core/models.py:568
 msgid "Welcome message"
 msgstr "Message de bienvenue"
 
-#: core/models.py:575
+#: core/models.py:570
 msgid "Contact email"
 msgstr "Adresse email"
 
-#: core/models.py:578
+#: core/models.py:573
 msgid "Main phone number for your customers to contact you."
 msgstr "Numéro de téléphone principal où vos clients pourront vous joindre."
 
-#: core/models.py:580
+#: core/models.py:575
 msgid "Facebook link. Eg: https://www.facebook.com/mywebsite"
 msgstr "Lien Facebook. Expl: https://www.facebook.com/mywebsite"
 
-#: core/models.py:582
+#: core/models.py:577
 msgid "Twitter link. Eg: https://www.twitter.com/mywebsite"
 msgstr "Lien Twitter. Exple :https/:/www.twitter.com/mywebsite"
 
-#: core/models.py:584
+#: core/models.py:579
 msgid "Google+ link. Eg: https://www.googleplus.com/mywebsite"
 msgstr "Lien Google+. Exple: https://www.googleplus.com/mywebsite"
 
-#: core/models.py:586
+#: core/models.py:581
 msgid "Youtube link. Eg: https://www.youtube.com/mywebsite"
 msgstr "Lien Youtube. Exple: https://www.youtube.com/mywebsite"
 
-#: core/models.py:588
+#: core/models.py:583
 msgid "Instagram link. Eg: https://www.instagram.com/mywebsite"
 msgstr "Lien Instagram. Exple: https://www.instagram.com/mywebsite"
 
-#: core/models.py:590
+#: core/models.py:585
 msgid "Tumblr link. Eg: https://www.tumblr.com/mywebsite"
 msgstr "Lien Tumblr. Exple: https://www.tumblr.com/mywebsite"
 
-#: core/models.py:592
+#: core/models.py:587
 msgid "LinkedIn link. Eg: https://www.linkedin.com/mywebsite"
 msgstr "Lien LinkedIn. Exple: https://www.linkedin.com/mywebsite"
 
-#: core/models.py:594
+#: core/models.py:589
 msgid ""
 "External scripts like <em>Google Analytics tracking code, Facebook Pixels</"
 "em>, etc. <br> Please refer to <a href='http://support.ikwen.com/tutorials/"
@@ -2720,7 +2727,7 @@ msgstr ""
 "support.ikwen.com/tutorials-scripts</a> pour avoir les instructions "
 "détaillées sur l'ajout des scripts externes à votre plate-forme."
 
-#: core/models.py:599
+#: core/models.py:594
 msgid ""
 "Check to allow <strong>PayPal Direct Checkout</strong> that lets user enter "
 "his bank card directly."
@@ -2728,11 +2735,11 @@ msgstr ""
 "Cochez afin de permettre le <strong>Paiement Direct PayPal</strong>qui "
 "permettra a l'utilisateur d'entrer directement sa carte bancaire."
 
-#: core/models.py:601
+#: core/models.py:596
 msgid "SMS Sending method"
 msgstr "Méthode d'envoi de SMS"
 
-#: core/models.py:603
+#: core/models.py:598
 msgid ""
 "Method used to send SMS from the platform. If <strong>Modem</strong>, SMS "
 "will be queued and later read by a modem from the remote url <em>/ikwen/"
@@ -2742,11 +2749,11 @@ msgstr ""
 "strong>,le SMS sera en attente et plus tard lu part le modem à partir de la "
 "télécommande url<em>/ikwen/get_queued_sms</em>et envoyé précisement."
 
-#: core/models.py:606
+#: core/models.py:601
 msgid "Script URL"
 msgstr "URL du script"
 
-#: core/models.py:607
+#: core/models.py:602
 msgid ""
 "Model of SMS script url with parameters values written as <strong>"
 "$parameter</strong>. They will be replaced when sending. Eg: <em>http://"
@@ -2762,11 +2769,11 @@ msgstr ""
 "$label</strong>&recipient_param=<strong>$recipient</"
 "strong>&text_param=<strong>$text</strong></em>"
 
-#: core/models.py:611
+#: core/models.py:606
 msgid "pro version"
 msgstr "version pro"
 
-#: core/models.py:612
+#: core/models.py:607
 msgid ""
 "Standard version uses <strong>ikwen</strong> payment accounts (PayPal, "
 "MobileMoney, BankCard, etc.) and collects user's money upon purchases. He "
@@ -2784,29 +2791,29 @@ msgstr ""
 "Personnel de Paiement (Personnel PayPal, Personnel Mobile Money,etc.)</"
 "li><li>"
 
-#: core/models.py:624
+#: core/models.py:619
 msgid "Configurations of the platform"
 msgstr "Configurations de la plateforme"
 
-#: core/views.py:405 core/appmodule/views.py:66 partnership/views.py:83
+#: core/views.py:411 core/appmodule/views.py:66 partnership/views.py:83
 #: theming/views.py:104
 msgid "successfully updated"
 msgstr "mis à jour avec succès"
 
-#: core/views.py:407
+#: core/views.py:413
 msgid "successfully created"
 msgstr "créé avec succès"
 
-#: core/views.py:681
+#: core/views.py:687
 msgid "Configuration successfully updated."
 msgstr "Configuration mise à jour avec succès."
 
-#: core/views.py:883 core/templates/core/invoice_detail.html:123
+#: core/views.py:889 core/templates/core/invoice_detail.html:123
 #: partnership/templates/partnership/dashboard.html:27
 msgid "Transactions"
 msgstr "Transactions"
 
-#: core/views.py:884
+#: core/views.py:890
 msgid "ARPT <i class=\"text-muted\">Avg. Eearning Per Transaction</i>"
 msgstr "GMPT <i class=\"text-muted\">Gain Moy. Par Transaction</i>"
 
@@ -2923,7 +2930,7 @@ msgstr "Configuration"
 msgid "Info & Billing"
 msgstr "Info et Facturation"
 
-#: core/templates/core/base_admin.html:204
+#: core/templates/core/base_admin.html:205
 msgid "Confirm deletion ?"
 msgstr "Confirmer l'annulation?"
 
@@ -3105,12 +3112,11 @@ msgstr "Renouveller"
 
 #: core/templates/core/service_detail.html:63
 msgid "No code"
-msgstr ""
+msgstr "Pas de code"
 
 #: core/templates/core/service_detail.html:64
-#, fuzzy
 msgid "Get it now"
-msgstr "Renseigner"
+msgstr "Obtenez-le maintenant"
 
 #: core/templates/core/service_detail.html:84
 msgid "Version"
@@ -3224,7 +3230,8 @@ msgid ""
 msgstr ""
 "\n"
 "\t\t<em>Le coût d'installation couvre <span class=\"setup-months-count\">"
-"%(setup_months_count)s</span> mois de service</em>"
+"%(setup_months_count)s</span> mois de service</em>\n"
+"\t\t"
 
 #: core/templates/core/cloud_setup/deploy.html:184
 msgid "Monthly Cost"
@@ -3288,7 +3295,8 @@ msgid ""
 msgstr ""
 "\n"
 "            Votre nom de domaine a été changé pour <em style=\"color: #888\">"
-"%(domain)s</em>"
+"%(domain)s</em>\n"
+"\t"
 
 #: core/templates/core/mails/domain_updated.html:13
 msgid "Visit your website"
@@ -3334,6 +3342,65 @@ msgstr "Payez maintenant"
 msgid "Thank you for your business with %(company_name)s."
 msgstr "Nous vous remercions d'être client chez %(company_name)s."
 
+#: core/templates/core/snippets/admin_home_change_domain.html:3
+msgid "Domain name"
+msgstr "Nom de domaine"
+
+#: core/templates/core/snippets/admin_home_change_domain.html:10
+#, python-format
+msgid ""
+"\n"
+"                Your website is actually running with the name <b>"
+"%(service_url)s</b>.<br>\n"
+"                You can change it to yourcompany.com, yourcompany.cm or "
+"whatever you want.\n"
+"                You have to buy a domain name and configure for this to "
+"work. Read this very simple tutorial on how to do that.\n"
+"                "
+msgstr ""
+"\n"
+"                                Votre site web existe maintenant sous le nom "
+"de <b>%(service_url)s</b>.<br>\n"
+"                                Vous pouvez le changer pour votreentreprise."
+"com, votreentreprise.cm ou n'importe lequel de votre choix.\n"
+"                                Vous devez acheter un nom de domaine et "
+"configurer pour que ça marche. Lisez ce simple tutoriel sur comment le "
+"faire.\n"
+"                                "
+
+#: core/templates/core/snippets/admin_home_change_domain.html:20
+msgid "Type"
+msgstr "Type"
+
+#: core/templates/core/snippets/admin_home_change_domain.html:22
+msgid "Main domain"
+msgstr "Domaine principal"
+
+#: core/templates/core/snippets/admin_home_change_domain.html:23
+msgid "Subdomain"
+msgstr "Sous-domaine"
+
+#: core/templates/core/snippets/admin_home_change_domain.html:27
+msgid "New domain name"
+msgstr "Nouveau nom de domaine"
+
+#: core/templates/core/snippets/admin_home_change_domain.html:29
+#: core/templates/core/snippets/admin_home_change_domain.html:39
+msgid "Ex: yourcompany.cm"
+msgstr "Ex: votrentreprise.cm"
+
+#: core/templates/core/snippets/admin_home_change_domain.html:31
+msgid "Set new domain"
+msgstr "Mettre un nouveau domaine"
+
+#: core/templates/core/snippets/admin_home_change_domain.html:43
+msgid "Ex: shop.yourcompany.cm"
+msgstr "Ex: shop.votrentreprise.cm"
+
+#: core/templates/core/snippets/admin_home_change_domain.html:52
+msgid "Your domain name was successfully updated."
+msgstr "Votre nom de domaine a été mises à jour avec succès."
+
 #: core/templates/core/snippets/admin_tools.html:27
 msgid "Filters"
 msgstr "Filtres"
@@ -3375,13 +3442,13 @@ msgid "View your invoices"
 msgstr "Voir ses factures"
 
 #: core/templates/core/snippets/uploader_single.html:4
-#, fuzzy, python-format
+#, python-format
 msgid "Upload %(image_field_name)s"
-msgstr "Uploader une image"
+msgstr "Upload %(image_field_name)s"
 
 #: core/templates/core/snippets/uploader_single.html:18
 msgid "Delete image"
-msgstr "Supprimerl''image"
+msgstr "Supprimer l'image"
 
 #: core/templates/core/snippets/uploader_single.html:32
 msgid "Upload image"
@@ -3413,17 +3480,18 @@ msgid ""
 "Example: 'flatpages/contact_page.html'. If this isn't provided, the system "
 "will use 'flatpages/default.html'."
 msgstr ""
-"Exemple:'flatpages/contact_page.html'. Si ce n'est pas re,seigné, le système "
+"Exemple:'flatpages/contact_page.html'. Si ce n'est pas renseigné, le système "
 "utilisera 'flatpages/default.html'."
 
 #: flatpages/models.py:16
 msgid "registration required"
-msgstr "Authentification requise"
+msgstr "authentification requise"
 
 #: flatpages/models.py:17
 msgid "If this is checked, only logged-in users will be able to view the page."
 msgstr ""
-"Si c'est coché, seul l'utilisateur connecté sera à même de voir la page."
+"Si c'est coché, seul les utilisateurs connectés seront à même de voir la "
+"page."
 
 #: flatpages/models.py:22
 msgid "flat page"
@@ -3520,7 +3588,7 @@ msgstr "Blog"
 
 #: partnership/templates/core/app_base_admin.html:55
 msgid "Blog categories"
-msgstr "Catégories Blog"
+msgstr "Catégories du Blog"
 
 #: partnership/templates/core/app_base_admin.html:58
 msgid "Posts"
@@ -3531,18 +3599,17 @@ msgid "Comments"
 msgstr "Commentaires"
 
 #: partnership/templates/partnership/admin_home.html:25
-#, fuzzy, python-format
+#, python-format
 msgid "Welcome %(name)s"
-msgstr "Message de bienvenue"
+msgstr "Bienvenue %(name)s"
 
 #: partnership/templates/partnership/admin_home.html:29
 msgid "Get a new customer on ikwen Tsunami today"
 msgstr ""
 
 #: partnership/templates/partnership/admin_home.html:31
-#, fuzzy
 msgid "Deploy"
-msgstr "Déployer en Cloud"
+msgstr "Déployer"
 
 #: partnership/templates/partnership/admin_home.html:34
 msgid "Recent deployments"
@@ -3557,9 +3624,8 @@ msgid "Bundle"
 msgstr ""
 
 #: partnership/templates/partnership/admin_home.html:55
-#, fuzzy
 msgid "Website preview"
-msgstr "Information du site web"
+msgstr "Aperçu du site web"
 
 #: partnership/templates/partnership/admin_home.html:56
 #, fuzzy
@@ -3574,9 +3640,8 @@ msgstr ""
 "partageant et  gagner plus de %(referral_coupon_count)s coupons gratuits."
 
 #: partnership/templates/partnership/admin_home.html:62
-#, fuzzy
 msgid "Recent cash-out"
-msgstr "Demander un retrait"
+msgstr "Retraits récents"
 
 #: partnership/templates/partnership/application_list.html:5
 #: partnership/templates/partnership/application_list.html:14
@@ -3630,34 +3695,25 @@ msgstr "Relancer tous les N jours"
 
 #: revival/revival_report_cron.py:75
 msgid "No customer revived. Take decisive action"
-msgstr ""
+msgstr "Aucun client relancé. Prenez une mesure sérieuse"
 
 #: revival/revival_report_cron.py:77
 #, python-format
 msgid "%d people revived. See details"
-msgstr ""
+msgstr "%d personnes relancées. Voir les détails"
 
-#: revival/utils.py:47
-#, fuzzy
-msgid "Join us on ikwen and earn free coupons."
-msgstr "Invitez vos amis sur %s et gagnez des coupons gratuits."
-
-#: revival/utils.py:49
-msgid "Join our community on ikwen."
-msgstr ""
-
-#: revival/utils.py:65
+#: revival/utils.py:68
 #, python-format
 msgid "Invite your friends on %s and earn free coupons."
 msgstr "Invitez vos amis sur %s et gagnez des coupons gratuits."
 
-#: revival/utils.py:94
-msgid "Secure your business by staying close to your customers"
-msgstr ""
-
 #: revival/utils.py:97
+msgid "Secure your business by staying close to your customers"
+msgstr "Sécurisez votre business en vous rapprochant de vos clients"
+
+#: revival/utils.py:100
 msgid "Decide on your turnover"
-msgstr ""
+msgstr "Décidez sur votre chiffre d'affaire"
 
 #: revival/views.py:156
 msgid "Successful update"
@@ -3756,7 +3812,7 @@ msgstr "Veuillez revérifier et confirmer"
 
 #: revival/templates/revival/change_profile_tag.html:246
 msgid "Your revival will be run <span class=\"run-every\"></span>."
-msgstr "Votre relance se fera  <span class=\"run-every\"></span>. "
+msgstr "Votre relance se fera  <span class=\"run-every\"></span>."
 
 #: revival/templates/revival/change_profile_tag.html:296
 msgid "Confirm & submit"
@@ -3811,9 +3867,8 @@ msgid "Your tests were sent"
 msgstr "Vos tests ont été envoyés"
 
 #: revival/templates/revival/profile_tag_list.html:39
-#, fuzzy
 msgid "Add new profile"
-msgstr "Nouvel ajout "
+msgstr "Ajouter un nouveau profil"
 
 #: revival/templates/revival/profile_tag_list.html:68
 #: revival/templates/revival/profile_tag_list.html:94
@@ -3822,11 +3877,11 @@ msgstr "Éditer l'article"
 
 #: templates/500.html:26
 msgid "Something went wrong ..."
-msgstr ""
+msgstr "Une erreur s'est produite..."
 
 #: templates/500.html:28
 msgid "Let's try again"
-msgstr ""
+msgstr "Essayez encore"
 
 #: templates/admin/base.html:30
 msgid "Welcome,"
@@ -3895,13 +3950,724 @@ msgid "Upload Logo"
 msgstr "Uploader le logo"
 
 #: theming/templates/theming/theme_list.html:34
-#, fuzzy
 msgid "Choose your favorite theme"
-msgstr "Choisir un thème"
+msgstr "Choisir votre thème favori"
 
 #: theming/templates/theming/theme_list.html:48
 msgid "Preview"
-msgstr ""
+msgstr "Aperçu"
+
+#~ msgid "Transaction log"
+#~ msgstr "Log de transactions"
+
+#~ msgid "Your coupons were approved"
+#~ msgstr "Vos coupons ont été approuvés"
+
+#~ msgid "Your coupons were rejected"
+#~ msgstr "Vos coupons ont été annulés"
+
+#~ msgid "Continuous Rewarding Program for %s"
+#~ msgstr "Le programme Continuous Rewarding pour %s"
+
+#~ msgid "Discount"
+#~ msgstr "Remise"
+
+#~ msgid "Purchase Order"
+#~ msgstr "Payer la Commande"
+
+#~ msgid "Gift"
+#~ msgstr "Cadeau"
+
+#~ msgid "Pending for approval"
+#~ msgstr "En attente de confirmation"
+
+#~ msgid "Approved"
+#~ msgstr "Accepté"
+
+#~ msgid "Rejected"
+#~ msgstr "Annulé"
+
+#~ msgid "Name of the coupon"
+#~ msgstr "Nom du coupon"
+
+#~ msgid "How many people must win in the current month."
+#~ msgstr "Combien de personnes peuvent gagner ce mois."
+
+#~ msgid "How many winners there have been since the 1st of the month."
+#~ msgstr "Combien de gagnants y-a t-il eu depuis le premier mois."
+
+#~ msgid "Continuous Rewarding: %s plan."
+#~ msgstr "Continuous Rewarding: %s plan."
+
+#~ msgid "%d free coupons are waiting for you"
+#~ msgstr "%d coupons gratuits sont en attentes pour vous"
+
+#~ msgid "Your Continuous Rewarding program is now active."
+#~ msgstr "Votre programme de Continuous Rewarding est désormais activé."
+
+#~ msgid "Your Billing Plan was changed to %s."
+#~ msgstr "Votre plan tarifaire a changé pour %s."
+
+#~ msgid "New Card"
+#~ msgstr "Nouvelle Carte"
+
+#~ msgid "New Coupon"
+#~ msgstr "Nouveau Coupon"
+
+#~ msgid "Free winners"
+#~ msgstr "Gagnants"
+
+#~ msgid "No winner for now"
+#~ msgstr "Aucun gagnant pour l'instant"
+
+#~ msgid ""
+#~ "\n"
+#~ "                            <em class=\"text-muted\">You must set a "
+#~ "<b>Month quota</b> bigger than 0.</em>\n"
+#~ "                            <a class=\"set-month-quota\" href="
+#~ "\"javascript:;\">Set now</a>\n"
+#~ "                        "
+#~ msgstr ""
+#~ "\n"
+#~ "                            <em class=\"text-muted\">Vous devez "
+#~ "renseigner un <b>quota Mensuel</b> supérieur à 0.</em>\n"
+#~ "                            <a class=\"set-month-quota\" href="
+#~ "\"javascript:;\">Activez  maintenant</a>\n"
+#~ "                        "
+
+#~ msgid ""
+#~ "\n"
+#~ "                                    You are using the Free Plan that is "
+#~ "limited to 500 customer revivals per month.\n"
+#~ "                                    Activate Pro Plan and move to 2000 "
+#~ "and more.\n"
+#~ "                                "
+#~ msgstr ""
+#~ "\n"
+#~ "                                    Vous utilisez un plan tarifaire "
+#~ "gratuit qui est limité 500 relances clientes par mois\t.\n"
+#~ "                                   Activez le Plan Plan pour avoir 2000 "
+#~ "et plus.\n"
+#~ "                                "
+
+#~ msgid "Activate Pro Plan"
+#~ msgstr "Activez Plan Pro"
+
+#~ msgid "Current Plan"
+#~ msgstr "Plan tarifaire actuel"
+
+#~ msgid "People hit"
+#~ msgstr "Nombre de personnes à atteindre"
+
+#~ msgid ""
+#~ "\n"
+#~ "                                        Up to %(size)s\n"
+#~ "                                    "
+#~ msgstr ""
+#~ "\n"
+#~ "                                        Jusqu'à %(size)s\n"
+#~ "                                    "
+
+#~ msgid "SMS Push"
+#~ msgstr "Crédit SMS"
+
+#~ msgid ""
+#~ "If SMS is active, your customer will also receive reward notice by SMS"
+#~ msgstr ""
+#~ "Si vous avez du crédit SMS, vos clients recevront une récompense par SMS"
+
+#~ msgid "Auto-renew"
+#~ msgstr "Renouvellement automatique"
+
+#~ msgid "Your plan"
+#~ msgstr "Votre plan"
+
+#~ msgid ""
+#~ "\n"
+#~ "                                                Up to %(size)s\n"
+#~ "                                            "
+#~ msgstr ""
+#~ "\n"
+#~ "                                        Jusqu'à %(size)s\n"
+#~ "                                    "
+
+#~ msgid "Your customers will also receive reward notice by SMS"
+#~ msgstr "Vos clients recevront aussi une notification de récompense par SMS"
+
+#~ msgid "<strong>Auto renew</strong>"
+#~ msgstr "<strong>Renouvellement automatique</strong>"
+
+#~ msgid "Delete Coupon"
+#~ msgstr "Supprimer Coupon"
+
+#~ msgid ""
+#~ "\n"
+#~ "                                    Coupon are rewards that your fans and "
+#~ "customers must collect to get a\n"
+#~ "                                    real advantage from you. There are 3 "
+#~ "types of coupons you can create:\n"
+#~ "                                "
+#~ msgstr ""
+#~ "\n"
+#~ "                                    Les Coupons sont des récompenses que "
+#~ "vos fans et clients devront collecter pour avoir un:\n"
+#~ "                                    réel avantage de vous. Il existe 3 "
+#~ "types de coupons qu'on peut créer:\n"
+#~ "\t\t\t\t"
+
+#~ msgid ""
+#~ "\n"
+#~ "                                    <li>Discount (Eg: -5%%, -10%%, etc.)</"
+#~ "li>\n"
+#~ "                                    <li>Gift (Whatever item you are "
+#~ "selling. Eg: A T-Shirt, A lotion, etc.)</li>\n"
+#~ "                                    <li>Purchase Order (An amount to be "
+#~ "spent in your store)</li>\n"
+#~ "                                "
+#~ msgstr ""
+#~ "\n"
+#~ "                                    <li>Remise (Eg: -5%%, -10%%, etc.)</"
+#~ "li>\n"
+#~ "                                    <li>Cadeau (N'importe quel article "
+#~ "que vous vendez. Eg: Un T-Shirt, Une huile, etc.)</li>\n"
+#~ "                                    <li>Payement de Commande (Un montant "
+#~ "a dépensé dans votre boutique)</li>\n"
+#~ "                                "
+
+#~ msgid ""
+#~ "\n"
+#~ "                                    Read more about coupons on\n"
+#~ "                                    <a href=\"http://support.ikwen.com/"
+#~ "rewarding/coupons\">http://support.ikwen.com/rewarding/coupons</a>\n"
+#~ "                                "
+#~ msgstr ""
+#~ "\n"
+#~ "                                   En savoir plus sur les coupons sur\n"
+#~ "                                    <a href=\"http://support.ikwen.com/"
+#~ "rewarding/coupons\">http://support.ikwen.com/rewarding/coupons</a>\n"
+#~ "                                "
+
+#~ msgid "Add new coupon"
+#~ msgstr "Ajouter un nouveau coupon"
+
+#~ msgid "Rewards"
+#~ msgstr "Récompenses"
+
+#~ msgid "Join Reward"
+#~ msgstr "Récompense de Join"
+
+#~ msgid "Referral Reward"
+#~ msgstr "Récompense de Join par lien référentiel"
+
+#~ msgid "Payment Reward"
+#~ msgstr "Récompense de payement"
+
+#~ msgid ""
+#~ "\n"
+#~ "                                        Configure how many of each coupon "
+#~ "members earn\n"
+#~ "                                        for joining your community.\n"
+#~ "                                        <a href=\"http://support.ikwen."
+#~ "com/rewarding/join-reward\">Read more</a>\n"
+#~ "                                    "
+#~ msgstr ""
+#~ "\n"
+#~ "                                        Configurez pour chaque coupon, le "
+#~ "nombre que les membres peuvent gagner \n"
+#~ "                                        pour avoir rejoint votre "
+#~ "communauté.\n"
+#~ "                                        <a href=\"http://support.ikwen."
+#~ "com/rewarding/join-reward\">En savoir plus</a>\n"
+#~ "                                    "
+
+#~ msgid ""
+#~ "\n"
+#~ "                                        Configure how many of each coupon "
+#~ "members earn for getting\n"
+#~ "                                        a member to join your community "
+#~ "through his referral link.\n"
+#~ "                                        <a href=\"http://support.ikwen."
+#~ "com/rewarding/referral-reward\">Read more</a>\n"
+#~ "                                    "
+#~ msgstr ""
+#~ "\n"
+#~ "                                       Configurez pour chaque coupon, le "
+#~ "nombre que les membres reçoivent lorsque\n"
+#~ "                                        quelqu'un rejoint votre "
+#~ "communauté par son lien référentiel.\n"
+#~ "                                        <a href=\"http://support.ikwen."
+#~ "com/rewarding/referral-reward\">En savoir plus</a>\n"
+#~ "                                    "
+
+#~ msgid ""
+#~ "\n"
+#~ "                                        Configure how many of each coupon "
+#~ "members earn when\n"
+#~ "                                        they buy a certain amount from "
+#~ "you, be it online or cash.\n"
+#~ "                                        <a href=\"http://support.ikwen."
+#~ "com/rewarding/payment-reward\">Read more</a>\n"
+#~ "                                    "
+#~ msgstr ""
+#~ "\n"
+#~ "                                        Configurez pour chaque coupon, le "
+#~ "nombre que peuvent gagner les membres\n"
+#~ "                                        pour avoir fait des achats d'une "
+#~ "certaine somme chez vous, que ce soit en ligne ou sur place.\n"
+#~ "                                        <a href=\"http://support.ikwen."
+#~ "com/rewarding/payment-reward\">En savoir plus</a>\n"
+#~ "                                    "
+
+#~ msgid "From"
+#~ msgstr "De"
+
+#~ msgid "To"
+#~ msgstr "À"
+
+#~ msgid "Add interval"
+#~ msgstr "Ajoutez un interval"
+
+#~ msgid ""
+#~ "\n"
+#~ "                                Continuous rewarding is an automated "
+#~ "system that lets you attract customers\n"
+#~ "                                and keep them engaged by continuously "
+#~ "offering them free coupons.\n"
+#~ "                                They need to collect 100 of any coupon to "
+#~ "obtain the gift stated by\n"
+#~ "                                the Coupon.\n"
+#~ "                            "
+#~ msgstr ""
+#~ "\n"
+#~ "                                Continuous rewarding est un système "
+#~ "automatique qui vous permet d'attirer les clients\n"
+#~ "                                et les conserver engagés en offrant "
+#~ "continuellement des coupons gratuits.\n"
+#~ "                              \tIls ont besoin d'en collectionner 100 de "
+#~ "n'importe quel type pour recevoir le cadeau prévu par le\n"
+#~ "                               Coupon.\n"
+#~ "                            "
+
+#~ msgid ""
+#~ "\n"
+#~ "                                Visit <a href=\"http://blog.ikwen.com/"
+#~ "continuous-rewarding\">blog.ikwen.com/continuous-rewarding</a>\n"
+#~ "                                to know more.\n"
+#~ "                            "
+#~ msgstr ""
+#~ "\n"
+#~ "                                Visitez <a href=\"http://blog.ikwen.com/"
+#~ "continuous-rewarding\">blog.ikwen.com/continuous-rewarding</a>\n"
+#~ "                                pour en savoir plus.\n"
+#~ "                            "
+
+#~ msgid "Get Started"
+#~ msgstr "Lancez-vous"
+
+#~ msgid ""
+#~ "\n"
+#~ "                            By activating this program, you agree our\n"
+#~ "                            <a href=\"http://ikwen.com/cr-terms-and-"
+#~ "conditions\">Continuous Rewarding Terms and Conditions</a>.\n"
+#~ "                        "
+#~ msgstr ""
+#~ "\n"
+#~ "                        En activant ce programme, vous acceptez nos\n"
+#~ "                        <a href=\"http://ikwen.com/cr-terms-and-conditions"
+#~ "\"> Termes et Conditions du Continuous Rewarding</a>\n"
+#~ "\t\t"
+
+#~ msgid "Reward packs successfully saved"
+#~ msgstr "Packs de récompense enregistrés avec succès"
+
+#~ msgid "Pushes"
+#~ msgstr "Pushes"
+
+#~ msgid "Sent"
+#~ msgstr "Envoyé"
+
+#~ msgid "Views"
+#~ msgstr "Vues"
+
+#~ msgid "By Mail"
+#~ msgstr "Par Mail"
+
+#~ msgid "By SMS"
+#~ msgstr "Par SMS"
+
+#~ msgid "Activate SMS"
+#~ msgstr "Activer SMS"
+
+#~ msgid "ACPP"
+#~ msgstr "MCCP"
+
+#~ msgid "Avg. Card Per Push"
+#~ msgstr "Moy. Carte Par Push"
+
+#~ msgid "Discounts"
+#~ msgstr "Remises"
+
+#~ msgid "Purchase Orders"
+#~ msgstr "Commandez des achats"
+
+#~ msgid "Gifts"
+#~ msgstr "Cadeaux"
+
+#~ msgid "Week"
+#~ msgstr "Semaine"
+
+#~ msgid "Payment reward pack"
+#~ msgstr "Pack de récompense de payement"
+
+#~ msgid ""
+#~ "\n"
+#~ "            Hey! You just earned %(total_coupon)s coupons for your "
+#~ "payment of %(currency_symbol)s %(amount_paid)s.\n"
+#~ "            Collect 100 of any and exchange them for the equivalent.\n"
+#~ "        "
+#~ msgstr ""
+#~ "\n"
+#~ "            Salut! Vous avez gagné %(total_coupon)s coupons pour votre "
+#~ "payement de %(amount_paid)s %(currency_symbol)s.\n"
+#~ "          Collectez-en 100 et échangez les contre le cadeau équivalent.\n"
+#~ "        "
+
+#~ msgid "View your coupons"
+#~ msgstr "Voir ses coupons"
+
+#~ msgid "Payment reward"
+#~ msgstr "Récompense de payement"
+
+#~ msgid "Free reward"
+#~ msgstr "Récompense gratuite"
+
+#~ msgid ""
+#~ "\n"
+#~ "                Hey! You just earned %(total_coupon)s free coupons. "
+#~ "Collect 100 of any\n"
+#~ "                and exchange them for the equivalent.\n"
+#~ "            "
+#~ msgstr ""
+#~ "\n"
+#~ "               Salut! Vous avez gagné %(total_coupon)s coupons gratuits. "
+#~ "Collectez-en 100 \n"
+#~ "                et échangez les contre le cadeau équivalent.\n"
+#~ "            "
+
+#~ msgid "You have some free rewards on ikwen !"
+#~ msgstr "Vous avez des cadeaux gratuits sur ikwen !"
+
+#~ msgid " Découvrez %(application_name)s "
+#~ msgstr " Découvrez %(application_name)s "
+
+#~ msgid "En savoir plus"
+#~ msgstr "En savoir plus"
+
+#~ msgid "All Rights Reserved."
+#~ msgstr "Tous droits réservés."
+
+#~ msgid "Your order is ready"
+#~ msgstr "Votre commande est prête"
+
+#~ msgid ""
+#~ " Votre commande est disponible sous le RCC : <span style=\"-ms-text-size-"
+#~ "adjust:100%%;-webkit-text-size-adjust:100%%;color:#f28632;\" ><strong "
+#~ "style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;\" >"
+#~ "%(rcc)s</strong><br style=\"-ms-text-size-adjust:100%%;-webkit-text-size-"
+#~ "adjust:100%%;\" ></span>\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t<span style=\"-ms-text-size-adjust:100%%;-"
+#~ "webkit-text-size-adjust:100%%;text-decoration:underline;\" >Détails de la "
+#~ "commande :</span> <br style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t%(items_count)s, item(s) pour un coût total "
+#~ "de<br style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;"
+#~ "\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t  \t\t\t%(price_total)s XAF. "
+#~ msgstr ""
+#~ " Votre commande est disponible sous le RCC : <span style=\"-ms-text-size-"
+#~ "adjust:100%%;-webkit-text-size-adjust:100%%;color:#f28632;\" ><strong "
+#~ "style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;\" >"
+#~ "%(rcc)s</strong><br style=\"-ms-text-size-adjust:100%%;-webkit-text-size-"
+#~ "adjust:100%%;\" ></span>\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t<span style=\"-ms-text-size-adjust:100%%;-"
+#~ "webkit-text-size-adjust:100%%;text-decoration:underline;\" >Détails de la "
+#~ "commande :</span> <br style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t%(items_count)s, item(s) pour un coût total "
+#~ "de<br style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;"
+#~ "\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t  \t\t\t%(price_total)s XAF. "
+
+#~ msgid "Commande détaillée"
+#~ msgstr "Commande détaillée"
+
+#~ msgid "Price"
+#~ msgstr "Prix"
+
+#~ msgid "Quantity"
+#~ msgstr "Quantité"
+
+#~ msgid "Subtotal"
+#~ msgstr "Sous-total"
+
+#~ msgid "Merci pour votre achat et à très bientôt."
+#~ msgstr "Merci pour votre achat et à très bientôt."
+
+#~ msgid "Claim your reward!"
+#~ msgstr "Réclamez votre récompense !"
+
+#~ msgid ""
+#~ "\n"
+#~ "                                                    You just won <span "
+#~ "style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;color:"
+#~ "#f28632;\" >%(coupon_count)s coupons %(project_name)s</span>\n"
+#~ "                                                    "
+#~ msgstr ""
+#~ "\n"
+#~ "                                                    Vous venez de gagner "
+#~ "<span style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;"
+#~ "color:#f28632;\" >%(coupon_count)s coupons %(project_name)s</span>\n"
+#~ "                                                    "
+
+#~ msgid " %(project_name)s community "
+#~ msgstr " Communauté %(project_name)s "
+
+#~ msgid ""
+#~ " Cher %(buyer_name)s, <br style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t  Suite à votre achat en ligne sur <a href=\"http://"
+#~ "www.tchopetyamo.com\" style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;text-decoration:none;\" >%(site_url)s</a>, vous avez "
+#~ "gagné %(coupon_count)s coupons. Collectionnez-en 100 pour les échanger "
+#~ "chez %(project_name)s contre le lot équivalent. Cliquez sur vos cadeaux "
+#~ "pour les récupérer !<br style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;\" > "
+#~ msgstr ""
+#~ " Cher %(buyer_name)s, <br style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t  Suite à votre achat en ligne sur <a href=\"http://"
+#~ "www.tchopetyamo.com\" style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;text-decoration:none;\" >%(site_url)s</a>, vous avez "
+#~ "gagné %(coupon_count)s coupons. Collectionnez-en 100 pour les échanger "
+#~ "chez %(project_name)s contre le lot équivalent. Cliquez sur vos cadeaux "
+#~ "pour les récupérer !<br style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;\" > "
+
+#~ msgid ""
+#~ "\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\tVotre commande est disponible sous le RCC : "
+#~ "<strong style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;"
+#~ "\" >%(rcc)s</strong><br style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t<span style=\"-ms-text-size-adjust:100%%;-"
+#~ "webkit-text-size-adjust:100%%;text-decoration:underline;\" >Détails de la "
+#~ "commande :</span> <br style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t%(items_count)s, item(s) pour un coût total "
+#~ "de<br style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;"
+#~ "\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t  \t\t\t%(price_total)s XAF.<br style=\"-ms-text-size-"
+#~ "adjust:100%%;-webkit-text-size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t<br style=\"-ms-text-size-adjust:100%%;-webkit-"
+#~ "text-size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t<strong style=\"-ms-text-size-adjust:100%%;-"
+#~ "webkit-text-size-adjust:100%%;text-decoration:underline;\" >Commande "
+#~ "détaillée</strong> "
+#~ msgstr ""
+#~ "\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\tVotre commande est disponible sous le RCC : "
+#~ "<strong style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;"
+#~ "\" >%(rcc)s</strong><br style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t<span style=\"-ms-text-size-adjust:100%%;-"
+#~ "webkit-text-size-adjust:100%%;text-decoration:underline;\" >Détails de la "
+#~ "commande :</span> <br style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t%(items_count)s, item(s) pour un coût total "
+#~ "de<br style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;"
+#~ "\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t  \t\t\t%(price_total)s XAF.<br style=\"-ms-text-size-"
+#~ "adjust:100%%;-webkit-text-size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t<br style=\"-ms-text-size-adjust:100%%;-webkit-"
+#~ "text-size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t<strong style=\"-ms-text-size-adjust:100%%;-"
+#~ "webkit-text-size-adjust:100%%;text-decoration:underline;\" >Commande "
+#~ "détaillée</strong> "
+
+#~ msgid "Merci pour votre achat et à trés bientôt."
+#~ msgstr "Merci pour votre achat et à trés bientôt."
+
+#~ msgid ""
+#~ "\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t  Collectionnez un maximum de coupons grâce aux "
+#~ "achats en ligne. <br style=\"-ms-text-size-adjust:100%%;-webkit-text-size-"
+#~ "adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t  Rendez-vous sur <a href=\"http://www.tchopetyamo."
+#~ "com\" style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;"
+#~ "text-decoration:none;\" >%(site_url)s</a>\n"
+#~ "\t\t\t\t\t\t\t\t\t\t  "
+#~ msgstr ""
+#~ "\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t  Collectionnez un maximum de coupons grâce aux "
+#~ "achats en ligne. <br style=\"-ms-text-size-adjust:100%%;-webkit-text-size-"
+#~ "adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t  Rendez-vous sur <a href=\"http://www.tchopetyamo."
+#~ "com\" style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;"
+#~ "text-decoration:none;\" >%(site_url)s</a>\n"
+#~ "\t\t\t\t\t\t\t\t\t\t  "
+
+#~ msgid ""
+#~ "\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\tWelcome to <span style=\"-ms-text-size-"
+#~ "adjust:100%%;-webkit-text-size-adjust:100%%;color:#f28632;\" >"
+#~ "%(project_name)s</span> community\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t"
+#~ msgstr ""
+#~ "\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\tBienvenu dans la communauté <span style=\"-ms-"
+#~ "text-size-adjust:100%%;-webkit-text-size-adjust:100%%;color:#f28632;\" >"
+#~ "%(project_name)s</span>\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t"
+
+#~ msgid " You've been added to %(project_name)s community "
+#~ msgstr " Vous avez ajouté dans la communauté %(project_name)s "
+
+#~ msgid ""
+#~ "Profitez chaque jour de tarifs préférentiels, de cadeaux exceptionnels et "
+#~ "plus encore."
+#~ msgstr ""
+#~ "Profitez chaque jour de tarifs préférentiels, de cadeaux exceptionnels et "
+#~ "plus encore."
+
+#~ msgid "Welcome to our Community"
+#~ msgstr "Bienvenue dans notre Communauté"
+
+#~ msgid "Welcome to our community"
+#~ msgstr "Bienvenue dans notre Communauté"
+
+#~ msgid ""
+#~ "\n"
+#~ "                                                    Welcome to <span "
+#~ "style=\"-ms-text-size-adjust:100%%;-webkit-text-size-adjust:100%%;color:"
+#~ "#f28632;\" >%(project_name)s</span> community\n"
+#~ "                                                    "
+#~ msgstr ""
+#~ "\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\tBienvenu dans la communauté <span style=\"-ms-"
+#~ "text-size-adjust:100%%;-webkit-text-size-adjust:100%%;color:#f28632;\" >"
+#~ "%(project_name)s</span>\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\t\t"
+
+#~ msgid "Great things are waiting for you !"
+#~ msgstr "De grandes choses vous attendent !"
+
+#~ msgid ""
+#~ "\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t  Profitez chaque jour de coupons à collectionner "
+#~ "offerts gratuitement.<br style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\tCollectionnez-les pour bénéficier d'offres "
+#~ "promotionelles, de tarifs préférentiels,\n"
+#~ "                                                    de cadeaux "
+#~ "exceptionnels et plus encore. Cliquez sur votre cadeau de bienvenue pour "
+#~ "le récupérer... <br style=\"-ms-text-size-adjust:100%%;-webkit-text-size-"
+#~ "adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t  "
+#~ msgstr ""
+#~ "\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t  Profitez chaque jour de coupons à collectionner "
+#~ "offerts gratuitement.<br style=\"-ms-text-size-adjust:100%%;-webkit-text-"
+#~ "size-adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t\tCollectionnez-les pour bénéficier d'offres "
+#~ "promotionelles, de tarifs préférentiels,\n"
+#~ "                                                    de cadeaux "
+#~ "exceptionnels et plus encore. Cliquez sur votre cadeau de bienvenue pour "
+#~ "le récupérer... <br style=\"-ms-text-size-adjust:100%%;-webkit-text-size-"
+#~ "adjust:100%%;\" >\n"
+#~ "\t\t\t\t\t\t\t\t\t\t\t  "
+
+#~ msgid "How to collect coupons ?"
+#~ msgstr "Comment collecter les coupons ?"
+
+#~ msgid "There a 3 ways of collecting coupons :"
+#~ msgstr "Il existe 3 moyens pour collecter des coupons :"
+
+#~ msgid "Buy online"
+#~ msgstr "Acheter en ligne"
+
+#~ msgid "Join a community"
+#~ msgstr "Rejoignez une communauté"
+
+#~ msgid "Visit companies websites very often"
+#~ msgstr "Visitez les sites web d'entreprises régulièrement"
+
+#~ msgid "All your actions are rewarded."
+#~ msgstr "Tous vos actions sont récompensés."
+
+#~ msgid "How to collect my earnings ?"
+#~ msgstr "Comment collecter mes avoirs ?"
+
+#~ msgid "Congratulations"
+#~ msgstr "Félicitations"
+
+#~ msgid ""
+#~ "\n"
+#~ "                    You have collected 100 coupons and can enjoy your "
+#~ "reward now. To do so,\n"
+#~ "                    go to our online store, contact us or come to our "
+#~ "place."
+#~ msgstr ""
+#~ "\n"
+#~ "                    Vous avez collecté 100 coupons et vous bénéficiez "
+#~ "d'une récompense maintenant. Pour ce faire,\n"
+#~ "                    allez sur notre boutique en ligne, contactez nous ou "
+#~ "venez sur place."
+
+#~ msgid "Share on WhatsApp"
+#~ msgstr "Partager sur WhatsApp"
+
+#~ msgid ""
+#~ "Hey! Join %(profile_name)s on ikwen and get some free gifts. I just did "
+#~ "it. It works !"
+#~ msgstr ""
+#~ "Salut! Rejoignez %(profile_name)s sur ikwen et recevez des cadeaux "
+#~ "gratuits. Je l'ai fait. Et ça marche !"
+
+#~ msgid ""
+#~ "\n"
+#~ "                        <p>Please login before you refer a friend. And be "
+#~ "sure you receive your reward</p>\n"
+#~ "                    "
+#~ msgstr ""
+#~ "\n"
+#~ "                        <p>Veuillez vous identifier avant de faire "
+#~ "référence à un(e) ami(e). Et vérifiez que vous avez reçu votre "
+#~ "récompense</p>\n"
+#~ "                    "
+
+#~ msgid ""
+#~ "\n"
+#~ "                        <h3 style=\"\">Share now !</h3>\n"
+#~ "                        <p>And get your reward</p>\n"
+#~ "                    "
+#~ msgstr ""
+#~ "\n"
+#~ "                        <h3 style=\"\">Partagez maintenant !</h3>\n"
+#~ "                        <p>Et faites-vous récompenser</p>\n"
+#~ "                    "
+
+#~ msgid ""
+#~ "\n"
+#~ "        <strong>%(profile_name)s has some free coupons for you.</strong>\n"
+#~ "        To collect them, join %(profile_name)s on ikwen today.\n"
+#~ "    "
+#~ msgstr ""
+#~ "\n"
+#~ "        <strong>%(profile_name)s a des coupons gratuits pour vous.</"
+#~ "strong>\n"
+#~ "        Pour les collecter, veuillez rejoindre %(profile_name)s sur ikwen "
+#~ "aujourd'hui.\n"
+#~ "    "
 
 #~ msgid "Rediscover %s"
 #~ msgstr "Redécouvir %s"
@@ -3950,9 +4716,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Salut %(iao_name)s,<br><br>%(member_name)s demande à vous joindre sur <br>"
 #~ "%(project_name)s</b>.<br><br>"
-
-#~ msgid "View"
-#~ msgstr "Voir"
 
 #~ msgid ""
 #~ "Dear %(member_name)s,<br><br>This is a notice that an invoice has been "

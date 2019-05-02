@@ -104,13 +104,13 @@
                                 <a href="{{ ikwen_eula_url }}">Terms & Conditions</a>
                             {% endblocktrans %}</p>
                         {% else %}
-                            <p id="terms-warning">{% blocktrans %}
+                            <p id="terms-warning">{% blocktrans with project_name=service.project_name ikwen_eula=ikwen_eula_url|ikwenize agreement_url=settings.AGREEMENT_URL %}
                                 You are about to create an account managed by
-                                <a href="{{ settings.IKWEN_BASE_URL }}" style="color: #999; text-decoration: underline"><strong>ikwen</strong></a>,
-                                on {{ service.project_name }}. By doing so you accept
-                                <a href="{{ ikwen_eula_url|ikwenize }}"><strong>ikwen</strong> Terms & Conditions</a>,
+                                <a href="http://ikwen.com" style="color: #999; text-decoration: underline"><strong>ikwen</strong></a>,
+                                on {{ project_name }}. By doing so you accept
+                                <a href="{{ ikwen_eula }}"><strong>ikwen</strong> Terms & Conditions</a>,
                                     as well as
-                                <a href="{{ settings.AGREEMENT_URL }}">{{ service.project_name }}Terms & Conditions.</a>
+                                <a href="{{ agreement_url }}">{{ project_name }}Terms & Conditions.</a>
                             {% endblocktrans %}</p>
                         {% endif %}
                     </div>
