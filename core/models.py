@@ -226,6 +226,10 @@ class Service(models.Model):
     custom_service_earnings_history = ListField(editable=False)
     cash_out_history = ListField(editable=False)
 
+    transactional_email_history = ListField(editable=False)
+    rewarding_email_history = ListField(editable=False)
+    revival_email_history = ListField(editable=False)
+
     transaction_count_history = ListField(editable=False)
     invoice_count_history = ListField(editable=False)
     custom_service_count_history = ListField(editable=False)
@@ -242,6 +246,10 @@ class Service(models.Model):
     total_invoice_count = models.IntegerField(default=0)
     total_custom_service_count = models.IntegerField(default=0)
     total_cash_out_count = models.IntegerField(default=0)
+
+    total_transactional_email = models.IntegerField(default=0)
+    total_rewarding_email = models.IntegerField(default=0)
+    total_revival_email = models.IntegerField(default=0)
 
     counters_reset_on = models.DateTimeField(blank=True, null=True, editable=False)
 
@@ -847,6 +855,31 @@ class QueuedSMS(Model):
 
     class Meta:
         db_table = 'ikwen_queued_sms'
+
+
+class XEmailObject(models.Model):
+    """
+    An outbound email issued by a Service
+    """
+    TRANSACTIONAL = "Transactional"
+    REWARDING = "Rewarding"
+    REVIVAL = "Revival"
+    TYPE_CHOICES = (
+        (TRANSACTIONAL, _("Transactional")),
+        (REWARDING, _("Continuous Rewarding")),
+        (REVIVAL, _("Revival")),
+    )
+    to = models.CharField(max_length=255, db_index=True)
+    cc = models.CharField(max_length=255, blank=True, null=True)
+    bcc = models.CharField(max_length=255, blank=True, null=True)
+    subject = models.CharField(max_length=255, db_index=True)
+    body = models.TextField()
+    status = models.TextField(db_index=True)  # "OK" if mail sent.
+    type = models.CharField(max_length=30, choices=TYPE_CHOICES, db_index=True)
+    created_on = models.DateTimeField(default=timezone.now, editable=False, db_index=True)
+
+    class Meta:
+        db_table = 'ikwen_sent_email'
 
 
 class Module(Model):

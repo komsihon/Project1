@@ -14,7 +14,6 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
-from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.core.validators import validate_email
 from django.db.models import Q, Sum
@@ -43,9 +42,9 @@ from ikwen.accesscontrol.models import Member, AccessRequest, \
     SUDO, ACCESS_GRANTED_EVENT, COMMUNITY, WELCOME_EVENT, DEFAULT_GHOST_PWD
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.constants import MALE, FEMALE
-from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT
+from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT, XEmailObject
 from ikwen.core.utils import get_service_instance, get_mail_content, add_database_to_settings, add_event, set_counters, \
-    increment_history_field
+    increment_history_field, XEmailMessage
 from ikwen.core.utils import send_sms
 from ikwen.core.views import HybridListView
 from ikwen.revival.models import ProfileTag, MemberProfile, Revival, ObjectProfile
@@ -297,10 +296,17 @@ def staff_router(request, *args, **kwargs):
     routes = getattr(settings, 'STAFF_ROUTER', None)
     if routes:
         for route in routes:
-            perm = route[0]
+            condition = route[0]
+            passed_test = False
+            try:
+                do_test = import_by_path(condition)
+                passed_test = do_test(member)
+            except:
+                if member.has_perm(condition):
+                    passed_test = True
             url_name = route[1]
             params = route[2] if len(route) > 2 else None
-            if member.has_perm(perm):
+            if passed_test:
                 if params:
                     if type(params) is tuple:
                         next_url = reverse(url_name, args=params)
@@ -916,7 +922,7 @@ def join(request, *args, **kwargs):
                                                    'joined_service': service, 'joined_project_name': service.project_name,
                                                    'joined_logo': service.config.logo})
     sender = '%s <no-reply@%s>' % (host_config.company_name, host_service.domain)
-    msg = EmailMessage(subject, html_content, sender, [member.email])
+    msg = XEmailMessage(subject, html_content, sender, [member.email])
     msg.content_subtype = "html"
     Thread(target=lambda m: m.send(), args=(msg, )).start()
     if referrer_id:
@@ -948,8 +954,9 @@ def join(request, *args, **kwargs):
                                             extra_context={'referral_pack_list': referral_pack_list, 'coupon_count': coupon_count,
                                                            'joined_service': service, 'referee_name': member.full_name,
                                                            'joined_logo': service.config.logo})
-            msg = EmailMessage(referrer_subject, html_content, sender, [referrer.email])
+            msg = XEmailMessage(referrer_subject, html_content, sender, [referrer.email])
             msg.content_subtype = "html"
+            msg.type = XEmailObject.REWARDING
             Thread(target=lambda m: m.send(), args=(msg, )).start()
 
     if format == 'json':

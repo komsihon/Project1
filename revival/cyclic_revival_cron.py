@@ -5,6 +5,8 @@ import sys
 import logging
 from datetime import datetime
 
+from core.models import XEmailObject
+
 sys.path.append("/home/libran/virtualenv/lib/python2.7/site-packages")
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
@@ -13,17 +15,17 @@ from currencies.models import Currency
 
 from django.conf import settings
 from django.core import mail
-from django.core.mail import EmailMessage
 from django.db import transaction
 from django.utils.translation import activate
 
-from core.utils import increment_history_field
 from echo.models import Balance, SMSObject
 from echo.utils import notify_for_empty_messaging_credit, LOW_MAIL_LIMIT, LOW_SMS_LIMIT, notify_for_low_messaging_credit
 from echo.views import count_pages
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.accesscontrol.models import Member
-from ikwen.core.utils import add_database, get_mail_content, send_sms, get_sms_label, set_counters
+from ikwen.core.models import XEmailObject
+from ikwen.core.utils import add_database, get_mail_content, send_sms, get_sms_label, set_counters, \
+    increment_history_field, XEmailMessage
 from ikwen.revival.models import MemberProfile, CyclicRevival, CyclicTarget, ProfileTag
 from ikwen_kakocase.kako.models import Product
 
@@ -138,8 +140,9 @@ def notify_profiles(debug=False):
             except:
                 logger.error("Could not render mail for member %s, Cyclic revival on %s" % (member.username, profile_tag), exc_info=True)
                 break
-            msg = EmailMessage(subject, html_content, sender, [member.email])
+            msg = XEmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
+            msg.type = XEmailObject.REVIVAL
 
             if balance.mail_count == 0 and not notified_empty_mail_credit:
                 notify_for_empty_messaging_credit(service, balance)

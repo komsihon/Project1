@@ -25,8 +25,8 @@ from ikwen.conf.settings import IKWEN_SERVICE_ID
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.accesscontrol.models import Member
 from ikwen.accesscontrol.backends import UMBRELLA
-from ikwen.core.models import Service
-from ikwen.core.utils import get_service_instance, get_mail_content, send_sms
+from ikwen.core.models import Service, XEmailObject
+from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, XEmailMessage
 from ikwen.revival.models import MemberProfile, ProfileTag
 from ikwen.rewarding.utils import get_join_reward_pack_list, JOIN, REFERRAL
 
@@ -104,7 +104,7 @@ def send_welcome_email(member, reward_pack_list=None):
     html_content = get_mail_content(subject, message, template_name=template_name,
                                     extra_context={'reward_pack_list': reward_pack_list})
     sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
-    msg = EmailMessage(subject, html_content, sender, [member.email])
+    msg = XEmailMessage(subject, html_content, sender, [member.email])
     msg.content_subtype = "html"
     Thread(target=lambda m: m.send(), args=(msg,)).start()
 
@@ -340,8 +340,10 @@ def invite_member(service, member):
     join_reward_pack_list = kwargs['reward_pack_list']
     if join_reward_pack_list:
         subject = _("Join us on ikwen and earn free coupons." % service.project_name)
+        email_type = XEmailObject.REWARDING
     else:
         subject = _("Join our community on ikwen.")
+        email_type = XEmailObject.REVIVAL
     if invitation_message or join_reward_pack_list:
         extra_context = {
             'member_name': member.first_name,
@@ -351,8 +353,9 @@ def invite_member(service, member):
         try:
             html_content = get_mail_content(subject, service=service, template_name=template_name,
                                             extra_context=extra_context)
-            msg = EmailMessage(subject, html_content, sender, [member.email])
+            msg = XEmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
+            msg.type = email_type
             Thread(target=lambda m: m.send(), args=(msg,)).start()
             notice = "%s: Invitation sent message to member after ghost registration attempt" % service.project_name_slug
             logger.error(notice, exc_info=True)

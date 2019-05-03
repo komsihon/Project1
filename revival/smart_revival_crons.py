@@ -11,7 +11,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
 
 from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.mail import EmailMessage
 from django.db import transaction
 from django.db.models import get_model, Q
 from django.utils import timezone
@@ -23,6 +22,8 @@ from echo.models import Balance
 from echo.utils import notify_for_empty_messaging_credit, notify_for_low_messaging_credit, LOW_MAIL_LIMIT
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.core.constants import PENDING, COMPLETE, STARTED
+from ikwen.core.utils import XEmailMessage
+from ikwen.core.models import XEmailObject
 from ikwen.accesscontrol.models import Member
 from ikwen.core.utils import add_database, set_counters_many, set_counters, increment_history_field
 from ikwen.revival.models import Revival, Target, MemberProfile, ProfileTag
@@ -179,8 +180,9 @@ def notify_profiles(debug=False):
                 continue
             if debug:
                 subject = 'Test - ' + subject
-            msg = EmailMessage(subject, html_content, sender, [member.email])
+            msg = XEmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
+            msg.type = XEmailObject.REVIVAL
             try:
                 with transaction.atomic(using=WALLETS_DB_ALIAS):
                     if not debug:
@@ -352,8 +354,9 @@ def notify_profiles_retro(debug=False):
                 continue
             if debug:
                 subject = 'Test retro - ' + subject
-            msg = EmailMessage(subject, html_content, sender, [member.email])
+            msg = XEmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
+            msg.type = XEmailObject.REVIVAL
             try:
                 with transaction.atomic(using=WALLETS_DB_ALIAS):
                     if not debug:
@@ -501,8 +504,9 @@ def rerun_complete_revivals(debug=False):
                 continue
             if debug:
                 subject = 'Test remind - ' + subject
-            msg = EmailMessage(subject, html_content, sender, [member.email])
+            msg = XEmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
+            msg.type = XEmailObject.REVIVAL
             try:
                 with transaction.atomic(using=WALLETS_DB_ALIAS):
                     if not debug:

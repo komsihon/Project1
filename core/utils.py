@@ -2,6 +2,7 @@
 import os
 import re
 import logging
+import traceback
 from copy import deepcopy
 from datetime import datetime, timedelta, date
 
@@ -11,6 +12,7 @@ from ajaxuploader.backends.local import LocalUploadBackend
 from django.conf import settings
 from django.contrib.admin import AdminSite
 from django.core.files import File
+from django.core.mail import EmailMessage
 from django.db import router
 from django.db.models import F, Model
 from django.db.models.fields.files import ImageFieldFile
@@ -23,6 +25,43 @@ from django.utils import timezone
 from ikwen.core.fields import MultiImageFieldFile
 
 logger = logging.getLogger('ikwen')
+
+
+class XEmailMessage(EmailMessage):
+    """
+    Email message that is logged to the database
+    """
+    def send(self, fail_silently=False):
+        """Sends the email message."""
+        if not self.recipients():
+            # Don't bother creating the network connection if there's nobody to
+            # send to.
+            return 0
+        from ikwen.core.models import XEmailObject
+        try:
+            email_type = self.__getattribute__('type')
+        except:
+            email_type = XEmailObject.TRANSACTIONAL
+        to = ', '.join(self.to)
+        cc = ', '.join(self.cc)
+        bcc = ', '.join(self.bcc)
+        email = XEmailObject(to=to, cc=cc, bcc=bcc, subject=self.subject, body=self.body, type=email_type)
+        sent = 0
+        try:
+            sent = self.get_connection(fail_silently).send_messages([self])
+            if sent:
+                email.status = "OK"
+                service = get_service_instance()
+                set_counters(service)
+                field =  email_type.lower() + '_email_history'
+                increment_history_field(service, field)
+            email.save()
+        except Exception as e:
+            email.status = traceback.format_exc()
+            email.save()
+            if not fail_silently:
+                raise e
+        return sent
 
 
 def to_dict(var):
@@ -64,17 +103,6 @@ def to_dict(var):
             except AttributeError:
                 dict_var[key] = to_dict(dict_var[key])
     return dict_var
-
-
-def strip_datetime_fields(obj):
-    """
-    Set datetime fields to None in obj. The purpose of this is to make
-    the object JSON serializable for django sessions.
-    """
-    dict_var = deepcopy(obj).__dict__
-    for key in dict_var:
-        if type(dict_var[key]) is datetime:
-            obj.__dict__[key] = None
 
 
 def get_config_model():
@@ -143,29 +171,6 @@ def add_database(alias, engine='django_mongodb_engine', name=None, username=None
     Alias for add_database_to_settings()
     """
     add_database_to_settings(alias, engine=engine, name=name, username=username, password=password)
-
-
-def add_dumb_column(database, table, column):
-    """
-    Add a VARCHAR DEFAULT NULL column to a relational database. The purpose of this function is to
-    create replacement column for fields of type ListField or EmbeddedModelField that are not created
-    in relational stores when running syncdb.
-    """
-    import sqlite3
-    DATABASES = getattr(settings, 'DATABASES')
-    db = DATABASES.get(database)
-    engine = db['ENGINE']
-    name = db['NAME']
-    script = "ALTER TABLE %s ADD %s VARCHAR(10) DEFAULT NULL" % (table, column)
-    if engine == 'django.db.backends.sqlite3':
-        try:
-            with sqlite3.connect(name) as cnx:
-                cursor = cnx.cursor()
-                cursor.executescript(script)
-        except sqlite3.Error as error:
-            print (error.message)
-    elif engine == 'django.db.backends.mysql':
-        pass
 
 
 def get_mail_content(subject, message=None, template_name='core/mails/notice.html', extra_context=None, service=None):

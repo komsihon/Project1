@@ -50,7 +50,8 @@ def wipe_test_data():
         if alias == 'wallets':
             continue
         Group.objects.using(alias).all().delete()
-        for name in ('Application', 'Service', 'Config', 'ConsoleEventType', 'ConsoleEvent', 'Country', ):
+        for name in ('Application', 'Service', 'Config', 'ConsoleEventType',
+                     'ConsoleEvent', 'Country', ):
             model = getattr(ikwen.core.models, name)
             model.objects.using(alias).all().delete()
         for name in ('Member', 'AccessRequest', ):
