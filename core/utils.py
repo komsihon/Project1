@@ -37,11 +37,19 @@ class XEmailMessage(EmailMessage):
             # Don't bother creating the network connection if there's nobody to
             # send to.
             return 0
-        from ikwen.core.models import XEmailObject
+        from ikwen.core.models import XEmailObject, Service
         try:
             email_type = self.__getattribute__('type')
         except:
             email_type = XEmailObject.TRANSACTIONAL
+        try:
+            service = self.__getattribute__('service')
+            db = service.database
+            add_database(db)
+            service = Service.objects.using(db).get(pk=service.id)
+        except:
+            db = 'default'
+            service = get_service_instance()
         to = ', '.join(self.to)
         cc = ', '.join(self.cc)
         bcc = ', '.join(self.bcc)
@@ -51,14 +59,13 @@ class XEmailMessage(EmailMessage):
             sent = self.get_connection(fail_silently).send_messages([self])
             if sent:
                 email.status = "OK"
-                service = get_service_instance()
                 set_counters(service)
                 field =  email_type.lower() + '_email_history'
                 increment_history_field(service, field)
-            email.save()
+            email.save(using=db)
         except Exception as e:
             email.status = traceback.format_exc()
-            email.save()
+            email.save(using=db)
             if not fail_silently:
                 raise e
         return sent
