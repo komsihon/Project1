@@ -956,6 +956,7 @@ def join(request, *args, **kwargs):
                                                            'joined_logo': service.config.logo})
             msg = XEmailMessage(referrer_subject, html_content, sender, [referrer.email])
             msg.content_subtype = "html"
+            msg.service = service
             msg.type = XEmailObject.REWARDING
             Thread(target=lambda m: m.send(), args=(msg, )).start()
 
