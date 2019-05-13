@@ -12,7 +12,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
 
-from echo.views import count_pages
+from echo.utils import count_pages
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from echo.models import Balance, SMSObject
 from ikwen.conf import settings as ikwen_settings

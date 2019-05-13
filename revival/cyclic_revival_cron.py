@@ -19,8 +19,8 @@ from django.db import transaction
 from django.utils.translation import activate
 
 from echo.models import Balance, SMSObject
-from echo.utils import notify_for_empty_messaging_credit, LOW_MAIL_LIMIT, LOW_SMS_LIMIT, notify_for_low_messaging_credit
-from echo.views import count_pages
+from echo.utils import notify_for_empty_messaging_credit, LOW_MAIL_LIMIT, LOW_SMS_LIMIT, \
+    notify_for_low_messaging_credit, count_pages
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.accesscontrol.models import Member
 from ikwen.core.models import XEmailObject
