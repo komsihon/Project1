@@ -770,7 +770,7 @@ class Community(HybridListView):
         tag_ids = self.request.GET.get('tag_ids')
         if email:
             try:
-                member = Member.objects.filter(email=email)[0]
+                member = Member.objects.using(UMBRELLA).filter(email=email)[0]
                 response = {'error': _("This email already exists")}
                 invite_member(service, member)
                 HttpResponse(json.dumps(response), content_type='application/json')
@@ -781,7 +781,7 @@ class Community(HybridListView):
             if phone.startswith('237') and len(phone) == 12:
                 phone = phone[3:]
             try:
-                member = Member.objects.filter(phone=phone)[0]
+                member = Member.objects.using(UMBRELLA).filter(phone=phone)[0]
                 invite_member(service, member)
                 response = {'error': _("This phone already exists")}
                 HttpResponse(json.dumps(response), content_type='application/json')
