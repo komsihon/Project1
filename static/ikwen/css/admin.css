@@ -92,6 +92,8 @@ div#container.admin {padding-top: 92px;}
 
 #admin-tools {background: #fff;clear: both;padding: 0 15px;position: fixed;width: 100%;z-index: 11}
 #admin-tools input, #admin-tools select {border: 1px solid #ddd;font-size: 13px;padding-left: 40px;}
+#admin-tools select {padding-left: 25px;}
+#admin-tools select:not(:first-of-type) {padding-left: 0}
 #admin-tools .btn.action .glyphicon, #admin-tools .btn.action .fa {float: left;margin: 1px 10px 0 0;}
 #admin-tools .btn.action .fa {font-size: 17px}
 #admin-tools .btn.filter {padding-left: 30px;}
@@ -193,13 +195,14 @@ footer a {color: #999}
     #admin-tools .btn.action .glyphicon {margin-right: 0}
     #admin-tools .glyphicon-menu-left {margin: 2px -24px 0 6px;}
     #admin-tools .tool {display: none}
-    #admin-tools input, #admin-tools select, #admin-tools .btn {border: none;margin-top: -7px; background: none;padding-right: 0;}
+    #admin-tools input, #admin-tools select, #admin-tools .btn {border: none;margin-top: -7px;background: none;padding-right: 0;padding-left: 15px;}
+    #admin-tools input, #admin-tools select {padding-left: 40px;}
     #admin-tools .btn.filter {padding: 9px 9px 6px 40px;}
     #admin-tools input:focus {outline: none;}
     #admin-tools .btn {color: #888}
     #admin-tools .btn:active, #admin-tools .btn.active {background: none; color: #545454; box-shadow: none}
-    #admin-tools-form {width:90%}
-    #admin-tools-form > div {width: 200%}
+    #admin-tools-form {width: auto;}
+    #admin-tools-form > div {width: 200%;}
     #admin-tools-form .glyphicon-search {margin: 2px 0 0}
     #admin-tools .btn.action .fa {margin-top: 3px}
     #results {padding-top: 20px}

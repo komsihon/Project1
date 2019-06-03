@@ -21,21 +21,30 @@ body {color: #464646;}
 .arrow.up div:first-child {border-right: 1px solid; transform: skewX(-30deg); transform-origin: 10px 0 0}
 .arrow.up div:last-child {border-left: 1px solid; margin-left: -1px; transform: skewX(30deg); transform-origin: 10px 0 0}
 .tpl, .hide {display: none}
-.actions .glyphicon, .glyphicon.action {
-    border: 1px solid transparent;
+.actions .glyphicon, .glyphicon.action, .actions .fa, .fa.action, .actions .fas, .fas.action {
+    /* border: 1px solid #ddd; */
+    border-radius: 3px;
     color: #888;
     cursor: pointer;
     margin-left: 6px;
     text-decoration: none;
-    }
+}
+.actions .fa, .fa.action, .actions .fas, .fas.action {font-size: 18px}
 .modal .actions {clear: both}
-.actions .glyphicon, .glyphicon.action {border: 1px solid #ddd; border-radius: 3px}
 .cta {font-family: "PT Sans", Lato, sans-serif;font-weight: 700;letter-spacing: 0.5px}
 .stretched {height: 100%; width: 100%}
 .errorlist {color: #e74c3c}
 .input-error {border-color: #e74c3c}
 #content .errorlist.username, #content .errorlist.phone {padding-left: 18px}
 #content .errorlist.username li, #content .errorlist.phone li {list-style-type: disc}
+
+.event {list-style-type: none; margin-bottom: 30px; padding: 0 !important;}
+.event .btn {width: 120px;}
+.event-content {padding: 15px;margin-left: 90px;border-left: 1px solid #ddd;}
+.event-content p {margin-top: 10px;}
+.event-detail {border: 1px solid #ddd;margin-top: 10px;}
+.event-icon {line-height: 140px; text-align: center;position: absolute;width: 90px;}
+.event-icon img {width: 60px;}
 
 .payment-method {display: block;cursor: pointer;margin-bottom: 1em;}
 .payment-method .logo {display: block; text-align: center}
@@ -96,13 +105,13 @@ body {color: #464646;}
 .ik-li.selected .select {background: #9433ff; color: #fff; display: block}
 .ik-li .date {font-size: 11px}
 
-.ik-li .actions .glyphicon, #selection-control .glyphicon {
+.ik-li .actions .glyphicon, .ik-li .actions .fa, .ik-li .actions .fas, #selection-control .glyphicon {
     background: #fff;
     box-sizing: content-box;
     padding: 5px;
     border: 1px solid transparent;
 }
-.ik-li .actions .glyphicon:hover, #selection-control .glyphicon:hover {border: 1px solid #ddd; border-radius: 3px}
+.ik-li .actions .glyphicon:hover, .ik-li .actions .fa:hover, .ik-li .actions .fas:hover, #selection-control .glyphicon:hover {border: 1px solid #ddd; border-radius: 3px}
 .ik-li.selected {border: 3px solid #9433ff; transition: border .1s}
 .ik-li.selected + .ik-li.selected {border-top: none}
 .ik-li .actions {display: none;float: right;}

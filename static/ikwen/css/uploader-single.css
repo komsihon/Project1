@@ -11,7 +11,7 @@
 #upload-container .image, .upload-container .image {background: url('../img/no_photo.png') no-repeat center;background-size: 100%;border: solid 1px #DBE6FF;height: 225px;float: left;overflow: hidden;width: 280px;}
 #upload-container .image .progress, .upload-container .image .progress {float: left; background: #3C63FF; height: 10px; margin-top: 213px}
 #upload-container .image .spinner, .upload-container .image .spinner {margin-top: 90px}
-#upload-container .uploader, .upload-container .uploader {display: none; height: 225px; position: absolute; text-align: center; width: 280px}
+#upload-container .uploader, .upload-container .uploader {display: none;height: 225px;position: absolute;text-align: center;width: 280px;}
 #upload-container .image:hover .uploader, .upload-container .image:hover .uploader {display: block}
 .qq-uploader {background: rgba(0, 0, 0, .7); height: 40px; padding-top: 8px}
 .qq-upload-button {background: none; border: none; box-shadow: none; color: #fff; text-shadow: none; height: 100px; width: 100%}
