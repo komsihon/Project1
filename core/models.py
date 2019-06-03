@@ -267,6 +267,10 @@ class Service(models.Model):
 
     ikwen_name = property(_get_ikwen_name, _set_ikwen_name)
 
+    def _get_go_url(self):
+        return 'https://go.ikwen.com/' + self.project_name_slug
+    go_url = property(_get_go_url)
+
     def __unicode__(self):
         return u'%s: %s' % (self.project_name, self.url)
 
@@ -835,7 +839,7 @@ class ConsoleEvent(Model):
         var = to_dict(self)
         service = self.service
         config = service.config
-        var['project_url'] = service.url
+        var['project_url'] = service.go_url
         var['project_name'] = service.project_name
         var['project_logo_url'] = config.logo.url if config.logo.name else ''
         var['created_on'] = naturaltime(self.created_on)
