@@ -1,5 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 
+PENDING_FOR_PAYMENT = 'PendingForPayment'
 PENDING = 'Pending'
 CONFIRMED = 'Confirmed'
 STATUS_CHOICES = (
