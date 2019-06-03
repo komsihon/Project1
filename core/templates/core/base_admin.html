@@ -14,6 +14,7 @@
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
+    <link rel='stylesheet' href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
     <link href="{% static 'ikwen/css/admin.css' %}" media="screen" rel="stylesheet" type="text/css" />
 {% endblock %}
 
@@ -183,14 +184,33 @@
             }).on('click', '#admin-tools .glyphicon-filter', function() {
                 if ($(window).width() < 768) {
                     $(this).hide();
-                    $('div#admin-tools .tool, div#admin-tools .glyphicon').hide();
+                    $('div#admin-tools .tool, div#admin-tools .glyphicon, #admin-tools-actions').hide();
+                    $('#admin-tools-form').css('width', '100%');
                     $('.tool.filter').show().find('.widget').click();
                     $('.hide-filter').show()
                 }
             }).on('click', '#admin-tools .back', function() {
-                $('div#admin-tools .glyphicon:not(.back)').show();
+                $('div#admin-tools .glyphicon:not(.back), #admin-tools-actions').show();
+                $('#admin-tools-form').css('width', 'auto');
                 $(this).hide();
                 $('div#admin-tools .tool').hide();
+            }).on('click', '#admin-tools .action.export', function() {
+                var url = window.location.pathname, params = [];
+                $('div#admin-tools .filter select').each(function() {
+                    var paramName = $(this).prop('name');
+                    if (paramName) params[paramName] = $(this).val();
+                });
+                $('div#admin-tools .filter input').each(function() {
+                    var paramName = $(this).prop('name');
+                    if (paramName) params[paramName] = $(this).val();
+                });
+                params['q'] = $('#context-search').val();
+                var query = window.location.search,
+                    paramString = '';
+                for (var key in params) paramString += '&' + key + '=' + params[key];
+                if (query && query !== '?') query += paramString;
+                else query = paramString.substr(1);
+                window.location = url + '?action=export&' + query;
             });
 
             $('div#selection-control .clear-selection').click(function() {
@@ -212,7 +232,7 @@
                     var list = selection.split(',');
                     if (data.deleted) for (var i=0; i<data.deleted.length; i++) $('#' + data.deleted[i]).remove();
                     $('#selection-control').removeClass('visible');
-                    ikwen.showFloatingNotice(data.message, '', 6);
+                    ikwen.showFloatingNotice(data.message);
                 })
             }
             var searchDescriptor = [{endpoint: '{{ request.path }}'}],
