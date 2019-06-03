@@ -1,5 +1,6 @@
 import json
 import traceback
+import xml.etree.ElementTree as ET
 from threading import Thread
 
 import requests
@@ -66,7 +67,7 @@ def request_payment(request, tx):
     Calls the HTTP MTN Mobile Money API and updates the MoMoTransaction
     status in the database upon completion of the request.
     """
-    MTN_MOMO_API_URL = getattr(settings, 'MTN_MOMO_API_URL')
+    MTN_MOMO_API_URL = getattr(settings, 'MTN_MOMO_API_URL', 'https://developer.mtn.cm/OnlineMomoWeb/faces/transaction/transactionRequest.xhtml')
     username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
     if getattr(settings, 'DEBUG_MOMO', False):
         amount = 100
@@ -164,23 +165,23 @@ def request_payment(request, tx):
 @csrf_exempt
 def process_notification(request, *args, **kwargs):
     logger.debug("MTN MoMo - New notification: %s" % request.META['REQUEST_URI'])
-    logger.debug("MTN MoMo - New notification GET: %s" % request.GET)
-    logger.debug("MTN MoMo - New notification POST: %s" % request.POST)
     logger.debug("MTN MoMo - New notification Body: %s" % request.body)
     try:
-        resp = json.loads(request.body)
-        processing_number = resp['ProcessingNumber']
+        resp = ET.fromstring(request.body)
+        processing_number = resp.find(".//{http://www.csapi.org/schema/momopayment/local/v1_0}ProcessingNumber").text
         tx = MoMoTransaction.objects.using('wallets').get(task_id=processing_number)
-    except ValueError or KeyError:
-        notice = "Invalid JSON data in notification."
+    except (ET.ParseError, AttributeError):
+        notice = "Invalid SOAP data in notification."
         logger.error("MTN MoMo: %s" % notice, exc_info=True)
         return HttpResponse(notice)
     except MoMoTransaction.DoesNotExist:
-        logger.error("MTN MoMo: Could not find transaction with tast_id %s." % processing_number, exc_info=True)
+        logger.error("MTN MoMo: Could not find transaction with task_id %s." % processing_number, exc_info=True)
         return HttpResponse("Notification successfully received.")
-    if resp['StatusCode'] == '01':
+    status_code = resp.find(".//{http://www.csapi.org/schema/momopayment/local/v1_0}StatusCode").text
+    if status_code == '01':
         logger.debug("MTN MoMo: Successful payment of %dF from %s: %s" % (tx.amount, tx.username, tx.phone))
-        tx.processor_tx_id = resp['TransactionID']
+        tx_id = resp.find(".//{http://www.csapi.org/schema/momopayment/local/v1_0}MOMTransactionID").text
+        tx.processor_tx_id = tx_id
         tx.is_running = False
         tx.status = MoMoTransaction.SUCCESS
         tx.save(using='wallets')
@@ -190,11 +191,13 @@ def process_notification(request, *args, **kwargs):
             tx.message = 'OK'
         except:
             tx.message = traceback.format_exc()
-            tx.save(using='wallets')
             logger.error("MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (tx.username, tx.amount), exc_info=True)
+        finally:
+            tx.save(using='wallets')
     else:
         tx.status = MoMoTransaction.API_ERROR
-        tx.message = resp['StatusDesc']
+        status_desc = resp.find(".//{http://www.csapi.org/schema/momopayment/local/v1_0}StatusDesc").text
+        tx.message = status_desc
         tx.save(using='wallets')
     return HttpResponse("Notification successfully received.")
 
