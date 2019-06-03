@@ -60,7 +60,7 @@
 
 - model: billing.invoicingconfig
   fields:
-    name: Default
+    service: 56eb6d04b37b3379b531b101
 
 - model: core.config
   fields:
