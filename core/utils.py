@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
+import random
 import re
 import logging
+import string
 import traceback
 from copy import deepcopy
 from datetime import datetime, timedelta, date
@@ -308,8 +310,9 @@ class DefaultUploadBackend(LocalUploadBackend):
                     except OSError as e:
                         if getattr(settings, 'DEBUG', False):
                             raise e
+                rand = ''.join([random.SystemRandom().choice(string.ascii_letters) for i in range(6)])
                 return {
-                    'path': url
+                    'path': url + '?rand=' + rand
                 }
             except IOError as e:
                 if settings.DEBUG:
