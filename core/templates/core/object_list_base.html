@@ -12,44 +12,47 @@
 {% block admin_content %}
     <div id="admin-content">
         <div class="container-fluid stage">
-            <div id="admin-tools" class="ceil bottom-shade-xs">
-                <form id="admin-tools-form" onsubmit="return false">
-                    <div>
-                        <div>
-                            <i class="glyphicon glyphicon-search"></i>
-                            <i class="glyphicon glyphicon-menu-left hide-search back"></i>
-                            <input type="text" id="context-search" class="tool search form-input input-sm" placeholder="{% blocktrans %}Search {{ verbose_name }}{% endblocktrans %}"/>
-                        </div>
-                        {% if filter and filter|length > 0 %}
-                            <div class="filter-trigger">
-                                <i class="glyphicon glyphicon-filter"></i>
-                                <i class="glyphicon glyphicon-menu-left hide-filter back"></i>
-                                {% for elt in filter %}
-                                <div class="tool filter">
-                                    <label for="{{ elt.parameter_name }}" class="sr-only">{% trans elt.title %}</label>
-                                    <select id="{{ elt.parameter_name }}" style="float: left; width: 120px" class="form-control input-sm {{ elt.parameter_name }} widget" name="{{ elt.parameter_name }}">
-                                        <option value="">{% trans "All" %} {% trans elt.title %}</option>
-                                        {% for choice in elt.choices %}
-                                            <option value="{{ choice.0 }}">{{ choice.1 }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                </form>
-                {% url change_object_url_name as change_object_url %}
-                <a href="{{ change_object_url }}" class="btn btn-sm btn-success cta add pull-right action"
-                        title="{% trans "Add new " %} {{ verbose_name }}">
-                    <i class="glyphicon glyphicon-plus"></i>
-                    <span class="hidden-xs">{% trans "Add" %}</span>
-                </a>
-                <div class="clearfix"></div>
-            </div>
+            {% include 'core/snippets/admin_tools.html' %}
             <div id="results">
-                {% include 'core/snippets/spinner.html' %}
-                {% include 'core/snippets/object_list_results.html' %}
+                {% include html_results_template_name %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block after_content %}
+    <div id="period-chooser" class="modal fade" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-info">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{% trans "Choose custom period" %}</h4>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="return false">
+                        <div class="form-group">
+                            <label for="start-date">From:</label>
+                            <input type="text" id="start-date" class="form-control input-sm" />
+                            <input type="hidden" id="start-alt" />
+                        </div>
+                        <div class="form-group">
+                            <label for="end-date">To:</label>
+                            <input type="text" id="end-date" class="form-control input-sm" />
+                            <input type="hidden" id="end-alt" />
+                        </div>
+                    </form>
+                    <div class="actions">
+                        <div class="col-xs-12 col-sm-4 col-md-3 pull-right">
+                            <button class="btn btn-sm btn-success btn-block confirm-period"
+                                    data-dismiss="modal" aria-label="Close">{% trans "OK" %}</button>
+                        </div>
+                        <div class="col-xs-12 col-sm-4 col-md-3 pull-right">
+                            <button class="btn btn-sm btn-default btn-block cancel-period"
+                                    data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -64,6 +67,42 @@
         (function() {
             var target = '{{ verbose_name_plural|slugify }}' ? '{{ verbose_name_plural|slugify }}' : 'blank';
             $('div#admin-nav .' + target).addClass('active');
+            $('#start-date').datepicker({
+                altField: "#start-alt",
+                altFormat: "yy-mm-dd"
+            });
+            $('#end-date').datepicker({
+                altField: "#end-alt",
+                altFormat: "yy-mm-dd"
+            });
+            var period = 'today';  // Initial period is today
+            $('.filter-trigger .period select').change(function() {
+                var val = $(this).val(),
+                    target = $(this).attr('id');
+                if (val === 'other') {
+                    $('#period-chooser').data('target', target).modal('show');
+                    return false;
+                }
+            });
+            $('.cancel-period').click(function() {
+                $('#period').val(period);
+            });
+            $('.confirm-period').click(function() {
+                var target = $('#period-chooser').data('target'),
+                    start = $('#start-date').val(),
+                    end = $('#end-date').val();
+                if (start && end) {
+                    var value = '__period__' + $('#start-alt').val() + ',' + $('#end-alt').val(),
+                        $option = $('<option value="' + value + '">' + start + ' to ' + end + '</option>'),
+                        $target = $('#' + target);
+                    if ($target.find('optgroup').length === 0) {
+                        var $optgroup = $('<optgroup label="-------"></optgroup>');
+                        $target.append($optgroup);
+                    }
+                    $target.find('optgroup').append($option).val(value).change();
+                    $target.val(value).change();
+                }
+            });
         })()
     </script>
 {% endblock %}
