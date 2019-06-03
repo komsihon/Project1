@@ -10,7 +10,7 @@
         {% endblock %}
 		{% block page_title %}{% endblock %}
 		{% block head_style %}
-            <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+            <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
             <link rel='stylesheet' href="{% static 'ikwen/css/flatly.bootstrap.min.css' %}" />
             <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}" />
 		{% endblock %}
@@ -184,6 +184,7 @@
         {% endblock %}
         {% block selection_control %}{% endblock %}
         {% block content %}{% endblock %}
+        {% block after_content %}{% endblock %}
         {% block footer %}
             <footer>
                 &copy; {{ year }} <a class="company-name" href="{{ service.url }}"><strong>{{ config.company_name }}</strong></a>.
