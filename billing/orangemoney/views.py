@@ -32,7 +32,7 @@ UNKNOWN_PHONE = '<Unknown>'
 
 
 def init_web_payment(request, *args, **kwargs):
-    api_url = getattr(settings, 'ORANGE_MONEY_API_URL') + '/webpayment'
+    api_url = getattr(settings, 'ORANGE_MONEY_API_URL', 'https://api.orange.com/orange-money-webpay/cm/v1') + '/webpayment'
     phone = UNKNOWN_PHONE
     service = get_service_instance()
     payment_mean = PaymentMean.objects.get(slug=ORANGE_MONEY)
