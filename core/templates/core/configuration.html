@@ -89,9 +89,6 @@
             $('.form-row').addClass('form-group');
             $('.form-row input:not([type=file], [type=checkbox]), .form-row select, .form-row textarea').addClass('form-control input-sm');
             $('.form-row textarea').addClass('form-control input-sm');
-            {% if messages %}
-                {% for msg in messages %}ikwen.showFloatingNotice('{{ msg }}', '', 6);{% endfor %}
-            {% endif %}
         })()
     </script>
 {% endblock %}
