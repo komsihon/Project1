@@ -1,4 +1,5 @@
 {% load i18n static humanize %}
+{% include 'core/snippets/spinner.html' %}
 <ul class="object-list list-group">
     {% for obj in objects_page.object_list %}
     {% url change_object_url_name obj.id as obj_url %}
@@ -24,15 +25,15 @@
 </ul>
 {% if objects_page.paginator.num_pages > 1 %}
 <ul class="pagination">
-    <li class="disabled"><a href="#" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
-    {% for page in objects_page.paginator.page_range %}
+    <li class="disabled" data-val="first"><a href="javascript:;" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
+    {% for page in page_range %}
         <li class="page{% if page == objects_page.number %} active{% endif %}" data-val="{{ page }}">
-            <a href="#">
+            <a href="javascript:;">
                 {{ page }} {% if page == objects_page.number %}<span class="sr-only">(current)</span>{% endif %}
             </a>
         </li>
     {% endfor %}
-    <li><a href="#" aria-label="Next"><span aria-hidden="true">»</span></a></li>
+    <li data-val="-1"><a href="javascript:;" aria-label="Next"><span aria-hidden="true">»</span></a></li>
 </ul>
 {% endif %}
 <div id="page-navigation" class="text-muted">
