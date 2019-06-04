@@ -268,6 +268,8 @@ class Service(models.Model):
     ikwen_name = property(_get_ikwen_name, _set_ikwen_name)
 
     def _get_go_url(self):
+        if self.project_name_slug == 'ikwen':
+            return self.url
         return 'https://go.ikwen.com/' + self.project_name_slug
     go_url = property(_get_go_url)
 
