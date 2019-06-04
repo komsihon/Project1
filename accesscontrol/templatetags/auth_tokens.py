@@ -35,7 +35,8 @@ def ikwenize(uri):
     """
     if not getattr(settings, 'IS_UMBRELLA', False):
         uri = uri.replace('/ikwen', '')
-    uri = uri.replace(getattr(settings, 'WSGI_SCRIPT_ALIAS', ''), '')
+    script_alias = getattr(settings, 'WSGI_SCRIPT_ALIAS', '')
+    uri = uri[len(script_alias):]
     from ikwen.core.views import IKWEN_BASE_URL
     url = IKWEN_BASE_URL + uri
     return url
