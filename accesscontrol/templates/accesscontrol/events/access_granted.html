@@ -1,4 +1,4 @@
-{% load i18n staticfiles humanize auth_tokens %}
+{% load i18n staticfiles humanize auth_tokens url_utils %}
 {% if is_iao %}
     <div style="padding: 0 15px">
         {% url 'ikwen:profile' member.id as profile_url  %}
@@ -7,7 +7,7 @@
         {% else %}
             <h4 class="text-primary">{% trans "New member" %}</h4>
         {% endif %}
-        {% with service_url=service.url  %}
+        {% with service_url=service.go_url  %}
         <div class="member" style="border-bottom: none; padding: 15px 0">
             {% if member.photo and member.photo.name %}
                 <a href="{{ profile_url|ikwenize }}" class="photo"
@@ -19,15 +19,15 @@
             <div style="margin-left: 80px">
                 <a href="{{ profile_url|ikwenize }}" class="name"
                    style="cursor: pointer; display: block; margin-bottom: 5px">{{ member.full_name }}</a>
-                {% url 'ikwen:community' as community_url %}
+                {% url 'ikwen:community' as community_uri %}
                 {% if group_name != 'Community' %}
-                    <p class="about">{% blocktrans %}
+                    <p class="about">{% blocktrans with community_url=community_uri|strip_base_alias %}
                         Was granted access and added to
                         <a href="{{ service_url }}{{ community_url }}?group_name={{ group_name }}"
                            style="cursor: pointer">{{ group_name }}</a> group.
                     {% endblocktrans %}</p>
                 {% else %}
-                    <p class="about">{% blocktrans %}
+                    <p class="about">{% blocktrans with community_url=community_uri|strip_base_alias %}
                         Joined your community.
                         <a href="{{ service_url }}{{ community_url }}" style="cursor: pointer">View community</a>
                     {% endblocktrans %}</p>
