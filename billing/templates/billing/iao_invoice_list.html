@@ -1,0 +1,78 @@
+{% extends 'core/base_bs.html' %}
+{% load i18n humanize static %}
+
+{% block page_title %}
+    <title>{{ config.company_name }} - {% trans "Invoice history" %}</title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'embed-doc/css/embed-doc.css' %}"/>
+    <style>
+        #pending-invoices {margin-top: 10px;}
+        .v-align { display: flex; align-items: center; justify-content: flex-start }
+        .v-align-center { align-self: center; }
+        .event-icon {height: 60%}
+        .due-date.pending .event-title {color: #888}
+        .due-date.overdue .event-title, .due-date.exceeded .event-title {color: #d31b00}
+        @media (min-width: 768px) {
+            #pending-invoices {margin-top: 30px;}
+        }
+        @media (max-width: 767px) {
+            #pending-invoices .payment-start {margin-top: 10px;}
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="content" class="container">
+        <div class="col-sm-8 col-sm-offset-2">
+            <h3>
+                <strong>{% trans "Billing" %}</strong>
+            </h3>
+            <div id="pending-invoices">
+                {% with pending_count=pending_invoice_list|length %}
+                    <h4 style="margin-bottom: 20px">{{ pending_count }} pending invoice(s)</h4>
+                {% endwith %}
+                {% for invoice in pending_invoice_list %}
+                    {% url 'billing:invoice_detail' invoice.id as invoice_url %}
+                    <div class="event">
+                        <div class="subtle-shade event-detail">
+                            <div class="event-icon pull-left">
+                                <img src="{% static 'ikwen/img/invoice-icon.png' %}" />
+                            </div>
+                            <div class="event-content">
+                                <div>
+                                    <a href="{{ invoice_url }}" class="col-sm-6 row" style="font-size: 1.2em">{{ invoice }}</a>
+                                    <div class="col-sm-4 event-date text-muted pull-right text-right hidden-xs" style="padding-right: 0;">{{ invoice.created_on|date }}</div>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="due-date {{ invoice.status|lower }}">
+                                    <span>{% trans "Due date" %}: </span>
+                                    <span class="event-title">{{ invoice.due_date|date }}</span>
+                                </div>
+                                <h3>
+                                    <strong>{{ invoice.amount|intcomma }}</strong>
+                                    <span class="text-muted" style="font-size: .6em">{{ currency_symbol }}</span>
+                                </h3>
+                                <div class="actions">
+                                    <button class="btn btn-success pull-right btn-sm payment-start"
+                                            data-product-id="{{ invoice.id }}"> {% trans "Pay now" %}</button>
+                                </div>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div id="results" style="padding-top: 0">
+                {% include 'billing/snippets/invoice_list_results.html' %}
+            </div>
+        </div>
+    </div>
+    {% with payment_conf='invoice_payment' %}
+        {% include 'billing/snippets/modal_payment_options.html' %}
+    {% endwith %}
+{% endblock %}

@@ -26,11 +26,14 @@
 - model: billing.subscription
   pk: 56eb6d04b37b3379c531e012
   fields:
+    reference_id: Ext_ID_1
     member: 56eb6d04b37b3379b531e012
     product: 55eb63379c531e012d04b37a
     monthly_cost: 5000
     status: Active
     since: 2016-01-01T10:31:11.345Z
+    expiry: 2035-01-01
+    billing_cycle: Monthly
 
 - model: billing.subscription
   pk: 56eb6d04b37b3379c531e013
@@ -40,6 +43,7 @@
     monthly_cost: 5000
     status: Active
     since: 2016-01-01T10:31:11.345Z
+    billing_cycle: Monthly
 
 - model: billing.subscription
   pk: 56eb6d04b37b3379c531e014
@@ -49,3 +53,4 @@
     monthly_cost: 5000
     status: Active
     since: 2016-01-01T10:31:11.345Z
+    billing_cycle: Monthly

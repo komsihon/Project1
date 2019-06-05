@@ -3,21 +3,16 @@ import json
 import logging
 import random
 import string
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import permission_required
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Sum
-from django.db.models.loading import get_model
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from django.template import Context
-from django.template.defaultfilters import slugify
-from django.template.loader import get_template
-from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
@@ -26,334 +21,22 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import TemplateView
 
-from ikwen.core.constants import PENDING
-
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
 from ikwen.billing.cloud_setup import DeploymentForm, deploy
-from ikwen.billing.models import Invoice, SendingReport, SERVICE_SUSPENDED_EVENT, PaymentMean, \
-    CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry, Product, MoMoTransaction
-from ikwen.billing.admin import ProductAdmin, SubscriptionAdmin
+from ikwen.billing.models import PaymentMean, CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry, MoMoTransaction
 from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.orangemoney.views import init_web_payment, ORANGE_MONEY
-from ikwen.billing.utils import get_invoicing_config_instance, get_subscription_model
+from ikwen.billing.utils import get_subscription_model, get_product_model
 from ikwen.core.models import Service, Application
-from ikwen.core.utils import add_database_to_settings, get_service_instance
-from ikwen.core.views import HybridListView, ChangeObjectBase
+from ikwen.core.utils import get_service_instance
+from ikwen.core.views import HybridListView
 from ikwen.partnership.models import ApplicationRetailConfig
 
 logger = logging.getLogger('ikwen')
 
-subscription_model_name = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
-app_label = subscription_model_name.split('.')[0]
-model = subscription_model_name.split('.')[1]
-Subscription = get_model(app_label, model)
-
-
-class BillingBaseView(TemplateView):
-    def get_context_data(self, **kwargs):
-        context = super(BillingBaseView, self).get_context_data(**kwargs)
-        context['invoicing_config'] = get_invoicing_config_instance()
-        return context
-
-
-class IframeAdmin(BillingBaseView):
-    template_name = 'core/iframe_admin.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(IframeAdmin, self).get_context_data(**kwargs)
-        model_name = kwargs['model_name']
-        app_name = kwargs.get('app_name', 'billing')
-        iframe_url = reverse('admin:%s_%s_changelist' % (app_name, model_name))
-        context['model_name'] = model_name
-        context['iframe_url'] = iframe_url
-        return context
-
-
-class ProductList(HybridListView):
-    model = Product
-    ordering = ('order_of_appearance', 'cost', )
-    context_object_name = 'product_list'
-    template_name = 'billing/product_list.html'
-
-    def get(self, request, *args, **kwargs):
-        action = self.request.GET.get('action')
-        if action == 'delete':
-            selection = self.request.GET['selection'].split(',')
-            deleted = []
-            for pk in selection:
-                try:
-                    obj = Product.objects.get(pk=pk)
-                    if Subscription.objects.filter(product=obj).count() > 0:
-                        response = {'message': "Cannot delete because there are actual subscriptions. "
-                                               "Deactivate instead"}
-                        return HttpResponse(json.dumps(response))
-                    obj.delete()
-                    deleted.append(pk)
-                except:
-                    continue
-            response = {
-                'message': "%d item(s) deleted." % len(selection),
-                'deleted': deleted
-            }
-            return HttpResponse(json.dumps(response))
-        return super(ProductList, self).get(request, *args, **kwargs)
-
-
-class ChangeProduct(ChangeObjectBase):
-    model = Product
-    model_admin = ProductAdmin
-    template_name = 'billing/change_product.html'
-
-
-class SubscriptionList(HybridListView):
-    if getattr(settings, 'DEBUG', False):
-        model = Subscription
-    else:
-        queryset = Subscription.objects.exclude(status=PENDING)
-    ordering = ('-id', )
-    list_filter = ('status', )
-    context_object_name = 'subscription_list'
-    template_name = 'billing/subscription_list.html'
-    html_results_template_name = 'billing/snippets/subscription_list_results.html'
-
-    def get_search_results(self, queryset, max_chars=None):
-        search_term = self.request.GET.get('q')
-        if search_term and len(search_term) >= 2:
-            search_term = search_term.lower()
-            word = slugify(search_term)
-            if word:
-                word = word[:4]
-                member_list = list(Member.objects.filter(full_name__icontains=word))
-                queryset = queryset.filter(member__in=member_list)
-        return queryset
-
-
-class ChangeSubscription(ChangeObjectBase):
-    model = Subscription
-    model_admin = SubscriptionAdmin
-    template_name = 'billing/change_subscription.html'
-
-
-class InvoiceList(BillingBaseView):
-
-    def get_context_data(self, **kwargs):
-        context = super(InvoiceList, self).get_context_data(**kwargs)
-        subscription_model = get_subscription_model()
-        subscriptions = list(subscription_model.objects.filter(member=self.request.user))
-        context['unpaid_invoices_count'] = Invoice.objects.filter(
-            Q(status=Invoice.PENDING) | Q(status=Invoice.OVERDUE),
-            subscription__in=subscriptions
-        ).count()
-        invoices = Invoice.objects.filter(subscription__in=subscriptions).order_by('-id')
-        for invoice in invoices:
-            if invoice.status == Invoice.PAID:
-                payments = list(invoice.payment_set.all().order_by('-id'))
-                invoice.paid_on = payments[-1].created_on.strftime('%B %d, %Y %H:%M')
-                invoice.method = payments[-1].method
-        context['invoices'] = invoices
-        return context
-
-    def get(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
-        app_label = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'ikwen.billing.Subscription').split('.')[0]
-        return TemplateResponse(request, [
-            'billing/%s/invoice_list.html' % app_label,
-            'billing/invoice_list.html'
-        ], context)
-
-
-class InvoiceDetail(BillingBaseView):
-    template_name = 'billing/invoice_detail.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(InvoiceDetail, self).get_context_data(**kwargs)
-        invoice_id = self.kwargs['invoice_id']
-        invoice = get_object_or_404(Invoice, pk=invoice_id)
-        subscription = invoice.subscription
-        if not subscription.member:
-            subscription.member = self.request.user
-            subscription.save()
-        context['invoice'] = invoice
-        context['payment_mean_list'] = list(PaymentMean.objects.filter(is_active=True).order_by('-is_main'))
-        if getattr(settings, 'IS_IKWEN', False):
-            try:
-                invoice_service = invoice.service
-                context['customer_config'] = invoice_service.config
-                context['vendor'] = invoice_service.retailer.config if invoice_service.retailer \
-                    else get_service_instance().config
-            except:
-                pass
-
-        # User may want to extend the payment above the default duration
-        # Below are a list of possible extension dates on a year
-        # TODO: Manage extensions for case where Product is bound to a duration (billing cycle)
-        if getattr(settings, 'SEPARATE_BILLING_CYCLE', True):
-            expiry = invoice.subscription.expiry
-            exp_year = expiry.year
-            exp_month = expiry.month
-            exp_day = expiry.day
-            extensions = []
-            for i in (1, 2, 3, 6, 12):
-                year = exp_year
-                month = exp_month + i
-                day = exp_day
-                if month > 12:
-                    year += 1
-                    month = (exp_month + i) % 12
-                    if month == 0:
-                        month = 12
-                valid_date = False
-                while not valid_date:
-                    try:
-                        next_expiry = date(year, month, day)
-                        extensions.append({'expiry': next_expiry, 'months': i})
-                        valid_date = True
-                    except:
-                        day -= 1
-            context['extensions'] = extensions
-        return context
-
-
-@login_required
-def change_billing_cycle(request, *args, **kwargs):
-    subscription_id = request.GET['subscription_id']
-    new_cycle = request.GET['new_cycle']
-    subscription_model = get_subscription_model()
-    if getattr(settings, 'IS_IKWEN', False):
-        service = subscription_model.objects.using(UMBRELLA).get(pk=subscription_id)
-        service.billing_cycle = new_cycle
-        service.save(using=service.database)
-    else:
-        service = subscription_model.objects.get(pk=subscription_id)
-        service.billing_cycle = new_cycle
-    service.save()
-    callback = request.GET['callback']
-    response = callback + '(' + json.dumps({'success': True}) + ')'
-    return HttpResponse(response, content_type='application/json')
-
-
-@login_required
-def list_members(request, *args, **kwargs):
-    """
-    Used for member auto-complete in billing admin upon
-    creation of a Subscription.
-    """
-    q = request.GET['query'].lower()
-    if len(q) < 2:
-        return
-
-    queryset = Member.objects
-    for word in q.split(' '):
-        word = slugify(word)[:4]
-        if word:
-            queryset = queryset.filter(full_name__icontains=word)[:10]
-            if queryset.count() > 0:
-                break
-
-    suggestions = [{'value': member.full_name, 'data': member.pk} for member in queryset]
-    response = {'suggestions': suggestions}
-    return HttpResponse(json.dumps(response), content_type='application/json')
-
-
-@login_required
-def list_subscriptions(request, *args, **kwargs):
-    """
-    Used for member auto-complete in billing admin upon
-    creation of a Subscription.
-    """
-    q = request.GET['query'].lower()
-    if len(q) < 2:
-        return
-
-    subscriptions = []
-    queryset = Member.objects
-    for word in q.split(' '):
-        word = slugify(word)[:4]
-        if word:
-            members = list(queryset.filter(full_name__icontains=word)[:10])
-            if len(members) > 0:
-                subscriptions = list(Subscription.objects.filter(member__in=members))
-                break
-
-    suggestions = [{'value': str(s), 'data': s.pk} for s in subscriptions]
-    response = {'suggestions': suggestions}
-    return HttpResponse(json.dumps(response), content_type='application/json')
-
-
-def render_subscription_event(event, request):
-    service = event.service
-    database = service.database
-    add_database_to_settings(database)
-    tk = event.model.split('.')
-    app_label = tk[0]
-    model = tk[1]
-    subscription_model = get_model(app_label, model)
-    try:
-        subscription = subscription_model.objects.using(database).get(pk=event.object_id)
-        short_description = subscription.__dict__.get('short_description')
-        image = subscription.product.image
-        try:
-            cost = subscription.monthly_cost
-            billing_cycle = subscription.billing_cycle
-        except AttributeError:
-            cost = subscription.product.cost
-            billing_cycle = None
-
-        c = Context({'title': _(event.event_type.title),
-                     'product_name': subscription.product.name,
-                     'short_description': short_description,
-                     'currency_symbol': service.config.currency_symbol,
-                     'cost': cost,
-                     'image_url': image.url if image and image.name else None,
-                     'billing_cycle': billing_cycle,
-                     'obj': subscription})
-    except Subscription.DoesNotExist:
-        return None
-
-    html_template = get_template('billing/events/subscription.html')
-    return html_template.render(c)
-
-
-def render_billing_event(event, request):
-    service = event.service
-    database = service.database
-    add_database_to_settings(database)
-    currency_symbol = service.config.currency_symbol
-    try:
-        invoice = Invoice.objects.using(database).get(pk=event.object_id)
-        member = invoice.subscription.member
-        try:
-            details = invoice.subscription.product.get_details()
-        except:
-            subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
-            details = subscription.details
-        from ikwen.conf import settings as ikwen_settings
-        data = {'title': _(event.event_type.title),
-                'details': details,
-                'danger': event.event_type.codename == SERVICE_SUSPENDED_EVENT,
-                'currency_symbol': currency_symbol,
-                'amount': invoice.amount,
-                'obj': invoice,
-                'details_url': service.url + reverse('billing:invoice_detail', args=(invoice.id,)),
-                'show_pay_now': invoice.status != Invoice.PAID,
-                'MEMBER_AVATAR': ikwen_settings.MEMBER_AVATAR, 'IKWEN_MEDIA_URL': ikwen_settings.MEDIA_URL}
-        if member.id != request.GET['member_id']:
-            data['member'] = member
-        c = Context(data)
-    except Invoice.DoesNotExist:
-        try:
-            report = SendingReport.objects.using(database).get(pk=event.object_id)
-            c = Context({'title': '<strong>%d</strong> %s' % (report.count, _(event.event_type.title)),
-                         'currency_symbol': currency_symbol,
-                         'amount': report.total_amount,
-                         'details_url': service.url + reverse('billing:iframe_admin', args=('invoice',)),
-                         'obj': report})
-        except SendingReport.DoesNotExist:
-            return None
-
-    html_template = get_template('billing/events/notice.html')
-    return html_template.render(c)
+Product = get_product_model()
+Subscription = get_subscription_model()
 
 
 class PaymentMeanList(TemplateView):
@@ -529,7 +212,7 @@ class TransactionLog(HybridListView):
     def mark_dropped(self, queryset):
         for tx in queryset.filter(is_running=True):
             diff = datetime.now() - tx.created_on
-            if diff.seconds > 660:
+            if diff.total_seconds() > 660:
                 tx.is_running = False
                 tx.status = MoMoTransaction.DROPPED
                 tx.save()

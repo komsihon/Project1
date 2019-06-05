@@ -35,12 +35,14 @@ Subscription = get_subscription_model()
 
 
 class InvoicingConfigAdmin(CustomBaseAdmin):
-    list_display = ('name', 'gap', 'reminder_delay', 'overdue_delay', 'tolerance', )
+    list_display = ('gap', 'reminder_delay', 'overdue_delay', 'tolerance', )
     fieldsets = (
-        (_('Invoice generation'), {'fields': ('gap', 'new_invoice_subject', 'new_invoice_message', 'new_invoice_sms', )}),
+        (_('General'), {'fields': ('gap', 'separate_billing_cycle', 'processing_fees_on_customer', )}),
+        (_('Invoice generation'), {'fields': ('new_invoice_subject', 'new_invoice_message', 'new_invoice_sms', )}),
         (_('Reminders'), {'fields': ('reminder_delay', 'reminder_subject', 'reminder_message', 'reminder_sms', )}),
         (_('Overdue'), {'fields': ('overdue_delay', 'tolerance', 'overdue_subject', 'overdue_message', 'overdue_sms')}),
         (_('Service suspension'), {'fields': ('service_suspension_subject', 'service_suspension_message', 'service_suspension_sms')}),
+        (_('API'), {'fields': ('pull_invoice', 'suspension_return_url', 'return_url', )}),
     )
     save_on_top = True
 
@@ -61,15 +63,11 @@ class SubscriptionAdmin(CustomBaseAdmin, ImportExportMixin):
     list_filter = ('status', 'billing_cycle', )
     search_fields = ('member_name', 'member_phone', )
     fieldsets = (
-        (None, {'fields': ('member', 'product', 'monthly_cost', 'billing_cycle', )}),
+        (None, {'fields': ('reference_id', 'product', 'monthly_cost', 'billing_cycle', )}),
         (_('Billing'), {'fields': ('status', 'expiry', 'invoice_tolerance', )}),
         (_('Important dates'), {'fields': ('updated_on', 'since', )}),
     )
-    if getattr(settings, 'IS_IKWEN', False):
-        readonly_fields = ('created_on', 'updated_on', )
-        raw_id_fields = ('member',)
-    else:
-        readonly_fields = ('member', 'product', 'monthly_cost', 'billing_cycle', 'updated_on', 'since', )
+    readonly_fields = ('updated_on', 'since', )
     save_on_top = True
 
     def get_search_results(self, request, queryset, search_term):
@@ -116,6 +114,47 @@ class SubscriptionAdmin(CustomBaseAdmin, ImportExportMixin):
                     send_sms(member.phone, sms_text)
                 else:
                     QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
+
+
+class PaymentResource(resources.ModelResource):
+    client = fields.Field(column_name=_('Client'))
+    invoice_number = fields.Field(column_name=_('Invoice No'))
+    amount = fields.Field(column_name=_('Amount'))
+    method = fields.Field(column_name=_('Method'))
+    cashier = fields.Field(column_name=_('Cashier'))
+    created_on = fields.Field(column_name='Date')
+
+    class Meta:
+        model = Payment
+        fields = ('client', 'invoice_number', 'amount', 'method', 'cashier', 'created_on', )
+        export_order = ('client', 'invoice_number', 'amount', 'method', 'cashier', 'created_on', )
+
+    def dehydrate_client(self, payment):
+        member = payment.invoice.member
+        if member:
+            return member.full_name
+        return '<Anonymous>'
+
+    def dehydrate_invoice_number(self, payment):
+        invoice = payment.invoice
+        if invoice:
+            return invoice.number
+        return 'N/A'
+
+    def dehydrate_amount(self, payment):
+        return payment.amount
+
+    def dehydrate_method(self, payment):
+        return payment.method
+
+    def dehydrate_cashier(self, payment):
+        cashier = payment.cashier
+        if cashier:
+            return cashier.full_name
+        return 'N/A'
+
+    def dehydrate_created_on(self, payment):
+        return payment.created_on.strftime('%y-%m-%d %H:%M')
 
 
 class PaymentInline(admin.TabularInline):
@@ -296,77 +335,6 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
         return queryset, use_distinct
 
 
-class CashierListFilter(admin.SimpleListFilter):
-    """
-    Implements the filtering of ContentUpdate by member on Content Vendor website
-    """
-
-    # Human-readable title which will be displayed in the
-    # right admin sidebar just above the filter options.
-    title = _('cashier')
-
-    # Parameter for the filter that will be used in the URL query.
-    parameter_name = 'member_id'
-
-    def lookups(self, request, model_admin):
-        """
-        Returns a list of tuples. The first element in each
-        tuple is the coded value for the option that will
-        appear in the URL query. The second element is the
-        human-readable name for the option that will appear
-        in the right sidebar.
-        """
-        choices = []
-        for member in Member.objects.filter(is_staff=True):
-            choice = (member.id, member.get_full_name())
-            choices.append(choice)
-        return choices
-
-    def queryset(self, request, queryset):
-        """
-        Returns the filtered queryset based on the value
-        provided in the query string and retrievable via
-        `self.value()`.
-        """
-        if self.value():
-            cashier = Member.objects.get(pk=self.value())
-            return queryset.filter(cashier=cashier)
-        return queryset
-
-
-class PaymentAdmin(CustomBaseAdmin, ExportMixin):
-    list_display = ('get_member', 'amount', 'method', 'created_on', 'cashier', )
-    list_filter = ('created_on', 'method', CashierListFilter, )
-    search_fields = ('member_name', 'member_phone', )
-    readonly_fields = ('created_on', 'cashier')
-    raw_id_fields = ('invoice', )
-
-    def save_model(self, request, obj, form, change):
-        return HttpResponseForbidden("To add a payment, you must go to the Invoice detail form.")
-
-    def get_search_results(self, request, queryset, search_term):
-        try:
-            int(search_term)
-            members = list(Member.objects.filter(
-                Q(phone__contains=search_term) | Q(full_name__icontains=search_term.lower())
-            ))
-            subscriptions = []
-            for member in members:
-                subscriptions.extend(list(Subscription.objects.filter(member=member)))
-            invoices = list(Invoice.objects.filter(subscription__in=subscriptions))
-            queryset = self.model.objects.filter(invoice__in=invoices)
-            use_distinct = False
-        except ValueError:
-            members = list(Member.objects.filter(full_name__icontains=search_term.lower()))
-            subscriptions = []
-            for member in members:
-                subscriptions.extend(list(Subscription.objects.filter(member=member)))
-            invoices = list(Invoice.objects.filter(subscription__in=subscriptions))
-            queryset = self.model.objects.filter(invoice__in=invoices)
-            use_distinct = False
-        return queryset, use_distinct
-
-
 class PaymentMeanAdmin(admin.ModelAdmin):
     list_display = ('name', 'logo', 'watermark', 'button_img_url', 'is_cashflex')
     search_fields = ('name',)
@@ -496,27 +464,8 @@ class SupportBundleAdmin(admin.ModelAdmin):
     list_display = ('type', 'quantity', 'duration', 'cost')
 
 
-# Override ProductAdmin class if there's another defined in settings
-product_model_admin = getattr(settings, 'BILLING_PRODUCT_MODEL_ADMIN', None)
-if product_model_admin:
-    ProductAdmin = import_by_path(product_model_admin)
-
-# Override SubscriptionAdmin class if there's another defined in settings
-subscription_model_admin = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL_ADMIN', None)
-if subscription_model_admin:
-    SubscriptionAdmin = import_by_path(subscription_model_admin)
-
 admin.site.register(InvoicingConfig, InvoicingConfigAdmin)
-try:
-    admin.site.register(Product, ProductAdmin)
-except AlreadyRegistered:
-    pass
-try:
-    admin.site.register(Subscription, SubscriptionAdmin)
-except AlreadyRegistered:
-    pass
 admin.site.register(Invoice, InvoiceAdmin)
-admin.site.register(Payment, PaymentAdmin)
 
 
 if getattr(settings, 'IS_UMBRELLA', False):

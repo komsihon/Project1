@@ -2,7 +2,7 @@
 {% load i18n humanize staticfiles auth_tokens %}
 
 {% block page_title %}
-<title> {% if product %}{{ product.name }}{% else %}{% trans "New product" %}{% endif %} - {{ service.project_name }} </title>
+<title> {% if obj %}{{ obj.name }}{% else %}{% trans "New product" %}{% endif %} - {{ service.project_name }} </title>
 {% endblock %}
 
 {% block head_js %}
@@ -38,8 +38,8 @@
     <li>
         <a href="{% url 'billing:product_list' %}">{% trans "Products" %}</a>
     </li>
-    {% if product %}
-        <li>{{ product.name }}</li>
+    {% if obj %}
+        <li>{{ obj.name }}</li>
     {% else %}
         <li>{% trans 'New' %}</li>
     {% endif %}

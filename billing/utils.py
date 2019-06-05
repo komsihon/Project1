@@ -2,6 +2,9 @@
 import logging
 from datetime import datetime, timedelta
 
+import requests
+from requests.exceptions import SSLError, Timeout, RequestException
+
 from django.conf import settings
 from django.db import transaction
 from django.db.models import get_model
@@ -17,8 +20,9 @@ from ikwen.partnership.models import ApplicationRetailConfig
 logger = logging.getLogger('ikwen')
 
 
-def get_invoicing_config_instance(using='default'):
-    invoicing_config = InvoicingConfig.objects.using(using).all()[0]
+def get_invoicing_config_instance(using=UMBRELLA):
+    service = get_service_instance(using=using)
+    invoicing_config, update = InvoicingConfig.objects.using(using).get_or_create(service=service)
     return invoicing_config
 
 
@@ -64,21 +68,31 @@ def get_billing_cycle_months_count(billing_cycle):
         return 3
     if billing_cycle == Service.BI_ANNUALLY:
         return 6
-    return 12
+    if billing_cycle == Service.YEARLY:
+        return 12
+
+
+def get_months_count_billing_cycle(months_count):
+    if months_count == 1:
+        return Service.MONTHLY
+    if months_count == 3:
+        return Service.QUARTERLY
+    if months_count == 6:
+        return Service.BI_ANNUALLY
+    if months_count == 12:
+        return Service.YEARLY
 
 
 def get_product_model():
-    config_model_name = getattr(settings, 'BILLING_PRODUCT_MODEL', 'billing.Product')
-    app_label = config_model_name.split('.')[0]
-    model = config_model_name.split('.')[1]
-    return get_model(app_label, model)
+    model_name = getattr(settings, 'BILLING_PRODUCT_MODEL', 'billing.Product')
+    if not model_name:
+        return None
+    return get_model(*model_name.split('.'))
 
 
 def get_subscription_model():
-    config_model_name = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
-    app_label = config_model_name.split('.')[0]
-    model = config_model_name.split('.')[1]
-    return get_model(app_label, model)
+    model_name = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
+    return get_model(*model_name.split('.'))
 
 
 def get_next_invoice_number(auto=True):
@@ -107,7 +121,7 @@ def get_subscription_registered_message(subscription):
     @param subscription: Subscription object
     """
     config = get_service_instance().config
-    invoicing_config = InvoicingConfig.objects.all()[0]
+    invoicing_config = get_invoicing_config_instance()
     member = subscription.member
     new_invoice_subject = invoicing_config.new_invoice_subject
     new_invoice_message = invoicing_config.new_invoice_message
@@ -156,9 +170,10 @@ def get_invoice_generated_message(invoice):
     Returns a tuple (mail subject, mail body, sms text) to send to
     member upon generation of an invoice
     @param invoice: Invoice object
+    @param invoicing_config: InvoicingConfig object
     """
     config = get_service_instance().config
-    invoicing_config = InvoicingConfig.objects.all()[0]
+    invoicing_config = get_invoicing_config_instance()
     member = invoice.subscription.member
     new_invoice_subject = invoicing_config.new_invoice_subject
     new_invoice_message = invoicing_config.new_invoice_message
@@ -197,7 +212,7 @@ def get_invoice_reminder_message(invoice):
     @param invoice: Invoice object
     """
     config = get_service_instance().config
-    invoicing_config = InvoicingConfig.objects.all()[0]
+    invoicing_config = get_invoicing_config_instance()
     member = invoice.subscription.member
     reminder_subject = invoicing_config.reminder_subject
     reminder_message = invoicing_config.reminder_message
@@ -240,7 +255,7 @@ def get_invoice_overdue_message(invoice):
     @param invoice: Invoice object
     """
     config = get_service_instance().config
-    invoicing_config = InvoicingConfig.objects.all()[0]
+    invoicing_config = get_invoicing_config_instance()
     member = invoice.subscription.member
     overdue_subject = invoicing_config.overdue_subject
     overdue_message = invoicing_config.overdue_message
@@ -288,7 +303,7 @@ def get_service_suspension_message(invoice):
     @param invoice: Invoice object
     """
     config = get_service_instance().config
-    invoicing_config = InvoicingConfig.objects.all()[0]
+    invoicing_config = get_invoicing_config_instance()
     member = invoice.subscription.member
     service_suspension_subject = invoicing_config.payment_confirmation_subject
     service_suspension_message = invoicing_config.payment_confirmation_message
@@ -331,7 +346,7 @@ def get_payment_confirmation_message(payment, member):
     @param payment: Payment object
     """
     config = get_service_instance().config
-    invoicing_config = InvoicingConfig.objects.all()[0]
+    invoicing_config = get_invoicing_config_instance()
     invoice = payment.invoice
     payment_confirmation_subject = invoicing_config.payment_confirmation_subject
     payment_confirmation_message = invoicing_config.payment_confirmation_message
@@ -395,6 +410,21 @@ def pay_with_wallet_balance(invoice):
     invoice.status = Invoice.PAID
     invoice.save()
     Payment.objects.create(invoice=invoice, method=Payment.WALLET_DEBIT, amount=invoice.amount)
+
+
+def notify_event(service, url, params):
+    project_name = service.project_name
+    try:
+        r = requests.get(url, params)
+        logger.debug("%s: HTTP %s - Notification sent to %s" % (project_name, r.status_code, r.url))
+    except SSLError:
+        logger.error("%s: SSL Error while hitting %s" % (project_name, url), exc_info=True)
+    except Timeout:
+        logger.error("%s: Timeout %s" % (project_name, url), exc_info=True)
+    except RequestException:
+        logger.error("%s: Request exception %s" % (project_name, url), exc_info=True)
+    except:
+        logger.error("%s: Server error %s" % (project_name, url), exc_info=True)
 
 
 def suspend_subscription(subscription):
@@ -484,7 +514,8 @@ def _share_payment_and_set_stats_other(invoice, payment_mean_slug='mtn-momo'):
     service = get_service_instance(check_cache=False)
     service_umbrella = get_service_instance(UMBRELLA, check_cache=False)
     config = service_umbrella.config
-    if config.__dict__.get('processing_fees_on_customer'):
+    invoicing_config = get_invoicing_config_instance()
+    if invoicing_config.processing_fees_on_customer:
         ikwen_earnings = config.ikwen_share_fixed
         service_earnings = invoice.amount
     else:

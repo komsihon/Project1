@@ -10,6 +10,7 @@ from ikwen.core.constants import PENDING
 from ikwen.accesscontrol.backends import UMBRELLA
 
 from ikwen.accesscontrol.models import Member
+from ikwen.core.constants import PENDING_FOR_PAYMENT
 from ikwen.core.fields import MultiImageField
 from ikwen.core.models import Model, Service, Application, AbstractConfig
 from ikwen.core.utils import add_database_to_settings
@@ -36,18 +37,34 @@ class OperatorProfile(AbstractConfig):
                                          help_text=_("Percentage ikwen collects on the turnover made by this person."))
     ikwen_share_fixed = models.FloatField(_("ikwen share fixed"), default=0,
                                           help_text=_("Fixed amount ikwen collects on the turnover made by this person."))
-    processing_fees_on_customer = models.BooleanField(default=False)
-    separate_billing_cycle = models.BooleanField(default=True)
     max_customers = models.IntegerField(default=300)
+
+
+class InvoicingConfig(models.Model):
+    service = models.ForeignKey(Service, blank=True, null=True, related_name='+')
+    separate_billing_cycle = models.BooleanField(default=True)
+    processing_fees_on_customer = models.BooleanField(default=False)
+    # This is the default number of days preceding expiry on which invoice must be sent to client.
+    # this number can later be overriden per subscription of clients
+    gap = models.IntegerField(default=14, verbose_name=_("Gap"),
+                              help_text=_("Number of days preceding expiry on which invoice must be sent to client."))
+    tolerance = models.IntegerField(default=7, verbose_name=_("Tolerance"),
+                                    help_text=_("Number of overdue days allowed. "
+                                                "After that, severe action must be undertaken."))
     return_url = models.URLField(blank=True,
                                  help_text="Payment details are routed to this URL upon checkout confirmation. See "
                                            "<a href='http://support.ikwen.com/billing/configuration-return-url'>"
                                            "support.ikwen.com/billing/configuration-return-url</a> for more details.")
+    suspension_return_url = models.URLField(blank=True,
+                                            help_text="Payment details are routed to this URL upon service suspension. "
+                                                      "See <a href='http://support.ikwen.com/billing/configuration-suspension-return-url'>"
+                                                      "support.ikwen.com/billing/configuration-suspension-return-url</a> for more details.")
+    pull_invoice = models.BooleanField(default=False,
+                                       help_text="Check if you want your invoices to be pulled from an external system. "
+                                                 "You will have to send data to http://go.ikwen.com/your_project_name/billing/api/pull_invoice "
+                                                 "when an invoice is issued. See <a href='http://support.ikwen.com/billing/pulling-invoice-from-external-system'>"
+                                                 "http://support.ikwen.com/billing/pulling-invoice-from-external-system</a> for more details.")
 
-
-class InvoicingConfig(models.Model):
-    name = models.CharField(max_length=100, default=_('Default'),
-                            help_text=_("Name of this configuration."))
     new_invoice_subject = models.CharField(max_length=100, blank=True, verbose_name=_("New invoice subject"),
                                            help_text=_("Subject of the mail of notice of invoice generation."))
     new_invoice_message = models.TextField(blank=True, verbose_name=_("New invoice mail message"),
@@ -60,13 +77,6 @@ class InvoicingConfig(models.Model):
                                         help_text=_("Model of mail to send to remind invoice payment."))
     reminder_sms = models.TextField(blank=True, verbose_name=_("Reminder SMS"),
                                     help_text=_("Model of SMS to send to remind invoice payment."))
-    # This is the default number of days preceding expiry on which invoice must be sent to client.
-    # this number can later be overriden per subscription of clients
-    gap = models.IntegerField(default=15, verbose_name=_("Gap"),
-                              help_text=_("Number of days preceding expiry on which invoice must be sent to client."))
-    tolerance = models.IntegerField(default=1, verbose_name=_("Tolerance"),
-                                    help_text=_("Number of overdue days allowed. "
-                                                "After that, severe action must be undertaken."))
     reminder_delay = models.IntegerField(default=5, verbose_name=_("Reminder delay"),
                                          help_text=_("Number of days after which a reminder must be re-sent to client."))
     overdue_subject = models.CharField(max_length=60, blank=True, verbose_name=_("Overdue subject"),
@@ -80,15 +90,15 @@ class InvoicingConfig(models.Model):
     payment_confirmation_subject = models.CharField(max_length=60, blank=True, verbose_name=_("Payment confirmation subject"),
                                                     help_text=_("Subject of mail of receipt of payment."))
     payment_confirmation_message = models.TextField(blank=True, verbose_name=_("Payment confirmation message"),
-                                                    help_text=_("Model of mail to send to client as receipt of payment. "
-                                                                "HTML is allowed."))
+                                                    help_text=_("Model of mail to send to client as receipt of"
+                                                                "payment. HTML is allowed."))
     payment_confirmation_sms = models.TextField(blank=True, verbose_name=_("Payment confirmation SMS"),
                                                 help_text=_("Model of SMS to send to client as receipt of payment."))
     service_suspension_subject = models.CharField(max_length=60, blank=True, verbose_name=_("Service suspension subject"),
                                                   help_text=_("Subject of mail of notice of service suspension."))
     service_suspension_message = models.TextField(blank=True, verbose_name=_("Service suspension message"),
-                                                  help_text=_("Model of mail to send to client to notiy service suspension. "
-                                                              "HTML is allowed."))
+                                                  help_text=_("Model of mail to send to client to notiy service "
+                                                              "suspension. HTML is allowed."))
     service_suspension_sms = models.TextField(blank=True, verbose_name=_("Service suspension SMS"),
                                               help_text=_("Model of SMS to send to client to notify service suspension."))
 
@@ -96,7 +106,7 @@ class InvoicingConfig(models.Model):
         verbose_name_plural = _("Configurations of the invoicing system")
 
     def __unicode__(self):
-        return u'%s' % self.name
+        return u'%s' % self.service
 
     @staticmethod
     def get_default_tolerance():
@@ -130,6 +140,8 @@ class Product(Model):
                                     help_text=_("Check to make the product active."))
     is_main = models.BooleanField(default=False,
                                   help_text=_("Check to make the product active."))
+    # is_one_off = models.BooleanField(default=True,
+    #                                  help_text=_("One off product generates a one off subscription."))
     order_of_appearance = models.IntegerField(default=1)
 
     def __unicode__(self):
@@ -160,8 +172,10 @@ class AbstractSubscription(Model):
     )
     member = models.ForeignKey(Member, blank=True, null=True, related_name='+',
                                help_text=_("Client who subscribes to the service."))
+    reference_id = models.CharField(_("Reference ID"), max_length=60, blank=True, null=True, db_index=True,
+                                    help_text=_("Unique ID of the client subscription in your external system."))
     product = models.ForeignKey(getattr(settings, 'BILLING_PRODUCT_MODEL', 'billing.Product'),
-                                related_name='+')
+                                blank=True, null=True, related_name='+', limit_choices_to={'is_active': True})
     monthly_cost = models.FloatField(blank=True, null=True,
                                      help_text=_("How much the client must pay per month for the service."))
     billing_cycle = models.CharField(max_length=30, choices=Service.BILLING_CYCLES_CHOICES, blank=True,
@@ -176,15 +190,15 @@ class AbstractSubscription(Model):
     invoice_tolerance = models.IntegerField(default=InvoicingConfig.get_default_tolerance,
                                             help_text=_("Number of overdue days allowed. "
                                                         "After that, severe action must be undertaken."))
-    status = models.CharField(max_length=15, default=PENDING, choices=STATUS_CHOICES)
-    since = models.DateTimeField(verbose_name=_('Subscribed on'),
+    status = models.CharField(max_length=15, default=PENDING_FOR_PAYMENT, choices=STATUS_CHOICES)
+    since = models.DateTimeField(_('Subscribed on'), default=timezone.now, db_index=True,
                                  help_text=_("Date when the user subscribed"))
 
     class Meta:
         abstract = True
 
     def get_status(self):
-        if self.status != self.EXPIRED and datetime.now() < self.expiry:
+        if self.status != self.EXPIRED and datetime.now().date() < self.expiry:
             self.status = self.EXPIRED
             self.save()
         return self.status
@@ -216,6 +230,8 @@ class AbstractInvoice(Model):
         (EXCEEDED, _("Exceeded")),
         (PAID, _("Paid")),
     )
+    member = models.ForeignKey(Member, blank=True, null=True, related_name='+',
+                               help_text=_("Member to whom invoice is addressed."))
     number = models.CharField(max_length=10)
     amount = models.PositiveIntegerField()
     paid = models.PositiveIntegerField(default=0)
@@ -369,6 +385,7 @@ class InvoiceEntry(Model):
     item = EmbeddedModelField(getattr(settings, 'BILLING_INVOICE_ITEM_MODEL', 'InvoiceItem'))
     short_description = models.CharField(max_length=100, blank=True)
     quantity = models.FloatField(default=1)
+    quantity_unit = models.CharField(max_length=30, blank=True, null=True, default=_("Month(s)"))
     total = models.FloatField(default=0)
 
 
@@ -413,7 +430,7 @@ class Payment(AbstractPayment):
     invoice = models.ForeignKey(Invoice)
 
     def get_member(self):
-        return str(self.invoice.subscription.member)
+        return str(self.invoice.member)
     get_member.short_description = _('Member')
 
     def save(self, *args, **kwargs):

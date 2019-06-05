@@ -1,0 +1,38 @@
+{% load i18n static humanize %}
+{% include 'core/snippets/spinner.html' %}
+<ul class="object-list list-group">
+    {% for invoice in objects_page.object_list %}
+    {% url 'billing:invoice_detail' invoice.id as obj_url %}
+    <li class="ik-li list-group-item" id="{{ invoice.id }}" data-id="{{ invoice.id }}">
+        <a href="{{ obj_url }}">{{ invoice }}</a>
+        <div>
+            <span class="pull-left text-muted">{{ invoice.due_date|date }}</span>
+            <span class="pull-right">
+                <span class="text-muted" style="font-size: .8em">{{ currency_symbol }}</span>
+                <strong>{{ invoice.amount|intcomma }}</strong>
+            </span>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% if objects_page.paginator.num_pages > 1 %}
+<ul class="pagination">
+    <li class="disabled" data-val="first"><a href="javascript:;" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
+    {% for page in page_range %}
+        <li class="page{% if page == objects_page.number %} active{% endif %}" data-val="{{ page }}">
+            <a href="javascript:;">
+                {{ page }} {% if page == objects_page.number %}<span class="sr-only">(current)</span>{% endif %}
+            </a>
+        </li>
+    {% endfor %}
+    <li data-val="-1"><a href="javascript:;" aria-label="Next"><span aria-hidden="true">»</span></a></li>
+</ul>
+{% endif %}
+<div id="page-navigation" class="text-muted">
+    {% if objects_page.paginator.num_pages > 1 %}
+        <p>{% blocktrans with count=objects_page.paginator.count start=objects_page.start_index end=objects_page.end_index %}
+            {{ start }} – {{ end }} of {{ count }} results{% endblocktrans %}</p>
+    {% else %}
+        <p>{% blocktrans with count=objects_page.paginator.count %}{{ count }} results{% endblocktrans %}</p>
+    {% endif %}
+</div>

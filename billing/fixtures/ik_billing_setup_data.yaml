@@ -21,6 +21,7 @@
     monthly_cost: 15000
     version: Full
     status: Active
+    api_signature: top_secret_token
 
 - model: core.config
   fields:

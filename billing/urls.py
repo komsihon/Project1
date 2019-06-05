@@ -1,11 +1,15 @@
 
 from django.conf.urls import patterns, url
 from django.contrib.auth.decorators import login_required, permission_required
-from ikwen.billing.paypal.views import SetExpressCheckout
 
-from ikwen.billing.views import InvoiceList, InvoiceDetail, change_billing_cycle, list_members, \
-    list_subscriptions, IframeAdmin, ProductList, ChangeProduct, PaymentMeanList, set_credentials, toggle_payment_mean, \
-    MoMoSetCheckout, DeployCloud, SubscriptionList, ChangeSubscription, TransactionLog
+from ikwen.billing.paypal.views import SetExpressCheckout
+from ikwen.billing.api import pull_invoice
+
+from ikwen.billing.views import PaymentMeanList, set_credentials, toggle_payment_mean, MoMoSetCheckout, DeployCloud, \
+    TransactionLog
+from ikwen.billing.invoicing.views import InvoiceList, InvoiceDetail, change_billing_cycle, list_members, \
+    list_subscriptions, ProductList, ChangeProduct, SubscriptionList, ChangeSubscription, AdminInvoiceList, \
+    Configuration, upload_subscription_file, PaymentList
 from ikwen.billing.public.views import Pricing, Donate
 from ikwen.billing.mtnmomo.views import init_momo_transaction, check_momo_transaction_status, process_notification
 
@@ -13,19 +17,26 @@ urlpatterns = patterns(
     '',
     url(r'^deployCloud/(?P<app_slug>[-\w]+)/$', permission_required('accesscontrol.sudo')(DeployCloud.as_view()), name='deploy_cloud'),
 
-    url(r'^products/$', login_required(ProductList.as_view()), name='product_list'),
-    url(r'^changeProduct/$', login_required(ChangeProduct.as_view()), name='change_product'),
-    url(r'^changeProduct/(?P<object_id>[-\w]+)$', login_required(ChangeProduct.as_view()), name='change_product'),
-    url(r'^subscriptions$', login_required(SubscriptionList.as_view()), name='subscription_list'),
-    url(r'^changeSubscription/(?P<object_id>[-\w]+)$', login_required(ChangeSubscription.as_view()), name='change_subscription'),
+    url(r'^products/$', permission_required('billing.ik_manage_product')(ProductList.as_view()), name='product_list'),
+    url(r'^changeProduct/$', permission_required('billing.ik_manage_product')(ChangeProduct.as_view()), name='change_product'),
+    url(r'^changeProduct/(?P<object_id>[-\w]+)/$', permission_required('billing.ik_manage_product')(ChangeProduct.as_view()), name='change_product'),
+    url(r'^subscriptions$', permission_required('billing.ik_manage_subscription')(SubscriptionList.as_view()), name='subscription_list'),
+    url(r'^changeSubscription/$', permission_required('billing.ik_manage_subscription')(ChangeSubscription.as_view()), name='change_subscription'),
+    url(r'^changeSubscription/(?P<object_id>[-\w]+)/$', permission_required('billing.ik_manage_subscription')(ChangeSubscription.as_view()), name='change_subscription'),
     url(r'^invoices/$', login_required(InvoiceList.as_view()), name='invoice_list'),
-    url(r'^invoiceDetail/(?P<invoice_id>[-\w]+)/$', login_required(InvoiceDetail.as_view()), name='invoice_detail'),
+    url(r'^manageInvoices/$', permission_required('billing.ik_manage_invoice')(AdminInvoiceList.as_view()), name='admin_invoice_list'),
+    url(r'^payments/$', permission_required('billing.ik_manage_invoice')(PaymentList.as_view()), name='payment_list'),
+    url(r'^invoiceDetail/(?P<invoice_id>[-\w]+)/$', InvoiceDetail.as_view(), name='invoice_detail'),
     url(r'^paymentMeans/$', permission_required('accesscontrol.sudo')(PaymentMeanList.as_view()), name='payment_mean_list'),
     url(r'^set_credentials$', set_credentials, name='set_credentials'),
     url(r'^toggle_payment_mean$', toggle_payment_mean, name='toggle_payment_mean'),
     url(r'^change_billing_cycle$', change_billing_cycle, name='change_billing_cycle'),
     url(r'^list_members$', list_members, name='list_members'),
     url(r'^list_subscriptions$', list_subscriptions, name='list_subscriptions'),
+    url(r'^configuration/$', Configuration.as_view(), name='configuration'),
+
+    url(r'^upload_subscription_file', upload_subscription_file, name='upload_subscription_file'),
+    url(r'^api/pull_invoice', pull_invoice, name='pull_invoice'),
 
     url(r'^pricing/$', Pricing.as_view(), name='pricing'),
     url(r'^donate/$', Donate.as_view(), name='donate'),
@@ -39,7 +50,4 @@ urlpatterns = patterns(
     url(r'^transactions/$', permission_required('accesscontrol.sudo')(TransactionLog.as_view()), name='transaction_log'),
 
     url(r'^paypal/setCheckout/$', SetExpressCheckout.as_view(), name='paypal_set_checkout'),
-
-    url(r'^(?P<model_name>[-\w]+)/$', login_required(IframeAdmin.as_view()), name='iframe_admin'),
-    url(r'^(?P<app_name>[-\w]+)/(?P<model_name>[-\w]+)/$', login_required(IframeAdmin.as_view()), name='iframe_admin'),
 )

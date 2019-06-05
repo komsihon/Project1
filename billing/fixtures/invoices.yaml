@@ -26,6 +26,7 @@
     months_count: 1
 
 - model: billing.invoice
+  pk: 56eb6d04b379d531e01237d3
   fields:
     subscription: 56eb6d04b37b3379c531e013
     number: A3

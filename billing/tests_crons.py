@@ -8,11 +8,12 @@ from django.utils.unittest import TestCase
 from django.test.client import Client
 
 # Override BILLING_SUBSCRIPTION_MODEL before ikwen.billing.models is loaded
+
 setattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
 
 from ikwen.billing.crons import send_invoices, send_invoice_reminders, send_invoice_overdue_notices, \
     suspend_customers_services
-
+from ikwen.billing.utils import get_invoicing_config_instance
 from ikwen.billing.models import Invoice, InvoicingConfig, Subscription
 from ikwen.billing.tests_views import wipe_test_data
 
@@ -44,7 +45,7 @@ class BillingUtilsTest(TestCase):
                        EMAIL_FILE_PATH='test_emails/billing/', IS_IKWEN=False)
     def test_send_invoices(self):
         Invoice.objects.all().delete()
-        invoicing_config = InvoicingConfig.objects.all()[0]
+        invoicing_config = get_invoicing_config_instance()
         expiry = datetime.now() + timedelta(days=invoicing_config.gap)
         Subscription.objects.all().update(expiry=expiry)
         send_invoices()
@@ -55,7 +56,7 @@ class BillingUtilsTest(TestCase):
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
                        EMAIL_FILE_PATH='test_emails/billing/', IS_IKWEN=False)
     def test_send_invoices_reminders(self):
-        invoicing_config = InvoicingConfig.objects.all()[0]
+        invoicing_config = get_invoicing_config_instance()
         due_date = datetime.now() + timedelta(days=10)
         last_reminder = datetime.now() - timedelta(days=invoicing_config.reminder_delay)
         Invoice.objects.all().update(due_date=due_date, last_reminder=last_reminder)
@@ -67,7 +68,7 @@ class BillingUtilsTest(TestCase):
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
                        EMAIL_FILE_PATH='test_emails/billing/', IS_IKWEN=False)
     def test_send_invoice_overdue_notices(self):
-        invoicing_config = InvoicingConfig.objects.all()[0]
+        invoicing_config = get_invoicing_config_instance()
         due_date = datetime.now() - timedelta(days=1)
         last_reminder = datetime.now() - timedelta(days=invoicing_config.reminder_delay)
         Invoice.objects.all().update(due_date=due_date, last_reminder=last_reminder)
@@ -80,7 +81,7 @@ class BillingUtilsTest(TestCase):
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
                        EMAIL_FILE_PATH='test_emails/billing/', IS_IKWEN=False)
     def test_shutdown_customers_services(self):
-        invoicing_config = InvoicingConfig.objects.all()[0]
+        invoicing_config = get_invoicing_config_instance()
         due_date = datetime.now() - timedelta(days=invoicing_config.tolerance + 3)
         Invoice.objects.all().update(due_date=due_date, status=Invoice.OVERDUE)
         suspend_customers_services()

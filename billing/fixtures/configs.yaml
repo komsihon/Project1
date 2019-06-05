@@ -6,11 +6,6 @@
     logo: logos/some_logo.png
     is_pro_version: Yes
 
-- model: billing.invoicingconfig
-  pk: 56cc6b423350d09453e3b37b
-  fields:
-    name: Default
-
 - model: billing.cloudbillingplan
   pk: 55e7b9b531a003371b6d0cb1
   fields:

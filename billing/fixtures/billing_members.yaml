@@ -41,4 +41,8 @@
 
 - model: auth.group
   fields:
+    name: Community
+
+- model: auth.group
+  fields:
     name: Sudo

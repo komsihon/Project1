@@ -1,18 +1,20 @@
 {% load i18n static humanize auth_tokens %}
 <ul class="object-list">
 {% for s10n in objects_page.object_list %} {# s10n = subscription #}
-    <li class="ik-li {{ s10n.status|lower }}" id="{{ s10n.id }}" data-id="{{ s10n.id }}">
+    <li class="ik-li{% if s10n.status != 'Active' %} {{ s10n.status|lower }}{% endif %}" id="{{ s10n.id }}" data-id="{{ s10n.id }}">
         {% with member=s10n.member %}
             {% if member %}
                 {% url 'ikwen:profile' member.id as member_url %}
-                <a href="{{ member_url|ikwenize }}" class="image rounded"
+                <a {% if not member.is_ghost %}href="{{ member_url|ikwenize }}"{% endif %} class="image rounded"
                    style="background-image: url({% if member.photo.name %}{{ settings.IKWEN_MEDIA_URL }}{{ member.photo.small_name }}{% else %}{% static settings.MEMBER_AVATAR %}{% endif %})"></a>
             {% else %}
                 <a class="image rounded" style="background-image: url({% static settings.MEMBER_AVATAR %})"></a>
             {% endif %}
             <div class="info">
-                <a class="name" href="{% url 'billing:change_subscription' s10n.id %}" target="_blank">
-                    <span class="hidden-xs">{{ member.full_name }}</span>
+                <a class="name" href="{% url 'billing:change_subscription' s10n.id %}">
+                    <span class="hidden-xs">
+                        {% if member.is_ghost %}{{ member.username }}{% else %}{{ member.full_name }}{% endif %}
+                    </span>
                     <span class="visible-xs">{{ member.full_name|truncatechars:16 }}</span>
                 </a>
                 <div class="about">
@@ -26,8 +28,7 @@
                             <a href="{{ product_url }}">{{ s10n.product.name }}</a>
                         </span>
                         <span class="meta">
-                            <strong>{% trans "Duration" %}</strong>:
-                            {{ s10n.product.duration_text }}
+                            <strong>{% trans "Expiry" %}</strong>: {{ s10n.expiry|date }}
                         </span>
                     </p>
                 </div>
@@ -37,25 +38,28 @@
             {{ s10n.created_on|date }}
             <i class="fa fa-circle text-right color-{{ s10n.status|lower }}"></i>
         </date>
+            <div class="actions">
+                <i class="glyphicon glyphicon-trash trash" title="{% trans "Delete item" %}"></i>
+            </div>
     </li>
 {% endfor %}
 </ul>
 {% if objects_page.paginator.num_pages > 1 %}
 <ul class="pagination" style="float: left">
     {% if objects_page.paginator.num_pages > 10 %}
-        <li class="disabled"><a href="#" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
+        <li class="disabled"><a href="javascript:;" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
     {% endif %}
     {% for page in objects_page.paginator.page_range %}
         {% if page <= 10 %}
             <li class="{% if page == objects_page.number %}active{% endif %}" data-val="{{ page }}">
-                <a href="#">
+                <a href="javascript:;">
                     {{ page }} {% if page == objects_page.number %}<span class="sr-only">(current)</span>{% endif %}
                 </a>
             </li>
         {% endif %}
     {% endfor %}
     {% if objects_page.paginator.num_pages > 10 %}
-        <li><a href="#" aria-label="Next"><span aria-hidden="true">»</span></a></li>
+        <li><a href="javascript:;" aria-label="Next"><span aria-hidden="true">»</span></a></li>
     {% endif %}
 </ul>
 {% endif %}

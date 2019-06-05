@@ -1,4 +1,4 @@
-{% extends 'core/app_base_admin.html' %}
+{% extends 'core/object_list_base.html' %}
 
 {% load i18n humanize staticfiles auth_tokens %}
 
@@ -8,9 +8,15 @@
 
 {% block head_style %}
     {{ block.super }}
+    <link href="{% static 'ikwen/css/uploader-single.css' %}" media="screen" rel="stylesheet" type="text/css" />
     <style>
         .date .fa-circle.color-active {color: transparent}
     </style>
+{% endblock %}
+
+{% block head_js %}
+    {{ block.super }}
+    <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
 {% endblock %}
 
 {% block breadcrumb_location %}
@@ -27,13 +33,82 @@
             </div>
         </div>
     </div>
+    <div id="modal-import" class="modal fade modal-import" tabindex="-1" role="dialog" aria-labelledby="modal-import">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" style="text-align: center">
+                <div class="modal-header no-border " style="background: #319dd5; color: #ffffff">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" style="color: #ffffff">&times;</span></button>
+                    <h4 class="modal-title" style="text-align: center">{% trans "Import from CSV file" %}</h4>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <div class="hidden-xs" style="padding-top: 1.5vh;">
+                            <a href="{% static "ikwen/billing/ikwen_Billing_import_clients.csv" %}" style="text-decoration: none;">{% trans "Download CSV file model..." %}</a>
+                        </div>
+                        <div id="upload-container" class="upload-container text-center" style="padding-top: 1vh;width: 100%">
+                            <div class="uploader" style="display: block; margin: auto; position: static; height: 120px"></div>
+                            <span class="subscription-filename text-success" style="font-size: 1.2em"></span>
+                            <span id="import-error" class="text-danger" style="font-size: 1.2em"></span>
+                        </div>
+                        <input type="hidden" id="subscription-file-url" name="subscription_file_url" />
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border: none; padding-top: 0;text-align: center">
+                    <a class="btn btn-success btn-sm confirm-import" style="display: none; min-width: 200px">
+                        {% trans "Confirm" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block js %}
     {{ block.super }}
     <script type="text/javascript">
         (function() {
-            $('div#admin-nav .subscriptions').addClass('active');
+            var uploader = new qq.FileUploader({
+                template: '<div class="qq-uploader" style="background: none">' +
+                    '<div class="qq-upload-drop-area"><span></span></div>' +
+                    '<div class="qq-upload-button">' +
+                        '<img class="modal-icon pb-10" src="{% static 'echo/img/import-csv-small.png' %}"' +
+                            'style="cursor: pointer;"' +
+                            'title="{% trans 'Import customer list from CSV file' %}">' +
+                    '</div>' +
+                    '<ul class="qq-upload-list"></ul>' +
+                '</div>',
+                action: "{% url 'billing:upload_subscription_file' %}",
+                element: $('div#upload-container .uploader')[0],
+                allowedExtensions: ['csv'],
+                buttonText: "{% trans "Upload customer from CSV file" %}",
+                multiple: false,
+                onSubmit: function(id, fileName) {
+                    $('body').css('cursor', 'wait')
+                },
+                onComplete: function(id, fileName, responseJSON) {
+                    $('body').css('cursor', 'auto');
+                    if (responseJSON.error_message) {
+                        $('.subscription-filename').hide();
+                        $('#import-error').html(responseJSON.error_message).show();
+                        $('.confirm-import').hide();
+                    } else if(responseJSON.success) {
+                        var url = responseJSON.path,
+                            href = '?action=import&filename=' + url;
+                        $('#subscription-file-url').val(url);
+                        $('.subscription-filename').text(fileName).show();
+                        $('#import-error').hide();
+                        $('.confirm-import').attr('href', href).show();
+                    } else {
+                        alert("upload failed!");
+                    }
+                },
+                params: {
+                    'csrf_token': '{{ csrf_token }}',
+                    'csrf_name': 'csrfmiddlewaretoken',
+                    'csrf_xname': 'X-CSRFToken'
+                }
+            });
         })()
     </script>
 {% endblock %}

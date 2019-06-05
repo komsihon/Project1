@@ -10,30 +10,29 @@ from django.contrib import messages
 from django.contrib.auth.models import Group
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
-from django.db.models.loading import get_model
+from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from django.utils.http import urlquote
 from django.utils.translation import gettext as _
 
-from billing.models import SupportCode
+from echo.utils import LOW_MAIL_LIMIT, notify_for_low_messaging_credit, notify_for_empty_messaging_credit
+from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.core.constants import CONFIRMED
-
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import SUDO
 from ikwen.billing.models import Invoice, Payment, PAYMENT_CONFIRMATION, InvoiceEntry, Product, InvoiceItem, Donation, \
-    SupportBundle
+    SupportBundle, SupportCode
 from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.utils import get_invoicing_config_instance, get_days_count, get_payment_confirmation_message, \
-    share_payment_and_set_stats, get_next_invoice_number, refill_tsunami_messaging_bundle
+    share_payment_and_set_stats, get_next_invoice_number, refill_tsunami_messaging_bundle, get_subscription_model, \
+    notify_event
 from ikwen.core.models import Service
-from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content
+from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content, XEmailMessage
+from echo.models import Balance
 
 logger = logging.getLogger('ikwen')
 
-subscription_model_name = getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', 'billing.Subscription')
-app_label = subscription_model_name.split('.')[0]
-model = subscription_model_name.split('.')[1]
-Subscription = get_model(app_label, model)
+Subscription = get_subscription_model()
 
 
 def set_invoice_checkout(request, *args, **kwargs):
@@ -41,24 +40,29 @@ def set_invoice_checkout(request, *args, **kwargs):
     This function has no URL associated with it.
     It serves as ikwen setting "MOMO_BEFORE_CHECKOUT"
     """
-    if request.user.is_anonymous():
-        next_url = reverse('ikwen:sign_in')
-        referrer = request.META.get('HTTP_REFERER')
-        if referrer:
-            next_url += '?' + urlquote(referrer)
-        return HttpResponseRedirect(next_url)
+    invoice_id = request.POST['invoice_id']
+    invoice = Invoice.objects.select_related('subscription').get(pk=invoice_id)
+    member = invoice.subscription.member
+    if member and not member.is_ghost:
+        if request.user != member:
+            next_url = reverse('ikwen:sign_in')
+            referrer = request.META.get('HTTP_REFERER')
+            if referrer:
+                next_url += '?' + urlquote(referrer)
+            return HttpResponseRedirect(next_url)
     service = get_service_instance()
     config = service.config
-    invoice_id = request.POST['invoice_id']
+    invoicing_config = get_invoicing_config_instance()
     try:
         extra_months = int(request.POST.get('extra_months', '0'))
     except ValueError:
         extra_months = 0
-    invoice = Invoice.objects.get(pk=invoice_id)
-    amount = invoice.amount
+    aggr = Payment.objects.filter(invoice=invoice).aggregate(Sum('amount'))
+    amount_paid = aggr['amount__sum']
+    amount = invoice.amount - amount_paid
     if extra_months:
         amount += invoice.service.monthly_cost * extra_months
-    if config.__dict__.get('processing_fees_on_customer'):
+    if invoicing_config.processing_fees_on_customer:
         amount += config.ikwen_share_fixed
     request.session['amount'] = amount
     request.session['model_name'] = 'billing.Invoice'
@@ -72,30 +76,23 @@ def set_invoice_checkout(request, *args, **kwargs):
     request.session['return_url'] = service.url + reverse('billing:invoice_detail', args=(invoice_id, ))
 
 
-def confirm_invoice_payment(request, *args, **kwargs):
+def confirm_service_invoice_payment(request, *args, **kwargs):
     """
     This function has no URL associated with it.
     It serves as ikwen setting "MOMO_AFTER_CHECKOUT"
     """
     now = datetime.now()
     ikwen_service = get_service_instance()
-    config = ikwen_service.config
     invoice_id = request.session['object_id']
     invoice = Invoice.objects.get(pk=invoice_id)
     invoice.status = Invoice.PAID
-    if config.__dict__.get('processing_fees_on_customer'):
-        invoice.processing_fees = config.ikwen_share_fixed
     invoice.save()
     amount = request.session['amount']
     payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY, amount=amount)
     service = invoice.service
-    if config.__dict__.get('separate_billing_cycle', True):
-        extra_months = request.session['extra_months']
-        total_months = invoice.months_count + extra_months
-        days = get_days_count(total_months)
-    else:
-        days = invoice.subscription.product.duration
-        total_months = None
+    extra_months = request.session['extra_months']
+    total_months = invoice.months_count + extra_months
+    days = get_days_count(total_months)
     if service.status == Service.SUSPENDED:
         invoicing_config = get_invoicing_config_instance()
         days -= invoicing_config.tolerance  # Catch-up days that were offered before service suspension
@@ -141,17 +138,86 @@ def confirm_invoice_payment(request, *args, **kwargs):
     if member.email:
         invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
         subject, message, sms_text = get_payment_confirmation_message(payment, member)
-        html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html', service=vendor,
+        html_content = get_mail_content(subject, message, service=vendor, template_name='billing/mails/notice.html',
                                         extra_context={'member_name': member.first_name, 'invoice': invoice,
                                                        'cta': _("View invoice"), 'invoice_url': invoice_url,
-                                                       'config': vendor.config, 'logo': vendor.config.logo,
-                                                       'project_name': vendor.project_name,
-                                                       'company_name': vendor.config.company_name,
                                                        'early_payment': is_early_payment})
         sender = '%s <no-reply@%s>' % (vendor.config.company_name, ikwen_service.domain)
-        msg = EmailMessage(subject, html_content, sender, [member.email])
+        msg = XEmailMessage(subject, html_content, sender, [member.email])
+        if vendor != ikwen_service:
+            msg.service = vendor
         msg.content_subtype = "html"
         Thread(target=lambda m: m.send(), args=(msg,)).start()
+    return HttpResponseRedirect(request.session['return_url'])
+
+
+def confirm_invoice_payment(request, *args, **kwargs):
+    """
+    This function has no URL associated with it.
+    It serves as ikwen setting "MOMO_AFTER_CHECKOUT"
+    """
+    now = datetime.now()
+    service = get_service_instance()
+    config = service.config
+    invoicing_config = get_invoicing_config_instance()
+    invoice_id = request.session['object_id']
+    invoice = Invoice.objects.select_related('subscription').get(pk=invoice_id)
+    invoice.status = Invoice.PAID
+    if invoicing_config.processing_fees_on_customer:
+        invoice.processing_fees = config.ikwen_share_fixed
+    invoice.save()
+    amount = request.session['amount']
+    payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY, amount=amount)
+    subscription = invoice.subscription
+    if invoicing_config.separate_billing_cycle:
+        extra_months = request.session['extra_months']
+        total_months = invoice.months_count + extra_months
+        days = get_days_count(total_months)
+    else:
+        days = invoice.subscription.product.duration
+        total_months = None
+    if subscription.status == Service.SUSPENDED:
+        invoicing_config = get_invoicing_config_instance()
+        days -= invoicing_config.tolerance  # Catch-up days that were offered before service suspension
+        expiry = now + timedelta(days=days)
+        expiry = expiry.date()
+    elif subscription.expiry:
+        expiry = subscription.expiry + timedelta(days=days)
+    else:
+        expiry = now + timedelta(days=days)
+        expiry = expiry.date()
+    subscription.expiry = expiry
+    subscription.status = Service.ACTIVE
+    subscription.save()
+    mean = request.session['mean']
+    share_payment_and_set_stats(invoice, total_months, mean)
+    member = request.user
+    sudo_group = Group.objects.using(UMBRELLA).get(name=SUDO)
+    add_event(service, PAYMENT_CONFIRMATION, member=member, object_id=invoice.id)
+    add_event(service, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
+
+    if invoicing_config.return_url:
+        params = {'reference_id': subscription.reference_id, 'invoice_number': invoice.number, 'amount_paid': amount}
+        Thread(target=notify_event, args=(service, invoicing_config.return_url, params)).start()
+
+    balance, update = Balance.objects.using(WALLETS_DB_ALIAS).get_or_create(service_id=service.id)
+    if member.email:
+        if 0 < balance.mail_count < LOW_MAIL_LIMIT:
+            notify_for_low_messaging_credit(service, balance)
+        if balance.mail_count <= 0 and not getattr(settings, 'UNIT_TESTING', False):
+            notify_for_empty_messaging_credit(service, balance)
+        else:
+            invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
+            subject, message, sms_text = get_payment_confirmation_message(payment, member)
+            html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+                                            extra_context={'member_name': member.first_name, 'invoice': invoice,
+                                                           'cta': _("View invoice"), 'invoice_url': invoice_url})
+            sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
+            msg = XEmailMessage(subject, html_content, sender, [member.email])
+            msg.content_subtype = "html"
+            balance.mail_count -= 1
+            balance.save()
+            Thread(target=lambda m: m.send(), args=(msg,)).start()
     return HttpResponseRedirect(request.session['return_url'])
 
 
@@ -195,16 +261,23 @@ def product_do_checkout(request, *args, **kwargs):
     share_payment_and_set_stats(invoice, payment_mean_slug=mean)
     service = get_service_instance()
     config = service.config
+
+    balance, update = Balance.objects.using(WALLETS_DB_ALIAS).get_or_create(service_id=service.id)
     if member.email:
-        invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
-        subject, message, sms_text = get_payment_confirmation_message(payment, member)
-        html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
-                                        extra_context={'member_name': member.first_name, 'invoice': invoice,
-                                                       'cta': _("View invoice"), 'invoice_url': invoice_url})
-        sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
-        msg = EmailMessage(subject, html_content, sender, [member.email])
-        msg.content_subtype = "html"
-        Thread(target=lambda m: m.send(), args=(msg,)).start()
+        if 0 < balance.mail_count < LOW_MAIL_LIMIT:
+            notify_for_low_messaging_credit(service, balance)
+        if balance.mail_count <= 0 and not getattr(settings, 'UNIT_TESTING', False):
+            notify_for_empty_messaging_credit(service, balance)
+        else:
+            invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
+            subject, message, sms_text = get_payment_confirmation_message(payment, member)
+            html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+                                            extra_context={'member_name': member.first_name, 'invoice': invoice,
+                                                           'cta': _("View invoice"), 'invoice_url': invoice_url})
+            sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
+            msg = EmailMessage(subject, html_content, sender, [member.email])
+            msg.content_subtype = "html"
+            Thread(target=lambda m: m.send(), args=(msg,)).start()
     messages.success(request, _("Successful payment. Your subscription is now active."))
     return HttpResponseRedirect(request.session['return_url'])
 

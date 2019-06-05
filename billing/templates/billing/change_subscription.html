@@ -2,83 +2,113 @@
 {% load i18n humanize static auth_tokens %}
 
 {% block page_title %}
-<title> {{ obj.member.full_name }} - {{ service.project_name }} </title>
+<title> {% if obj.member.is_ghost %}{{ obj.member.email }}{% else %}{{ obj.member.full_name }}{% endif %} - {{ service.project_name }} </title>
 {% endblock %}
 
 {% block head_style %}
     {{ block.super }}
     <link rel='stylesheet' href="{% static 'ikwen/css/change-form.css' %}" />
+    <link rel='stylesheet' href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 {% endblock %}
 
 {% block breadcrumb_location %}
     <li>
         <a href="{% url 'billing:subscription_list' %}">{% trans "Subscriptions" %}</a>
     </li>
-    <li>{{ obj.member.full_name }}</li>
+    <li>{% if obj.member.is_ghost %}{{ obj.member.email }}{% else %}{{ obj.member.full_name }}{% endif %}</li>
 {% endblock %}
 
 {% block admin_content %}
     <div id="admin-content">
         <div class="container-fluid">
-            <form class="container-fluid" method="post" action="">{% csrf_token %}
-                {% if form.errors %}
-                    <div class="errorlist">{{ form.errors }}</div>
-                {% endif %}
-                <div class="ik-li member" style="border-bottom: none">
-                    {% with member=obj.member %}
-                    {% if member.photo.name %}
-                        <div class="photo bg-img" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ member.photo.name }})"></div>
-                    {% else %}
-                        <div class="photo bg-img" style="background-image: url({% get_static_prefix %}ikwen/img/member-avatar.jpg)"></div>
-                    {% endif %}
-                    <div class="info">
-                        <a class="full_name target_url">{{ member.full_name }}</a>
-                        <p class="about">
-                            <span class="phone">{{ member.phone }}</span>, <span class="email">{{ member.email }}</span>
-                        </p>
+            <div id="stage" style="float: none; margin: auto">
+                {% if obj %}
+                {% with member=obj.member %}
+                    {% url 'ikwen:profile' member.id as member_profile_url %}
+                    <div>
+                        <div class="text-center">
+                            <a href="{{ member_profile_url|ikwenize }}" class="welcome-title">
+                                {% if member.photo.name %}
+                                    <img class="img-circle img-thumbnail" src="{{ settings.IKWEN_MEDIA_URL }}{{ member.photo.small_name }}" style="margin-top: 1vh;width:100px;height:100px">
+                                {% else %}
+                                    <img class="img-circle img-thumbnail" src="{% static 'ikwen/img/login-avatar.jpg' %}" style="margin-top: 1vh;">
+                                {% endif %}
+                                {% if member.is_ghost %}
+                                    <h4>{{ member.email }}</h4>
+                                {% else %}
+                                    <h4>{{ member.full_name }}</h4>
+                                {% endif %}
+                            </a>
+                        </div>
+                        <div class="clearfix"></div>
                     </div>
-                    {% endwith %}
-                </div>
-                <header>
-                    <h3 style="float: left"> {% trans "Subscription details" %} </h3>
-                    {% if obj.status == 'Suspended' %}
-                        <span class="label label-danger" style="float: right">{% trans "Expired" %}</span>
-                    {% else %}
-                        <span class="label label-success" style="float: right">{% trans "Active" %}</span>
+                {% endwith %}
+                {% endif %}
+                <form class="col-sm-8 col-sm-offset-2" method="post">{% csrf_token %}
+                    {% if form.errors %}
+                        <div class="errorlist">{{ form.errors }}</div>
                     {% endif %}
-                    <div class="clear"></div>
-                </header>
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Plan" %}</label>
-                    <span>
-                        <a href="{% url 'billing:change_product' obj.product.id  %}">{{ obj.product.name }}</a>
-                    </span>
-                </div>
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Duration" %}</label>
-                    <span>{{ obj.product.duration }} {% trans "days" %} ({{ obj.product.duration_text }})</span>
-                </div>
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Cost" %}</label>
-                    <span>
-                        <span class="text-muted">{{ config.currency_symbol }}</span>
-                        {{ obj.product.cost|floatformat:"0"|intcomma }}
-                    </span>
-                </div>
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Since" %}</label>
-                    <span>{{ obj.since|date }}</span>
-                </div>
-                <div class="detail row">
-                    <label class="col-sm-3">{% trans "Expiry" %}</label>
-                    <span>{{ obj.expiry|date }}</span>
-                </div>
-{#                <div class="left-0" style="padding-top: 30px; margin-bottom: 10px">#}
-{#                    <div class="col-xs-12 col-sm-3 col-md-2">#}
-{#                        <button class="btn btn-sm btn-block btn-success">{% trans "Save" %}</button>#}
-{#                    </div>#}
-{#                </div>#}
-            </form>
+                    <input type="hidden" id="customer-id" name="member_id" />
+                    <input type="hidden" id="customer-email" name="email" />
+                    <input type="hidden" id="expiry-alt" name="expiry" />
+                    {% if not obj and not form.errors %}
+                        <div class="form-group" style="padding: 0 15px; margin: 5vh 0 0">
+                            <label for="customer-name">{% trans "Customer email" %}</label>
+                            <div>
+                                <input id="customer-name" class="form-control input-sm" type="text" autocomplete="off"/>
+                                {{ form.member_id.errors }}
+                                <div class="results customers has-shade" style="display: none" data-min-search-chars="2">
+                                    {% include 'core/snippets/spinner.html' %}
+                                    <ul style="padding-left: 0">
+                                        <li class="member tpl" style="display: none">
+                                            <div style="display: block">
+                                                <span class="photo logo bg-img" style="background-image: url({% static 'ikwen/img/no_photo.png' %})"></span>
+                                                <div style="float: left; margin-left: 30px">
+                                                    <span class="full_name"></span>
+                                                    <p class="about short_description"></p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                    <div class="clearfix"></div>
+                                </div>
+                            </div>
+                            <div class="row col-xs-12 col-sm-8 col-md-4" style="margin-top: 3vh">
+                                <button type="button" class="btn btn-sm btn-block btn-success continue" disabled>{% trans "Continue" %}</button>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="subscription-details{% if not obj and not form.errors %} tpl{% endif %}">
+                        {% include 'core/snippets/model_admin_form.html' %}
+                        <div style="padding-top: 30px; margin-bottom: 10px">
+                            <div class="col-xs-12 col-sm-8 col-md-4">
+                                <button class="btn btn-sm btn-block btn-success">{% trans "Save" %}</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% if invoice_list|length > 0 %}
+                        <section style="border-top: 1px solid #ddd">
+                            <h4>{% trans "Invoice history" %}</h4>
+                            <ul class="object-list list-group">
+                                {% for invoice in invoice_list %}
+                                {% url 'billing:invoice_detail' invoice.id as obj_url %}
+                                <li class="ik-li list-group-item" id="{{ invoice.id }}" data-id="{{ invoice.id }}" style="padding: 15px">
+                                    <a href="{{ obj_url }}">{{ invoice }}</a>
+                                    <div>
+                                        <span class="pull-left text-muted">{{ invoice.due_date|date }}</span>
+                                        <span class="pull-right">
+                                            <span class="text-muted" style="font-size: .8em">{{ currency_symbol }}</span>
+                                            <strong>{{ invoice.amount|intcomma }}</strong>
+                                        </span>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div class="clearfix"></div>
+                        </section>
+                    {% endif %}
+                </form>
+            </div>
         </div>
     </div>
 {% endblock %}
@@ -91,6 +121,57 @@
             $('.form-row').addClass('form-group');
             $('.form-row input, .form-row select, .form-row textarea').addClass('form-control input-sm');
             $('.form-row textarea').addClass('form-control input-sm');
+
+            $('.results.customers').on('click', 'li.member', function() {
+                var customerId = $(this).data('id'),
+                    customerName = $(this).find('.full_name').text();
+                if (customerId && customerName) {
+                    $('#customer-id').val(customerId);
+                    $('#customer-name').val(customerName);
+                    $('#stage .continue').prop('disabled', false);
+                }
+            }).css('width', $('#customer-name').css('width'));
+
+            $('#stage').on('click', '.continue', function() {
+                $(this).hide();
+                $('.subscription-details').show();
+            });
+            $('#customer-name').keyup(function() {
+                var val = $(this).val();
+                if (val.isValidEmail()) {
+                    $('#customer-id').val('');
+                    $('#customer-email').val(val);
+                    $('#stage .continue').prop('disabled', false);
+                } else {
+                    $('#customer-email').val('');
+                    $('#stage .continue').prop('disabled', true);
+                }
+            });
+            $('#id_expiry').removeAttr('name').datepicker({
+                altField: "#expiry-alt",
+                altFormat: "yy-mm-dd"
+            });
+            {% if not obj %}
+            {% url 'ikwen:member_list' as list_members_url %}
+            var searchDescriptor = [{
+                endpoint: '{{ list_members_url }}',
+                resultTplSelector: '.results.customers li.member',
+                maxChars: function() {
+                    // The max number of characters that will be taken into consideration
+                    // in the string typed by user to do the search. Characters above that
+                    // limit will be ignored.
+                    return Math.max($('#customer-name').val().length, 4);
+                }
+            }];
+            $('#customer-name').focusout(function() {$('.results.customers').fadeOut()});
+            ikwen.setupSearch('#customer-name', '.results.customers', searchDescriptor);
+
+            var productCosts = {{ product_costs|safe }};
+            $('#id_product').change(function() {
+                var product_id = $(this).val();
+                $('#id_monthly_cost').val(productCosts[product_id]);
+            });
+            {% endif %}
         })()
     </script>
 {% endblock %}

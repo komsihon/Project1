@@ -1,0 +1,47 @@
+{% extends "core/app_base_admin.html" %}
+{% load i18n humanize staticfiles auth_tokens admin_list %}
+
+{% block page_title %}
+<title> {% trans "Configurations" %} - ikwen </title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <link rel='stylesheet' href="{% static 'ikwen/css/change-form.css' %}" />
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>{% trans "Invoicing Configuration" %}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="change-form no-edge-panel-right">
+        <div class="container-fluid">
+            <div id="stage" style="float: none; margin: auto">
+                <form id="configuration" class="admin-form pull-left" style="width: auto" method="post">{% csrf_token %}
+                    <input type="hidden" name="id" value="{{ config.id }}" />
+                    <input type="hidden" name="company_name_slug" value="{{ config.company_name_slug }}" />
+                    {% include 'core/snippets/model_admin_form.html' %}
+                    <div class="form-group col-xs-12 col-sm-4 col-md-3" style="padding-top: 15px">
+                        <button class="btn btn-sm btn-primary btn-block">{% trans "Save" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
+    {% include 'core/snippets/banner_and_pp_uploader.html' %}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .configuration').addClass('active');
+            $('.currencies-config').insertAfter('.website h3').show();
+            $('.form-row').addClass('form-group');
+            $('.form-row input:not([type=file], [type=checkbox]), .form-row select, .form-row textarea').addClass('form-control input-sm');
+            $('.form-row textarea').addClass('form-control input-sm');
+        })()
+    </script>
+{% endblock %}

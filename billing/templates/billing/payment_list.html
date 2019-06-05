@@ -1,0 +1,34 @@
+{% extends 'core/object_list_base.html' %}
+{% load i18n humanize static %}
+
+{% block head_style %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'embed-doc/css/embed-doc.css' %}"/>
+    <link rel='stylesheet' href="{% static 'ikwen/css/transaction-log.css' %}" />
+    <style>
+        #admin-tools-actions .add {display: none}
+    </style>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content">
+        <div class="container-fluid stage">
+            {% include 'core/snippets/admin_tools.html' %}
+            <div class="col-lg-10 col-lg-offset-1" style="margin-top: 6vh">
+                <div id="results" style="padding-top: 0">
+                    {% include html_results_template_name %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            var target = '{{ verbose_name_plural|slugify }}' ? '{{ verbose_name_plural|slugify }}' : 'blank';
+            $('div#admin-nav .' + target).addClass('active');
+        })()
+    </script>
+{% endblock %}
