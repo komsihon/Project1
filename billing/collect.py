@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import random
 from threading import Thread
 
+from currencies.models import Currency
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import Group
@@ -57,8 +58,11 @@ def set_invoice_checkout(request, *args, **kwargs):
         extra_months = int(request.POST.get('extra_months', '0'))
     except ValueError:
         extra_months = 0
-    aggr = Payment.objects.filter(invoice=invoice).aggregate(Sum('amount'))
-    amount_paid = aggr['amount__sum']
+    try:
+        aggr = Payment.objects.filter(invoice=invoice).aggregate(Sum('amount'))
+        amount_paid = aggr['amount__sum']
+    except IndexError:
+        amount_paid = 0
     amount = invoice.amount - amount_paid
     if extra_months:
         amount += invoice.service.monthly_cost * extra_months
@@ -136,7 +140,7 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
     add_event(vendor, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
 
     if member.email:
-        invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
+        invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
         subject, message, sms_text = get_payment_confirmation_message(payment, member)
         html_content = get_mail_content(subject, message, service=vendor, template_name='billing/mails/notice.html',
                                         extra_context={'member_name': member.first_name, 'invoice': invoice,
@@ -197,21 +201,27 @@ def confirm_invoice_payment(request, *args, **kwargs):
     add_event(service, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
 
     if invoicing_config.return_url:
-        params = {'reference_id': subscription.reference_id, 'invoice_number': invoice.number, 'amount_paid': amount}
+        params = {'reference_id': subscription.reference_id, 'invoice_number': invoice.number,
+                  'amount_paid': amount, 'extra_months': extra_months}
         Thread(target=notify_event, args=(service, invoicing_config.return_url, params)).start()
 
     balance, update = Balance.objects.using(WALLETS_DB_ALIAS).get_or_create(service_id=service.id)
     if member.email:
         if 0 < balance.mail_count < LOW_MAIL_LIMIT:
             notify_for_low_messaging_credit(service, balance)
-        if balance.mail_count <= 0 and not getattr(settings, 'UNIT_TESTING', False):
+        if balance.mail_count <= 0:
             notify_for_empty_messaging_credit(service, balance)
         else:
+            try:
+                currency = Currency.active.default().symbol
+            except:
+                currency = config.currency_code
             invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
             subject, message, sms_text = get_payment_confirmation_message(payment, member)
             html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                             extra_context={'member_name': member.first_name, 'invoice': invoice,
-                                                           'cta': _("View invoice"), 'invoice_url': invoice_url})
+                                                           'cta': _("View invoice"), 'invoice_url': invoice_url,
+                                                           'currency': currency})
             sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
             msg = XEmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"

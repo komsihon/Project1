@@ -1,0 +1,6 @@
+Customer email,Reference ID,Product,Monthly cost,Billing cycle,Subscribed on,Expiry,Tolerance,Status
+user1@ikwen.com,External_Ref_001,55eb63379c531e012d04b37a,6000,12,15-01-2019,15-01-2020,20,Active
+user2@ikwen.com,External_Ref_002,55eb63379c531e012d04b37b,,6,12-08-2018,15-03-2019,10,Suspended
+user3@ikwen.com,External_Ref_003,55eb63379c531e012d04b37b,,6,24-09-2018,15-03-2019,10,Suspended
+user4@ikwen.com,External_Ref_004,55eb63379c531e012d04b37a,,1,05-03-2019,05-04-2019,3,Suspended
+user5@ikwen.com,External_Ref_005,55eb63379c531e012d04b37b,,3,02-03-2019,02-06-2019,6,Active

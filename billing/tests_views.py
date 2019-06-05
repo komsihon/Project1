@@ -300,6 +300,40 @@ class BillingViewsTest(TestCase):
         self.assertTrue(json_resp['success'])
         subscription = Subscription.objects.get(member='56eb6d04b37b3379b531e013', status=Subscription.ACTIVE)
 
+    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801', IS_IKWEN=False, DEBUG=True,
+                       EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
+                       IKWEN_CONFIG_MODEL='billing.OperatorProfile',
+                       EMAIL_FILE_PATH='test_emails/billing/', UNIT_TESTING=True)
+    def test_pay_invoice_with_invoicing_config_return_url(self):
+        """
+        If InvoicingConfig has a return_url, then successful payment hits that
+        return_url with the following parameters:
+            reference_id: Reference ID of the subscription
+            invoice_number:
+            amount_paid
+            extra_months: Extra months the customer decided to in addition of those of the current invoice
+        """
+        invoice_id = '56eb6d04b379d531e01237d3'
+        sub_id = '56eb6d04b37b3379c531e013'
+        Subscription.objects.filter(pk=sub_id).update(expiry=datetime.now().date())
+        invoicing_config = get_invoicing_config_instance()
+        invoicing_config.return_url = 'http://localhost/notify/'
+        invoicing_config.save(using=UMBRELLA)
+        self.client.login(username='member3', password='admin')
+        response = self.client.post(reverse('billing:momo_set_checkout'), {'invoice_id': invoice_id})
+        self.assertEqual(response.status_code, 200)
+        # Init payment from Checkout page
+        response = self.client.get(reverse('billing:init_momo_transaction'), data={'phone': '677003321'})
+        json_resp = json.loads(response.content)
+        tx_id = json_resp['tx_id']
+        response = self.client.get(reverse('billing:check_momo_transaction_status'), data={'tx_id': tx_id})
+        self.assertEqual(response.status_code, 200)
+        json_resp = json.loads(response.content)
+        self.assertTrue(json_resp['success'])
+        self.assertEqual(Invoice.objects.get(pk=invoice_id).status, Invoice.PAID)
+        expiry = (datetime.now() + timedelta(days=30)).date()
+        self.assertEqual(Subscription.objects.get(pk=sub_id).expiry, expiry)
+
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
     def test_PricingPage(self):
         """

@@ -416,7 +416,9 @@ def notify_event(service, url, params):
     project_name = service.project_name
     try:
         r = requests.get(url, params)
-        logger.debug("%s: HTTP %s - Notification sent to %s" % (project_name, r.status_code, r.url))
+        message = "%s: HTTP %s - Notification using %s" % (project_name, r.status_code, r.url)
+        print(message)
+        logger.debug(message)
     except SSLError:
         logger.error("%s: SSL Error while hitting %s" % (project_name, url), exc_info=True)
     except Timeout:
@@ -536,7 +538,7 @@ def _share_payment_and_set_stats_other(invoice, payment_mean_slug='mtn-momo'):
     partner = service.retailer
     if partner:
         partner_umbrella = Service.objects.using(UMBRELLA).get(pk=partner.id)
-        service_partner = Service.objects.using(partner.database).get(service=partner.id)
+        service_partner = Service.objects.using(partner.database).get(pk=partner.id)
         retail_config = ApplicationRetailConfig.objects.using(UMBRELLA).get(partner=partner, app=service.app)
         partner_earnings = ikwen_earnings * (100 - retail_config.ikwen_tx_share_rate) / 100
         ikwen_earnings -= partner_earnings
