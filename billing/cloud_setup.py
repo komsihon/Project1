@@ -17,11 +17,11 @@ from permission_backend_nonrel.models import UserPermissionList, GroupPermission
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import SUDO
-from ikwen.billing.models import OperatorProfile, Invoice, NEW_INVOICE_EVENT, PaymentMean, InvoicingConfig, \
-    JUMBOPAY_MOMO
+from ikwen.billing.models import OperatorProfile, Invoice, NEW_INVOICE_EVENT, PaymentMean, InvoicingConfig
+from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.utils import get_next_invoice_number
 from ikwen.conf.settings import STATIC_ROOT, STATIC_URL, MEDIA_ROOT, MEDIA_URL
-from ikwen.core.models import Service, OperatorWallet
+from ikwen.core.models import Service
 from ikwen.core.tools import generate_django_secret_key, generate_random_key
 from ikwen.core.utils import add_database_to_settings, add_event, get_mail_content, \
     get_service_instance
@@ -129,7 +129,7 @@ def deploy(app, member, project_name, billing_plan, setup_cost, monthly_cost,
 
     # Copy payment means to local database
     for mean in PaymentMean.objects.using(UMBRELLA).all():
-        if mean.slug == JUMBOPAY_MOMO:
+        if mean.slug == MTN_MOMO:
             mean.is_main = True
             mean.is_active = True
         else:

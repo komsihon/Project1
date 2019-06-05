@@ -193,9 +193,20 @@ class BillingViewsTest(TestCase):
 
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
     def test_InvoiceDetail(self):
+        """
+        Accessing InvoiceDetail view for the first time assigns the authenticated user
+        as Invoice.member and Invoice.subscription.member
+        """
+        invoice_id = '56eb6d04b379d531e01237d4'
+        sub_id = '56eb6d04b37b3379c531e014'
+        Invoice.objects.filter(pk=invoice_id).update(member=None)
+        Subscription.objects.filter(pk=sub_id).update(member=None)
+        member = Member.objects.get(username='member2')
         self.client.login(username='member2', password='admin')
-        response = self.client.get(reverse('billing:invoice_detail', args=('56eb6d04b379d531e01237d1', )))
+        response = self.client.get(reverse('billing:invoice_detail', args=(invoice_id, )))
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(Invoice.objects.get(pk=invoice_id).member, member)
+        self.assertEqual(Subscription.objects.get(pk=sub_id).member, member)
 
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
     def test_api_pull_invoice_with_invoicing_config_pull_invoice_false(self):
