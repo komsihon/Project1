@@ -3,6 +3,8 @@
 
 import os
 import sys
+
+
 sys.path.append('/home/ikwen/Cloud/Kakocase/tchopetyamo')
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "conf.settings")
@@ -15,7 +17,9 @@ from ikwen_kakocase.kako.models import *
 from ikwen.theming.models import Template, Theme
 from ikwen.partnership.models import PartnerProfile
 from ikwen.accesscontrol.models import Member
-from ikwen.revival.models import ProfileTag
+from ikwen.revival.models import ProfileTag, Revival, MemberProfile
+from ikwen.rewarding.utils import JOIN, REFERRAL
+
 
 def reload_settings(app_slug, **kwargs):
     app = Application.objects.get(slug=app_slug)
@@ -167,15 +171,20 @@ def populate_event_object_id_list():
 
 def send_bulk_sms():
     # fh = open('/home/komsihon/Documents/TCHOPETYAMO/Duvaal_Parents_Test.txt')
-    fh = open('/home/ikwen/Clients/Tchopetyamo/Duvaal_Parents.txt')
+    fh = open('/home/ikwen/Contacts_Promote_02_21.csv')
     t0 = datetime.now()
     n = 1
-    for recipient in fh.readlines():
-        text = u"Cher parent nous innovons,\n" \
-               u"dès 6H30 on s'occupe du pti-dej de vos enfants à Duvaal. " \
-               u"En+, bénéficiez de -5% pour toute inscription sur tchopetyamo.com\n" \
-               u"697506911"
-        send_sms("237" + recipient, text, label='Tchopetyamo')
+    for line in fh.readlines():
+        tk = line.split(',')
+        recipient = tk[2]
+        if not recipient:
+            continue
+        text = u"Promote ce sont des opportunités. " \
+               u"IKWEN TSUNAMI est la plateforme optimisée pour suivre " \
+               u"et fidéliser vos clients.Découvrez et obtenez-la gratuitement.\n" \
+               u"656123522"
+        send_sms("237" + recipient, text, label='ikwen')
+        print ("Sending to %s" % recipient)
         n += 1
     diff = datetime.now() - t0
     print "%d SMS sent in %d s" % (n, diff.seconds)
@@ -187,6 +196,181 @@ def create_basic_profiles():
         add_database(db)
         ProfileTag.objects.using(db).create(name="Men", slug="men", is_reserved=True)
         ProfileTag.objects.using(db).create(name="Women", slug="women", is_reserved=True)
+
+
+def set_revival_profile_tag_id():
+    app = Application.objects.get(slug='kakocase')
+    for service in Service.objects.filter(app=app):
+        db = service.database
+        add_database(db)
+        try:
+            join_tag = ProfileTag.objects.using(db).get(slug=JOIN)
+            Revival.objects.using(db).filter(mail_renderer='ikwen.revival.utils.render_suggest_create_account_mail')\
+                .update(profile_tag_id=join_tag.id)
+            Revival.objects.using('umbrella').filter(service=service, mail_renderer='ikwen.revival.utils.render_suggest_create_account_mail')\
+                .update(profile_tag_id=join_tag.id)
+        except ProfileTag.DoesNotExist:
+            print("Join tag not found for %s" % service)
+
+        try:
+            ref_tag = ProfileTag.objects.using(db).get(slug=REFERRAL)
+            Revival.objects.using(db).filter(service=service, mail_renderer='ikwen.revival.utils.render_suggest_referral_mail')\
+                .update(profile_tag_id=ref_tag.id)
+            Revival.objects.using('umbrella').filter(service=service, mail_renderer='ikwen.revival.utils.render_suggest_referral_mail')\
+                .update(profile_tag_id=ref_tag.id)
+        except ProfileTag.DoesNotExist:
+            print("Referral tag not found for %s" % service)
+
+        Revival.objects.using(db)\
+            .exclude(mail_renderer__in=['ikwen.revival.utils.render_suggest_create_account_mail',
+                                        'ikwen.revival.utils.render_suggest_referral_mail']).delete()
+        Revival.objects.using('umbrella')\
+            .exclude(mail_renderer__in=['ikwen.revival.utils.render_suggest_create_account_mail',
+                                        'ikwen.revival.utils.render_suggest_referral_mail']).delete()
+
+
+def move_member_profile_tag_list_to_tag_fk_list():
+
+    for service in Service.objects.all():
+        db = service.database
+        add_database(db)
+        total = MemberProfile.objects.using(db).all().count()
+        chunks = total / 500 + 1
+        for i in range(chunks):
+            start = i * 500
+            finish = (i + 1) * 500
+            for profile in MemberProfile.objects.using(db).all()[start:finish]:
+                if profile.tag_fk_list:
+                    continue
+                tag_fk_list = []
+                for slug in profile.tag_list:
+                    try:
+                        tag = ProfileTag.objects.using(db).get(slug=slug)
+                        tag_fk_list.append(tag.id)
+                    except ProfileTag.DoesNotExist:
+                        continue
+                profile.tag_fk_list = tag_fk_list
+                profile.save()
+
+
+def create_join_and_referral_tag():
+    for service in Service.objects.all():
+        db = service.database
+        add_database(db)
+
+        join, update = ProfileTag.objects.using(db).get_or_create(slug=JOIN)
+        join.name = JOIN
+        join.is_auto = True
+        join.save()
+
+        ref, update = ProfileTag.objects.using(db).get_or_create(slug=REFERRAL)
+        ref.name = REFERRAL
+        ref.is_auto = True
+        ref.save()
+
+
+def create_index_on_revival():
+    import pymongo
+    from pymongo import MongoClient
+    client = MongoClient('46.101.107.75', 27017)
+
+    for service in Service.objects.all():
+        if not service.database:
+            continue
+        print "Creating index for %s" % service.database
+        db = client[service.database]
+        db.revival_revival.create_index([('service', pymongo.ASCENDING),
+                                         ('profile_tag_id', pymongo.ASCENDING)], unique=True)
+        db.revival_cyclicrevival.drop_index('profile_tag_id_1')
+        db.revival_cyclicrevival.create_index([('service', pymongo.ASCENDING),
+                                               ('profile_tag_id', pymongo.ASCENDING)], unique=True)
+
+
+def correct_indexes_on_profiletag():
+    import pymongo
+    from pymongo import MongoClient
+    client = MongoClient('46.101.107.75', 27017)
+
+    for service in Service.objects.all():
+        if not service.database:
+            continue
+        print "Creating index for %s" % service.database
+        db = client[service.database]
+        try:
+            db.revival_profiletag.drop_index('name_1')
+        except:
+            print ("name_1 index not found on %s" % service.database)
+        db.revival_profiletag.create_index([('name', pymongo.ASCENDING), ('is_auto', pymongo.ASCENDING)], unique=True)
+        add_database(service.database)
+        ProfileTag.objects.using(service.database).filter(is_auto=True).delete()
+        for category in ProductCategory.objects.using(service.database).all():
+            slug = '__' + category.slug
+            ProfileTag.objects.using(service.database).create(name=category.name, slug=slug, is_auto=True)
+
+
+def clear_ikwen_members_from_tchopetyamo_umbrella():
+    delete_list = []
+    total = MemberProfile.objects.using('umbrella').all().count()
+    chunks = total / 500 + 1
+    for i in range(chunks):
+        start = i * 500
+        finish = (i + 1) * 500
+        for member in Member.objects.using('umbrella').all()[start:finish]:
+            try:
+                Member.objects.get(pk=member.id)
+            except Member.DoesNotExist:
+                delete_list.append(member.id)
+    for pk in delete_list:
+        Member.objects.using('umbrella').filter(pk=pk).delete()
+
+
+def create_index_on_revival():
+    import pymongo
+    from pymongo import MongoClient
+    client = MongoClient('46.101.107.75', 27017)
+
+    for service in Service.objects.all():
+        if not service.database:
+            continue
+        print "Creating index for %s" % service.database
+        db = client[service.database]
+        db.revival_revival.create_index([('service', pymongo.ASCENDING),
+                                         ('profile_tag_id', pymongo.ASCENDING)], unique=True)
+        db.revival_cyclicrevival.drop_index('profile_tag_id_1')
+        db.revival_cyclicrevival.create_index([('service', pymongo.ASCENDING),
+                                               ('profile_tag_id', pymongo.ASCENDING)], unique=True)
+
+
+def create_sent_mail_collection():
+    import pymongo
+    from pymongo import MongoClient
+    client = MongoClient('46.101.107.75', 27017)
+
+    for service in Service.objects.all():
+        if not service.database:
+            continue
+        print "Creating index for %s" % service.database
+        db = client[service.database]
+        db.ikwen_sent_mail.create_index([('to', pymongo.ASCENDING)])
+        db.ikwen_sent_mail.create_index([('subject', pymongo.ASCENDING)])
+        db.ikwen_sent_mail.create_index([('type', pymongo.ASCENDING)])
+        db.ikwen_sent_mail.create_index([('created_on', pymongo.ASCENDING)])
+
+
+def create_go_links():
+    app_list = list(Application.objects.filter(slug__in=['kakocase', 'shavida', 'webnode']))
+    for service in Service.objects.filter(app__in=app_list):
+        try:
+            go_apache_tpl = get_template('core/cloud_setup/apache.conf.local.html')
+            apache_context = Context({'home_folder': service.home_folder, 'ikwen_name': service.ikwen_name})
+            fh = open(service.home_folder + '/go_apache.conf', 'w')
+            fh.write(go_apache_tpl.render(apache_context))
+            fh.close()
+            vhost = '/etc/apache2/sites-enabled/go_ikwen/' + service.ikwen_name + '.conf'
+            subprocess.call(['sudo', 'ln', '-sf', service.home_folder + '/go_apache.conf', vhost])
+        except:
+            print("Failed for %s" % service)
+            continue
 
 
 if __name__ == "__main__":
