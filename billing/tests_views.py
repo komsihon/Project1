@@ -209,6 +209,69 @@ class BillingViewsTest(TestCase):
         self.assertEqual(Subscription.objects.get(pk=sub_id).member, member)
 
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
+    def test_InvoiceDetail_cash_in_with_unauthorized_user(self):
+        """
+        cash_in fails with an unauthorized user. One who doesn't have 'billing.ik_cash_in' permission
+        """
+        invoice_id = '56eb6d04b379d531e01237d3'
+        data = {'action': 'cash_in'}
+        self.client.login(username='member3', password='admin')
+        response = self.client.get(reverse('billing:invoice_detail', args=(invoice_id, )), data=data)
+        self.assertEqual(response.status_code, 200)
+        resp = json.loads(response.content)
+        self.assertEqual(resp['error'], "You're not allowed here")
+
+    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
+    def test_InvoiceDetail_cash_in_with_invalid_amount(self):
+        """
+        cash_in fails with an invalid amount
+        """
+        invoice_id = '56eb6d04b379d531e01237d3'
+        sub_id = '56eb6d04b37b3379c531e013'
+        Subscription.objects.filter(pk=sub_id).update(expiry=datetime.now().date())
+        data = {'action': 'cash_in', 'amount': -10}
+        self.client.login(username='arch', password='admin')
+        response = self.client.get(reverse('billing:invoice_detail', args=(invoice_id, )), data=data)
+        resp = json.loads(response.content)
+        self.assertEqual(resp['error'], "Invalid amount")
+
+    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
+    def test_InvoiceDetail_cash_in_with_2_consecutive_payments(self):
+        """
+        cash_in marks Invoice as paid and extends Service expiry
+        """
+        invoice_id = '56eb6d04b379d531e01237d3'
+        sub_id = '56eb6d04b37b3379c531e013'
+        expiry = datetime.now().date()
+        Subscription.objects.filter(pk=sub_id).update(expiry=expiry)
+        Payment.objects.filter(invoice=invoice_id).delete()
+        Balance.objects.using('wallets').create(service_id='54ad2bd9b37b335a18fe5801', mail_count=100)
+
+        self.client.login(username='arch', password='admin')
+
+        # 1st payment
+        data = {'action': 'cash_in', 'amount': 2000}
+        response = self.client.get(reverse('billing:invoice_detail', args=(invoice_id, )), data=data)
+        self.assertEqual(response.status_code, 200)
+        json_resp = json.loads(response.content)
+        self.assertTrue(json_resp['success'])
+        self.assertEqual(Invoice.objects.get(pk=invoice_id).status, Invoice.PENDING)
+        self.assertEqual(Payment.objects.filter(invoice=invoice_id).count(), 1)
+        self.assertEqual(Subscription.objects.get(pk=sub_id).expiry, expiry)  # Expiry remains unchanged
+
+        # 2nd payment
+        data = {'action': 'cash_in', 'amount': 3000}
+        response = self.client.get(reverse('billing:invoice_detail', args=(invoice_id, )), data=data)
+        self.assertEqual(response.status_code, 200)
+        json_resp = json.loads(response.content)
+        self.assertTrue(json_resp['success'])
+
+        expiry = (datetime.now() + timedelta(days=30)).date()
+        self.assertEqual(Subscription.objects.get(pk=sub_id).expiry, expiry)
+        self.assertEqual(XEmailObject.objects.filter(to='member3@ikwen.com').count(), 1)
+        self.assertEqual(Balance.objects.using('wallets').get(service_id='54ad2bd9b37b335a18fe5801').mail_count, 98)
+
+    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
     def test_api_pull_invoice_with_invoicing_config_pull_invoice_false(self):
         """
         pull_invoice with invoicing_config.pull_invoice = False returns an error message

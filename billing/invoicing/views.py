@@ -379,6 +379,8 @@ class InvoiceDetail(TemplateView):
         return context
 
     def cash_in(self, invoice, request):
+        if not request.user.has_perm('billing.ik_cash_in'):
+            return HttpResponse(json.dumps({'error': "You're not allowed here"}))
         service = get_service_instance()
         config = service.config
         if invoice.status == Invoice.PAID:
@@ -393,8 +395,11 @@ class InvoiceDetail(TemplateView):
         member = invoice.member
         response = {'success': True}
         payment = Payment.objects.create(invoice=invoice, amount=amount, method=Payment.CASH, cashier=request.user)
-        aggr = Payment.objects.filter(invoice=invoice).aggregate(Sum('amount'))
-        amount_paid = aggr['amount__sum']
+        try:
+            aggr = Payment.objects.filter(invoice=invoice).aggregate(Sum('amount'))
+            amount_paid = aggr['amount__sum']
+        except IndexError:
+            amount_paid = 0
         total = amount + amount_paid
         if total >= invoice.amount:
             invoice.status = Invoice.PAID
