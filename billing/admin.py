@@ -116,6 +116,70 @@ class SubscriptionAdmin(CustomBaseAdmin, ImportExportMixin):
                     QueuedSMS.objects.create(recipient=member.phone, text=sms_text)
 
 
+class SubscriptionResource(resources.ModelResource):
+    client = fields.Field(column_name=_('Client'))
+    reference_id = fields.Field(column_name=_('Reference ID'))
+    product = fields.Field(column_name=_('Product'))
+    monthly_cost = fields.Field(column_name=_('Monthly cost'))
+    billing_cycle = fields.Field(column_name=_('Billing cycle'))
+    expiry = fields.Field(column_name=_('Expiry'))
+    invoice_tolerance = fields.Field(column_name=_('Tolerance'))
+    status = fields.Field(column_name=_('Status'))
+    since = fields.Field(column_name=_('Since'))
+
+    class Meta:
+        model = Subscription
+        fields = ('client', 'reference_id', 'product', 'monthly_cost',
+                  'billing_cycle', 'expiry', 'invoice_tolerance', 'status', 'since')
+        export_order = ('client', 'reference_id', 'product', 'monthly_cost',
+                        'billing_cycle', 'expiry', 'invoice_tolerance', 'status', 'since')
+
+    def dehydrate_client(self, obj):
+        try:
+            member = obj.member
+            if member:
+                return member.full_name
+        except Member.DoesNotExist:
+            pass
+        return '<Anonymous>'
+
+    def dehydrate_reference_id(self, obj):
+        if obj.reference_id:
+            return obj.reference_id
+        return ''
+
+    def dehydrate_product(self, obj):
+        try:
+            product = obj.product
+            if product:
+                return product.name
+        except Product.DoesNotExist:
+            pass
+        return ''
+
+    def dehydrate_monthly_cost(self, obj):
+        return obj.monthly_cost
+
+    def dehydrate_billing_cycle(self, obj):
+        return obj.billing_cycle
+
+    def dehydrate_expiry(self, obj):
+        if obj.expiry:
+            return obj.expiry.strftime('%y-%m-%d %H:%M')
+        return 'N/A'
+
+    def dehydrate_invoice_tolerance(self, obj):
+        return obj.invoice_tolerance
+
+    def dehydrate_status(self, obj):
+        return obj.status
+
+    def dehydrate_since(self, obj):
+        if obj.since:
+            return obj.since.strftime('%y-%m-%d %H:%M')
+        return 'N/A'
+
+
 class PaymentResource(resources.ModelResource):
     client = fields.Field(column_name=_('Client'))
     invoice_number = fields.Field(column_name=_('Invoice No'))
@@ -130,15 +194,21 @@ class PaymentResource(resources.ModelResource):
         export_order = ('client', 'invoice_number', 'amount', 'method', 'cashier', 'created_on', )
 
     def dehydrate_client(self, payment):
-        member = payment.invoice.member
-        if member:
-            return member.full_name
+        try:
+            member = payment.invoice.member
+            if member:
+                return member.full_name
+        except:
+            pass
         return '<Anonymous>'
 
     def dehydrate_invoice_number(self, payment):
-        invoice = payment.invoice
-        if invoice:
-            return invoice.number
+        try:
+            invoice = payment.invoice
+            if invoice:
+                return invoice.number
+        except Invoice.DoesNotExist:
+            pass
         return 'N/A'
 
     def dehydrate_amount(self, payment):
@@ -148,9 +218,12 @@ class PaymentResource(resources.ModelResource):
         return payment.method
 
     def dehydrate_cashier(self, payment):
-        cashier = payment.cashier
-        if cashier:
-            return cashier.full_name
+        try:
+            cashier = payment.cashier
+            if cashier:
+                return cashier.full_name
+        except Member.DoesNotExist:
+            pass
         return 'N/A'
 
     def dehydrate_created_on(self, payment):

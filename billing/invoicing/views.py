@@ -35,7 +35,8 @@ from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, DEFAULT_GHOST_PWD
 from ikwen.billing.models import Invoice, SendingReport, SERVICE_SUSPENDED_EVENT, PaymentMean, \
     InvoiceEntry, InvoiceItem, Payment, InvoicingConfig
-from ikwen.billing.admin import ProductAdmin, SubscriptionAdmin, InvoicingConfigAdmin, PaymentResource
+from ikwen.billing.admin import ProductAdmin, SubscriptionAdmin, InvoicingConfigAdmin, PaymentResource, \
+    SubscriptionResource
 from ikwen.billing.utils import get_invoicing_config_instance, get_subscription_model, get_product_model, \
     get_next_invoice_number, get_billing_cycle_months_count, get_payment_confirmation_message, get_days_count, \
     get_months_count_billing_cycle
@@ -93,6 +94,7 @@ class SubscriptionList(HybridListView):
     template_name = 'billing/subscription_list.html'
     html_results_template_name = 'billing/snippets/subscription_list_results.html'
     show_import = True
+    export_resource = SubscriptionResource
 
     def get_search_results(self, queryset, max_chars=None):
         search_term = self.request.GET.get('q')
@@ -275,11 +277,10 @@ class AdminInvoiceList(HybridListView):
 
 
 class InvoiceList(HybridListView):
-    # if getattr(settings, 'IS_IKWEN', False):
-    #     template_name = 'billing/iao_invoice_list.html'
-    # else:
-    #     template_name = 'billing/invoice_list.html'
-    template_name = 'billing/invoice_list.html'
+    if getattr(settings, 'IS_UMBRELLA', False):
+        template_name = 'billing/iao_invoice_list.html'
+    else:
+        template_name = 'billing/invoice_list.html'
     html_results_template_name = 'billing/snippets/invoice_list_results.html'
 
     def get_queryset(self):
