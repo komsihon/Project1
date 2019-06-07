@@ -145,6 +145,9 @@ footer a {color: #999}
 .payment-mean .img {background: center; background-size: auto 100%; float: left; height: 100%; width: 65%}
 
 .show-results-filter {text-align: left; width: 120px}
+.show-floating-filter {text-align: left; width: 120px}
+.floating-filter {background: #fff; left: 10px; padding: 10px; position: absolute; top: 5px}
+.floating-filter .close {color: #333; margin-left: 30px}
 .results-filter {
     display: none;
     border-bottom: 1px solid #eee;

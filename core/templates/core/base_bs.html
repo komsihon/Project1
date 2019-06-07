@@ -237,6 +237,9 @@
                         } else {
                             $('.edge-panel-left').addClass('has-shade').appendTo('.edge-swipe-overlay');
                         }
+                        try {
+                            ikwen.resetAdminTools();
+                        } catch (e) {}
                     }));
 
                     {% url 'ikwen:list_projects' as list_projects_url %}

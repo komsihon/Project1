@@ -211,6 +211,10 @@
                 if (query && query !== '?') query += paramString;
                 else query = paramString.substr(1);
                 window.location = url + '?action=export&' + query;
+            }).on('click', '#admin-tools .show-floating-filter', function() {
+                $('div#admin-tools .floating-filter').show();
+            }).on('click', '#admin-tools .floating-filter .close', function() {
+                $('div#admin-tools .floating-filter').hide();
             });
 
             $('div#selection-control .clear-selection').click(function() {
@@ -244,6 +248,27 @@
             ikwen.setupHTMLResultsSearch('#context-search', '#results', searchDescriptor);
             ikwen.setupFilter('#results', filterDescriptor);
             ikwen.setupHTMLResultsFilter(htmlFilterDescriptor);
+            ikwen.resetAdminTools = function() {
+                if ($(window).width() < 768) return;
+                var actionsWidgetsCount = $('#admin-tools-actions .action').length,
+                    maxFilterWidgets = 2;
+                if ($(window).width() < 1200) {
+                    maxFilterWidgets = 3 - actionsWidgetsCount;
+                    if (maxFilterWidgets === 0) maxFilterWidgets = 1;
+                } else {
+                    maxFilterWidgets = 7 - actionsWidgetsCount;
+                }
+                var filterWidgetsCount = $('.tool.filter').length;
+                if (filterWidgetsCount > maxFilterWidgets) {
+                    $('.tool.filter').prependTo('#admin-tools .floating-filter');
+                    $('.show-floating-filter').show();
+                } else {
+                    $('.show-floating-filter').hide();
+                    $('.floating-filter .tool.filter').insertAfter('.show-floating-filter')
+                }
+            };
+            ikwen.resetAdminTools();
+
             $('footer').appendTo('#admin-nav .wrapper').show();
             {% if messages %}
                 {% for msg in messages %}ikwen.showFloatingNotice('{{ msg|safe }}', '{{ msg.tags }}', 6);{% endfor %}

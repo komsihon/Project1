@@ -12,6 +12,15 @@
                 <div class="filter-trigger">
                     <i class="glyphicon glyphicon-filter"></i>
                     <i class="glyphicon glyphicon-menu-left hide-filter back"></i>
+                    <div class="show-floating-filter btn btn-default btn-sm hidden-xs" style="display: none; padding-left: 30px">
+                        <div>
+                            <span class="pull-left">{% trans "Filters" %}</span>
+                            <span class="caret pull-right" style="margin: 7px 0 0 5px"></span>
+                        </div>
+                    </div>
+                    <div class="floating-filter subtle-shade" style="display: none">
+                        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
                     {% for elt in filter %}
                         <div class="tool filter{% if elt.is_date_filter %} period{% endif %}">
                             <label for="{{ elt.parameter_name }}" class="sr-only">{% trans elt.title %}</label>
@@ -48,7 +57,7 @@
         {% endif %}
         {% if show_export %}
         <button class="btn btn-sm btn-success cta pull-right action export"
-                data-toggle="modal" data-target="#load-product" title="{% trans "Export as Spreadsheet" %}">
+                style="margin-right: 5px" data-toggle="modal" data-target="#load-product" title="{% trans "Export as Spreadsheet" %}">
             <i class="fa fa-file-export"></i>
             <span class="hidden-xs">{% trans "Export" %}</span>
         </button>
