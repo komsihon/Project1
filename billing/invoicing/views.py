@@ -39,7 +39,7 @@ from ikwen.billing.admin import ProductAdmin, SubscriptionAdmin, InvoicingConfig
     SubscriptionResource
 from ikwen.billing.utils import get_invoicing_config_instance, get_subscription_model, get_product_model, \
     get_next_invoice_number, get_billing_cycle_months_count, get_payment_confirmation_message, get_days_count, \
-    get_months_count_billing_cycle
+    get_months_count_billing_cycle, notify_event
 from ikwen.core.utils import add_database_to_settings, get_service_instance, get_mail_content, XEmailMessage, \
     DefaultUploadBackend, set_counters, increment_history_field, get_model_admin_instance
 from ikwen.core.views import HybridListView, ChangeObjectBase
@@ -384,6 +384,7 @@ class InvoiceDetail(TemplateView):
             return HttpResponse(json.dumps({'error': "You're not allowed here"}))
         service = get_service_instance()
         config = service.config
+        invoicing_config = get_invoicing_config_instance()
         if invoice.status == Invoice.PAID:
             return HttpResponse(json.dumps({'error': "Invoice already paid"}))
         amount = request.GET.get('amount', invoice.amount)
@@ -401,6 +402,18 @@ class InvoiceDetail(TemplateView):
             amount_paid = aggr['amount__sum']
         except IndexError:
             amount_paid = 0
+
+        if invoicing_config.return_url:
+            try:
+                subscription = invoice.subscription
+                extra_months = request.GET.get('extra_months', 0)
+                params = {'reference_id': subscription.reference_id, 'invoice_number': invoice.number,
+                          'amount_paid': amount, 'extra_months': extra_months}
+                Thread(target=notify_event, args=(service, invoicing_config.return_url, params)).start()
+            except:
+                notice = "%s: Could not notify endpoint %s after cash in" % (service, invoicing_config.return_url)
+                logger.error(notice, exc_info=True)
+
         total = amount + amount_paid
         if total >= invoice.amount:
             invoice.status = Invoice.PAID
