@@ -42,11 +42,11 @@
             {% for msg in messages %}<p class="msg-tag {{ msg.tags }}" style="font-size: 1em; padding: 9px">{{ msg }}</p>{% endfor %}
         {% endif %}
         <div class="col-xs-12 text-right logout">
-            <span class="text-muted">{{ user.phone }} - </span>
             <a href="{% url 'ikwen:logout' %}">{% trans "Logout" %}</a>
         </div>
         <div id="confirmation">
             <h3 style="text-align: center"> {% trans "Confirm your phone" %} </h3>
+            <p class="text-muted" style="text-align: center"> {{ user.phone }} </p>
             <p class="text-muted" style="text-align: center"> {% trans "Type the 4 digits code we sent you by SMS" %} </p>
             <form class="submit-code" action="{% url 'ikwen:phone_confirmation' %}?{{ request.META.QUERY_STRING }}" method="post">{% csrf_token %}
                 <div class="form-group" style="margin-top: .4em">
