@@ -178,6 +178,7 @@ def confirm_invoice_payment(request, *args, **kwargs):
         total_months = invoice.months_count + extra_months
         days = get_days_count(total_months)
     else:
+        extra_months = 0
         days = invoice.subscription.product.duration
         total_months = None
     if subscription.status == Service.SUSPENDED:
