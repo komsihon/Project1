@@ -4,18 +4,15 @@ from threading import Thread
 
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.admin.sites import AlreadyRegistered
 from django.contrib.auth.models import Group
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.http import HttpResponseForbidden
 from django.utils import timezone
-from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext_lazy as _
 
 from ikwen.accesscontrol.backends import UMBRELLA
-from import_export.admin import ImportExportMixin, ExportMixin
+from import_export.admin import ImportExportMixin
 
 from ikwen.accesscontrol.models import Member, SUDO
 from ikwen.billing.models import Payment, AbstractInvoice, InvoicingConfig, Invoice, NEW_INVOICE_EVENT, \
@@ -165,7 +162,7 @@ class SubscriptionResource(resources.ModelResource):
 
     def dehydrate_expiry(self, obj):
         if obj.expiry:
-            return obj.expiry.strftime('%y-%m-%d %H:%M')
+            return obj.expiry.strftime('%Y-%m-%d %H:%M')
         return 'N/A'
 
     def dehydrate_invoice_tolerance(self, obj):
