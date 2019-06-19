@@ -88,10 +88,11 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
     now = datetime.now()
     ikwen_service = get_service_instance()
     invoice_id = request.session['object_id']
+    amount = request.session['amount']
     invoice = Invoice.objects.get(pk=invoice_id)
+    invoice.paid += amount
     invoice.status = Invoice.PAID
     invoice.save()
-    amount = request.session['amount']
     payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY, amount=amount)
     service = invoice.service
     extra_months = request.session['extra_months']
@@ -165,12 +166,13 @@ def confirm_invoice_payment(request, *args, **kwargs):
     config = service.config
     invoicing_config = get_invoicing_config_instance()
     invoice_id = request.session['object_id']
+    amount = request.session['amount']
     invoice = Invoice.objects.select_related('subscription').get(pk=invoice_id)
+    invoice.paid += amount
     invoice.status = Invoice.PAID
     if invoicing_config.processing_fees_on_customer:
         invoice.processing_fees = config.ikwen_share_fixed
     invoice.save()
-    amount = request.session['amount']
     payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY, amount=amount)
     subscription = invoice.subscription
     if invoicing_config.separate_billing_cycle:
