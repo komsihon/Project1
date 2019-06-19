@@ -415,7 +415,7 @@ class InvoiceDetail(TemplateView):
                 logger.error(notice, exc_info=True)
 
         total = amount + amount_paid
-        invoice.paid = amount
+        invoice.paid += amount
         if total >= invoice.amount:
             invoice.status = Invoice.PAID
             try:
