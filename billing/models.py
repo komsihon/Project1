@@ -418,6 +418,7 @@ class AbstractPayment(Model):
         (WALLET_DEBIT, _("Wallet debit")),
     )
     method = models.CharField(max_length=60, choices=METHODS_CHOICES)
+    processor_tx_id = models.CharField(max_length=60, blank=True, null=True, db_index=True)
     amount = models.PositiveIntegerField()
     cashier = models.ForeignKey(Member, blank=True, null=True, related_name='+',
                                 help_text=_("If the payment was in cash, this is who collected the money"))
