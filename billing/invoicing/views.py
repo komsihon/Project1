@@ -415,9 +415,9 @@ class InvoiceDetail(TemplateView):
                 logger.error(notice, exc_info=True)
 
         total = amount + amount_paid
+        invoice.paid = amount
         if total >= invoice.amount:
             invoice.status = Invoice.PAID
-            invoice.save()
             try:
                 subscription = invoice.subscription
                 subscription.status = Subscription.ACTIVE
@@ -426,6 +426,7 @@ class InvoiceDetail(TemplateView):
                 subscription.save()
             except AttributeError:
                 pass
+        invoice.save()
         set_counters(service)
         increment_history_field(service, 'turnover_history', amount)
         increment_history_field(service, 'earnings_history', amount)
