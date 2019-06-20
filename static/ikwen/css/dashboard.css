@@ -160,7 +160,7 @@
     .payments .view-payments {margin-top: 5px}
     .section-title {border-top: 1px solid #ddd;padding-top: 10px;margin-top: 25px;margin-bottom: 15px;}
     .section-title.performances {margin: 25px 0;}
-    .figure-lg {text-align: center}
+    .figure, .figure-lg {text-align: center}
 }
 @media (min-width: 992px) {
     #admin-content {padding-left: 270px;}
