@@ -4,7 +4,7 @@
     <label class="required upload-title" style="float: left; width: 100%">{% blocktrans %}Upload {{ image_field_name }}{% endblocktrans %}</label>
     <div id="upload-container{{ img_counter }}" class="upload-container">
         {% if image.name %}
-        <div class="image" style="background-image: url('{{ image.url }}')">
+        <div class="image" style="background-image: url('{% if upload_to_ikwen %}{{ settings.IKWEN_MEDIA_ROOT }}{% else %}{% get_media_prefix %}{% endif %}{{ image.name }}')">
         {% else %}
         <div class="image">
         {% endif %}
