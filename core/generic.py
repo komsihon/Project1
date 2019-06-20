@@ -4,7 +4,6 @@ import os
 from copy import deepcopy
 from datetime import datetime, timedelta, date
 
-from ajaxuploader.views import AjaxFileUploader
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin import helpers

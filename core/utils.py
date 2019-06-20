@@ -24,6 +24,7 @@ from django.template.defaultfilters import urlencode, slugify
 from django.template.loader import get_template
 from django.utils import timezone
 
+from ikwen.conf import settings as ikwen_settings
 from ikwen.core.fields import MultiImageFieldFile
 
 logger = logging.getLogger('ikwen')
@@ -293,6 +294,13 @@ class DefaultUploadBackend(LocalUploadBackend):
                     if not os.path.exists(dir):
                         os.makedirs(dir)
                     image_field.save(destination, content)
+                    if request.GET.get('upload_to_ikwen') == 'yes':  # Upload to ikwen media folder for access platform wide.
+                        destination2_folder = ikwen_settings.MEDIA_ROOT + obj.UPLOAD_TO
+                        if not os.path.exists(destination2_folder):
+                            os.makedirs(destination2_folder)
+                        destination2 = destination.replace(media_root, ikwen_settings.MEDIA_ROOT)
+                        os.rename(destination, destination2)
+                        media_url = ikwen_settings.MEDIA_URL
                     if isinstance(image_field, MultiImageFieldFile):
                         url = media_url + image_field.small_name
                     else:
