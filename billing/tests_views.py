@@ -235,7 +235,7 @@ class BillingViewsTest(TestCase):
         resp = json.loads(response.content)
         self.assertEqual(resp['error'], "Invalid amount")
 
-    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801')
+    @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801', UNIT_TESTING=True)
     def test_InvoiceDetail_cash_in_with_2_consecutive_payments(self):
         """
         cash_in marks Invoice as paid and extends Service expiry
@@ -394,7 +394,7 @@ class BillingViewsTest(TestCase):
         invoicing_config.return_url = 'http://localhost/notify/'
         invoicing_config.save(using=UMBRELLA)
         self.client.login(username='member3', password='admin')
-        response = self.client.post(reverse('billing:momo_set_checkout'), {'invoice_id': invoice_id})
+        response = self.client.post(reverse('billing:momo_set_checkout'), {'product_id': invoice_id})
         self.assertEqual(response.status_code, 200)
         # Init payment from Checkout page
         response = self.client.get(reverse('billing:init_momo_transaction'), data={'phone': '677003321'})

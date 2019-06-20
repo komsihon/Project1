@@ -41,7 +41,7 @@ def set_invoice_checkout(request, *args, **kwargs):
     This function has no URL associated with it.
     It serves as ikwen setting "MOMO_BEFORE_CHECKOUT"
     """
-    invoice_id = request.POST['invoice_id']
+    invoice_id = request.POST['product_id']
     invoice = Invoice.objects.select_related('subscription').get(pk=invoice_id)
     member = invoice.subscription.member
     if member and not member.is_ghost:
