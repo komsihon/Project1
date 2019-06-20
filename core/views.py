@@ -72,7 +72,9 @@ class ServiceDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ServiceDetail, self).get_context_data(**kwargs)
         invoicing_config = get_invoicing_config_instance(UMBRELLA)
-        service_id = kwargs['service_id']
+        service_id = kwargs.get('service_id')
+        if not service_id:
+            service_id = getattr(settings, 'IKWEN_SERVICE_ID')
         srvce = Service.objects.using(UMBRELLA).get(pk=service_id)
         invoice = Invoice.get_last(srvce)
         now = datetime.now()
@@ -266,7 +268,7 @@ class Console(TemplateView):
             limit = start + length
             type_access_request = ConsoleEventType.objects.get(codename=ACCESS_REQUEST_EVENT)
             member = self.request.user
-            queryset = ConsoleEvent.objects.select_related('service, member').exclude(event_type=type_access_request)\
+            queryset = ConsoleEvent.objects.select_related('service, member, event_type').exclude(event_type=type_access_request)\
                            .filter(Q(member=member) | Q(group_id__in=member.group_fk_list) |
                                    Q(group_id__isnull=True, member__isnull=True, service__in=member.get_services())).order_by('-id')[start:limit]
             response = []
@@ -318,7 +320,7 @@ def load_event_content(request, *args, **kwargs):
     event_id = request.GET['event_id']
     callback = request.GET['callback']
     try:
-        event = ConsoleEvent.objects.using(UMBRELLA).get(pk=event_id)
+        event = ConsoleEvent.objects.using(UMBRELLA).select_related('service, member, event_type').get(pk=event_id)
         response = {'html': event.render(request)}
     except ConsoleEvent.DoesNotExist:
         response = {'html': ''}

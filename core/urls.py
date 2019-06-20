@@ -80,6 +80,7 @@ urlpatterns = patterns(
     url(r'^module/(?P<object_id>[-\w]+)/configuration/$', permission_required('accesscontrol.sudo')(ConfigureModule.as_view()), name='configure_module'),
     url(r'^configuration/$', permission_required('accesscontrol.sudo')(Configuration.as_view()), name='configuration'),
     url(r'^configuration/(?P<service_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(Configuration.as_view()), name='configuration'),
+    url(r'^serviceDetail/$', permission_required('accesscontrol.sudo')(ServiceDetail.as_view()), name=SERVICE_DETAIL),
     url(r'^serviceDetail/(?P<service_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(ServiceDetail.as_view()), name=SERVICE_DETAIL),
     url(r'^list_projects$', list_projects, name='list_projects'),
     url(r'^get_location_by_ip$', get_location_by_ip, name='get_location_by_ip'),
