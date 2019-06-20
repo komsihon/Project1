@@ -62,7 +62,7 @@ def init_web_payment(request, *args, **kwargs):
     notif_url += '/%d' % momo_tx.id
     company_name = slugify(service.config.company_name).replace('-', ' ')
     data = {'order_id': object_id,
-            'amount': amount,
+            'amount': int(amount),
             'lang': 'fr',
             'reference': request.session.get('merchant_name', company_name.upper()),
             'return_url': request.session['return_url'],
