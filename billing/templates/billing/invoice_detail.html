@@ -65,7 +65,7 @@
                     <div class="detail col-sm-4">
                         <h4>{% trans "Invoice" %} #<strong>{{ invoice.number }}</strong></h4>
                         <div>
-                            <p>{% trans "Date issued" %}: {{ invoice.date_issued }}</p>
+                            <p>{% trans "Date issued" %}: {{ invoice.date_issued|date }}</p>
                             <p>{% trans "Due date" %}: {{ invoice.due_date }}</p>
                         </div>
                     </div>
@@ -124,23 +124,6 @@
                             </div>
                             <div class="clearfix"></div>
                         </div>
-                        {% if not invoice.is_one_off and monthly_cost and invoice.status != 'Paid' and extensions %}
-                        <div style="margin-top: 10px">
-                            <div class="col-xs-7 col-sm-3">
-                                <label for="extensions">{% trans "Extend till" %}</label>
-                                <select id="extensions" class="form-control input-sm">
-                                    <option value="0">N/A</option>
-                                    {% for extension in extensions %}
-                                    <option value="{{ extension.months }}">
-                                        {{ extension.expiry }}: {{ extension.months }} {% trans 'Month(s)' %}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div id="subtotal" class="col-xs-5 col-sm-4 pull-right text-right" style="padding-top: 30px"></div>
-                            <div class="clearfix"></div>
-                        </div>
-                        {% endif %}
                     {% empty %}
                         <div class="entry">
                             <div style="padding: 0 15px 5px">
@@ -148,24 +131,27 @@
                             </div>
                             <div class="clearfix"></div>
                         </div>
-                        {% if not invoice.is_one_off and monthly_cost and invoice.status != 'Paid' and extensions %}
-                        <div style="margin-top: 10px">
-                            <div class="col-xs-7 col-sm-3">
-                                <label for="extensions">{% trans "Extend till" %}</label>
-                                <select id="extensions" class="form-control input-sm">
-                                    <option value="0">N/A</option>
-                                    {% for extension in extensions %}
-                                    <option value="{{ extension.months }}">
-                                        {{ extension.expiry }}: {{ extension.months }} {% trans 'Month(s)' %}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div id="subtotal" class="col-xs-5 col-sm-4 pull-right text-right" style="padding-top: 30px"></div>
-                            <div class="clearfix"></div>
-                        </div>
-                        {% endif %}
                     {% endfor %}
+                    <div class="entry">
+                        <div class="clearfix"></div>
+                    </div>
+                    {% if not invoice.is_one_off and monthly_cost and invoice.status != 'Paid' and extensions %}
+                    <div>
+                        <div class="col-xs-7 col-sm-3">
+                            <label for="extensions">{% trans "Extend till" %}</label>
+                            <select id="extensions" class="form-control input-sm">
+                                <option value="0">N/A</option>
+                                {% for extension in extensions %}
+                                <option value="{{ extension.months }}">
+                                    {{ extension.expiry }}: {{ extension.months }} {% trans 'Month(s)' %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div id="subtotal" class="col-xs-5 col-sm-4 pull-right text-right" style="padding-top: 30px"></div>
+                        <div class="clearfix"></div>
+                    </div>
+                    {% endif %}
                     </div>
                     <div class="invoice-total">
                         <span class="col-xs-5">{% trans "Total" %}</span>
@@ -245,7 +231,7 @@
         </div>
     </div>
     {% with payment_conf='invoice_payment' %}
-        {% include 'billing/snippets/modal_payment_options.html' %}
+        {% include 'billing/snippets/modal_payment_options_2_steps_om.html' %}
     {% endwith %}
     {% if perms.billing.ik_cash_in %}
         <div class="modal fade" id="modal-cash-in" tabindex="-1" role="dialog">
