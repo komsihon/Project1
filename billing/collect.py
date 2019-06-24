@@ -85,6 +85,7 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
     This function has no URL associated with it.
     It serves as ikwen setting "MOMO_AFTER_CHECKOUT"
     """
+    tx = kwargs.get('transaction')
     now = datetime.now()
     ikwen_service = get_service_instance()
     invoice_id = request.session['object_id']
@@ -93,7 +94,8 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
     invoice.paid += amount
     invoice.status = Invoice.PAID
     invoice.save()
-    payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY, amount=amount)
+    payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY,
+                                     amount=amount, processor_tx_id=tx.processor_tx_id)
     service = invoice.service
     extra_months = request.session['extra_months']
     total_months = invoice.months_count + extra_months
@@ -161,6 +163,7 @@ def confirm_invoice_payment(request, *args, **kwargs):
     This function has no URL associated with it.
     It serves as ikwen setting "MOMO_AFTER_CHECKOUT"
     """
+    tx = kwargs.get('transaction')
     now = datetime.now()
     service = get_service_instance()
     config = service.config
@@ -173,7 +176,8 @@ def confirm_invoice_payment(request, *args, **kwargs):
     if invoicing_config.processing_fees_on_customer:
         invoice.processing_fees = config.ikwen_share_fixed
     invoice.save()
-    payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY, amount=amount)
+    payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY,
+                                     amount=amount, processor_tx_id=tx.processor_tx_id)
     subscription = invoice.subscription
     if invoicing_config.separate_billing_cycle:
         extra_months = request.session['extra_months']
@@ -261,6 +265,7 @@ def product_set_checkout(request, *args, **kwargs):
 
 
 def product_do_checkout(request, *args, **kwargs):
+    tx = kwargs.get('transaction')
     invoice_id = request.session['object_id']
     mean = request.session['mean']
     invoice = Invoice.objects.get(pk=invoice_id)
@@ -270,7 +275,8 @@ def product_do_checkout(request, *args, **kwargs):
     subscription.save()
     invoice.status = Invoice.PAID
     invoice.save()
-    payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY, amount=invoice.amount)
+    payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY,
+                                     amount=invoice.amount, processor_tx_id=tx.processor_tx_id)
     share_payment_and_set_stats(invoice, payment_mean_slug=mean)
     service = get_service_instance()
     config = service.config

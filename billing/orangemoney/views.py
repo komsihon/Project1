@@ -186,13 +186,17 @@ def check_transaction_status(request):
                 momo_after_checkout = import_by_path(path)
                 with transaction.atomic():
                     try:
-                        MoMoTransaction.objects.using('wallets').filter(pk=tx_id)\
-                            .update(processor_tx_id=processor_tx_id, message='OK', is_running=False, status=MoMoTransaction.SUCCESS)
+                        tx = MoMoTransaction.objects.using('wallets').get(pk=tx_id)
+                        tx.processor_tx_id = processor_tx_id
+                        tx.message = 'OK'
+                        tx.is_running = False
+                        tx.status = MoMoTransaction.SUCCESS
+                        tx.save()
                     except:
                         logger.error("Orange Money: Could not mark transaction as Successful. User: %s, Amt: %d" % (request.user.username, int(request.session['amount'])), exc_info=True)
                     else:
                         try:
-                            momo_after_checkout(request, signature=request.session['signature'], tx_id=tx_id)
+                            momo_after_checkout(request, transaction=tx, signature=request.session['signature'])
                         except:
                             MoMoTransaction.objects.using('wallets').filter(pk=tx_id)\
                                 .update(message=traceback.format_exc())

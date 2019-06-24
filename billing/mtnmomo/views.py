@@ -124,10 +124,10 @@ def request_payment(request, tx):
                 tx.status = MoMoTransaction.SUCCESS
                 tx.save(using='wallets')
                 if getattr(settings, 'DEBUG', False):
-                    momo_after_checkout(request, signature=request.session['signature'])
+                    momo_after_checkout(request, transaction=tx, signature=request.session['signature'])
                 else:
                     try:
-                        momo_after_checkout(request, signature=request.session['signature'])
+                        momo_after_checkout(request, transaction=tx, signature=request.session['signature'])
                         tx.message = 'OK'
                     except:
                         tx.message = traceback.format_exc()
