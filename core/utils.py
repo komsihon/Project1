@@ -300,6 +300,11 @@ class DefaultUploadBackend(LocalUploadBackend):
                             os.makedirs(destination2_folder)
                         destination2 = destination.replace(media_root, ikwen_settings.MEDIA_ROOT)
                         os.rename(destination, destination2)
+                        if isinstance(image_field, MultiImageFieldFile):
+                            destination2_small = ikwen_settings.MEDIA_ROOT + image_field.small_name
+                            destination2_thumb = ikwen_settings.MEDIA_ROOT + image_field.thumb_name
+                            os.rename(image_field.small_path, destination2_small)
+                            os.rename(image_field.thumb_path, destination2_thumb)
                         media_url = ikwen_settings.MEDIA_URL
                     if isinstance(image_field, MultiImageFieldFile):
                         url = media_url + image_field.small_name
