@@ -208,7 +208,13 @@
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="pull-left visible-xs">{% trans "ID" %}</div>
-                                    <div class="val">{{ payment.id }}</div>
+                                    <div class="val">
+                                        {% if payment.processor_tx_id %}
+                                            {{ payment.processor_tx_id }}
+                                        {% else %}
+                                            {{ payment.id }}
+                                        {% endif %}
+                                    </div>
                                     <div class="clearfix"></div>
                                 </div>
                                 <div class="col-sm-3">
@@ -231,7 +237,7 @@
         </div>
     </div>
     {% with payment_conf='invoice_payment' %}
-        {% include 'billing/snippets/modal_payment_options_2_steps_om.html' %}
+        {% include 'billing/snippets/modal_payment_options.html' %}
     {% endwith %}
     {% if perms.billing.ik_cash_in %}
         <div class="modal fade" id="modal-cash-in" tabindex="-1" role="dialog">
