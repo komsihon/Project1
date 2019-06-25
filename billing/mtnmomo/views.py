@@ -192,13 +192,11 @@ def process_notification(request, *args, **kwargs):
         except:
             tx.message = traceback.format_exc()
             logger.error("MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (tx.username, tx.amount), exc_info=True)
-        finally:
-            tx.save(using='wallets')
     else:
         tx.status = MoMoTransaction.API_ERROR
         status_desc = resp.find(".//{http://www.csapi.org/schema/momopayment/local/v1_0}StatusDesc").text
         tx.message = status_desc
-        tx.save(using='wallets')
+    tx.save(using='wallets')
     return HttpResponse("Notification successfully received.")
 
 
