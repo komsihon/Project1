@@ -395,8 +395,8 @@ class InvoiceDetail(TemplateView):
         except ValueError:
             return HttpResponse(json.dumps({'error': "Invalid amount"}))
         member = invoice.member
-        response = {'success': True}
         payment = Payment.objects.create(invoice=invoice, amount=amount, method=Payment.CASH, cashier=request.user)
+        response = {'success': True, 'payment': payment.to_dict()}
         try:
             aggr = Payment.objects.filter(invoice=invoice).aggregate(Sum('amount'))
             amount_paid = aggr['amount__sum']
