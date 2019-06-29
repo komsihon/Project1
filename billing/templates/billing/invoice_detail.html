@@ -183,17 +183,18 @@
                             <div class="clearfix"></div>
                         </div>
                     {% endif %}
+                    <div class="details-header{% if invoice.payment_set.all|length == 0 %} tpl{% endif %}"
+                         style="background: none; border-top: 1px dashed #666; font-size: 1.35em; margin-top: 15px">
+                        {% trans "Payments" %}
+                    </div>
+                    <div class="details-header hidden-xs{% if invoice.payment_set.all|length == 0 %} tpl{% endif %}" style="padding-left: 0; padding-right: 0">
+                        <div class="col-sm-3">{% trans "Transaction date" %}</div>
+                        <div class="col-sm-3">{% trans "Method" %}</div>
+                        <div class="col-sm-3">{% trans "Transaction ID" %}</div>
+                        <div class="col-sm-3 text-right">{% trans "Amount" %}</div>
+                        <div class="clearfix"></div>
+                    </div>
                     {% if invoice.payment_set.all|length > 0 %}
-                        <div class="details-header" style="background: none; border-top: 1px dashed #666; font-size: 1.35em; margin-top: 15px">
-                            {% trans "Payments" %}
-                        </div>
-                        <div class="details-header hidden-xs" style="padding-left: 0; padding-right: 0">
-                            <div class="col-sm-3">{% trans "Transaction date" %}</div>
-                            <div class="col-sm-3">{% trans "Method" %}</div>
-                            <div class="col-sm-3">{% trans "Transaction ID" %}</div>
-                            <div class="col-sm-3 text-right">{% trans "Amount" %}</div>
-                            <div class="clearfix"></div>
-                        </div>
                         {% for payment in invoice.payment_set.all %}
                             <div class="payment entry">
                                 <div class="col-sm-3">
@@ -226,6 +227,29 @@
                             </div>
                         {% endfor %}
                     {% endif %}
+                    <div class="payment entry tpl">
+                        <div class="col-sm-3">
+                            <div class="pull-left visible-xs">{% trans "Date" %}</div>
+                            <div class="val date"></div>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="pull-left visible-xs">{% trans "Method" %}</div>
+                            <div class="val method"></div>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="pull-left visible-xs">{% trans "ID" %}</div>
+                            <div class="val tx-id"></div>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="pull-left visible-xs">{% trans "Amount" %}</div>
+                            <div class="val text-right">{{ currency_symbol }} <span class="amount"></span></div>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
                 </div>
             </div>
             <div class="clear"></div>
@@ -285,18 +309,30 @@
             });
             {% if perms.billing.ik_cash_in %}
                 $('.show-modal-cash-in').click(function() {
-                    var amount = $(this).data('amount');
+                    $('#modal-cash-in input').val('');
                     $('#modal-cash-in').modal('show');
-                    $('#modal-cash-in input').val(amount);
+                    $('.do-cash-in').removeClass('working');
                 });
-                $('.do-cash-in').click(function() {
-                    var amount = $('#modal-cash-in input').val();
+                $('body').on('click', '.do-cash-in:not(.working)', function() {
+                    $('.do-cash-in').addClass('working');
+                    var amount = $('#cash-in-amount').val();
+                    $('body').css('cursor', 'wait');
                     $.getJSON('', {action: 'cash_in', amount: amount}, function(data) {
+                        $('body').css('cursor', 'default');
                         if (data.success) {
                             ikwen.showFloatingNotice("{% trans "Successful cash in" %}");
-                            $('#modal-cash-in').moda('hide')
+                            var $payment = $('.payment.entry.tpl').clone().removeClass('tpl'),
+                                payment = data.payment;
+                            $payment.find('.date').text(payment.created_on);
+                            $payment.find('.method').text(payment.method);
+                            $payment.find('.amount').text(payment.amount.formatMoney(0, '{{ settings.THOUSAND_SEPARATOR }}', '{{ settings.DECIMAL_SEPARATOR }}'));
+                            $payment.find('.tx-id').text(payment.id);
+                            $payment.insertBefore('.payment.entry.tpl');
+                            $payment.show();
+                            $('.details-header').show();
+                            $('#modal-cash-in').modal('hide')
                         }
-                        else ikwen.showFloatingNotice("{% trans "Ooops! Something went wrong." %}")
+                        else ikwen.showFloatingNotice("Ooops! " + data.error)
                     })
                 });
             {% endif %}
