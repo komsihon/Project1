@@ -376,16 +376,8 @@ class ChangeObjectBase(TemplateView):
         obj_form = helpers.AdminForm(form, list(model_admin.get_fieldsets(self.request, obj)),
                                      model_admin.get_prepopulated_fields(self.request, obj),
                                      model_admin.get_readonly_fields(self.request, obj))
-
-        context[self.context_object_name] = obj
         model_obj = self.model()
-        context['obj'] = obj  # Base template recognize the context object only with the name 'obj'
-        context['model'] = model_obj._meta.app_label + '.' + model_obj._meta.model_name
-        context['verbose_name'] = model_obj._meta.verbose_name
-        context['verbose_name_plural'] = model_obj._meta.verbose_name_plural
-        context['object_list_url'] = self.get_object_list_url(self.request, obj, **kwargs)
-        context['model_admin_form'] = obj_form
-        context['label_field'] = self.label_field if self.label_field else 'name'
+        date_field_list = []
         img_field_list = []
         i = 0
         for key in model_obj.__dict__.keys():
@@ -401,6 +393,18 @@ class ChangeObjectBase(TemplateView):
                 }
                 img_field_list.append(img_obj)
                 i += 1
+            if isinstance(field, datetime) or isinstance(field, date):
+                date_field_list.append(key)
+
+        context[self.context_object_name] = obj
+        context['obj'] = obj  # Base template recognize the context object only with the name 'obj'
+        context['model'] = model_obj._meta.app_label + '.' + model_obj._meta.model_name
+        context['verbose_name'] = model_obj._meta.verbose_name
+        context['verbose_name_plural'] = model_obj._meta.verbose_name_plural
+        context['object_list_url'] = self.get_object_list_url(self.request, obj, **kwargs)
+        context['model_admin_form'] = obj_form
+        context['label_field'] = self.label_field if self.label_field else 'name'
+        context['date_field_list'] = date_field_list
         context['img_field_list'] = img_field_list
         return context
 
