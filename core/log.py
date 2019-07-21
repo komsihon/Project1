@@ -37,7 +37,7 @@ LOGGING = {
             'formatter': 'default',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': ikwen_info_log_filename,
-            'maxBytes': 1000000,
+            'maxBytes': 10000000,
             'backupCount': 4
         },
         'error_log_handler': {
@@ -45,7 +45,7 @@ LOGGING = {
             'formatter': 'default',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': ikwen_error_log_filename,
-            'maxBytes': 1000000,
+            'maxBytes': 10000000,
             'backupCount': 4
         },
         'mail_admins': {
