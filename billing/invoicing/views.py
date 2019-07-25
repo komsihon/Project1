@@ -666,7 +666,7 @@ def render_billing_event(event, request):
             c = Context({'title': '<strong>%d</strong> %s' % (report.count, _(event.event_type.title)),
                          'currency_symbol': currency_symbol,
                          'amount': report.total_amount,
-                         'details_url': service.url + reverse('billing:iframe_admin', args=('invoice',)),
+                         'details_url': service.url + reverse('billing:admin_invoice_list'),
                          'obj': report})
         except SendingReport.DoesNotExist:
             return None
