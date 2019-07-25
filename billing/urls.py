@@ -47,7 +47,7 @@ urlpatterns = patterns(
 
     url(r'^mtnmomo/notify$', process_notification, name='process_notification'),
 
-    url(r'^transactions/$', permission_required('accesscontrol.sudo')(TransactionLog.as_view()), name='transaction_log'),
+    url(r'^transactions/$', permission_required('billing.ik_view_transaction_log')(TransactionLog.as_view()), name='transaction_log'),
 
     url(r'^paypal/setCheckout/$', SetExpressCheckout.as_view(), name='paypal_set_checkout'),
 )
