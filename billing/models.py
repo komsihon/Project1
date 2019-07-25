@@ -236,8 +236,7 @@ class AbstractInvoice(Model):
     amount = models.PositiveIntegerField()
     paid = models.PositiveIntegerField(default=0)
     processing_fees = models.PositiveIntegerField(default=0)
-    months_count = models.IntegerField(blank=not getattr(settings, 'SEPARATE_BILLING_CYCLE', True),
-                                       null=not getattr(settings, 'SEPARATE_BILLING_CYCLE', True),
+    months_count = models.IntegerField(blank=True, null=True,
                                        help_text="Number of months covered by the payment of this invoice.")
     date_issued = models.DateTimeField(default=timezone.now)
     due_date = models.DateField()
