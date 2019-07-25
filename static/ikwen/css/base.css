@@ -42,7 +42,8 @@ body {color: #464646;}
 .event .btn {min-width: 120px;}
 .event-content {padding: 15px;margin-left: 90px;border-left: 1px solid #ddd;}
 .event-content p {margin-top: 10px;}
-.event-detail {border: 1px solid #ddd;margin-top: 10px;}
+.event-content .actions {margin-top: 18px;}
+.event-detail {background: #fff;border: 1px solid #ddd;margin-top: 10px;}
 .event-icon {line-height: 140px; text-align: center;position: absolute;width: 90px;}
 .event-icon img {width: 60px;}
 
@@ -150,7 +151,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 .text-has-shade {text-shadow: 1px 2px 2px rgba(0, 0, 0, .7)}
 .inner-shade {box-shadow: inset 0 1px 3px rgba(0, 0, 0, .15);}
 .subtle-shade {box-shadow: 0 1px 4px 0 rgba(0, 0, 0, .15);}
-#navbar {height: 55px;min-height: 50px;position: fixed;width: 100%;}
+#navbar {height: 55px;min-height: 50px;position: fixed;width: 100%;transition: all .2s;}
 .menu-button {float: left;padding: 20px 15px 0 20px;}
 .icon-bar {
     background: #fff;
@@ -262,6 +263,8 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 @media (max-width: 767px) {
     .card-xs {padding: 0}
     .modal .actions .action, .modal .actions .btn {margin-top: .6em}
+    input.input-sm, select.input-sm, .btn-sm {height: 50px;font-size: 15px;}
+    .ik-li {padding: 18px 10px}
     .ik-li.img-lg {padding: 8px 6px}
     .ik-li.img-lg .image {height: 100px; width: 130px;}
     .ik-li.img-lg .info {margin-left: 10px;width: 160px;}
@@ -292,12 +295,12 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     #navbar-results {border-top: 1px solid #eee}
     .nav-tabs.swiper-wrapper {background: #f8f6f6; border-bottom: none}
     .nav-tabs > .tab {margin-bottom: -2px}
-    .nav-tabs > .tab > a {border-radius: 0;border-top: 2px solid transparent;border-bottom: 2px solid transparent;color: #aaa;font-weight: 700;line-height: 1.2;text-align: center;}
+    .nav-tabs > .tab > a {border-radius: 0;border-top: 2px solid transparent;border-bottom: 2px solid transparent;color: #aaa;font-weight: 700;line-height: 2;text-align: center;}
     .nav-tabs > .tab.active > a, .nav-tabs > .tab.active > a:hover, .nav-tabs > .tab.active > a:focus {
         background: none;
         border: none;
-        border-bottom: 2px solid #1b6d85;
-        color: #555
+        border-bottom: 5px solid #1b6d85;
+        color: #555;
     }
     .bottom-shade-xs {box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .1)}
     .ik-li .date {position: absolute; right: 6px}

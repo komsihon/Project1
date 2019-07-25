@@ -45,7 +45,7 @@ body {font-size: 13px;overflow: hidden;}
 #app-nav .app-logo {float: left;height: 30px;width: 30px;margin-right: 5px;}
 #app-nav .breadcrumb {background: none;float: left;padding-top: 5px;padding-left: 0;}
 #app-nav .breadcrumb li {color: #888}
-div#container.admin {padding-top: 92px;}
+div#container.admin {padding-top: 110px;transition: all .2s;}
 
 #admin-nav {
     background: #fff;
@@ -176,7 +176,7 @@ footer a {color: #999}
 .tiles.object-list {margin-top: 20px}
 .object-list .list-group-item:first-of-type {border-top: none}
 #results {clear: both}
-#admin-tools + #results {margin-top: 20px;}
+#admin-tools + #results {margin-top: 45px;}
 .content-tab-list {position: fixed;width: 100%;z-index: 10;}
 
 .images-uploader .frame {height: 200px;float: left;margin: 0 10px 10px 0;overflow: hidden;width: 100%;}
@@ -191,10 +191,12 @@ footer a {color: #999}
 
 @media (max-width: 767px) {
     #selection-control.visible {padding-top: 15px}
-    #admin-content > .container-fluid {/* padding: 0 */}
+    #admin-content, #admin-nav .nav-pills>li>a {font-size: 15px;}
+    #admin-nav .nav-pills>li>a {padding: 15px}
+    #app-nav {height: 55px;padding-top: 15px;margin-top: 55px;border-bottom: 1px solid #eee;}
     #app-nav .breadcrumb li:not(:last-of-type) {display: none}
-    #admin-tools {margin-top: -20px;border-bottom: 1px solid #eee;height: 45px;overflow:auto;padding-top: 13px;}
-    #admin-tools .glyphicon {float: left;font-size: 18px;color: #888;}
+    #admin-tools {border-bottom: 1px solid #eee;height: 55px;margin-top: -15px;overflow:auto;padding-top: 15px;}
+    #admin-tools .glyphicon {float: left;font-size: 20px;color: #888;}
     #admin-tools .btn.action .glyphicon {margin-right: 0}
     #admin-tools .glyphicon-menu-left {margin: 2px -24px 0 6px;}
     #admin-tools .tool {display: none}
@@ -212,7 +214,7 @@ footer a {color: #999}
     .filter-trigger > .glyphicon-filter {float: left;margin: 2px 0 0 10px;}
     .content-tab-list {background: #f8f6f6}
     #admin-tools + .content-tab-list {padding-top: 15px;}
-    .content-tab-list + .tab-content {margin-top: 35px;}
+    .content-tab-list + .tab-content {margin-top: 45px;}
     #admin-tools + .content-tab-list {margin-top: 20px;background: #fff;padding-top: 0;}
     #admin-tools + .content-tab-list + .tab-content {margin-top: 57px;}
     .pagination {margin-left: 5px}
@@ -231,7 +233,7 @@ footer a {color: #999}
         color: #545454;
     }
     .navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:hover, .navbar-default .navbar-nav>.open>a:focus {color: #666}
-    #app-nav {background: #fff; margin-top: 65px;}
+    #app-nav {background: #fff;margin-top: 65px;}
     div#container.admin {padding-top: 110px;}
     .admin-form.center {margin: auto; width: 400px;}
     .admin-form .form-control:not([type=checkbox]) {width: 400px;}
