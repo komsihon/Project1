@@ -55,6 +55,13 @@
             $('.form-row').addClass('form-group');
             $('.form-row input, .form-row select, .form-row textarea').addClass('form-control input-sm');
             $('.form-row textarea').addClass('form-control input-sm');
+            $('.date-field').each(function() {
+                var alt = $(this).data('alt');
+                $(this).datepicker({
+                    altField: alt,
+                    altFormat: "yy-mm-dd"
+                });
+            });
         })()
     </script>
 {% endblock %}
