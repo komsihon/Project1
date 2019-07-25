@@ -41,12 +41,11 @@
 {% if not payment_cancel_default %}
 <script>
     (function() {
-        $('.payment-start').click(function() {
+        $('body').on('click', '.payment-start', function() {
             var productId = $(this).data('product-id');
             $('#payment-product-id').val(productId);
             $('#payment-methods').modal('show');
-        });
-        $('.payment-method').click(function() {
+        }).on('click', '.payment-method', function() {
             var actionURL = $(this).data('action-url');
             $('form#payment-start-flow').prop('action', actionURL).submit()
         });
