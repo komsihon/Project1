@@ -137,7 +137,7 @@ def get_service_instance(using='default', check_cache=True):
     return Service.objects.using(using).select_related('member').get(pk=service_id)
 
 
-def add_database_to_settings(alias, engine='django_mongodb_engine', name=None, username=None, password=None):
+def add_database_to_settings(db_info, engine='django_mongodb_engine'):
     """
     Adds a database connection to the global settings on the fly.
     That is equivalent to do the following in Django settings file:
@@ -156,31 +156,44 @@ def add_database_to_settings(alias, engine='django_mongodb_engine', name=None, u
     }
 
     That connection is named 'database'
-    @param alias: name of the connection
+    @param db_info: string representing database under the form alias[@<host>:<port>:<username>:<password>]
     @param engine: database engine
-    @param name: database name
-    @param username: database username
-    @param password: database password
     """
-    host = getattr(settings, 'DATABASES')['default'].get('HOST', '127.0.0.1')
+    tokens = db_info.strip().split('@')
+    db_info = tokens[0]
+    username, password = None, None
+    try:
+        db_tokens = tokens[1].split(':')
+        host = db_tokens[0]
+        port = ''
+        if len(db_tokens) >= 2:
+            port = db_tokens[1]
+        if len(db_tokens) >= 4:
+            username = db_tokens[2]
+            password = db_tokens[3]
+    except IndexError:
+        host = getattr(settings, 'DATABASES')['default'].get('HOST', '127.0.0.1')
+        port = getattr(settings, 'DATABASES')['default'].get('PORT')
     DATABASES = getattr(settings, 'DATABASES')
-    if DATABASES.get(alias) is None:
-        DATABASES[alias] = {
+    if DATABASES.get(db_info) is None:
+        DATABASES[db_info] = {
             'ENGINE': engine,
-            'NAME': name if name is not None else alias,
+            'NAME': db_info,
             'HOST': host
         }
+        if port:
+            DATABASES[db_info]['PORT'] = port
         if username:
-            DATABASES[alias]['USERNAME'] = username
-            DATABASES[alias]['PASSWORD'] = password
+            DATABASES[db_info]['USERNAME'] = username
+            DATABASES[db_info]['PASSWORD'] = password
     setattr(settings, 'DATABASES', DATABASES)
 
 
-def add_database(alias, engine='django_mongodb_engine', name=None, username=None, password=None):
+def add_database(alias, engine='django_mongodb_engine'):
     """
     Alias for add_database_to_settings()
     """
-    add_database_to_settings(alias, engine=engine, name=name, username=username, password=password)
+    add_database_to_settings(alias, engine=engine)
 
 
 def get_mail_content(subject, message=None, template_name='core/mails/notice.html', extra_context=None, service=None):
@@ -255,6 +268,7 @@ class DefaultUploadBackend(LocalUploadBackend):
         media_url = getattr(settings, 'MEDIA_URL')
         model_name = request.GET.get('model_name')
         object_id = request.GET.get('object_id')
+        rand = ''.join([random.SystemRandom().choice(string.ascii_letters) for i in range(6)])
         if model_name and object_id:
             s = get_service_instance()
             image_field_name = request.GET.get('image_field_name', 'image')
@@ -323,7 +337,6 @@ class DefaultUploadBackend(LocalUploadBackend):
                     except OSError as e:
                         if getattr(settings, 'DEBUG', False):
                             raise e
-                rand = ''.join([random.SystemRandom().choice(string.ascii_letters) for i in range(6)])
                 return {
                     'path': url + '?rand=' + rand
                 }
@@ -340,7 +353,7 @@ class DefaultUploadBackend(LocalUploadBackend):
             dst = tiny_mce_root + '/' + filename
             os.rename(src, dst)
             return {
-                'path': media_url + tiny_mce_upload_dir + '/' + filename
+                'path': media_url + tiny_mce_upload_dir + '/' + filename + '?rand=' + rand
             }
         else:
             return super(DefaultUploadBackend, self).upload_complete(request, filename, *args, **kwargs)
