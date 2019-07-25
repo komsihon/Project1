@@ -39,7 +39,7 @@ def init_web_payment(request, *args, **kwargs):
     refresh_access_token(payment_mean)  # Eventually refresh access token if near to expire
     request.session['phone'] = phone
     if getattr(settings, 'DEBUG_MOMO', False):
-        amount = 1
+        amount = 100
     else:
         amount = int(request.session['amount'])
         if not getattr(settings, 'OM_FEES_ON_MERCHANT', False):
@@ -137,8 +137,11 @@ def init_web_payment(request, *args, **kwargs):
 
 def check_transaction_status(request):
     username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
-    api_url = getattr(settings, 'ORANGE_MONEY_API_URL') + '/transactionstatus'
-    amount = int(request.session['amount'])
+    api_url = getattr(settings, 'ORANGE_MONEY_API_URL', 'https://api.orange.com/orange-money-webpay/cm/v1') + '/transactionstatus'
+    if getattr(settings, 'DEBUG_MOMO', False):
+        amount = 100
+    else:
+        amount = int(request.session['amount'])
     token = request.session['pay_token']
     tx_id = request.session['tx_id']
     if not getattr(settings, 'OM_FEES_ON_MERCHANT', False):
