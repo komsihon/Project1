@@ -178,7 +178,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     width: 96%;
     z-index: 1001;
 }
-#navbar-search .hide-search {color: #bbb;float: left;font-size: 20px;margin-top: 6px;}
+#navbar-search .hide-search {color: #bbb;float: left;font-size: 24px;margin-top: 13px;}
 #navbar-search input {background: none;border: none;float: right;width: 88%;}
 
 #navbar-results {clear: both}
@@ -216,7 +216,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     position: fixed;
     top: 0;
     width: 90%;
-    z-index: 1;
+    z-index: 1001;
     }
 .edge-panel-left .wrapper {padding: 20px 0 120px}
 .edge-panel-left footer {
@@ -261,6 +261,8 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 .btn-outline-success:focus, .btn-outline-success.focus {box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.5)}
 
 @media (max-width: 767px) {
+    input[type="radio"], input[type="checkbox"] {float: left;height: 18px;margin-top: 1px;width: 18px;}
+    label {font-size: 15px}
     .card-xs {padding: 0}
     .modal .actions .action, .modal .actions .btn {margin-top: .6em}
     input.input-sm, select.input-sm, .btn-sm {height: 50px;font-size: 15px;}
