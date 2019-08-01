@@ -58,12 +58,11 @@ label span {font-weight: normal}
 select#month {text-transform: capitalize}
 #terms-warning {font-size: 11px}
 
-@media (min-width: 480px) {
-    #content.form.register #submit {float: right; width: 180px}
-}
 @media (max-width: 767px) {
     #stage {width: 90%}
     #content.form form {padding-left: 15px; padding-right: 15px}
+    #content.form.register #submit {float: right; width: 180px}
+    .login-with-ikwen {height: 50px}
 }
 @media (min-width: 992px) {
     #content.form.register {padding-top: 7%;}
