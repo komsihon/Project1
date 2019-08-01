@@ -25,14 +25,14 @@
                 <div class="form-group row username">
                     <label for="username" class="col-sm-5 col-md-4">{% trans "Username or email" %}</label>
                     <div class="col-sm-7 col-md-8">
-                        <input id="username" class="form-control input-sm" type="text" name="username" value="{{ username }}" autofocus />
+                        <input id="username" class="form-control input-md" type="text" name="username" value="{{ username }}" autofocus />
                     </div>
                 </div>
                 <div class="form-group submit-username">
                     {% if settings.IS_UMBRELLA %}
-                        <button class="btn btn-primary btn-block btn-sm" type="button"> {% trans "Submit" %} </button>
+                        <button class="btn btn-primary btn-block btn-md" type="button"> {% trans "Submit" %} </button>
                     {% else %}
-                        <button class="btn btn-primary btn-block btn-sm login-with-ikwen" type="button">
+                        <button class="btn btn-primary btn-block btn-md login-with-ikwen" type="button">
                             <img height="26" src="{% static 'ikwen/img/logo_ikwen_symbol_30x30.png' %}" />
                             {% blocktrans %}Login with <strong>ikwen</strong>{% endblocktrans %}
                         </button>
@@ -45,31 +45,31 @@
                     <div class="form-group row password2">
                         <label for="password2" class="col-sm-5 col-md-4">{% trans "Confirm password" %}</label>
                         <div class="col-sm-7 col-md-8">
-                            <input id="password2" class="form-control input-sm confirm-password" type="password" name="password2" />
+                            <input id="password2" class="form-control input-md confirm-password" type="password" name="password2" />
                         </div>
                     </div>
                     <div class="form-group row email">
                         <label for="email" class="col-sm-5 col-md-4">{% trans "E-mail" %}</label>
                         <div class="col-sm-7 col-md-8">
-                            <input id="email" class="form-control input-sm required" type="email" name="email"/>
+                            <input id="email" class="form-control input-md required" type="email" name="email"/>
                         </div>
                     </div>
                     <div class="form-group row phone">
                         <label for="phone" class="col-sm-5 col-md-4">{% trans "Phone number" %}</label>
                         <div class="col-sm-7 col-md-8">
-                            <input id="phone" class="form-control input-sm required" type="text" name="phone"/>
+                            <input id="phone" class="form-control input-md required" type="text" name="phone"/>
                         </div>
                     </div>
                     <div class="form-group row first-name">
                         <label for="first-name" class="col-sm-5 col-md-4">{% trans "First name" %}</label>
                         <div class="col-sm-7 col-md-8">
-                            <input id="first-name" class="form-control input-sm" type="text" name="first_name"/>
+                            <input id="first-name" class="form-control input-md" type="text" name="first_name"/>
                         </div>
                     </div>
                     <div class="form-group row last-name">
                         <label for="last-name" class="col-sm-5 col-md-4">{% trans "Last name" %}</label>
                         <div class="col-sm-7 col-md-8">
-                            <input id="last-name" class="form-control input-sm" type="text" name="last_name"/>
+                            <input id="last-name" class="form-control input-md" type="text" name="last_name"/>
                         </div>
                     </div>
                     <div class="form-group row gender">
@@ -92,7 +92,7 @@
                 <div class="form-group row password">
                     <label for="password" class="col-sm-5 col-md-4">{% trans "Password" %}</label>
                     <div class="col-sm-7 col-md-8">
-                        <input id="password" class="form-control input-sm" type="password" name="password" />
+                        <input id="password" class="form-control input-md" type="password" name="password" />
                     </div>
                 </div>
                 <div class="terms">
@@ -123,9 +123,9 @@
                     </div>
                 </div>
                 <div class="form-group submit">
-                    <button id="cancel" class="btn btn-default btn-sm hidden-xs" type="button"> {% trans "Back" %} </button>
-                    <button id="continue" class="btn btn-primary btn-block btn-sm continue" type="button"> {% trans "Continue" %} </button>
-                    <button id="submit" class="btn btn-success btn-block btn-sm cta" type="submit"> {% trans "Submit" %} </button>
+                    <button id="cancel" class="btn btn-default btn-md hidden-xs" type="button"> {% trans "Back" %} </button>
+                    <button id="continue" class="btn btn-primary btn-block btn-md continue" type="button"> {% trans "Continue" %} </button>
+                    <button id="submit" class="btn btn-success btn-block btn-md cta" type="submit"> {% trans "Submit" %} </button>
                     {% url 'ikwen:forgotten_password' as forgotten_password_url %}
                     <a class="forgotten-pwd" href="{{ forgotten_password_url|ikwenize }}">{% trans "Forgotten password ?" %}</a>
                     <div class="clearfix"></div>

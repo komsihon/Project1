@@ -6,7 +6,7 @@
             <div class="row">
                 <div class="col-xs-4">
                     <label for="day" class="sr-only">{% trans "Day" %}</label>
-                    <select id="day" class="form-control input-sm" name="day">
+                    <select id="day" class="form-control input-md" name="day">
                         <option>{% trans "Day" %}</option>
                         {% for day in range_1_31 %}
                             <option{% if not dob_error and day == request.POST.day %} selected="selected"{% endif %}>
@@ -16,7 +16,7 @@
                 </div>
                 <div class="col-xs-4">
                     <label for="month" class="sr-only">{% trans "Month" %}</label>
-                    <select id="month" class="form-control input-sm" name="month">
+                    <select id="month" class="form-control input-md" name="month">
                         <option>{% trans "Month" %}</option>
                         {% for month in range_1_12 %}
                             <option{% if not dob_error and month == request.POST.month %} selected="selected"{% endif %}>
@@ -26,7 +26,7 @@
                 </div>
                 <div class="col-xs-4">
                     <label for="year" class="sr-only">{% trans "Year" %}</label>
-                    <select id="year" class="form-control input-sm" name="year">
+                    <select id="year" class="form-control input-md" name="year">
                         <option>{% trans "Year" %}</option>
                         {% for year in year_list %}
                             <option{% if not dob_error and year == request.POST.year %} selected="selected"{% endif %}>
