@@ -95,6 +95,20 @@ def get_subscription_model():
     return get_model(*model_name.split('.'))
 
 
+def get_invoice_model():
+    model_name = getattr(settings, 'BILLING_INVOICE_MODEL', 'billing.Invoice')
+    if not model_name:
+        return None
+    return get_model(*model_name.split('.'))
+
+
+def get_payment_model():
+    model_name = getattr(settings, 'BILLING_PAYMENT_MODEL', 'billing.Payment')
+    if not model_name:
+        return None
+    return get_model(*model_name.split('.'))
+
+
 def get_next_invoice_number(auto=True):
     """
     Generates the number to use for the next invoice. Auto-generated numbers

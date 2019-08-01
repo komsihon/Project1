@@ -33,13 +33,13 @@ from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.core.constants import PENDING_FOR_PAYMENT
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, DEFAULT_GHOST_PWD
-from ikwen.billing.models import Invoice, SendingReport, SERVICE_SUSPENDED_EVENT, PaymentMean, \
-    InvoiceEntry, InvoiceItem, Payment, InvoicingConfig
+from ikwen.billing.models import SendingReport, SERVICE_SUSPENDED_EVENT, PaymentMean, \
+    InvoiceEntry, InvoiceItem, InvoicingConfig
 from ikwen.billing.admin import ProductAdmin, SubscriptionAdmin, InvoicingConfigAdmin, PaymentResource, \
     SubscriptionResource
 from ikwen.billing.utils import get_invoicing_config_instance, get_subscription_model, get_product_model, \
     get_next_invoice_number, get_billing_cycle_months_count, get_payment_confirmation_message, get_days_count, \
-    get_months_count_billing_cycle, notify_event
+    get_months_count_billing_cycle, notify_event, get_payment_model, get_invoice_model
 from ikwen.core.utils import add_database_to_settings, get_service_instance, get_mail_content, XEmailMessage, \
     DefaultUploadBackend, set_counters, increment_history_field, get_model_admin_instance
 from ikwen.core.views import HybridListView, ChangeObjectBase
@@ -48,6 +48,8 @@ logger = logging.getLogger('ikwen')
 
 Product = get_product_model()
 Subscription = get_subscription_model()
+Invoice = get_invoice_model()
+Payment = get_payment_model()
 
 
 class ProductList(HybridListView):
