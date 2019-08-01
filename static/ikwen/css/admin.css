@@ -95,7 +95,7 @@ div#container.admin {padding-top: 110px;transition: all .2s;}
 #admin-tools select {padding-left: 25px;}
 #admin-tools select:not(:first-of-type) {padding-left: 0}
 #admin-tools .btn.action .glyphicon, #admin-tools .btn.action .fa {float: left;margin: 1px 10px 0 0;}
-#admin-tools .btn.action .fa {font-size: 17px}
+#admin-tools .btn.action .fa {font-size: 17px;}
 #admin-tools .btn.filter {padding-left: 30px;}
 #admin-tools-form {float: left}
 #admin-tools-form .glyphicon-search {margin-right: -26px;margin-left: 9px;}
@@ -121,6 +121,7 @@ div#container.admin {padding-top: 110px;transition: all .2s;}
 .currency-list .checkbox:first-of-type {margin: -5px 0 10px 0}
 #stage section {background: #fff;float: left;margin-top: 25px;overflow: hidden;padding: 15px;width: 100%;}
 #stage section h3 {font-size: 21px; font-weight: 700; margin-top: 0}
+form section {margin: 15px 0 45px}
 footer {display:none}
 .edge-panel-left footer {background: #fff;bottom: 0;display:block;margin:0;padding: 10px;position: fixed;text-align: left;width: 239px;}
 footer a {color: #999}
@@ -196,12 +197,13 @@ footer a {color: #999}
     #app-nav {height: 55px;padding-top: 15px;margin-top: 55px;border-bottom: 1px solid #eee;}
     #app-nav .breadcrumb li:not(:last-of-type) {display: none}
     #admin-tools {border-bottom: 1px solid #eee;height: 55px;margin-top: -15px;overflow:auto;padding-top: 15px;}
-    #admin-tools .glyphicon {float: left;font-size: 20px;color: #888;}
-    #admin-tools .btn.action .glyphicon {margin-right: 0}
-    #admin-tools .glyphicon-menu-left {margin: 2px -24px 0 6px;}
+    #admin-tools .glyphicon {float: left;font-size: 24px;color: #888;}
+    #admin-tools .btn.action .glyphicon {margin-right: 0;margin-top: -1px;}
+    #admin-tools .glyphicon-menu-left {margin: 5px -24px 0 6px;}
     #admin-tools .tool {display: none}
     #admin-tools input, #admin-tools select, #admin-tools .btn {border: none;margin-top: -7px;background: none;padding-right: 0;padding-left: 15px;}
-    #admin-tools input, #admin-tools select {padding-left: 40px;}
+    #admin-tools button.btn {border: none;margin-top: -14px}
+    #admin-tools input, #admin-tools select {padding-left: 40px;font-size: 15px;}
     #admin-tools .btn.filter {padding: 9px 9px 6px 40px;}
     #admin-tools input:focus {outline: none;}
     #admin-tools .btn {color: #888}
@@ -209,7 +211,7 @@ footer a {color: #999}
     #admin-tools-form {width: auto;}
     #admin-tools-form > div {width: 200%;}
     #admin-tools-form .glyphicon-search {margin: 2px 0 0}
-    #admin-tools .btn.action .fa {margin-top: 3px}
+    #admin-tools .btn.action .fa {margin-top: 3px;font-size: 21px;}
     #results {padding-top: 20px}
     .filter-trigger > .glyphicon-filter {float: left;margin: 2px 0 0 10px;}
     .content-tab-list {background: #f8f6f6}
