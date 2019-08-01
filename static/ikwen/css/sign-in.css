@@ -27,7 +27,7 @@ label span {font-weight: normal}
 #username, #email {text-transform: lowercase}
 #cancel.btn {float: left; width: 180px}
 #content.register #continue.btn, #content.register #submit.btn {float: right; width: 180px}
-.login-with-ikwen {font-size: 1em;height: 40px;letter-spacing: .5px;padding: 6px 9px 8px;}
+.login-with-ikwen {font-size: 1em;letter-spacing: .5px;}
 .login-with-ikwen img {margin: -4px 5px 0 0}
 .login-with-ikwen strong {font-weight: 700;}
 .forgotten-pwd {float: left; margin-top: 7px}
