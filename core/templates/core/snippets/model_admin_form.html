@@ -18,6 +18,10 @@
                         {% elif field.field.name in date_field_list %}
                             <input type="hidden" id="{{ field.field.name }}-alt" name="{{ field.field.name }}" value="{{ field.field.value|date:"Y-m-d" }}" />
                             <input type="text" id="id_{{ field.field.name }}" value="{{ field.field.value|date:"Y-m-d" }}" class="date-field" data-alt="#{{ field.field.name }}-alt" />
+                        {% elif field.field.name in datetime_field_list %}
+                            <input type="hidden" id="{{ field.field.name }}-alt" name="{{ field.field.name }}_0" value="{{ field.field.value|date:"Y-m-d" }}" />
+                            <input type="hidden" id="{{ field.field.name }}_1" name="{{ field.field.name }}_1" value="{{ field.field.value|date:"H:i:s" }}" />
+                            <input type="text" id="id_{{ field.field.name }}" value="{{ field.field.value|date:"Y-m-d H:i:s" }}" class="datetime-field" data-alt="#{{ field.field.name }}-alt" data-time="#{{ field.field.name }}_1" />
                         {% else %}
                             {{ field.field }}
                         {% endif %}
