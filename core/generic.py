@@ -18,9 +18,11 @@ from django.forms.models import modelform_factory
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.template.defaultfilters import slugify
+from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
+from django.forms.fields import DateField, DateTimeField
 from import_export.formats.base_formats import XLS
 
 from ikwen.accesscontrol.backends import UMBRELLA
@@ -354,30 +356,48 @@ class ChangeObjectBase(TemplateView):
     revival_mail_renderer = None
     label_field = None
 
+    def get_model(self):
+        if isinstance(self.model, basestring):
+            return get_model(*self.model.split('.'))
+        else:
+            return self.model
+
+    def get_model_admin(self):
+        if isinstance(self.model_admin, basestring):
+            return import_by_path(self.model_admin)
+        else:
+            return self.model_admin
+
     def get_object(self, **kwargs):
         object_id = kwargs.get('object_id')  # May be overridden with the one from GET data
         object_id = self.request.GET.get('object_id', object_id)
         if object_id:
-            return get_object_or_404(self.model, pk=object_id)
+            model = self.get_model()
+            return get_object_or_404(model, pk=object_id)
 
     def get_model_form(self, obj):
-        ModelForm = modelform_factory(self.model, fields=self.model_admin.fields)
+        model = self.get_model()
+        model_admin = self.get_model_admin()
+        ModelForm = modelform_factory(model, fields=model_admin.fields)
         if obj:
             form = ModelForm(instance=obj)
         else:
-            form = ModelForm(instance=self.model())
+            form = ModelForm(instance=model())
         return form
 
     def get_context_data(self, **kwargs):
         context = super(ChangeObjectBase, self).get_context_data(**kwargs)
-        model_admin = get_model_admin_instance(self.model, self.model_admin)
+        model = self.get_model()
+        model_admin = self.get_model_admin()
+        model_admin = get_model_admin_instance(model, model_admin)
         obj = self.get_object(**kwargs)
         form = self.get_model_form(obj)
         obj_form = helpers.AdminForm(form, list(model_admin.get_fieldsets(self.request, obj)),
                                      model_admin.get_prepopulated_fields(self.request, obj),
                                      model_admin.get_readonly_fields(self.request, obj))
-        model_obj = self.model()
+        model_obj = model()
         date_field_list = []
+        datetime_field_list = []
         img_field_list = []
         i = 0
         for key in model_obj.__dict__.keys():
@@ -393,8 +413,11 @@ class ChangeObjectBase(TemplateView):
                 }
                 img_field_list.append(img_obj)
                 i += 1
-            if isinstance(field, datetime) or isinstance(field, date):
+            field = form.base_fields.get(key)
+            if isinstance(field, DateField):
                 date_field_list.append(key)
+            if isinstance(field, DateTimeField):
+                datetime_field_list.append(key)
 
         context[self.context_object_name] = obj
         context['obj'] = obj  # Base template recognize the context object only with the name 'obj'
@@ -405,14 +428,16 @@ class ChangeObjectBase(TemplateView):
         context['model_admin_form'] = obj_form
         context['label_field'] = self.label_field if self.label_field else 'name'
         context['date_field_list'] = date_field_list
+        context['datetime_field_list'] = datetime_field_list
         context['img_field_list'] = img_field_list
         return context
 
     def get(self, request, *args, **kwargs):
         action = request.GET.get('action')
         if action == 'delete_image':
+            model = self.get_model()
             object_id = kwargs.get('object_id')
-            obj = get_object_or_404(self.model, pk=object_id)
+            obj = get_object_or_404(model, pk=object_id)
             image_field_name = request.POST.get('image_field_name', 'image')
             image_field = obj.__getattribute__(image_field_name)
             if image_field.name:
@@ -431,14 +456,17 @@ class ChangeObjectBase(TemplateView):
         return super(ChangeObjectBase, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        object_admin = get_model_admin_instance(self.model, self.model_admin)
+        model = self.get_model()
+        model_admin = self.get_model_admin()
+        object_admin = get_model_admin_instance(model, model_admin)
         object_id = kwargs.get('object_id')
+        object_id = request.POST.get('object_id', object_id)
         before = None
         if object_id:
             obj = self.get_object(**kwargs)
             before = deepcopy(obj)
         else:
-            obj = self.model()
+            obj = model()
         model_form = object_admin.get_form(request)
         form = model_form(request.POST, instance=obj)
         if form.is_valid():
@@ -508,24 +536,26 @@ class ChangeObjectBase(TemplateView):
             return render(request, self.template_name, context)
 
     def get_object_list_url(self, request, obj, *args, **kwargs):
+        model = self.get_model()
         if self.object_list_url:
             url = reverse(self.object_list_url)
         else:
             try:
                 if obj is None:
-                    obj = self.model()
+                    obj = model()
                 url = reverse('%s:%s_list' % (obj._meta.app_label, obj._meta.model_name))
             except:
                 url = request.META['HTTP_REFERER']
         return url
 
     def get_change_object_url(self, request, obj, *args, **kwargs):
+        model = self.get_model()
         if self.change_object_url:
             url = reverse(self.change_object_url, args=(obj.id, ))
         else:
             try:
                 if obj is None:
-                    obj = self.model()
+                    obj = model()
                 url = reverse('%s:change_%s' % (obj._meta.app_label, obj._meta.model_name))
             except:
                 url = request.META['HTTP_REFERER']
