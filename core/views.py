@@ -30,7 +30,7 @@ from django.views.generic.base import TemplateView
 import ikwen.conf.settings
 from echo.models import Balance
 from ikwen.accesscontrol.backends import UMBRELLA
-from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT
+from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT, OwnershipTransfer
 from ikwen.billing.models import Invoice, SupportCode
 from ikwen.billing.utils import get_invoicing_config_instance, get_billing_cycle_days_count, \
     get_billing_cycle_months_count, refresh_currencies_exchange_rates
@@ -104,95 +104,66 @@ class ServiceDetail(TemplateView):
         context['billing_cycles'] = Service.BILLING_CYCLES_CHOICES
         return context
 
+    def get(self, request, *args, **kwargs):
+        action = request.GET.get('action')
+        if action == 'transfer_ownership':
+            email = request.GET['email']
+            try:
+                member = Member.objects.using(UMBRELLA).filter(email=email)[0]
+                service = get_service_instance(using=UMBRELLA)
+                transfer = OwnershipTransfer.objects.create(sender=request.user, target=member, service=service)
+                # Send email here
+            except IndexError:
+                response = {'error': _("%s does not have an account on ikwen." % email)}
+        return super(ServiceDetail, self).get(request, *args, **kwargs)
 
-class Configuration(TemplateView):
+
+class Configuration(ChangeObjectBase):
     template_name = 'core/configuration.html'
+    model = getattr(settings, 'IKWEN_CONFIG_MODEL', 'core.Config')
+    model_admin = getattr(settings, 'IKWEN_CONFIG_MODEL_ADMIN', 'ikwen.core.admin.ConfigAdmin')
+    context_object_name = 'config'
+    object_list_url = 'ikwen:configuration'
 
     UPLOAD_CONTEXT = 'config'
 
-    def get_config_admin(self):
-        from django.contrib.admin import AdminSite
-        config_model_name = getattr(settings, 'IKWEN_CONFIG_MODEL', 'core.Config')
-        app_label = config_model_name.split('.')[0]
-        model = config_model_name.split('.')[1]
-        config_model = get_model(app_label, model)
-        default_site = AdminSite()
-        model_admin_name = getattr(settings, 'IKWEN_CONFIG_MODEL_ADMIN', 'ikwen.core.admin.ConfigAdmin')
-        config_model_admin = import_by_path(model_admin_name)
-        config_admin = config_model_admin(config_model, default_site)
-        return config_admin
+    def get_object(self, **kwargs):
+        if getattr(settings, 'IS_IKWEN', False):
+            service_id = kwargs.get('service_id')
+        else:
+            service_id = getattr(settings, 'IKWEN_SERVICE_ID')
+        return get_object_or_404(Service, pk=service_id).config
 
     def get_context_data(self, **kwargs):
         context = super(Configuration, self).get_context_data(**kwargs)
-        config_admin = self.get_config_admin()
-        ModelForm = config_admin.get_form(self.request)
-        service = get_service_instance()
-        if getattr(settings, 'IS_IKWEN', False):
-            service_id = kwargs.get('service_id')
-            if service_id:
-                service = get_object_or_404(Service, pk=service_id)
-                context['service'] = service
-                context['config'] = service.config
-
-        form = ModelForm(instance=service.config)
-        admin_form = helpers.AdminForm(form, list(config_admin.get_fieldsets(self.request)),
-                                       config_admin.get_prepopulated_fields(self.request),
-                                       config_admin.get_readonly_fields(self.request))
-        context['model_admin_form'] = admin_form
+        context['service'] = context['config'].service
         context['is_company'] = True
         context['img_upload_context'] = self.UPLOAD_CONTEXT
         context['billing_cycles'] = Service.BILLING_CYCLES_CHOICES
         context['currency_list'] = Currency.objects.all().order_by('code')
         return context
 
-    @method_decorator(sensitive_post_parameters())
-    @method_decorator(csrf_protect)
-    def post(self, request, *args, **kwargs):
-        if getattr(settings, 'IS_IKWEN', False):
-            service_id = kwargs.get('service_id')
-            if service_id:
-                service = get_object_or_404(Service, pk=service_id)
-                next_url = reverse('ikwen:configuration', args=(service_id,))
-            else:
-                service = get_service_instance()
-                next_url = reverse('ikwen:configuration')
-        else:
-            service = get_service_instance()
-            next_url = reverse('ikwen:configuration')
-        config_admin = self.get_config_admin()
-        ModelForm = config_admin.get_form(request)
-        form = ModelForm(request.POST, request.FILES, instance=service.config)
-        if form.is_valid():
-            try:
-                currency_code = request.POST['currency_code']
-                if currency_code != Currency.active.base().code:
-                    refresh_currencies_exchange_rates()
-                Currency.objects.all().update(is_base=False, is_default=False, is_active=False)
-                Currency.objects.filter(code=currency_code).update(is_base=True, is_default=True, is_active=True)
-                for crcy in Currency.objects.all():
-                    try:
-                        request.POST[crcy.code]  # Tests wheter this currency was activated
-                        crcy.is_active = True
-                        crcy.save()
-                    except KeyError:
-                        continue
-            except:
-                pass
-            form.cleaned_data['company_name_slug'] = slugify(form.cleaned_data['company_name'])
-            form.save()
-            cache.delete(service.id + ':config:')
-            cache.delete(service.id + ':config:default')
-            cache.delete(service.id + ':config:' + UMBRELLA)
-            service.config.save(using=UMBRELLA)
-            messages.success(request, _("Configuration successfully updated."))
-            return HttpResponseRedirect(next_url)
-        else:
-            context = self.get_context_data(**kwargs)
-            admin_form = helpers.AdminForm(form, list(config_admin.get_fieldsets(self.request)),
-                                           config_admin.get_prepopulated_fields(self.request),
-                                           config_admin.get_readonly_fields(self.request))
-            context['model_admin_form'] = admin_form
-            return render(request, self.template_name, context)
+    def after_save(self, request, obj, *args, **kwargs):
+        service = obj.service
+        try:
+            currency_code = request.POST['currency_code']
+            if currency_code != Currency.active.base().code:
+                refresh_currencies_exchange_rates()
+            Currency.objects.all().update(is_base=False, is_default=False, is_active=False)
+            Currency.objects.filter(code=currency_code).update(is_base=True, is_default=True, is_active=True)
+            for crcy in Currency.objects.all():
+                try:
+                    request.POST[crcy.code]  # Tests wheter this currency was activated
+                    crcy.is_active = True
+                    crcy.save()
+                except KeyError:
+                    continue
+        except:
+            pass
+        cache.delete(service.id + ':config:')
+        cache.delete(service.id + ':config:default')
+        cache.delete(service.id + ':config:' + UMBRELLA)
+        obj.save(using=UMBRELLA)
 
 
 def get_queued_sms(request, *args, **kwargs):
