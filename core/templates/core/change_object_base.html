@@ -1,5 +1,5 @@
 {% extends 'core/app_base_admin.html' %}
-{% load i18n humanize staticfiles auth_tokens %}
+{% load i18n humanize static auth_tokens %}
 
 {% block page_title %}
 <title> {% if obj %}{{ obj }}{% else %}{% trans "New" %}{% endif %} - {{ service.project_name }} </title>
@@ -60,6 +60,16 @@
                 $(this).datepicker({
                     altField: alt,
                     altFormat: "yy-mm-dd"
+                });
+            });
+            $('.datetime-field').each(function() {
+                var alt = $(this).data('alt'),
+                    time = $(this).data('time');
+                $(this).datepicker({
+                    altField: alt,
+                    altFormat: "yy-mm-dd"
+                }).change(function() {
+                    if (!$(time).val()) $(time).val('00:00:00')
                 });
             });
         })()
