@@ -133,6 +133,9 @@
     <script src="{% static 'ikwen/js/jquery-ui.js' %}"></script>
     <script>
         (function() {
+            {% if messages %}
+                {% for msg in messages %}ikwen.showFloatingNotice('{{ msg|safe }}', '{{ msg.tags }}', 6);{% endfor %}
+            {% endif %}
             $('#admin-nav, #admin-content, #object-detail').scroll(function() {
                 if ($(this).scrollTop() > 0) {
                     if ($(this).find('.ceil').length > 0) return;
@@ -290,9 +293,6 @@
             ikwen.resetAdminTools();
 
             $('footer').appendTo('#admin-nav .wrapper').show();
-            {% if messages %}
-                {% for msg in messages %}ikwen.showFloatingNotice('{{ msg|safe }}', '{{ msg.tags }}', 6);{% endfor %}
-            {% endif %}
         })()
     </script>
 {% endblock %}
