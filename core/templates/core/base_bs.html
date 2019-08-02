@@ -58,14 +58,6 @@
                                                 </a>
                                             </li>
                                             {% if user.is_authenticated %}
-                                                <li class="home">
-                                                    <a href="{{ settings.IKWEN_CONSOLE_URL }}">
-                                                        <i class="glyphicon glyphicon-bell" aria-hidden="true"></i>
-                                                        {% if user.personal_notices > 0 %}
-                                                            <span class="label label-danger">{{ user.personal_notices }}</span>
-                                                        {% endif %}
-                                                    </a>
-                                                </li>
                                                 {% if collaborates_on|length >= 1 %}
                                                     <li class="dropdown">
                                                         <a id="apps-xs" class="dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -78,6 +70,18 @@
                                                         </ul>
                                                     </li>
                                                 {% endif %}
+                                                <li class="home">
+                                                    <a href="{{ settings.IKWEN_CONSOLE_URL }}">
+                                                        <i class="glyphicon glyphicon-bell" aria-hidden="true"></i>
+                                                        {% if user.get_notice_count > 0 %}
+                                                            {% if user.get_notice_count >= 100 %}
+                                                                <span class="label label-danger">{{ user.get_notice_count }}</span>
+                                                            {% else %}
+                                                                <span class="label label-danger">99+</span>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    </a>
+                                                </li>
                                                 <li class="dropdown">
                                                     <a id="user-menu-xs" class="dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                         <i class="glyphicon glyphicon-user"></i>
@@ -105,7 +109,7 @@
                             <form id="search" autocomplete="off" onsubmit="return false">
                                 <i class="glyphicon glyphicon-menu-left hide-search visible-xs"></i>
                                 <i class="glyphicon glyphicon-search hidden-xs"></i>
-                                <input type="text" name="radix" class="form-control input-sm" placeholder="{% trans "Search" %}">
+                                <input type="text" name="radix" class="form-control input-md" placeholder="{% trans "Search ikwen" %}">
                                 <input type="hidden" name="q">
                                 <span class="spinner" style="display: none"></span>
                             </form>
@@ -134,21 +138,16 @@
                                 <div class="container-fluid">
                                     <ul class="nav navbar-nav navbar-right" style="margin: 0 -15px 0 0">
                                         {% if user.is_authenticated %}
-                                            <li id="user-home">
-                                                <a href="{{ settings.IKWEN_CONSOLE_URL }}">
-                                                    {% trans "Home" %}
-                                                    {% if user.get_notice_count > 0 %}
-                                                        <span class="label label-danger" style="margin-top: -18px">{{ user.get_notice_count }}</span>
-                                                    {% endif %}
-                                                </a>
-                                            </li>
                                             {% if collaborates_on|length == 1 %}
-                                                <li id="user-apps">
+                                                <li id="user-apps" class="visible-lg">
                                                     <a href="{{ collaborates_on.0.admin_url }}">{{ collaborates_on.0.project_name }}</a>
                                                 </li>
-                                            {% elif collaborates_on|length > 1 %}
-                                                <li id="user-apps" class="dropdown">
-                                                    <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Apps</a>
+                                            {% endif %}
+                                            {% if collaborates_on|length >= 1 %}
+                                                <li id="user-apps" class="dropdown{% if collaborates_on|length == 1 %} hidden-lg{% endif %}">
+                                                    <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                        <i class="glyphicon glyphicon-th-large"></i>
+                                                    </a>
                                                     <ul class="dropdown-menu" aria-labelledby="apps">
                                                         {% for app in collaborates_on %}
                                                             <li><a href="{{ app.admin_url }}">{{ app.project_name }}</a></li>
@@ -156,6 +155,18 @@
                                                     </ul>
                                                 </li>
                                             {% endif %}
+                                            <li id="user-home">
+                                                <a href="{{ settings.IKWEN_CONSOLE_URL }}">
+                                                    <i class="glyphicon glyphicon-bell"></i>
+                                                    {% if user.get_notice_count > 0 %}
+                                                        {% if user.get_notice_count >= 100 %}
+                                                            <span class="label label-danger" style="margin-top: -18px">{{ user.get_notice_count }}</span>
+                                                        {% else %}
+                                                            <span class="label label-danger" style="margin-top: -18px">99+</span>
+                                                        {% endif %}
+                                                    {% endif %}
+                                                </a>
+                                            </li>
                                             <li id="user-menu" class="dropdown">
                                                 <a class="icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     <i class="glyphicon glyphicon-user"></i>
