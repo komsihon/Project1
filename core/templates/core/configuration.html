@@ -1,5 +1,5 @@
-{% extends "core/app_base_admin.html" %}
-{% load i18n humanize staticfiles auth_tokens admin_list %}
+{% extends "core/change_object_base.html" %}
+{% load i18n humanize static auth_tokens admin_list %}
 
 {% block page_title %}
 <title> {% trans "Configurations" %} - ikwen </title>
@@ -8,12 +8,11 @@
 {% block head_style %}
     {{ block.super }}
     <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
-    <link href="{% static 'ikwen/ajaxuploader/css/fileuploader.css' %}" media="screen" rel="stylesheet" type="text/css" />
     <style>
         #context-search {clear: both; margin: 10px 0 6px 0;}
         #context-search input {width: 270px}
         #stage section {box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .15)}
-
+        .qq-uploader {background: none; height: 30px; padding-top: 0;}
         #banner h2 {
             margin-top: 210px
         }
@@ -61,9 +60,8 @@
                         <h2 class="text-has-shade">{{ config.full_name }}</h2>
                     </div>
                 </header>
-                <form id="configuration" class="admin-form pull-left" style="width: auto" method="post"
-                      enctype="multipart/form-data" action="{{ request.META.path }}">{% csrf_token %}
-                    <input type="hidden" name="id" value="{{ config.id }}" />
+                <form id="configuration" class="admin-form pull-left" style="width: auto" method="post">{% csrf_token %}
+                    <input type="hidden" name="object_id" value="{{ config.id }}" />
                     <input type="hidden" name="company_name_slug" value="{{ config.company_name_slug }}" />
                     {% if config.can_manage_currencies %}
                         {% include 'core/snippets/currencies_config.html' %}
@@ -80,7 +78,6 @@
 
 {% block js %}
     {{ block.super }}
-    <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
     {% include 'core/snippets/banner_and_pp_uploader.html' %}
     <script type="text/javascript">
         (function() {
