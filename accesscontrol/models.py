@@ -4,7 +4,7 @@ from threading import Thread
 from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractUser, Group
 from django.core.urlresolvers import reverse
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.template.defaultfilters import slugify
 from django.utils.datetime_safe import strftime
@@ -17,7 +17,7 @@ from permission_backend_nonrel.models import UserPermissionList
 
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.fields import MultiImageField
-from ikwen.core.models import Service, Model
+from ikwen.core.models import Service, Model, OperatorWallet
 from ikwen.core.utils import add_event, to_dict, get_service_instance, add_database_to_settings
 
 
@@ -254,12 +254,6 @@ class Member(AbstractUser):
         m.group_fk_list.append(group_id)
         m.save(using=UMBRELLA)
 
-    def save(self, **kwargs):
-        super(Member, self).save(**kwargs)
-        if self.gender:
-            from ikwen.revival.models import MemberProfile
-            member_profile = MemberProfile
-
     def to_dict(self):
         self.collaborate_on_fk_list = []  # Empty this as it is useless and may cause error
         self.customer_on_fk_list = []  # Empty this as it is useless and may cause error
@@ -303,7 +297,7 @@ class Passport(OfficialIdentityDocument):
     scan = models.ImageField(upload_to='passports')
 
     class Meta:
-        db_table = 'ikwen_passports'
+        db_table = 'ikwen_passport'
 
 
 class AccessRequest(Model):
@@ -323,3 +317,14 @@ class AccessRequest(Model):
         if self.type == self.COLLABORATION_REQUEST:
             return _('This person would like to have access and collaborate with you')
         return _('This person would like to have access to your services')
+
+
+class OwnershipTransfer(Model):
+    MAX_DELAY = 48
+
+    sender = models.ForeignKey(Member)
+    target = models.ForeignKey(Member, related_name='+')
+    service = models.ForeignKey(Service, related_name='+')
+
+    class Meta:
+        db_table = 'ikwen_ownership_transfer'
