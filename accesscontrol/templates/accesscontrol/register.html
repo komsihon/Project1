@@ -29,28 +29,28 @@
                     <div class="form-group row username">
                         <label for="rg-username" class="col-sm-5 col-md-4">{% trans "Username or email" %}</label>
                         <div class="col-sm-6 col-md-6">
-                            <input id="rg-username" class="form-control input-sm username" type="text" name="username" autofocus />
+                            <input id="rg-username" class="form-control input-md username" type="text" name="username" autofocus />
                             {{ register_form.username.errors }}
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="rg-password" class="col-sm-5 col-md-4">{% trans "Choose a password" %}</label>
                         <div class="col-sm-6 col-md-6">
-                            <input id="rg-password" class="form-control input-sm password" type="password"
+                            <input id="rg-password" class="form-control input-md password" type="password"
                                    name="password"/>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="rg-password2" class="col-sm-5 col-md-4">{% trans "Confirm password" %}</label>
                         <div class="col-sm-6 col-md-6">
-                            <input id="rg-password2" class="form-control input-sm confirm-password" type="password"
+                            <input id="rg-password2" class="form-control input-md confirm-password" type="password"
                                    name="password2"/>
                         </div>
                     </div>
                     <div class="form-group row email" style="height: 0; margin-bottom: 0; overflow: hidden">
                         <label for="rg-email" class="col-sm-5 col-md-4">{% trans "E-mail" %}</label>
                         <div class="col-sm-6 col-md-6">
-                            <input id="rg-email" class="form-control input-sm email" type="text" name="email"/>
+                            <input id="rg-email" class="form-control input-md email" type="text" name="email"/>
                             {{ register_form.email.errors }}
                         </div>
                     </div>
@@ -60,32 +60,32 @@
 {#                            <span style="font-weight: normal">({% trans "Optional" %})</span>#}
                         </label>
                         <div class="col-sm-6 col-md-6">
-                            <input id="rg-phone" class="form-control input-sm phone" type="text" name="phone" value=""/>
+                            <input id="rg-phone" class="form-control input-md phone" type="text" name="phone" value=""/>
                             {{ register_form.phone.errors }}
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="rg-first-name" class="col-sm-5 col-md-4">{% trans "First name" %} </label>
                         <div class="col-sm-6 col-md-6">
-                            <input id="rg-first-name" class="form-control input-sm name" type="text" name="first_name"/>
+                            <input id="rg-first-name" class="form-control input-md name" type="text" name="first_name"/>
                             {{ register_form.name.errors }}
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="rg-last-name" class="col-sm-5 col-md-4">{% trans "Last name" %} </label>
                         <div class="col-sm-6 col-md-6">
-                            <input id="rg-last-name" class="form-control input-sm name" type="text" name="last_name"/>
+                            <input id="rg-last-name" class="form-control input-md name" type="text" name="last_name"/>
                             {{ register_form.name.errors }}
                         </div>
                     </div>
                     <div class="form-group row gender">
-                        <label for="last-name" class="col-sm-5 col-md-4">{% trans "Your are ..." %}</label>
+                        <label class="col-sm-5 col-md-4">{% trans "Your are ..." %}</label>
                         <div class="checkbox col-sm-3">
                             <label>
                                 <input type="radio" name="gender" value="Female" /> {% trans "A woman" %}
                             </label>
                         </div>
-                        <div class="checkbox col-sm-3" style="margin-top: 10px">
+                        <div class="checkbox col-sm-3">
                             <label>
                                 <input type="radio" name="gender" value="Male" /> {% trans "A man" %}
                             </label>
@@ -123,7 +123,7 @@
                     </div>
                     <div class="form-group submit row">
                         <div class="col-sm-4 col-md-3 col-sm-offset-7 col-md-offset-7">
-                            <button class="btn btn-primary btn-block btn-sm"> {% trans "Submit" %} </button>
+                            <button class="btn btn-primary btn-block btn-md"> {% trans "Submit" %} </button>
                         </div>
                     </div>
                 </form>

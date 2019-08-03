@@ -16,6 +16,7 @@
 .dob .col-xs-4:last-of-type {padding-right: 15px}
 .dob .errorlist {margin: -13px 0 0;text-align: right;}
 .why-dob {display: block; font-size: 11px; margin: -12px 0 10px 0; text-align: right}
+label {margin-top: 13px;}
 
 #terms-warning {
     color: #999;
@@ -44,7 +45,13 @@
     }
 }
 
+@media (max-width: 767px) {
+    .form-group.gender label {margin-top: 25px;}
+}
+
 @media (min-width: 768px) {
+    label {margin-top: 13px;}
+    .form-horizontal .form-group.gender .checkbox {padding-top: 0}
     #register .brand img {
         height: auto
     }
