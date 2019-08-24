@@ -137,6 +137,9 @@
                 (e || window.event).returnValue = confirmation; //Gecko + IE
                 return confirmation; //Gecko + Webkit, Safari, Chrome etc.
             });
+            window.addEventListener("unload", function (e) {
+                if (ikwen.CookieUtil.get('txId')) ikwen.CookieUtil.unset('txId')
+            });
         })()
     </script>
     {{ config.scripts|safe }}
