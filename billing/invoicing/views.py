@@ -250,7 +250,7 @@ class ChangeSubscription(ChangeObjectBase):
 class AdminInvoiceList(HybridListView):
     template_name = 'billing/invoice_list.html'
     html_results_template_name = 'billing/snippets/admin_invoice_list_results.html'
-    list_filter = ('status', 'due_date', )
+    list_filter = ('status', ('due_date', _('Due date')), )
 
     def get_queryset(self):
         queryset = Invoice.objects.select_related('member').exclude(status=PENDING_FOR_PAYMENT)
@@ -723,7 +723,7 @@ def import_subscriptions(filename, dry_run=True):
                 continue
             if len(row) < row_length:
                 error = _("Missing information on line %(line)d. %(found)d tokens found, "
-                          "but %(expected) expected." % {'line': i + 1, 'found': len(row), 'expected': row_length})
+                          "but %(expected)d expected." % {'line': i + 1, 'found': len(row), 'expected': row_length})
                 break
             email = row[0].strip()
             try:

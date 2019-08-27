@@ -12,7 +12,9 @@
         .due-date.pending .event-title {color: #888}
         .due-date.overdue .event-title, .due-date.exceeded .event-title {color: #d31b00}
         .fa.fa-circle.color-paid {display: none}
+        {% if is_customer %}
         #admin-tools {display: none}
+        {% endif %}
         @media (min-width: 768px) {
             #pending-invoices {margin-top: 60px;}
             .ik-li .actions {right: 38px; top: -3px}
