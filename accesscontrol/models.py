@@ -38,20 +38,29 @@ class MemberManager(BaseUserManager, RawQueryMixin):
 
     def create_user(self, username, password=None, **extra_fields):
         from ikwen.accesscontrol.backends import UMBRELLA
-        from ikwen.accesscontrol.utils import shift_ghost_member, import_ghost_profile_to_member
         from ikwen.conf.settings import IKWEN_SERVICE_ID
         if not username:
             raise ValueError('Username must be set')
-        member = self.model(username=username, **extra_fields)
-        if not member.is_ghost:
-            shift_ghost_member(member)
+        try:
+            phone = str(extra_fields.get('phone', ''))
+            if phone and phone.startswith('237') and len(phone) == 12:  # When saving ghost contacts '237' is stripped
+                phone = phone[3:]
+            try:
+                member = Member.objects.get(phone=phone, is_ghost=True)
+                member.username = username
+                member.phone = extra_fields['phone']  # Copy phone exactly as it was
+            except:
+                member = Member.objects.get(username=username, is_ghost=True)
+            member.is_ghost = False
+        except Member.DoesNotExist:
+            member = self.model(username=username, **extra_fields)
 
         member.full_name = u'%s %s' % (member.first_name.split(' ')[0], member.last_name.split(' ')[0])
         member.tags = slugify(member.first_name + ' ' + member.last_name).replace('-', ' ')
         service_id = getattr(settings, 'IKWEN_SERVICE_ID')
         ikwen_community = Group.objects.using(UMBRELLA).get(name=COMMUNITY)
-        member.customer_on_fk_list.append(IKWEN_SERVICE_ID)
-        member.group_fk_list.append(ikwen_community.id)
+        member.customer_on_fk_list = [IKWEN_SERVICE_ID]
+        member.group_fk_list = [ikwen_community.id]
         service = get_service_instance()
         member.entry_service = service
         if service_id != IKWEN_SERVICE_ID:
@@ -75,9 +84,6 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         elif member.gender == FEMALE:
             member_profile.tag_fk_list.append(women_tag.id)
         member_profile.save()
-
-        if not member.is_ghost:
-            import_ghost_profile_to_member(member)
 
         if service_id != IKWEN_SERVICE_ID:
             # This block is not added above because member must have
