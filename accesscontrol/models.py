@@ -48,7 +48,8 @@ class MemberManager(BaseUserManager, RawQueryMixin):
             try:
                 member = Member.objects.get(phone=phone, is_ghost=True)
                 member.username = username
-                member.phone = extra_fields['phone']  # Copy phone exactly as it was
+                for key, value in extra_fields.items():
+                    member.__dict__[key] = value
             except:
                 member = Member.objects.get(username=username, is_ghost=True)
             member.is_ghost = False
