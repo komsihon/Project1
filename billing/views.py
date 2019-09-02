@@ -15,7 +15,6 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_by_path
-from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
@@ -27,6 +26,8 @@ from ikwen.billing.cloud_setup import DeploymentForm, deploy
 from ikwen.billing.models import PaymentMean, CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry, MoMoTransaction
 from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.orangemoney.views import init_web_payment, ORANGE_MONEY
+from ikwen.billing.yup.views import YUP, init_yup_web_payment
+from ikwen.billing.uba.views import UBA, init_uba_web_payment
 from ikwen.billing.utils import get_subscription_model, get_product_model
 from ikwen.core.models import Service, Application
 from ikwen.core.utils import get_service_instance
@@ -370,5 +371,9 @@ class MoMoSetCheckout(TemplateView):
             return http_resp
         if payment_mean.slug == ORANGE_MONEY:
             return init_web_payment(request, *args, **kwargs)
+        if payment_mean.slug == YUP:
+            return init_yup_web_payment(request, *args, **kwargs)
+        if payment_mean.slug == UBA:
+            return init_uba_web_payment(request, *args, **kwargs)
         context['amount'] = request.session['amount']
         return render(request, self.template_name, context)

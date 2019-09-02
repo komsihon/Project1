@@ -1,7 +1,7 @@
 {% extends "core/base_bs.html" %}
 {% load i18n static %}
 {% block meta %}
-    {% include 'core/snippets/favicon.html' %}
+    {% include 'core/snippets/color_and_icons.html' %}
     <meta property="description" content="{{ config.short_description }}" />
     <meta property="og:title" content="{{ service.project_name }}" />
     <meta property="og:image" content="{% get_media_prefix %}{{ config.logo.name }}" />

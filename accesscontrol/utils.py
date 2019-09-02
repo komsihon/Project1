@@ -26,6 +26,7 @@ from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.accesscontrol.models import Member
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.core.models import Service, XEmailObject
+from ikwen.core.constants import MALE, FEMALE
 from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, XEmailMessage
 from ikwen.revival.models import MemberProfile, ProfileTag
 from ikwen.rewarding.utils import get_join_reward_pack_list, JOIN, REFERRAL
@@ -197,7 +198,7 @@ class VerifiedEmailTemplateView(TemplateView):
                 member.email_verified = True
                 member.propagate_changes()
                 return super(VerifiedEmailTemplateView, self).get(request, *args, **kwargs)
-            referrer = request.META.get('HTTP_REFERER')
+            referrer = request.META.get('HTTP_REFERER', '/')
             next_url = reverse('ikwen:email_confirmation') + '?next=' + referrer
             return HttpResponseRedirect(next_url)
         return super(VerifiedEmailTemplateView, self).get(request, *args, **kwargs)
@@ -427,3 +428,33 @@ def import_ghost_profile_to_member(member, db='default'):
     member_profile.save()
     Member.objects.using(db).filter(phone=shifted_phone, is_ghost=True).delete()
     Member.objects.using(db).filter(email=shifted_email, is_ghost=True).delete()
+
+
+def set_member_basic_profile_tags(member, db='default'):
+    member_profile, update = MemberProfile.objects.using(db).get_or_create(member=member)
+    men_tag, update = ProfileTag.objects.using(db).get_or_create(name='Men', slug='men', is_reserved=True)
+    women_tag, update = ProfileTag.objects.using(db).get_or_create(name='Women', slug='women', is_reserved=True)
+    join_tag, update = ProfileTag.objects.using(db).get_or_create(name=JOIN, slug=JOIN, is_auto=True)
+    ref_tag, update = ProfileTag.objects.using(db).get_or_create(name=REFERRAL, slug=REFERRAL, is_auto=True)
+
+    try:
+        member_profile.tag_fk_list.remove(men_tag.id)
+    except:
+        pass
+    try:
+        member_profile.tag_fk_list.remove(women_tag.id)
+    except:
+        pass
+    try:
+        member_profile.tag_fk_list.remove(join_tag.id)
+    except:
+        pass
+
+    if member.gender == MALE:
+        member_profile.tag_fk_list.append(men_tag.id)
+    elif member.gender == FEMALE:
+        member_profile.tag_fk_list.append(women_tag.id)
+    if not member.is_ghost:
+        member_profile.tag_fk_list.append(ref_tag.id)
+
+    member_profile.save(using=db)

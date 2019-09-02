@@ -12,6 +12,8 @@ from ikwen.billing.invoicing.views import InvoiceList, InvoiceDetail, change_bil
     Configuration, upload_subscription_file, PaymentList
 from ikwen.billing.public.views import Pricing, Donate
 from ikwen.billing.mtnmomo.views import init_momo_transaction, check_momo_transaction_status, process_notification
+from ikwen.billing.yup.views import yup_process_notification
+from ikwen.billing.uba.views import uba_process_approved, uba_process_declined_or_cancelled
 
 urlpatterns = patterns(
     '',
@@ -46,6 +48,10 @@ urlpatterns = patterns(
     url(r'^MoMo/checkTransaction/$', check_momo_transaction_status, name='check_momo_transaction_status'),
 
     url(r'^mtnmomo/notify$', process_notification, name='process_notification'),
+    url(r'^yup/notify$', yup_process_notification, name='yup_notify'),
+    url(r'^uba/notify_success$', uba_process_approved, name='uba_process_approved'),
+    url(r'^uba/notify_declined$', uba_process_declined_or_cancelled, name='uba_process_declined'),
+    url(r'^uba/notify_cancelled$', uba_process_declined_or_cancelled, name='uba_process_cancelled'),
 
     url(r'^transactions/$', permission_required('billing.ik_view_transaction_log')(TransactionLog.as_view()), name='transaction_log'),
 

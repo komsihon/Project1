@@ -698,7 +698,7 @@ def as_matrix(object_list, col_length, strict=False):
     return matrix
 
 
-def generate_favicons(logo_path, output_folder=None):
+def generate_icons(logo_path, output_folder=None):
     """
     Generate favicon based on a logo image
     :param logo_path: Path to the logo image
@@ -706,36 +706,36 @@ def generate_favicons(logo_path, output_folder=None):
     """
     media_root = getattr(settings, 'MEDIA_ROOT')
     if not output_folder:
-        FAVICONS_FOLDER = 'favicons/'
+        ICONS_FOLDER = 'icons/'
     else:
-        FAVICONS_FOLDER = output_folder
+        ICONS_FOLDER = output_folder
 
     # WEB FAVICONS
     for d in (16, 32, 96):
         img = Image.open(logo_path)
         img.thumbnail((d, d), Image.ANTIALIAS)
-        output = media_root + FAVICONS_FOLDER + 'favicon-%dx%d.png' % (d, d)
+        output = media_root + ICONS_FOLDER + 'favicon-%dx%d.png' % (d, d)
         img.save(output, format="PNG", quality=100)
 
     # iOS FAVICONS
     for d in (57, 60, 72, 76, 114, 120, 144, 152, 180):
         img = Image.open(logo_path)
         img.thumbnail((d, d), Image.ANTIALIAS)
-        output = media_root + FAVICONS_FOLDER + 'apple-icon-%dx%d.png' % (d, d)
+        output = media_root + ICONS_FOLDER + 'apple-icon-%dx%d.png' % (d, d)
         img.save(output, format="PNG", quality=100)
 
     # Android FAVICONS
-    for d in (36, 48, 72, 96, 144, 192):
+    for d in (36, 48, 72, 96, 144, 192, 512):
         img = Image.open(logo_path)
         img.thumbnail((d, d), Image.ANTIALIAS)
-        output = media_root + FAVICONS_FOLDER + 'android-icon-%dx%d.png' % (d, d)
+        output = media_root + ICONS_FOLDER + 'android-icon-%dx%d.png' % (d, d)
         img.save(output, format="PNG", quality=100)
 
     # MS FAVICONS
     for d in (70, 144, 150, 310):
         img = Image.open(logo_path)
         img.thumbnail((d, d), Image.ANTIALIAS)
-        output = media_root + FAVICONS_FOLDER + 'ms-icon-%dx%d.png' % (d, d)
+        output = media_root + ICONS_FOLDER + 'ms-icon-%dx%d.png' % (d, d)
         img.save(output, format="PNG", quality=100)
 
 

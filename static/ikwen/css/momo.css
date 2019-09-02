@@ -24,6 +24,7 @@ label span {font-weight: normal}
 
 @media (max-width: 767px) {
     #navbar .navbar-header {float: none; text-align: center}
+    .navbar-default .navbar-brand {max-width: none}
 }
 
 @media (min-width: 768px) {

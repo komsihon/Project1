@@ -12,13 +12,19 @@
         <div class="visible-xs" style="float: left; width: 100%; padding: 15px 0"></div>
         <div id="checkout">
             <div style="margin-bottom: 45px">
-                <span class="pull-left" style="width: 50%">
+                <div class="pull-left" style="width: 50%">
                     <img src="{{ settings.IKWEN_MEDIA_URL }}{{ payment_mean.logo.name }}" alt="{{ payment_mean.name }}" class="img-responsive" style="height: 45px" />
-                </span>
-                <span class="pull-right" style="color: #03A9F4">
-                    <i class="glyphicon glyphicon-shopping-cart" style="color: #3F51B5; font-size: 21px; margin-right: 5px"></i>
-                    {{ config.currency_symbol }} <strong>{{ amount|floatformat:"0"|intcomma }}</strong>
-                </span>
+                </div>
+                <div class="pull-right">
+                    {% if request.session.merchant_name %}
+                        <h4 class="text-right visible-xs" style="margin-top: 0">{{ request.session.merchant_name|truncatechars:"18" }}</h4>
+                        <h4 class="text-right hidden-xs" style="margin-top: 0">{{ request.session.merchant_name }}</h4>
+                    {% endif %}
+                    <div style="color: #03A9F4">
+                        <i class="glyphicon glyphicon-shopping-cart" style="color: #3F51B5; font-size: 21px; margin-right: 5px"></i>
+                        {{ config.currency_symbol }} <strong>{{ amount|floatformat:"0"|intcomma }}</strong>
+                    </div>
+                </div>
                 <div class="clearfix"></div>
             </div>
             <h3 style="text-align: center"> {% trans "Pay with" %} {{ payment_mean.name }} </h3>

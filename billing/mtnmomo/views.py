@@ -55,6 +55,9 @@ def init_request_payment(request, *args, **kwargs):
                                                              phone=phone, amount=amount, model=model_name,
                                                              object_id=object_id, wallet=MTN_MOMO, username=username,
                                                              callback=callback)
+    except MoMoTransaction.MultipleObjectsReturned:
+        tx = MoMoTransaction.objects.using('wallets').filter(object_id=object_id)[0]
+        MoMoTransaction.objects.using('wallets').exclude(pk=tx.id).filter(object_id=object_id).delete()
     if getattr(settings, 'DEBUG', False):
         request_payment(request, tx)
     else:
@@ -67,6 +70,7 @@ def request_payment(request, tx):
     Calls the HTTP MTN Mobile Money API and updates the MoMoTransaction
     status in the database upon completion of the request.
     """
+    svc = get_service_instance()
     MTN_MOMO_API_URL = getattr(settings, 'MTN_MOMO_API_URL', 'https://developer.mtn.cm/OnlineMomoWeb/faces/transaction/transactionRequest.xhtml')
     username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
     if getattr(settings, 'DEBUG_MOMO', False):
@@ -92,7 +96,7 @@ def request_payment(request, tx):
         resp = r.json()
         tx.task_id = resp['ProcessingNumber']
         if resp['StatusCode'] == '01':
-            logger.debug("Successful MoMo payment of %dF from %s: %s" % (amount, username, tx.phone))
+            logger.debug("%s - Successful MoMo payment of %dF from %s: %s" % (svc.project_name, amount, username, tx.phone))
             tx.processor_tx_id = resp['TransactionID']
             tx.message = resp['StatusDesc']
             tx.is_running = False
@@ -107,7 +111,7 @@ def request_payment(request, tx):
         try:
             mtn_momo = json.loads(PaymentMean.objects.get(slug=MTN_MOMO).credentials)
         except:
-            return HttpResponse("Error, Could not parse MoMo API parameters.")
+            return HttpResponse("%s - Error, Could not parse MoMo API parameters." % svc.project_name)
         try:
             username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
             data.update({'_email': mtn_momo['merchant_email']})
@@ -117,7 +121,7 @@ def request_payment(request, tx):
             resp = r.json()
             tx.task_id = resp['ProcessingNumber']
             if resp['StatusCode'] == '01':
-                logger.debug("MTN MoMo: Successful payment of %dF from %s: %s" % (amount, username, tx.phone))
+                logger.debug("%s - MTN MoMo: Successful payment of %dF from %s: %s" % (svc.project_name, amount, username, tx.phone))
                 tx.processor_tx_id = resp['TransactionID']
                 tx.message = resp['StatusDesc']
                 tx.is_running = False
@@ -132,54 +136,55 @@ def request_payment(request, tx):
                     except:
                         tx.message = traceback.format_exc()
                         tx.save(using='wallets')
-                        logger.error("MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (request.user.username, int(request.session['amount'])), exc_info=True)
+                        logger.error("%s - MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (svc.project_name, request.user.username, int(request.session['amount'])), exc_info=True)
             elif resp['StatusCode'] == '1000' and resp['StatusDesc'] == 'Pending':
                 # Don't do anything here. Listen and process transaction on the callback URL view
-                logger.debug("MTN MoMo: RequestPayment completed with ProcessingNumber %s" % tx.task_id)
+                logger.debug("%s - MTN MoMo: RequestPayment completed with ProcessingNumber %s" % (svc.project_name, tx.task_id))
             else:
-                logger.error("MTN MoMo: Transaction of %dF from %s: %s failed with message %s" % (amount, username, tx.phone, resp['StatusDesc']))
+                logger.error("%s - MTN MoMo: Transaction of %dF from %s: %s failed with message %s" % (svc.project_name, amount, username, tx.phone, resp['StatusDesc']))
                 tx.status = MoMoTransaction.API_ERROR
                 tx.message = resp['StatusDesc']
         except KeyError:
             tx.status = MoMoTransaction.FAILURE
             tx.message = traceback.format_exc()
-            logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, tx.phone), exc_info=True)
+            logger.error("%s - MTN MoMo: Failed to init transaction of %dF from %s: %s" % (svc.project_name, amount, username, tx.phone), exc_info=True)
         except SSLError:
             tx.status = MoMoTransaction.SSL_ERROR
-            logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, tx.phone), exc_info=True)
+            logger.error("%s - MTN MoMo: Failed to init transaction of %dF from %s: %s" % (svc.project_name, amount, username, tx.phone), exc_info=True)
         except Timeout:
             tx.status = MoMoTransaction.TIMEOUT
-            logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, tx.phone), exc_info=True)
+            logger.error("%s - MTN MoMo: Failed to init transaction of %dF from %s: %s" % (svc.project_name, amount, username, tx.phone), exc_info=True)
         except RequestException:
             tx.status = MoMoTransaction.REQUEST_EXCEPTION
             tx.message = traceback.format_exc()
-            logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, tx.phone), exc_info=True)
+            logger.error("%s - MTN MoMo: Failed to init transaction of %dF from %s: %s" % (svc.project_name, amount, username, tx.phone), exc_info=True)
         except:
             tx.status = MoMoTransaction.SERVER_ERROR
             tx.message = traceback.format_exc()
-            logger.error("MTN MoMo: Failed to init transaction of %dF from %s: %s" % (amount, username, tx.phone), exc_info=True)
+            logger.error("%s - MTN MoMo: Failed to init transaction of %dF from %s: %s" % (svc.project_name, amount, username, tx.phone), exc_info=True)
 
     tx.save(using='wallets')
 
 
 @csrf_exempt
 def process_notification(request, *args, **kwargs):
-    logger.debug("MTN MoMo - New notification: %s" % request.META['REQUEST_URI'])
-    logger.debug("MTN MoMo - New notification Body: %s" % request.body)
+    svc = get_service_instance()
+    logger.debug("%s - MTN MoMo - New notification: %s" % (svc.project_name, request.META['REQUEST_URI']))
+    logger.debug("%s - MTN MoMo - New notification Body: %s" % (svc.project_name, request.body))
     try:
         resp = ET.fromstring(request.body)
         processing_number = resp.find(".//{http://www.csapi.org/schema/momopayment/local/v1_0}ProcessingNumber").text
         tx = MoMoTransaction.objects.using('wallets').get(task_id=processing_number)
     except (ET.ParseError, AttributeError):
         notice = "Invalid SOAP data in notification."
-        logger.error("MTN MoMo: %s" % notice, exc_info=True)
+        logger.error("%s - MTN MoMo: %s" % (svc.project_name, notice), exc_info=True)
         return HttpResponse(notice)
     except MoMoTransaction.DoesNotExist:
-        logger.error("MTN MoMo: Could not find transaction with task_id %s." % processing_number, exc_info=True)
+        logger.error("%s - MTN MoMo: Could not find transaction with task_id %s." % (svc.project_name, processing_number), exc_info=True)
         return HttpResponse("Notification successfully received.")
     status_code = resp.find(".//{http://www.csapi.org/schema/momopayment/local/v1_0}StatusCode").text
     if status_code == '01':
-        logger.debug("MTN MoMo: Successful payment of %dF from %s: %s" % (tx.amount, tx.username, tx.phone))
+        logger.debug("%s - MTN MoMo: Successful payment of %dF from %s: %s" % (svc.project_name, tx.amount, tx.username, tx.phone))
         tx_id = resp.find(".//{http://www.csapi.org/schema/momopayment/local/v1_0}MOMTransactionID").text
         tx.processor_tx_id = tx_id
         tx.is_running = False
@@ -191,7 +196,7 @@ def process_notification(request, *args, **kwargs):
             tx.message = 'OK'
         except:
             tx.message = traceback.format_exc()
-            logger.error("MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (tx.username, tx.amount), exc_info=True)
+            logger.error("%s - MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (svc.project_name, tx.username, tx.amount), exc_info=True)
     else:
         tx.status = MoMoTransaction.API_ERROR
         status_desc = resp.find(".//{http://www.csapi.org/schema/momopayment/local/v1_0}StatusDesc").text

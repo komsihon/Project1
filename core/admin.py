@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.http.response import HttpResponseForbidden
 from djangotoolbox.admin import admin
-from ikwen.core.utils import generate_favicons, get_mail_content, get_service_instance
+from ikwen.core.utils import generate_icons, get_mail_content, get_service_instance
 
 from ikwen.core.models import RETAIL_APP_SLUG, Module
 
@@ -52,7 +52,7 @@ class ApplicationAdmin(admin.ModelAdmin):
                 output_folder = 'ikwen/favicons/%s/' % obj.slug
                 if not os.path.exists(media_root + output_folder):
                     os.makedirs(media_root + output_folder)
-                generate_favicons(obj.logo.path, output_folder)
+                generate_icons(obj.logo.path, output_folder)
                 filename = obj.logo.name.split('/')[-1]
                 dst = obj.logo.name.replace(filename, obj.slug + '-logo.png')
                 os.rename(obj.logo.path, media_root + dst)

@@ -271,6 +271,29 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 .btn-green:hover {color: #fff;background: #30bf00;border-color: #30bf00;}
 .btn-green:hover:active {color: #fff;background: #28a200;border-color: #28a200;}
 
+footer {color: #999;font-size: 12px;text-align: center;margin: 30px;}
+.edge-panel-left footer {margin-top: 0}
+footer a {color: #999}
+footer .company-name {color: #666; text-decoration: none}
+
+.error-page {background: #111 url(../../ikwen/img/colorful-bg.jpg) center fixed; background-size: cover; color: #fff; padding-top: 10%}
+.error-page #content {padding-left: 15px; padding-right: 15px}
+.error-page h1 {font-size: 4em;}
+.error-page footer, .error-page footer a {color: #fff}
+
+.item-preview {background: #f6f6f6;border-radius: 5px;overflow: hidden;margin-top: 5px;}
+.item-preview .img {background: no-repeat center;background-size: cover;float: left;height: 100px;width: 100px;}
+.item-preview .name {float: left;font-size: 18px;margin: 10px 10px 0;}
+.item-preview .about {clear: both; float: left; margin: 10px 10px 0}
+.autocomplete-suggestions {background: #fff; box-shadow: 1px 1px 9px 4px rgba(0, 0, 0, .1)}
+.autocomplete-suggestion {cursor: pointer; padding: 10px;}
+.autocomplete-suggestion:not(:first-child) {border-top: 1px solid #ddd}
+
+.swiper-button-prev, .swiper-button-next {background: #fff !important;font-size: 24px; height: 36px !important;text-align: center; width: 28px !important}
+.swiper-button-next {right: 0 !important;border-top-left-radius: 3px;border-bottom-left-radius: 3px;}
+.swiper-button-prev {left: 0 !important;border-top-right-radius: 3px;border-bottom-right-radius: 3px;}
+.swiper-button-next.swiper-button-disabled, .swiper-button-prev.swiper-button-disabled {pointer-events: visible !important;}
+
 @media (max-width: 767px) {
     input[type="radio"], input[type="checkbox"] {float: left;height: 18px;margin-top: 1px;width: 18px;}
     label {font-size: 15px}
@@ -415,25 +438,6 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
     }
 }
 
-footer {color: #999;font-size: 12px;text-align: center;margin: 30px;}
-.edge-panel-left footer {margin-top: 0}
-footer a {color: #999}
-footer .company-name {color: #666; text-decoration: none}
-
-.error-page {background: #111 url(../../ikwen/img/colorful-bg.jpg) center fixed; background-size: cover; color: #fff; padding-top: 10%}
-.error-page #content {padding-left: 15px; padding-right: 15px}
-.error-page h1 {font-size: 4em;}
-.error-page footer, .error-page footer a {color: #fff}
-
-.item-preview {background: #f6f6f6;border-radius: 5px;overflow: hidden;margin-top: 5px;}
-.item-preview .img {background: no-repeat center;background-size: cover;float: left;height: 100px;width: 100px;}
-.item-preview .name {float: left;font-size: 18px;margin: 10px 10px 0;}
-.item-preview .about {clear: both; float: left; margin: 10px 10px 0}
-.autocomplete-suggestions {background: #fff; box-shadow: 1px 1px 9px 4px rgba(0, 0, 0, .1)}
-.autocomplete-suggestion {cursor: pointer; padding: 10px;}
-.autocomplete-suggestion:not(:first-child) {border-top: 1px solid #ddd}
-
-.swiper-button-prev, .swiper-button-next {background: #fff !important;font-size: 24px; height: 36px !important;text-align: center; width: 28px !important}
-.swiper-button-next {right: 0 !important;border-top-left-radius: 3px;border-bottom-left-radius: 3px;}
-.swiper-button-prev {left: 0 !important;border-top-right-radius: 3px;border-bottom-right-radius: 3px;}
-.swiper-button-next.swiper-button-disabled, .swiper-button-prev.swiper-button-disabled {pointer-events: visible !important;}
+@media all and (display-mode: standalone) {
+    .install-pwa {display: none}
+}

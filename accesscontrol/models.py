@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
-from threading import Thread
 
 from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractUser, Group
 from django.core.urlresolvers import reverse
-from django.db import models, transaction
-from django.db.models import Q
+from django.db import models
 from django.template.defaultfilters import slugify
 from django.utils.datetime_safe import strftime
 from django.utils.translation import gettext as _, get_language
 from django_mongodb_engine.contrib import RawQueryMixin
 from djangotoolbox.fields import ListField
 
-from ikwen.core.constants import MALE, FEMALE
 from permission_backend_nonrel.models import UserPermissionList
 
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
@@ -43,16 +40,20 @@ class MemberManager(BaseUserManager, RawQueryMixin):
             raise ValueError('Username must be set')
         try:
             phone = str(extra_fields.get('phone', ''))
+            email = extra_fields.get('email', '')
             if phone and phone.startswith('237') and len(phone) == 12:  # When saving ghost contacts '237' is stripped
                 phone = phone[3:]
             try:
                 member = Member.objects.get(phone=phone, is_ghost=True)
-                member.username = username
-                for key, value in extra_fields.items():
-                    member.__dict__[key] = value
             except:
-                member = Member.objects.get(username=username, is_ghost=True)
+                try:
+                    member = Member.objects.get(email=email, is_ghost=True)
+                except:
+                    member = Member.objects.get(username=username, is_ghost=True)
             member.is_ghost = False
+            member.username = username
+            for key, value in extra_fields.items():
+                member.__dict__[key] = value
         except Member.DoesNotExist:
             member = self.model(username=username, **extra_fields)
 
@@ -76,15 +77,8 @@ class MemberManager(BaseUserManager, RawQueryMixin):
         perm_list.group_fk_list.append(ikwen_community.id)
         perm_list.save(using=UMBRELLA)
 
-        from ikwen.revival.models import ProfileTag, MemberProfile
-        member_profile, update = MemberProfile.objects.get_or_create(member=member)
-        men_tag, update = ProfileTag.objects.get_or_create(name='Men', slug='men', is_reserved=True)
-        women_tag, update = ProfileTag.objects.get_or_create(name='Women', slug='women', is_reserved=True)
-        if member.gender == MALE:
-            member_profile.tag_fk_list.append(men_tag.id)
-        elif member.gender == FEMALE:
-            member_profile.tag_fk_list.append(women_tag.id)
-        member_profile.save()
+        from ikwen.accesscontrol.utils import set_member_basic_profile_tags
+        set_member_basic_profile_tags(member)
 
         if service_id != IKWEN_SERVICE_ID:
             # This block is not added above because member must have

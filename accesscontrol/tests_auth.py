@@ -314,8 +314,6 @@ class IkwenAuthTestCase(unittest.TestCase):
         self.assertEqual(set(member_profile.tag_fk_list), {'58088fc0c253e5ddf0563952', '58088fc0c253e5ddf0563955',
                                                            '58088fc0c253e5ddf0563956', '58088fc0c253e5ddf0563957'})
         self.assertRaises(Member.DoesNotExist, Member.objects.get, phone='666000006', is_ghost=True)
-        self.assertRaises(MemberProfile.DoesNotExist, MemberProfile.objects.get, member=ghost)
-        self.assertRaises(UserPermissionList.DoesNotExist, UserPermissionList.objects.get, user=ghost)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
     def test_register_with_existing_ghost_as_email(self):
@@ -327,8 +325,7 @@ class IkwenAuthTestCase(unittest.TestCase):
         from the admin or when user leaves his mail on a website.        .
         """
         ghost = Member.objects.create_user(username='ngnieng@ikwen.com', email='ngnieng@ikwen.com', gender='Male',
-                                           phone='666000006', first_name='Ngnieng', last_name='Makambou',
-                                           password='secret', is_ghost=True)
+                                           phone='666000006', password='secret', is_ghost=True)
         ghost_profile, update = MemberProfile.objects.get_or_create(member=ghost)
         ghost_profile.tag_fk_list.extend(['58088fc0c253e5ddf0563956', '58088fc0c253e5ddf0563957'])
         ghost_profile.save()
@@ -343,8 +340,6 @@ class IkwenAuthTestCase(unittest.TestCase):
         self.assertEqual(set(member_profile.tag_fk_list), {'58088fc0c253e5ddf0563952', '58088fc0c253e5ddf0563955',
                                                            '58088fc0c253e5ddf0563956', '58088fc0c253e5ddf0563957'})
         self.assertRaises(Member.DoesNotExist, Member.objects.get, phone='666000006', is_ghost=True)
-        self.assertRaises(MemberProfile.DoesNotExist, MemberProfile.objects.get, member=ghost)
-        self.assertRaises(UserPermissionList.DoesNotExist, UserPermissionList.objects.get, user=ghost)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',

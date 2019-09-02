@@ -236,7 +236,9 @@ class SignIn(TemplateView):
                         next_url = reverse(next_url_view)
                     else:
                         next_url = ikwenize(reverse('ikwen:console'))
-            return HttpResponseRedirect(next_url + "?" + query_string)
+            if query_string:
+                next_url += '?' + query_string
+            return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)
             context['login_form'] = form

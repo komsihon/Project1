@@ -32,7 +32,7 @@
                 }
             });
         };
-        var label = "{% if is_company %}{% trans "Change logo" %}{% else %}{% trans "Change photo" %}{% endif %}";
+        var label = "{% if is_company %}{% trans "Logo 512x512px" %}{% else %}{% trans "Change photo" %}{% endif %}";
         ikwen.initUploader('#banner .photo .upload-image', label, 'profile', '#banner .photo');
         ikwen.initUploader('#banner > .upload-image', "{% trans "Cover" %} (1000px x 390px)", 'cover', '#cover');
     })()

@@ -28,7 +28,7 @@ from import_export.formats.base_formats import XLS
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
 from ikwen.core.models import Service, AbstractConfig
-from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_favicons, get_model_admin_instance
+from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_icons, get_model_admin_instance
 from ikwen.revival.models import ProfileTag, Revival
 
 
@@ -617,7 +617,7 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
                         config.logo.save(destination, content)
                         url = ikwen_settings.MEDIA_URL + config.logo.name
                         src = config.logo.path
-                        generate_favicons(src)
+                        generate_icons(src)
                         destination2_folder = ikwen_settings.MEDIA_ROOT + AbstractConfig.LOGO_UPLOAD_TO
                         if not os.path.exists(destination2_folder):
                             os.makedirs(destination2_folder)

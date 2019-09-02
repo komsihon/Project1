@@ -7,24 +7,17 @@ import requests
 from ajaxuploader.views import AjaxFileUploader
 from currencies.models import Currency
 from django.conf import settings
-from django.contrib import messages
-from django.contrib.admin import helpers
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.db.models import get_model
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.template import Context
 from django.template.defaultfilters import slugify
 from django.template.loader import get_template
-from django.utils.decorators import method_decorator
-from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import cache_page
-from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.base import TemplateView
 
 import ikwen.conf.settings
