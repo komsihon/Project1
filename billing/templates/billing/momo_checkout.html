@@ -46,7 +46,8 @@
             </form>
         </div>
         <div style="margin: 45px 15px">
-            <a href="{{ request.META.HTTP_REFERER }}" class="cancel-payment">{% trans "Cancel" %}</a>
+            <a href="{% if request.session.cancel_url %}{{ request.session.cancel_url }}{% else %}{{ request.META.HTTP_REFERER }}{% endif %}"
+               class="cancel-payment">{% trans "Cancel" %}</a>
         </div>
         <div class="clear"></div>
     </div>

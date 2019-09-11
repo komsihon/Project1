@@ -50,15 +50,15 @@ def init_web_payment(request, *args, **kwargs):
     model_name = request.session['model_name']
     object_id = request.session['object_id']
     username = request.user.username if request.user.is_authenticated() else None
-    try:
-        momo_tx = MoMoTransaction.objects.using('wallets').get(object_id=object_id)
-    except MoMoTransaction.DoesNotExist:
-        momo_tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
-                                                                  phone=phone, amount=amount, model=model_name,
-                                                                  object_id=object_id, wallet=ORANGE_MONEY, username=username)
-    except MoMoTransaction.MultipleObjectsReturned:
-        momo_tx = MoMoTransaction.objects.using('wallets').filter(object_id=object_id)[0]
-        MoMoTransaction.objects.using('wallets').exclude(pk=momo_tx.id).filter(object_id=object_id).delete()
+    with transaction.atomic(using='wallets'):
+        try:
+            momo_tx = MoMoTransaction.objects.using('wallets').get(object_id=object_id)
+        except MoMoTransaction.DoesNotExist:
+            momo_tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
+                                                                      phone=phone, amount=amount, model=model_name,
+                                                                      object_id=object_id, wallet=ORANGE_MONEY, username=username)
+        except MoMoTransaction.MultipleObjectsReturned:
+            momo_tx = MoMoTransaction.objects.using('wallets').filter(object_id=object_id)[0]
     request.session['tx_id'] = momo_tx.id
     headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
     notif_url = request.session['notif_url']
@@ -190,7 +190,7 @@ def check_transaction_status(request):
                 else:
                     path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
                 momo_after_checkout = import_by_path(path)
-                with transaction.atomic():
+                with transaction.atomic(using='wallets'):
                     try:
                         tx = MoMoTransaction.objects.using('wallets').get(pk=tx_id)
                         tx.processor_tx_id = processor_tx_id
@@ -199,7 +199,7 @@ def check_transaction_status(request):
                         tx.status = MoMoTransaction.SUCCESS
                         tx.save()
                     except:
-                        logger.error("Orange Money: Could not mark transaction as Successful. User: %s, Amt: %d" % (request.user.username, int(request.session['amount'])), exc_info=True)
+                        logger.error("Orange Money: Could not mark transaction as Successful. User: %s, Amt: %s, TXID: %s" % (request.user.username, request.session['amount'], tx_id), exc_info=True)
                     else:
                         try:
                             momo_after_checkout(request, transaction=tx, signature=request.session['signature'])

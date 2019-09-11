@@ -34,15 +34,15 @@ def init_uba_web_payment(request, *args, **kwargs):
     first_name = request.user.first_name if request.user.is_authenticated() else '<MK>'
     last_name = request.user.last_name if request.user.is_authenticated() else '<MK>'
     amount = int(request.session['amount'])
-    try:
-        momo_tx = MoMoTransaction.objects.using('wallets').get(object_id=object_id)
-    except MoMoTransaction.DoesNotExist:
-        momo_tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
-                                                                  phone=phone, amount=amount, model=model_name,
-                                                                  object_id=object_id, wallet=UBA, username=username)
-    except MoMoTransaction.MultipleObjectsReturned:
-        momo_tx = MoMoTransaction.objects.using('wallets').filter(object_id=object_id)[0]
-        MoMoTransaction.objects.using('wallets').exclude(pk=momo_tx.id).filter(object_id=object_id).delete()
+    with transaction.atomic(using='wallets'):
+        try:
+            momo_tx = MoMoTransaction.objects.using('wallets').get(object_id=object_id)
+        except MoMoTransaction.DoesNotExist:
+            momo_tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
+                                                                      phone=phone, amount=amount, model=model_name,
+                                                                      object_id=object_id, wallet=UBA, username=username)
+        except MoMoTransaction.MultipleObjectsReturned:
+            momo_tx = MoMoTransaction.objects.using('wallets').filter(object_id=object_id)[0]
     uba = json.loads(PaymentMean.objects.get(slug=UBA).credentials)
     data = {'merchantId': uba['merchantId'],'serviceKey': uba['serviceKey'], 'countryCurrencyCode': 950}
     data.update({
@@ -110,21 +110,21 @@ def uba_process_approved(request, *args, **kwargs):
         else:
             path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
         momo_after_checkout = import_by_path(path)
-        try:
-            with transaction.atomic():
+        with transaction.atomic(using='wallets'):
+            try:
                 MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
                     .update(processor_tx_id=cipg_tx_id, message='OK', is_running=False,
                             status=MoMoTransaction.SUCCESS)
-        except:
-            logger.error("UBA: Could not mark transaction as Successful. User: %s, Amt: %d" % (
-            request.user.username, int(request.session['amount'])), exc_info=True)
-        else:
-            try:
-                momo_after_checkout(request, signature=request.session['signature'], tx_id=object_id)
             except:
-                MoMoTransaction.objects.using('wallets').filter(pk=object_id) \
-                    .update(message=traceback.format_exc())
-                logger.error("UBA: Error while running callback. User: %s, Amt: %d" % (tx.username, tx.amount), exc_info=True)
+                logger.error("UBA: Could not mark transaction as Successful. User: %s, Amt: %d" % (
+                request.user.username, int(request.session['amount'])), exc_info=True)
+            else:
+                try:
+                    momo_after_checkout(request, signature=request.session['signature'], tx_id=object_id)
+                except:
+                    MoMoTransaction.objects.using('wallets').filter(pk=object_id) \
+                        .update(message=traceback.format_exc())
+                    logger.error("UBA: Error while running callback. User: %s, Amt: %d" % (tx.username, tx.amount), exc_info=True)
         return HttpResponseRedirect(request.session['return_url'])
 
 

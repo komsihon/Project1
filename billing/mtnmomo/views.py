@@ -47,17 +47,17 @@ def init_request_payment(request, *args, **kwargs):
         callback = payments_conf[conf]['after']
     else:
         callback = getattr(settings, 'MOMO_AFTER_CASH_OUT')
-    try:
-        tx = MoMoTransaction.objects.using('wallets').get(object_id=object_id)
-        return HttpResponse(json.dumps({'success': True, 'tx_id': tx.id}), 'content-type: text/json')
-    except MoMoTransaction.DoesNotExist:
-        tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
-                                                             phone=phone, amount=amount, model=model_name,
-                                                             object_id=object_id, wallet=MTN_MOMO, username=username,
-                                                             callback=callback)
-    except MoMoTransaction.MultipleObjectsReturned:
-        tx = MoMoTransaction.objects.using('wallets').filter(object_id=object_id)[0]
-        MoMoTransaction.objects.using('wallets').exclude(pk=tx.id).filter(object_id=object_id).delete()
+    with transaction.atomic(using='wallets'):
+        try:
+            tx = MoMoTransaction.objects.using('wallets').get(object_id=object_id)
+            return HttpResponse(json.dumps({'success': True, 'tx_id': tx.id}), 'content-type: text/json')
+        except MoMoTransaction.DoesNotExist:
+            tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
+                                                                 phone=phone, amount=amount, model=model_name,
+                                                                 object_id=object_id, wallet=MTN_MOMO, username=username,
+                                                                 callback=callback)
+        except MoMoTransaction.MultipleObjectsReturned:
+            tx = MoMoTransaction.objects.using('wallets').filter(object_id=object_id)[0]
     if getattr(settings, 'DEBUG', False):
         request_payment(request, tx)
     else:
@@ -130,13 +130,14 @@ def request_payment(request, tx):
                 if getattr(settings, 'DEBUG', False):
                     momo_after_checkout(request, transaction=tx, signature=request.session['signature'])
                 else:
-                    try:
-                        momo_after_checkout(request, transaction=tx, signature=request.session['signature'])
-                        tx.message = 'OK'
-                    except:
-                        tx.message = traceback.format_exc()
-                        tx.save(using='wallets')
-                        logger.error("%s - MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (svc.project_name, request.user.username, int(request.session['amount'])), exc_info=True)
+                    with transaction.atomic(using='wallets'):
+                        try:
+                            momo_after_checkout(request, transaction=tx, signature=request.session['signature'])
+                            tx.message = 'OK'
+                        except:
+                            tx.message = traceback.format_exc()
+                            tx.save(using='wallets')
+                            logger.error("%s - MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (svc.project_name, request.user.username, int(request.session['amount'])), exc_info=True)
             elif resp['StatusCode'] == '1000' and resp['StatusDesc'] == 'Pending':
                 # Don't do anything here. Listen and process transaction on the callback URL view
                 logger.debug("%s - MTN MoMo: RequestPayment completed with ProcessingNumber %s" % (svc.project_name, tx.task_id))

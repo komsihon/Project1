@@ -69,16 +69,16 @@ def init_yup_web_payment(request, *args, **kwargs):
         path = payments_conf[conf]['after']
     else:
         path = getattr(settings, 'MOMO_AFTER_CASH_OUT')
-    try:
-        momo_tx = MoMoTransaction.objects.using('wallets').get(object_id=object_id)
-    except MoMoTransaction.DoesNotExist:
-        momo_tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
-                                                                  phone=phone, amount=amount, model=model_name,
-                                                                  object_id=object_id, wallet=YUP, username=username,
-                                                                  callback=path)
-    except MoMoTransaction.MultipleObjectsReturned:
-        momo_tx = MoMoTransaction.objects.using('wallets').filter(object_id=object_id)[0]
-        MoMoTransaction.objects.using('wallets').exclude(pk=momo_tx.id).filter(object_id=object_id).delete()
+    with transaction.atomic(using='wallets'):
+        try:
+            momo_tx = MoMoTransaction.objects.using('wallets').get(object_id=object_id)
+        except MoMoTransaction.DoesNotExist:
+            momo_tx = MoMoTransaction.objects.using('wallets').create(service_id=service.id, type=MoMoTransaction.CASH_OUT,
+                                                                      phone=phone, amount=amount, model=model_name,
+                                                                      object_id=object_id, wallet=YUP, username=username,
+                                                                      callback=path)
+        except MoMoTransaction.MultipleObjectsReturned:
+            momo_tx = MoMoTransaction.objects.using('wallets').filter(object_id=object_id)[0]
 
     request.session['tx_id'] = momo_tx.id
     accept_url = request.session['return_url']
@@ -122,24 +122,25 @@ def yup_process_notification(request, *args, **kwargs):
     if status == "OK":
         path = tx.callback
         momo_after_checkout = import_by_path(path)
-        try:
-            with transaction.atomic():
-                MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
-                    .update(processor_tx_id=paymentref, message='OK', is_running=False,
-                            status=MoMoTransaction.SUCCESS)
-        except:
-            logger.error("YUP: Could not mark transaction as Successful. User: %s, Amt: %d" % (
-            request.user.username, int(amount)), exc_info=True)
-        else:
+        with transaction.atomic(using='wallets'):
             try:
-                momo_after_checkout(request, transaction=tx)
+                with transaction.atomic():
+                    MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
+                        .update(processor_tx_id=paymentref, message='OK', is_running=False,
+                                status=MoMoTransaction.SUCCESS)
             except:
-                MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
-                    .update(message=traceback.format_exc())
-                logger.error("YUP: Error while running callback. User: %s, Amt: %d" % (tx.username, tx.amount), exc_info=True)
+                logger.error("YUP: Could not mark transaction as Successful. User: %s, Amt: %d" % (
+                request.user.username, int(amount)), exc_info=True)
+            else:
+                try:
+                    momo_after_checkout(request, transaction=tx)
+                except:
+                    MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
+                        .update(message=traceback.format_exc())
+                    logger.error("YUP: Error while running callback. User: %s, Amt: %d" % (tx.username, tx.amount), exc_info=True)
     else:
-        try:
-            with transaction.atomic():
+        with transaction.atomic(using='wallets'):
+            try:
                 if "CANCEL" in error_text:
                     logger.debug("YUP: transaction canceled. User: %s, Amt: %d " % (request.user.username, int(amount)))
                     MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
@@ -148,8 +149,8 @@ def yup_process_notification(request, *args, **kwargs):
                     logger.debug( "YUP: transaction failed. User: %s, Amt: %d " % (request.user.username, int(amount)))
                     MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
                         .update(message=error_text, is_running=False, status=MoMoTransaction.FAILURE)
-        except:
-            logger.error("YUP: Could not mark transaction as Failed or Canceled. User: %s, Amt: %d" % (
-            request.user.username, int(amount)), exc_info=True)
+            except:
+                logger.error("YUP: Could not mark transaction as Failed or Canceled. User: %s, Amt: %d" % (
+                request.user.username, int(amount)), exc_info=True)
 
     return HttpResponse('OK')
