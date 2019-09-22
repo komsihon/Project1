@@ -395,7 +395,7 @@ class ChangeObjectBase(TemplateView):
         obj_form = helpers.AdminForm(form, list(model_admin.get_fieldsets(self.request, obj)),
                                      model_admin.get_prepopulated_fields(self.request, obj),
                                      model_admin.get_readonly_fields(self.request, obj))
-        model_obj = model()
+        model_obj = obj if obj else model()
         date_field_list = []
         datetime_field_list = []
         img_field_list = []
