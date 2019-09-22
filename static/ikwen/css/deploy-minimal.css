@@ -1,0 +1,43 @@
+/**
+    Document   : deploy
+    Created on : Dec 11, 2017, 15:29
+    Author     : Kom Sihon
+    Description:
+        Rules for a minimalist deploy page
+*/
+
+#navbar {background: #fff}
+#navbar .navbar-brand, #navbar a {color: #888}
+.navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:hover, .navbar-default .navbar-nav>.open>a:focus {background: #eee}
+.dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {background: #eee}
+#navbar .glyphicon {color: #aaa}
+.icon-bar {background: #888}
+#content {margin-bottom: 2em; padding-top: 75px; padding-left: 0}
+.page-header {margin: 0 0 1em}
+#navbar-search input {background: #f6f6f6}
+
+body > .container {margin-top: 15vh;}
+.main-title {font-weight: 300;margin-top: 0;}
+.main-img {width: 150px;}
+footer {bottom: 0; margin: 30px 0; position: absolute; width: 100%}
+
+/******    Rules for successful deployment page   ******/
+.summary {margin-top: 5vh}
+.summary .section h3 {font-weight: 600}
+.summary .section p {clear: both}
+.summary .section a {font-weight: 700}
+/*** End Rules for successful deployment page *****/
+
+@media (max-width: 767px) {
+    .summary .section {margin-bottom: 5vh}
+    .summary .section h3 {font-size: 24px; text-align: center}
+}
+
+@media (min-width: 768px) {
+    #navbar .navbar-brand {color: #888;font-size: 30px; padding-top: 15px}
+    .summary .section h3 {margin-top: 8vh}
+}
+
+@media (min-width: 1200px) {
+    .main-img {width: 200px}
+}

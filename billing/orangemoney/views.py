@@ -13,6 +13,7 @@ from django.http import HttpResponse
 from django.http.response import HttpResponseRedirect
 from django.template.defaultfilters import slugify
 from django.utils.module_loading import import_by_path
+from django.utils.translation import get_language
 from requests.exceptions import SSLError
 
 from requests import RequestException
@@ -66,7 +67,7 @@ def init_web_payment(request, *args, **kwargs):
     company_name = slugify(service.config.company_name).replace('-', ' ')
     data = {'order_id': object_id,
             'amount': int(amount),
-            'lang': 'fr',
+            'lang': get_language()[:2],
             'reference': request.session.get('merchant_name', company_name.upper()),
             'return_url': request.session['return_url'],
             'cancel_url': request.session['cancel_url'],

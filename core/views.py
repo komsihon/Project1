@@ -468,3 +468,10 @@ class ServiceExpired(TemplateView):
         if service.status == Service.PENDING or service.status == Service.ACTIVE:
             return HttpResponseRedirect(reverse('home'))
         return super(ServiceExpired, self).get(request, *args, **kwargs)
+
+
+class Offline(TemplateView):
+    """
+    Offline page for the PWA
+    """
+    template_name = 'core/offline.html'
