@@ -20,6 +20,7 @@ ARCH_EMAIL = 'arch@ikwen.com'
 class LocalDataStoreBackend(NonrelPermissionBackend):
     def authenticate(self, username=None, password=None, **kwargs):
         uid = kwargs.get('uid')
+        api_signature = kwargs.get('api_signature')
         if uid:
             try:
                 user = Member.objects.using('default').get(pk=uid)
@@ -29,6 +30,11 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                     username = user.username
                 except Member.DoesNotExist:
                     return None
+        elif api_signature:
+            service = get_service_instance()
+            if api_signature != service.api_signature:
+                return None
+            return service.member
         else:
             try:
                 if username:

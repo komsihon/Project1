@@ -46,6 +46,7 @@
                 title="{% blocktrans %}Add new {{ verbose_name }}{% endblocktrans %}">
             <i class="glyphicon glyphicon-plus"></i>
             <span class="hidden-xs">{% trans "Add" %}</span>
+            {% if first_setup %}<div class="pulse"></div>{% endif %}
         </a>
         {% if show_import %}
             <button class="btn btn-sm btn-success cta pull-right action"

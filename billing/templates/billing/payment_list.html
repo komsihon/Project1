@@ -3,10 +3,13 @@
 
 {% block head_style %}
     {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static 'embed-doc/css/embed-doc.css' %}"/>
     <link rel='stylesheet' href="{% static 'ikwen/css/transaction-log.css' %}" />
     <style>
         #admin-tools-actions .add {display: none}
+        .results-container {margin-top: 6vh}
+        @media (max-width: 767px) {
+            .results-container {margin: 6vh -15px}
+        }
     </style>
 {% endblock %}
 
@@ -14,7 +17,7 @@
     <div id="admin-content">
         <div class="container-fluid stage">
             {% include 'core/snippets/admin_tools.html' %}
-            <div class="col-lg-10 col-lg-offset-1" style="margin: 6vh -15px">
+            <div class="col-lg-10 col-lg-offset-1 results-container" style="margin-top: 6vh">
                 <div id="results" style="padding-top: 0">
                     {% include html_results_template_name %}
                 </div>

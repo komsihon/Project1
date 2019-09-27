@@ -15,7 +15,14 @@
 {% block head_style %}
     {{ block.super }}
     <link rel='stylesheet' href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+    <link rel='stylesheet' href="{% static 'ikwen/swiper/css/swiper.min.css' %}" />
+    <link href="{% static 'embed-doc/css/embed-doc.css' %}?v=19.9.27" media="screen" rel="stylesheet" type="text/css" />
     <link href="{% static 'ikwen/css/admin.css' %}" media="screen" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block head_js %}
+    {{ block.super }}
+    <script src="{% static 'ikwen/swiper/js/swiper.jquery.min.js' %}"></script>
 {% endblock %}
 
 {% block selection_control %}
@@ -119,6 +126,9 @@
         {% block admin_content %}{% endblock %}
         <div class="clear"></div>
     </div>
+    {% if embed_doc_template_name %}
+        {% include embed_doc_template_name %}
+    {% endif %}
 {% endblock %}
 
 {% block footer %}
@@ -131,6 +141,7 @@
 {% block js %}
     {{ block.super }}
     <script src="{% static 'ikwen/js/jquery-ui.js' %}"></script>
+    <script src="{% static 'embed-doc/js/embed-doc.js' %}?v=19.9.27"></script>
     <script>
         (function() {
             {% if messages %}
@@ -293,6 +304,15 @@
             ikwen.resetAdminTools();
 
             $('footer').appendTo('#admin-nav .wrapper').show();
+            {% if settings.DEBUG %}
+                embedDoc.initEmbedDoc("{% trans "Remind me later" %}", "{% trans "Got it!" %}", "{% trans "Show Help" %}");
+            {% else %}
+                try {
+                    embedDoc.initEmbedDoc("{% trans "Remind me later" %}", "{% trans "Got it!" %}", "{% trans "Show Help" %}");
+                } catch (e) {
+                    console.log(e.message)
+                }
+            {% endif %}
         })()
     </script>
 {% endblock %}

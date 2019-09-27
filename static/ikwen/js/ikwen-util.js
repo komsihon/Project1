@@ -415,7 +415,8 @@
     var contentTabListSwiper, contentTabPaneSwiper;
 
     function initContentTabListSwiper() {
-        if ($('.content-tab-list').length == 0 || contentTabListSwiper) return;
+        if ($('.content-tab-list').length === 0 || contentTabListSwiper) return;
+
         $('.content-tab-list').addClass('bottom-shade');
         $('.content-tab-list .nav-tabs').addClass('swiper-wrapper');
         $('.content-tab-list .tab').addClass('swiper-slide');
@@ -446,9 +447,22 @@
         contentTabPaneSwiper.slideTo(i)
     }
 
-    if ($(window).width() < 768) {
-        initContentTabListSwiper()
+    function setTabContentOffset() {
+        /*
+        * Resets the tab content margin-top if tabs span on more than one line
+        */
+        let tabsWidth = 0;
+        $('.content-tab-list .tab').each(() => {
+            tabsWidth += $(this).width()
+        });
+        if (tabsWidth > $('#admin-content').width()) {
+            let mt = parseInt($('#admin-content .tab-content').css('margin-top')) + 45;
+            $('#admin-content .tab-content').css('margin-top', mt + 'px')
+        }
     }
+
+    if ($(window).width() < 768) initContentTabListSwiper();
+    else setTabContentOffset();
 
     $( window ).resize(c.debouncer(function (e) {
         var winWidth = $(window).width();

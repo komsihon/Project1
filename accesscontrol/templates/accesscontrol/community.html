@@ -7,7 +7,6 @@
 
 {% block head_style %}
     {{ block.super }}
-    <link rel='stylesheet' href="{% static 'ikwen/swiper/css/swiper.min.css' %}" />
     <style>
         #groups {clear: both}
         #groups .results a {color: #333}
@@ -33,11 +32,6 @@
             #page-navigation {margin-top: 3px}
         }
     </style>
-{% endblock %}
-
-{% block head_js %}
-    {{ block.super }}
-    <script src="{% static 'ikwen/swiper/js/swiper.jquery.min.js' %}"></script>
 {% endblock %}
 
 {% block breadcrumb_location %}

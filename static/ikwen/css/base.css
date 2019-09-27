@@ -83,6 +83,18 @@ body {color: #464646;}
     50% {stroke-dasharray: 90, 150; stroke-dashoffset: -35}
     100% {stroke-dasharray: 90, 150; stroke-dashoffset: -124}
 }
+.pulse {animation: pulse 1s infinite; background: none; border-radius: 50%; box-shadow: 0 0 0 rgba(0,110,228, 0.4);
+    cursor: pointer; display: block; height: 1px; margin: -27px 11px 0 -11px; position: absolute; width: 1px}
+@-webkit-keyframes pulse {
+  0% {-webkit-box-shadow: 0 0 0 0 rgba(0,110,228, 0.4)}
+  70% {-webkit-box-shadow: 0 0 0 20px rgba(0,110,228, 0)}
+  100% {-webkit-box-shadow: 0 0 0 0 rgba(0,110,228, 0)}
+}
+@keyframes pulse {
+  0% {-moz-box-shadow: 0 0 0 0 rgba(0,110,228, 0.4); box-shadow: 0 0 0 0 rgba(0,110,228, 0.4)}
+  70% {-moz-box-shadow: 0 0 0 20px rgba(0,110,228, 0); box-shadow: 0 0 0 20px rgba(0,110,228, 0)}
+  100% {-moz-box-shadow: 0 0 0 0 rgba(0,110,228, 0); box-shadow: 0 0 0 0 rgba(0,110,228, 0)}
+}
 
 #top-notice-ctnr {left: 0;position: fixed;text-align: center;top: 66px;width: 100%;z-index: 10000;}
 .floating-notice {background: #F6FF8C; border: 1px solid #CDD570; border-radius: 2px; color: #484B2B; padding: 9px 24px; position: absolute}
@@ -344,6 +356,7 @@ footer .company-name {color: #666; text-decoration: none}
     }
     .bottom-shade-xs {box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .1)}
     .ik-li .date {position: absolute; right: 6px}
+    .pulse {margin: 12px 0 0 10px}
 }
 @media (min-width: 768px) {
     .modal .actions {margin-top: 2em}
@@ -394,7 +407,7 @@ footer .company-name {color: #666; text-decoration: none}
     .edge-panel-right {display: block;margin-right: 0;z-index: 20;}
     .tiles .ik-li {height: 280px;width: 33.33%;}
     .tiles .ik-li .glyphicon-edit {display: none}
-    .nav > .tab > a {padding: 10px 15px}
+    .nav > .tab > a {padding: 10px 15px;border-bottom: 3px solid transparent;}
     .ik-li .date {float: right}
     .payment-method {display: inline}
 }

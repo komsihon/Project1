@@ -18,6 +18,7 @@ from django.forms.models import modelform_factory
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.template.defaultfilters import slugify
+from django.template.loader import get_template
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
 from django.views.generic.base import TemplateView
@@ -50,6 +51,7 @@ class HybridListView(ListView):
     ajax_ordering = ('-id', )
     template_name = 'core/object_list_base.html'
     html_results_template_name = 'core/snippets/object_list_results.html'
+    embed_doc_template_name = None
     change_object_url_name = None
     show_import = False
     export_resource = None
@@ -92,6 +94,8 @@ class HybridListView(ListView):
         context['html_results_template_name'] = self.html_results_template_name
         context['show_import'] = self.show_import
         context['show_export'] = self.export_resource is not None
+        context['embed_doc_template_name'] = self.get_embed_doc_template_name()
+        context['first_setup'] = self.request.GET.get('first_setup')
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -343,6 +347,18 @@ class HybridListView(ListView):
                     queryset = queryset.filter(**kwargs)
         return queryset
 
+    def get_embed_doc_template_name(self):
+        meta = self.get_queryset().model._meta
+        if self.embed_doc_template_name:
+            embed_doc_template_name = self.embed_doc_template_name
+        else:
+            embed_doc_template_name = "%s/embed_doc/change_%s.html" % (meta.app_label, meta.model_name)
+        try:
+            get_template(embed_doc_template_name)  # Just to test whether this template exists.
+            return embed_doc_template_name
+        except:
+            pass
+
 
 class ChangeObjectBase(TemplateView):
     model = None
@@ -350,6 +366,7 @@ class ChangeObjectBase(TemplateView):
     object_list_url = None  # Django url name of the object list page
     change_object_url = None  # Django url name of the change object page
     template_name = 'core/change_object_base.html'
+    embed_doc_template_name = None
     context_object_name = 'obj'
     profiles_aware = False  # If set to true, object ProfileTag management utilities will be integrated to the object
     auto_profile = False  # If true, this object generates a secret ProfileTag matching the actual object upon save
@@ -384,6 +401,18 @@ class ChangeObjectBase(TemplateView):
         else:
             form = ModelForm(instance=model())
         return form
+
+    def get_embed_doc_template_name(self):
+        meta = self.get_model()._meta
+        if self.embed_doc_template_name:
+            embed_doc_template_name = self.embed_doc_template_name
+        else:
+            embed_doc_template_name = "%s/embed_doc/change_%s.html" % (meta.app_label, meta.model_name)
+        try:
+            get_template(embed_doc_template_name)  # Just to test whether this template exists.
+            return embed_doc_template_name
+        except:
+            pass
 
     def get_context_data(self, **kwargs):
         context = super(ChangeObjectBase, self).get_context_data(**kwargs)
@@ -430,6 +459,7 @@ class ChangeObjectBase(TemplateView):
         context['date_field_list'] = date_field_list
         context['datetime_field_list'] = datetime_field_list
         context['img_field_list'] = img_field_list
+        context['embed_doc_template_name'] = self.get_embed_doc_template_name()
         return context
 
     def get(self, request, *args, **kwargs):

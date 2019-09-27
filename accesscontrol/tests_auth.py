@@ -9,6 +9,7 @@ from urllib import unquote
 from urlparse import urlparse
 
 from django.conf import settings
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import Group
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
@@ -22,7 +23,7 @@ from permission_backend_nonrel.models import UserPermissionList
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, COMMUNITY
 from ikwen.core.models import Service, Config, OperatorWallet, ConsoleEventType
-from ikwen.core.utils import add_database
+from ikwen.core.utils import add_database, get_service_instance
 from ikwen.billing.models import MoMoTransaction
 from ikwen.rewarding.models import ReferralRewardPack, Reward, CumulatedCoupon, CouponSummary
 from ikwen.revival.models import MemberProfile
@@ -216,6 +217,15 @@ class IkwenAuthTestCase(unittest.TestCase):
         self.assertGreaterEqual(response.request['PATH_INFO'].find('/doSignIn/'), 0)
         self.assertEqual(response.request['QUERY_STRING'], query_string)
         self.assertIsNotNone(response.context['login_form'])
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
+    def test_login_with_api_signature(self):
+        """
+        Authenticating with API Signature works as well and returns the member who created the service
+        """
+        service = get_service_instance()
+        member = authenticate(api_signature=service.api_signature)
+        self.assertEqual(service.member, member)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
     def test_register_with_password_mismatch(self):
