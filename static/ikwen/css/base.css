@@ -347,7 +347,7 @@ footer .company-name {color: #666; text-decoration: none}
     #navbar-results {border-top: 1px solid #eee}
     .nav-tabs.swiper-wrapper {background: #f8f6f6; border-bottom: none}
     .nav-tabs > .tab {margin-bottom: -2px}
-    .nav-tabs > .tab > a {border-radius: 0;border-top: 2px solid transparent;border-bottom: 2px solid transparent;color: #aaa;font-weight: 700;line-height: 2;text-align: center;}
+    .nav-tabs > .tab > a {border-radius: 0;border-top: 2px solid transparent;border-bottom: 2px solid transparent;color: #aaa;font-weight: 700;line-height: 2;text-align: center;font-size: 15px;}
     .nav-tabs > .tab.active > a, .nav-tabs > .tab.active > a:hover, .nav-tabs > .tab.active > a:focus {
         background: none;
         border: none;

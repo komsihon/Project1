@@ -451,13 +451,15 @@
         /*
         * Resets the tab content margin-top if tabs span on more than one line
         */
-        let tabsWidth = 0;
-        $('.content-tab-list .tab').each(() => {
-            tabsWidth += $(this).width()
+        let tabsWidth = 0,
+            mt = parseInt($('#admin-content .tab-content').css('margin-top'));
+        $('.content-tab-list .tab').each((i, elt) => {
+            tabsWidth += $(elt).width()
         });
         if (tabsWidth > $('#admin-content').width()) {
-            let mt = parseInt($('#admin-content .tab-content').css('margin-top')) + 45;
-            $('#admin-content .tab-content').css('margin-top', mt + 'px')
+            $('#admin-content .tab-content').css('margin-top', (mt + 45) + 'px')
+        } else {
+            $('#admin-content .tab-content').css('margin-top', (mt - 45) + 'px')
         }
     }
 
@@ -470,7 +472,10 @@
             initContentTabListSwiper()
         } else if (winWidth >= 768) {
             if (winWidth >= 992) $epl.show().css('margin-left', 0);
-            if (!contentTabListSwiper) return;
+            if (!contentTabListSwiper) {
+                setTabContentOffset();
+                return;
+            }
             contentTabListSwiper.destroy();
             contentTabListSwiper = null;
             contentTabPaneSwiper.destroy();
@@ -481,6 +486,7 @@
             $('.tab-pane').removeClass('swiper-slide').appendTo('.tab-content');
             $('.tab-content .swiper-wrapper').remove();
             $('.tab-content').addClass('swiper-container');
+            setTabContentOffset();
         }
     }));
 

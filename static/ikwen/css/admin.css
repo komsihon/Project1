@@ -220,7 +220,7 @@ footer a {color: #999}
     .content-tab-list {background: #f8f6f6}
     #admin-tools + .content-tab-list {padding-top: 15px;}
     .content-tab-list + .tab-content {margin-top: 45px;}
-    #admin-tools + .content-tab-list {margin-top: 20px;background: #fff;padding-top: 0;}
+    #admin-tools + .content-tab-list {margin-top: 40px;background: #fff;padding-top: 0;}
     #admin-tools + .content-tab-list + .tab-content {margin-top: 57px;}
     .pagination {margin-left: 5px}
 }
