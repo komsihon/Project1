@@ -81,13 +81,16 @@ def setup_dev_env(app_name, username, database=None, project_name=None,
     print "Add this to your project settings: IKWEN_SERVICE_ID = '%s'\n\n" % s.pk
 
 
-def generate_random_key(length):
+def generate_random_key(length, alpha_num=False):
     import random
     import string
-    special_chars = string.punctuation.replace("\\", '').replace('/', ''). \
-        replace("'", '').replace('"', '').replace('?', '').replace('&', '')
+    if alpha_num:
+        special_chars = ""
+    else:
+        special_chars = string.punctuation.replace("\\", '').replace('/', ''). \
+            replace("'", '').replace('"', '').replace('?', '').replace('&', '')
     generated_key = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits + special_chars)
-                             for _ in range(length)])
+                             for i in range(length)])
     return generated_key
 
 

@@ -447,6 +447,8 @@
         contentTabPaneSwiper.slideTo(i)
     }
 
+    let tabContentOffsetChanged = false;
+
     function setTabContentOffset() {
         /*
         * Resets the tab content margin-top if tabs span on more than one line
@@ -457,8 +459,9 @@
             tabsWidth += $(elt).width()
         });
         if (tabsWidth > $('#admin-content').width()) {
-            $('#admin-content .tab-content').css('margin-top', (mt + 45) + 'px')
-        } else {
+            $('#admin-content .tab-content').css('margin-top', (mt + 45) + 'px');
+            tabContentOffsetChanged = true
+        } else if (tabContentOffsetChanged) {
             $('#admin-content .tab-content').css('margin-top', (mt - 45) + 'px')
         }
     }

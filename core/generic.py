@@ -20,7 +20,7 @@ from django.shortcuts import render, get_object_or_404
 from django.template.defaultfilters import slugify
 from django.template.loader import get_template
 from django.utils.module_loading import import_by_path
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext as _
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.forms.fields import DateField, DateTimeField
@@ -556,9 +556,9 @@ class ChangeObjectBase(TemplateView):
             else:
                 next_url = self.get_object_list_url(request, obj, *args, **kwargs)
             if object_id:
-                messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj).decode('utf8') + '</strong> ' + _('successfully updated').decode('utf8'))
+                messages.success(request, u'%s <strong>%s</strong> %s' % (obj._meta.verbose_name.capitalize(), unicode(obj), _('successfully updated')))
             else:
-                messages.success(request, obj._meta.verbose_name.capitalize() + ' <strong>' + str(obj).decode('utf8') + '</strong> ' + _('successfully created').decode('utf8'))
+                messages.success(request, u'%s <strong>%s</strong> %s' % (obj._meta.verbose_name.capitalize(), unicode(obj), _('successfully updated')))
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)
