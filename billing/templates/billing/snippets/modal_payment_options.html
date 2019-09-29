@@ -42,11 +42,11 @@
 {% if not payment_cancel_default %}
 <script>
     (() => {
-        $('body').on('click', '.payment-start', () => {
+        $('body').on('click', '.payment-start', function() {
             let productId = $(this).data('product-id');
             $('#payment-product-id').val(productId);
             $('#payment-methods').modal('show');
-        }).on('click', '.payment-method', () => {
+        }).on('click', '.payment-method', function() {
             let actionURL = $(this).data('action-url');
             $('#payment-methods .spinner').show();
             $('form#payment-start-flow').prop('action', actionURL).submit()
