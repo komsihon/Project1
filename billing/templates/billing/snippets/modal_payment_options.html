@@ -32,21 +32,23 @@
                             </li>
                         {% endif %}
                     </ul>
+                    <div class="clearfix"></div>
                 </form>
-                <div class="clearfix"></div>
+                {% include 'core/snippets/spinner.html' %}
             </div>
         </div>
     </div>
 </div>
 {% if not payment_cancel_default %}
 <script>
-    (function() {
-        $('body').on('click', '.payment-start', function() {
-            var productId = $(this).data('product-id');
+    (() => {
+        $('body').on('click', '.payment-start', () => {
+            let productId = $(this).data('product-id');
             $('#payment-product-id').val(productId);
             $('#payment-methods').modal('show');
-        }).on('click', '.payment-method', function() {
-            var actionURL = $(this).data('action-url');
+        }).on('click', '.payment-method', () => {
+            let actionURL = $(this).data('action-url');
+            $('#payment-methods .spinner').show();
             $('form#payment-start-flow').prop('action', actionURL).submit()
         });
     })()
