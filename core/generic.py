@@ -498,7 +498,7 @@ class ChangeObjectBase(TemplateView):
         else:
             obj = model()
         model_form = object_admin.get_form(request)
-        form = model_form(request.POST, instance=obj)
+        form = model_form(request.POST, request.FILES, instance=obj)
         if form.is_valid():
             obj = form.save()
             slug_field_name = request.POST.get('slug_field_name', 'slug')
