@@ -82,16 +82,17 @@
         {% if messages %}
             {% for msg in messages %}ikwen.showFloatingNotice('{{ msg|safe }}', '{{ msg.tags }}', 6);{% endfor %}
         {% endif %}
-        $('body').on('click', 'button.join-community.btn-primary', function() {
-            var _$btn = $(this),
+        $('body').on('click', 'button.join-community:not(.processing)', function() {
+            let _$btn = $(this),
                 serviceId = $(this).data('service-id'),
                 params = {service_id: serviceId, format: 'json', referrer: '{{ request.GET.referrer }}'};
-            _$btn.addClass('btn-default').removeClass('btn-primary');
+            $('button.join-community').addClass('processing');
             $.getJSON('{% url 'ikwen:join' %}', params, function(data) {
                 if (data.success) {
-                    _$btn.fadeOut('normal', 'linear', function () {
+                    $('button.join-community').fadeOut('normal', 'linear', function () {
                         _$btn.next().show();
                     });
+                    window.location = window.location;  // Reload page to cause the Service to appear in apps drawer
                     $('div#modal-join-notice .speech > div, div#modal-join-notice .actions > div, .cr-refer').hide();
                     if (data.reward.join_coupon_count || data.reward.referral_coupon_count) {
                         $('.reward-available').show();

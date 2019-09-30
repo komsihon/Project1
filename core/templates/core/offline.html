@@ -1,0 +1,26 @@
+{% extends "core/base_bs.html" %}
+{% load i18n static %}
+{% block meta %}
+    {% include 'core/snippets/color_and_icons.html' %}
+{% endblock %}
+{% block page_title %}<title>{{ service.project_name }} - {{ config.short_description  }} </title>{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <style type="text/css">
+        #top {height: 0}
+        footer {display: none}
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="content" class="container">
+        <div style="margin-top: 9%; text-align: center">
+            {% if config.logo.name %}
+            <img src="{{ config.logo.url }}" height="250"/>
+            {% endif %}
+            <div style="padding-top: 30px; text-align: center">
+                <h2>{{ service.project_name }}</h2>
+                <p style="color: #888; font-weight: 300"> {% trans "Unable to connect. Please check your internet." %} </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

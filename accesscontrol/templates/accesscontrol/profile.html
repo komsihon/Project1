@@ -37,7 +37,7 @@
 {% endblock %}
 {% block head_style %}
     {{ block.super }}
-    <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <link href="{% static 'ikwen/css/console.css' %}?v=19.9.30" media="screen" rel="stylesheet" type="text/css" />
     <link rel='stylesheet' href="{% static 'ikwen/swiper/css/swiper.min.css' %}" />
     <style>
         body {background: #f6f6f6; padding-bottom: 200px}
@@ -292,24 +292,7 @@
                                 {% endif %}
                             {% endif %}
                         </ul>
-                        {% if is_company and not app and not cr_profile %}
-                            <div class="actions">
-                                {% if user.is_authenticated %}
-                                    {% if not is_member %}
-                                        <button class="btn btn-primary btn-sm join-community" data-service-id="{{ page_service.id }}">
-                                            <img src="{% static 'ikwen/img/Join_button_white.svg' %}" height="15" style="margin: -4px 5px 0 0" />
-                                            {% trans "Join" %}
-                                        </button>
-                                    {% endif %}
-                                {% else %}
-                                    <a class="btn btn-primary btn-sm"
-                                       href="{% url 'ikwen:join' %}?service_id={{ page_service.id }}">
-                                        <img src="{% static 'ikwen/img/Join_button_white.svg' %}" height="15" style="margin: -4px 5px 0 0" />
-                                        {% trans "Join" %}
-                                    </a>
-                                {% endif %}
-                            </div>
-                        {% elif app.is_public and app.deployment_url_name %}
+                        {% if app.is_public and app.deployment_url_name %}
                             <div class="actions">
                                 <a id="deploy" class="btn btn-sm" href="{% url app.deployment_url_name %}">{% trans "DEPLOY" %}</a>
                             </div>

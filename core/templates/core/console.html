@@ -105,9 +105,10 @@
                                         {% endif %}
                                         <p style="height:30px; margin-top: 5px">{{ config.company_name|truncatewords:2 }}</p>
                                     </a>
-                                    <button class="btn btn-block btn-primary btn-sm join-community" data-service-id="{{ service.id }}">
+                                    <button class="btn btn-block btn-green btn-sm join-community" data-service-id="{{ service.id }}">
+                                        {% include 'core/snippets/button_spinner.html' %}
                                         <img src="{% static 'ikwen/img/Join_button_white.svg' %}" height="15" style="margin: -4px 5px 0 0" />
-                                        {% trans "Join" %}
+                                        <strong>{% trans "Join" %}</strong>
                                     </button>
                                     <div class="join-successful"> <i class="fa fa-check"></i> </div>
                                 </div>
