@@ -315,7 +315,7 @@ footer .company-name {color: #666; text-decoration: none}
     label {font-size: 15px}
     .card-xs {padding: 0}
     .modal .actions .action, .modal .actions .btn {margin-top: .6em}
-    input.input-sm, select.input-sm, .btn-sm {height: 50px;font-size: 15px;}
+    input.input-sm, select.input-sm, .btn-sm {height: 45px;font-size: 15px;padding: 10px 15px}
     .ik-li {padding: 18px 10px}
     .ik-li.img-lg {padding: 8px 6px}
     .ik-li.img-lg .image {height: 100px; width: 130px;}
