@@ -2,7 +2,7 @@ import json
 from time import strptime
 
 from django.conf import settings
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import user_passes_test
 from django.db import transaction
 from django.http import HttpResponse
 from django.template import Context
@@ -12,6 +12,7 @@ from django.views.generic import TemplateView
 from ikwen.core.constants import PENDING
 
 from ikwen.accesscontrol.models import Member
+from ikwen.accesscontrol.utils import is_bao
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from django.core.mail import EmailMessage
@@ -24,7 +25,7 @@ from ikwen.cashout.models import CashOutRequest, CashOutAddress, CashOutMethod
 
 
 # TODO: Write test for this function. Create and call the right template in the sending of mail
-@permission_required('accesscontrol.sudo')
+@user_passes_test(is_bao)
 def request_cash_out(request, *args, **kwargs):
     provider = request.GET['provider']
     method = CashOutMethod.objects.using(UMBRELLA).get(slug=provider)
@@ -90,7 +91,7 @@ def request_cash_out(request, *args, **kwargs):
     return HttpResponse(json.dumps({'success': True}), 'content-type: text/json')
 
 
-@permission_required('accesscontrol.sudo')
+@user_passes_test(is_bao)
 def manage_payment_address(request, *args, **kwargs):
     action = request.GET['action']
     address_id = request.GET.get('address_id')

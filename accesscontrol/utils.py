@@ -59,6 +59,12 @@ def is_admin(member):
     return False
 
 
+def is_bao(member):
+    if member.is_anonymous():
+        return False
+    return member.is_bao
+
+
 def get_members_having_permission(model, codename):
     """
     Gets a list of members having the permission of the given model and codename
@@ -226,9 +232,14 @@ class EmailConfirmationPrompt(TemplateView):
             subject = _("Confirm your email and get started !")
             template_name = 'accesscontrol/mails/confirm_email.html'
             confirmation_url = reverse('ikwen:confirm_email', args=(uid, token))
+            service = get_service_instance()
+            if service.is_standalone:
+                confirmation_url = service.url + confirmation_url
+            else:
+                confirmation_url = ikwenize(confirmation_url)
             ikwen_service = Service.objects.using(UMBRELLA).get(pk=IKWEN_SERVICE_ID)
             html_content = get_mail_content(subject, service=ikwen_service, template_name=template_name,
-                                            extra_context={'confirmation_url': ikwenize(confirmation_url),
+                                            extra_context={'confirmation_url': confirmation_url,
                                                            'member_name': member.first_name, 'next_url': next_url})
             sender = 'ikwen <no-reply@ikwen.com>'
             msg = EmailMessage(subject, html_content, sender, [member.email])

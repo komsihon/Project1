@@ -11,7 +11,7 @@ register = template.Library()
 @stringfilter
 def append_auth_tokens(url, request):
     """
-    Given a base 64 uid and a token, returns the matching :class:`ikwen.foundation.core.models.Member`
+    Given a base 64 uid and a token, returns the matching :class:`ikwen.accesscontrol.models.Member`
     if they are correct, else return None
     """
     uidb64 = request.GET.get(UID_B64)

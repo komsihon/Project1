@@ -209,6 +209,10 @@ class Service(models.Model):
     status = models.CharField(max_length=15, default=PENDING, choices=STATUS_CHOICES)
     is_public = models.BooleanField(default=True,
                                     help_text=_("If true, the service can appear in ikwen search results."))
+    is_standalone = models.BooleanField(default=False,
+                                        help_text=_("If true, the service is considered to be running in total "
+                                                    "isolation from ikwen platform and thus has his own umbrella "
+                                                    "database and all links point internally; no link to ikwen.com"))
     # Date of expiry of the service. The billing system automatically sets it to
     # IkwenInvoice.due_date + IkwenInvoice.tolerance
     # IkwenInvoice in this case is the invoice addressed to client for this Service

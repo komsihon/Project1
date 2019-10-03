@@ -46,15 +46,17 @@
                             {% endif %}
                         </div>
                         <div class="col-sm-4" style="text-align: right">
-                        {% if can_cash_out %}
-                            <button id="show-addresses" class="btn btn-primary btn-sm pull-right"
-                                    data-toggle="modal" data-target="#confirm-cash-out">{% trans "REQUEST A PAYMENT" %}</button>
-                            <p class="request-result text-success" style="display: none">{% trans "Request successful" %}</p>
-                            <p class="request-result text-danger" style="display: none">{% trans "Request failed" %}</p>
-                        {% else %}
-                            <div class="text-muted" style="margin-top: 1em">
-                                {% trans "You can cash out as from" %} <strong>{{ config.currency_symbol }} {{ config.cash_out_min|intcomma }}</strong>
-                            </div>
+                        {% if user.is_bao %}
+                            {% if can_cash_out %}
+                                <button id="show-addresses" class="btn btn-primary btn-sm pull-right"
+                                        data-toggle="modal" data-target="#confirm-cash-out">{% trans "REQUEST A PAYMENT" %}</button>
+                                <p class="request-result text-success" style="display: none">{% trans "Request successful" %}</p>
+                                <p class="request-result text-danger" style="display: none">{% trans "Request failed" %}</p>
+                            {% else %}
+                                <div class="text-muted" style="margin-top: 1em">
+                                    {% trans "You can cash out as from" %} <strong>{{ config.currency_symbol }} {{ config.cash_out_min|intcomma }}</strong>
+                                </div>
+                            {% endif %}
                         {% endif %}
                         </div>
                     </div>
@@ -107,6 +109,7 @@
                                             <p>{{ address.account_number|slice:"0:2" }} • • • {{ address.account_number|slice:"-3:" }}</p>
                                             <p class="text-muted">{{ address.name }}</p>
                                         </div>
+                                        {% if user.is_bao %}
                                         <div class="dropdown" style="cursor: pointer; float: right">
                                             <span class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                                 <i class="glyphicon glyphicon-option-vertical text-muted"></i>
@@ -121,6 +124,7 @@
                                                 </li>
                                             </ul>
                                         </div>
+                                        {% endif %}
                                         <div class="clearfix"></div>
                                     </li>
                                 {% empty %}
