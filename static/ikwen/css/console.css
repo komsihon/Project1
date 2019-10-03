@@ -36,8 +36,7 @@
 
 .cr-join-widget {margin: 45px 0 60px}
 .bottom-join .cr-join-widget {margin: 0}
-.btn.join-community {background: #2cb100; border-color: #2cb100; font-weight: 600}
-.cr-join-widget .btn.join-community {width: 180px}
+.cr-join-widget .btn.join-community {width: 240px}
 .bottom-join {background: #fff; bottom: -140px; height: 125px; left: 0;
     position: fixed; width: 100%; z-index: 1000; transition: all .3s}
 .bottom-join.revealed {bottom: 0; transition: all .3s}
@@ -163,7 +162,7 @@
 .card-li .cover img {border-radius: 4px;float: left;margin: 10px;}
 .card-li .img {background: no-repeat center; background-size: cover; height: 180px}
 .card-li .btn {font-weight: 600}
-.join-successful {color: #57b21b; display: none; font-size: 30px; height: 35px; line-height: 32px}
+.join-successful {color: #57b21b;display: none;font-size: 30px;height: 35px;line-height: 32px;}
 .access-request .member-name {font-weight: 700;}
 .disc.coupon {background: #e84735;border-radius: 13px;color: #fff;float: left;font-size: 15px;height: 26px;line-height: 24px;margin: -5px 5px 0 0;text-align: center;width: 26px;}
 

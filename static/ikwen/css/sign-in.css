@@ -16,7 +16,6 @@ body {/* background: #f8f6f6 url(../../ikwen/img/ikwen_login-bg.jpg) no-repeat c
 .register-title {font-weight: 300}
 .register-title img {float: left}
 label span {font-weight: normal}
-.spinner {color: #2c3e50; height: 25px; margin-top: 15px; text-align: center; visibility: hidden}
 .welcome {color: #fff; display: none; font-family: "Lato", "PT Sans", sans-serif; font-size: 1.6em; font-weight: 300; overflow: hidden; text-align: center; }
 .default-pwd {font-size: 2em}
 .change-pwd {height: 0; overflow: hidden; transition: height .3s}
