@@ -3,6 +3,7 @@ import json
 import logging
 import random
 import string
+from datetime import datetime, timedelta
 from threading import Thread
 
 from django.conf import settings
@@ -17,6 +18,7 @@ from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode, base36_to_int
+from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 from permission_backend_nonrel.models import UserPermissionList, GroupPermissionList
@@ -233,7 +235,7 @@ class EmailConfirmationPrompt(TemplateView):
             template_name = 'accesscontrol/mails/confirm_email.html'
             confirmation_url = reverse('ikwen:confirm_email', args=(uid, token))
             service = get_service_instance()
-            if service.is_standalone:
+            if service.config.is_standalone:
                 confirmation_url = service.url + confirmation_url
             else:
                 confirmation_url = ikwenize(confirmation_url)
@@ -376,6 +378,12 @@ def invite_member(service, member):
             logger.error(notice, exc_info=True)
 
 
+def bind_referrer_to_member(service, referrer, member):
+    app = service.app
+    referrer_bind_callback = import_by_path(app.referrer_bind_callback)
+    referrer_bind_callback(service, referrer, member)
+
+
 def shift_ghost_member(member, db='default'):
     phone = str(member.phone)
     if phone.startswith('237') and len(phone) == 12:  # When saving ghost contacts '237' is stripped
@@ -469,3 +477,92 @@ def set_member_basic_profile_tags(member, db='default'):
         member_profile.tag_fk_list.append(ref_tag.id)
 
     member_profile.save(using=db)
+
+
+class DateJoinedFilter(object):
+    title = _('Registration')
+    parameter_name = 'date_joined'
+    is_date_filter = True
+
+    def lookups(self):
+        choices = [
+            ('__period__today', _("Today")),
+            ('__period__yesterday', _("Yesterday")),
+            ('__period__last_7_days', _("Last 7 days")),
+            ('__period__last_30_days', _("Last 30 days")),
+        ]
+        return choices
+
+    def queryset(self, request, queryset):
+        value = request.GET.get(self.parameter_name)
+        if not value:
+            return queryset
+
+        now = datetime.now()
+        start_date, end_date = None, now
+        value = value.replace('__period__', '')
+        if value == 'today':
+            start_date = datetime(now.year, now.month, now.day, 0, 0, 0)
+        elif value == 'yesterday':
+            yst = now - timedelta(days=1)
+            start_date = datetime(yst.year, yst.month, yst.day, 0, 0, 0)
+            end_date = datetime(yst.year, yst.month, yst.day, 23, 59, 59)
+        elif value == 'last_7_days':
+            b = now - timedelta(days=7)
+            start_date = datetime(b.year, b.month, b.day, 0, 0, 0)
+        elif value == 'last_30_days':
+            b = now - timedelta(days=30)
+            start_date = datetime(b.year, b.month, b.day, 0, 0, 0)
+        else:
+            start_date, end_date = value.split(',')
+            start_date += ' 00:00:00'
+            end_date += ' 23:59:59'
+        member_qs = Member.objects.filter(date_joined__range=(start_date, end_date))
+        member_id_list = [member.id for member in member_qs]
+        queryset = queryset.filter(user_id__in=member_id_list)
+        return queryset
+
+
+class DOBFilter(object):
+    title = _('Birthday')
+    parameter_name = 'dob'
+
+    def lookups(self):
+        choices = [
+            ('__period__today', _("Today")),
+            ('__period__tomorrow', _("Tomorrow")),
+            ('__period__next_7_days', _("Next 7 days")),
+            ('__period__next_30_days', _("Next 30 days")),
+        ]
+        return choices
+
+    def queryset(self, request, queryset):
+        value = request.GET.get(self.parameter_name)
+        if not value:
+            return queryset
+
+        now = datetime.now()
+        value = value.replace('__period__', '')
+        member_qs = Member.objects.filter(dob__isnull=False)
+        if value == 'today':
+            birthday = int(now.strftime('%m%d'))
+            member_qs = member_qs.filter(birthday=birthday)
+        elif value == 'tomorrow':
+            target = now + timedelta(days=1)
+            birthday = int(target.strftime('%m%d'))
+            member_qs = member_qs.filter(birthday=birthday)
+        elif value == 'next_7_days':
+            start = now + timedelta(days=1)
+            end = now + timedelta(days=7)
+            start = int(start.strftime('%m%d'))
+            end = int(end.strftime('%m%d'))
+            member_qs = member_qs.filter(birthday__range=(start, end))
+        else:  # value == '__period__next_30_days'
+            start = now + timedelta(days=1)
+            end = now + timedelta(days=30)
+            start = int(start.strftime('%m%d'))
+            end = int(end.strftime('%m%d'))
+            member_qs = member_qs.filter(birthday__range=(start, end))
+        member_id_list = [member.id for member in member_qs]
+        queryset = queryset.filter(user_id__in=member_id_list)
+        return queryset

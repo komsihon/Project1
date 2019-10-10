@@ -1,4 +1,4 @@
-{% extends "core/app_base_admin.html" %}
+{% extends "core/object_list_base.html" %}
 {% load i18n humanize staticfiles auth_tokens %}
 
 {% block page_title %}
@@ -22,7 +22,6 @@
         #group-update h5 em {color: #888}
         li.member.ghost .full_name {font-style: italic}
         #admin-tools .import {margin-left: 15px}
-        #page-navigation {float: left; margin: 10px 0 0 10px}
         @media (min-width: 768px) {
             #groups {clear: both; margin-top: 15px}
             .form-group.new-contact-profile {margin-bottom: 50px}
@@ -43,31 +42,62 @@
         <div class="container-fluid">
             {# ADMIN TOOLS: Must be smartly replaced by the standard one #}
             <div id="admin-tools">
-                <form id="admin-tools-form" onsubmit="return false">
+                <form id="admin-tools-form">
                     <div>
-                        <i class="glyphicon glyphicon-search"></i>
-                        <i class="glyphicon glyphicon-menu-left hide-search back"></i>
-                        <input id="context-search" type="text" class="form-input input-sm tool search" placeholder="{% trans "Search" %}"/>
+                        <div>
+                            <i class="glyphicon glyphicon-search"></i>
+                            <i class="glyphicon glyphicon-menu-left hide-search back"></i>
+                            <input id="context-search" type="text" placeholder="{% trans "Search" %}" value="{% if q %}{{ q }}{% endif %}"
+                                   class="input-sm tool search" data-min-search-chars="2"/>
+                        </div>
+                        {% if filter and filter|length > 0 %}
+                            <div class="filter-trigger">
+                                <i class="glyphicon glyphicon-filter"></i>
+                                <i class="glyphicon glyphicon-menu-left hide-filter back"></i>
+                                <div class="show-floating-filter btn btn-default btn-sm hidden-xs" style="display: none; padding-left: 30px">
+                                    <div>
+                                        <span class="pull-left">{% trans "Filters" %}</span>
+                                        <span class="caret pull-right" style="margin: 7px 0 0 5px"></span>
+                                    </div>
+                                </div>
+                                <div class="floating-filter subtle-shade" style="display: none">
+                                    <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                </div>
+                                {% for elt in filter %}
+                                    <div class="tool filter{% if elt.is_date_filter %} period{% endif %}">
+                                        <label for="{{ elt.parameter_name }}" class="sr-only">{% trans elt.title %}</label>
+                                        <select id="{{ elt.parameter_name }}" style="float: left; width: 120px;{% if forloop.counter > 1 %} padding-left: 10px{% endif %}"
+                                                class="form-control input-sm {{ elt.parameter_name }} widget" name="{{ elt.parameter_name }}">
+                                            <option value="">{% trans "All" %} {% trans elt.title %}</option>
+                                            {% for choice in elt.choices %}
+                                                <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                                            {% endfor %}
+                                            {% if elt.is_date_filter %}
+                                                <option value="other">{% trans "Other" %}</option>
+                                            {% endif %}
+                                        </select>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                 </form>
-                <div id="page-navigation" class="text-muted" data-page-index="1" data-page-size="{{ page_size }}">
-                    {% if total_objects > page_size %}
-                        <div><strong class="start">1</strong> - <strong class="finish">{{ page_size }}</strong> {% trans "of" %} <strong class="total">{{ total_objects }}</strong></div>
-                        <div style="margin: -8px 0 0 10px"><i class="finished back"> < </i><i class="next"> > </i></div>
-                    {% else %}
-                        <div>{{ total_objects }}/{{ total_objects }}</div>
+                <div id="admin-tools-actions">
+                    {% url change_object_url_name as change_object_url %}
+                    <a href="javascript:;" class="btn btn-sm btn-success cta add pull-right action"
+                            data-toggle="modal" data-target="#modal-add-contact" title="{% trans "Add new contact" %}">
+                        <i class="glyphicon glyphicon-plus"></i>
+                        <span class="hidden-xs">{% trans "Add" %}</span>
+                    </a>
+                    {% if show_import %}
+                        <button class="btn btn-sm btn-success cta pull-right action"
+                           title="{% blocktrans %}Import {{ verbose_name }} list from CSV file{% endblocktrans %}"
+                           style="margin-right: 5px" data-toggle="modal" data-target="#modal-import">
+                            <i class="fa fa-file-import"></i>
+                            <span class="hidden-xs">{% trans "Import" %}</span>
+                        </button>
                     {% endif %}
                 </div>
-{#                <a href="javascript:;" class="btn btn-sm btn-success cta import pull-right action"#}
-{#                        title="{% trans "Import contacts from Spreasheet" %}">#}
-{#                    <i class="glyphicon glyphicon-list-alt"></i>#}
-{#                    <span class="hidden-xs">{% trans "Import" %}</span>#}
-{#                </a>#}
-                <a href="javascript:;" class="btn btn-sm btn-success cta add pull-right action"
-                        data-toggle="modal" data-target="#modal-add-contact" title="{% trans "Add new contact" %}">
-                    <i class="glyphicon glyphicon-plus"></i>
-                    <span class="hidden-xs">{% trans "Add" %}</span>
-                </a>
                 <div class="clearfix"></div>
             </div>
             {# END ADMIN TOOLS #}
@@ -93,41 +123,7 @@
             </div>
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="{{ group_list.0.id }}">
-                    {% include 'core/snippets/spinner.html' %}
-                    <ul class="people object-list">
-                    {% for obj in nonrel_perm_list %}
-                        {% with user=obj.user %}
-                        <li id="{{ user.id }}" class="ik-li member {{ user.get_status }}{% if user.is_ghost %} ghost{% endif %}"
-                            data-id="{{ user.id }}" data-status="{{ user.get_status }}"
-                            data-permissions="{% for perm in obj.permission_fk_list %},{{ perm }}{% endfor %}">
-                            {% url 'ikwen:profile' user.id as member_url %}
-                        {% if user.photo and user.photo.name %}
-                            <a href="{{ member_url|ikwenize }}" class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ user.photo.small_name }})"></a>
-                        {% else %}
-                            <a href="{{ member_url|ikwenize }}" class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
-                        {% endif %}
-                            <div class="info">
-                                <a href="{{ member_url|ikwenize }}" class="full_name">{{ user.full_name }}</a>
-                                <p class="about">{{ user.phone }}, {{ user.email }}</p>
-                            </div>
-                            {% if user.is_ghost %}
-                            <div class="actions">
-                                <i class="action glyphicon glyphicon-edit" title="{% trans "Edit" %}"></i>
-                            </div>
-                            {% endif %}
-                        </li>
-                        {% endwith %}
-                    {% endfor %}
-                        <li class="ik-li member tpl" style="display: none">
-                            <a class="photo bg-img target_url"></a>
-                            <div class="info">
-                                <a class="full_name target_url"></a>
-                                <p class="about">
-                                    <span class="phone"></span>, <span class="email"></span>
-                                </p>
-                            </div>
-                        </li>
-                    </ul>
+                    {% include 'accesscontrol/snippets/community_list_results.html' %}
                 </div>
                 {% for group in group_list|slice:'1:' %}
                     <div role="tabpanel" class="tab-pane" id="{{ group.id }}">
@@ -274,19 +270,9 @@
                 $('div#object-detail .empty').show();
                 $('div#object-detail .actions').hide();
                 if (groupId === 'results') return;
-                $('body').css('cursor', 'wait');
-                $.getJSON('{% url 'ikwen:community' %}',
-                        {group_name: groupName, start: 0, length: 100, format: 'json'}, function(data) {
-                    $('body').css('cursor', 'default');
-                    $('div#' + groupId + ' li.member:not(.tpl)').remove();
-                    $('div#page-navigation div').text(data.length + '/' + data.length);
-                    for(var i=0; i<data.length; i++) {
-                        var member = data[i],
-                            $tpl = $('div#' + groupId + ' li.member.tpl').clone().removeClass('tpl');
-                        $tpl = applyMemberTemplate($tpl, member);
-                        $tpl.insertBefore('div#' + groupId + ' li.member.tpl').show();
-                    }
-                });
+                $(`#${groupId}.tab-pane .spinner`).fadeIn();
+                let query = `group_name=${groupName}&start=0&length=50&format=html_results`;
+                $(`#${groupId}.tab-pane`).load('', query);
             });
             function applyMemberTemplate($tpl, member) {
                 $tpl.addClass(member.status).data({"id": member.id, "status": member.status, "permissions": member.permissions});
@@ -411,6 +397,7 @@
             }
             $('#context-search').unbind();
             ikwen.setupSearch('#context-search', '#results', searchDescriptor, beforeSearch);
+            $('#admin-content').on('change', '#admin-tools .filter select', beforeSearch);
         })()
     </script>
 {% endblock %}

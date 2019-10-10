@@ -57,7 +57,7 @@ def setup_dev_env(app_name, username, database=None, project_name=None,
     c = config_model.objects.using(UMBRELLA).create(service=s, company_name=project_name, contact_email=m.email,
                                                     company_name_slug=project_name_slug, signature=mail_signature)
     c.save(using='default')
-    InvoicingConfig.objects.create(name='Default')
+    InvoicingConfig.objects.create(service=s)
     FlatPage.objects.create(url=FlatPage.AGREEMENT, title=FlatPage.AGREEMENT)
     FlatPage.objects.create(url=FlatPage.LEGAL_MENTIONS, title=FlatPage.LEGAL_MENTIONS)
     Group.objects.create(name=COMMUNITY)

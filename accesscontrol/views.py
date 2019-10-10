@@ -35,7 +35,7 @@ from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.utils import send_welcome_email, shift_ghost_member, import_ghost_profile_to_member, \
-    invite_member
+    invite_member, bind_referrer_to_member, DOBFilter, DateJoinedFilter
 from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SMSPasswordResetForm, SetPasswordForm, \
     SetPasswordFormSMSRecovery
 from ikwen.accesscontrol.models import Member, AccessRequest, \
@@ -612,7 +612,7 @@ class CompanyProfile(TemplateView):
     """
     template_name = 'accesscontrol/profile.html'
 
-    def get(self, request, *args, **kwargs):
+    def get_context_data(self, **kwargs):
         context = super(CompanyProfile, self).get_context_data(**kwargs)
         project_name_slug = kwargs['project_name_slug']
         service = get_object_or_404(Service, project_name_slug=project_name_slug)
@@ -639,7 +639,11 @@ class CompanyProfile(TemplateView):
         context['profile_city'] = config.city
         context['profile_photo_url'] = config.logo.url if config.logo.name else ''
         context['profile_cover_url'] = config.cover_image.url if config.cover_image.name else ''
-        member = request.user
+        member = self.request.user
+        referrer_id = self.request.GET.get('referrer')
+        if referrer_id:
+            referrer = get_object_or_404(Member, pk=referrer_id)
+            context['referrer'] = referrer
         if member.is_authenticated():
             try:
                 AccessRequest.objects.get(member=member, service=service)
@@ -677,13 +681,15 @@ class CompanyProfile(TemplateView):
             context['url'] = urlquote(url)
             context['cr_profile'] = cr_profile
             context['coupon_list'] = coupon_list
-        return render(request, self.template_name, context)
+        return context
 
 
 class Community(HybridListView):
     MAX = 50
     page_size = 50
     template_name = 'accesscontrol/community.html'
+    html_results_template_name = 'accesscontrol/snippets/community_list_results.html'
+    embed_doc_template_name = 'embed_doc/community.html'
     context_object_name = 'nonrel_perm_list'
     ordering = ('-id', )
     ajax_ordering = ('-id', )
@@ -696,6 +702,14 @@ class Community(HybridListView):
             group_id = Group.objects.get(name=COMMUNITY).id
         return UserPermissionList.objects.raw_query({'group_fk_list': {'$elemMatch': {'$eq': group_id}}})
 
+    def get_list_filter(self):
+        list_filter = [DateJoinedFilter]
+        if get_service_instance().config.register_with_dob:
+            list_filter.append(DOBFilter)
+        community_filter = getattr(settings, 'COMMUNITY_FILTER', [])
+        list_filter.extend(community_filter)
+        return list_filter
+
     def get_context_data(self, **kwargs):
         context = super(Community, self).get_context_data(**kwargs)
         group_list = [Group.objects.get(name=COMMUNITY)]
@@ -704,6 +718,7 @@ class Community(HybridListView):
         context['sudo_group'] = Group.objects.get(name=SUDO)
         context['profiletag_list'] = ProfileTag.objects.exclude(slug__in=['men', 'women']).filter(is_active=True, is_auto=False)
         context['preference_list'] = ProfileTag.objects.exclude(slug__in=[JOIN, REFERRAL]).filter(is_active=True, is_auto=True)
+        context['member_detail_view'] = getattr(settings, 'MEMBER_DETAIL_VIEW', None)
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -929,16 +944,17 @@ def join(request, *args, **kwargs):
     Thread(target=lambda m: m.send(), args=(msg, )).start()
     if referrer_id:
         referrer = Member.objects.get(pk=referrer_id)
-        referrer_profile, update = MemberProfile.objects.get_or_create(member=referrer)
-        men_tag, update = ProfileTag.objects.get_or_create(name='Men', slug='men', is_reserved=True)
-        women_tag, update = ProfileTag.objects.get_or_create(name='Women', slug='women', is_reserved=True)
+        bind_referrer_to_member(service, referrer, member)
+        referrer_profile, update = MemberProfile.objects.using(db).get_or_create(member=referrer)
+        men_tag, update = ProfileTag.objects.using(db).get_or_create(name='Men', slug='men', is_reserved=True)
+        women_tag, update = ProfileTag.objects.using(db).get_or_create(name='Women', slug='women', is_reserved=True)
 
         referrer_tag_fk_list = referrer_profile.tag_fk_list
         if men_tag.id in referrer_tag_fk_list:
             referrer_tag_fk_list.remove(men_tag.id)
         if women_tag.id in referrer_tag_fk_list:
             referrer_tag_fk_list.remove(women_tag.id)
-        member_profile, update = MemberProfile.objects.get_or_create(member=member)
+        member_profile, update = MemberProfile.objects.using(db).get_or_create(member=member)
         member_profile.tag_fk_list.extend(referrer_tag_fk_list)
         if member.gender == MALE:
             member_profile.tag_fk_list.append(men_tag.id)

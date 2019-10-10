@@ -9,6 +9,8 @@ sys.path.append('/home/ikwen/Cloud/Kakocase/tchopetyamo')
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "conf.settings")
 import subprocess
+import pymongo
+from pymongo import MongoClient
 
 from ikwen.core.models import *
 from ikwen.core.utils import *
@@ -325,8 +327,6 @@ def clear_ikwen_members_from_tchopetyamo_umbrella():
 
 
 def create_index_on_revival():
-    import pymongo
-    from pymongo import MongoClient
     client = MongoClient('46.101.107.75', 27017)
 
     for service in Service.objects.all():
@@ -342,8 +342,6 @@ def create_index_on_revival():
 
 
 def create_sent_mail_collection():
-    import pymongo
-    from pymongo import MongoClient
     client = MongoClient('46.101.107.75', 27017)
 
     for service in Service.objects.all():
@@ -373,5 +371,65 @@ def create_go_links():
             continue
 
 
-if __name__ == "__main__":
-    send_bulk_sms()
+def shift_favicons_to_icons():
+    """
+    Rename favicons folder to icons
+    :return:
+    """
+    cluster_media_root = getattr(settings, 'CLUSTER_MEDIA_ROOT')
+    for service in Service.objects.all():
+        favicons_folder = cluster_media_root + service.project_name_slug + '/favicons'
+        if os.path.exists(favicons_folder):
+            icons_folder = cluster_media_root + service.project_name_slug + '/icons'
+            try:
+                os.rename(favicons_folder, icons_folder)
+            except:
+                print "Failed to rename %s to %s" % (favicons_folder, icons_folder)
+
+
+def delete_duplicate_users_from_local_dbs():
+    client = MongoClient('46.101.107.75', 27017)
+
+    for service in Service.objects.filter(project_name_slug__in=['xmboa', 'ebonixe', 'maisonnouss', 'deboyshop']):
+        db = service.database
+        if not db or db == 'ikwen_umbrella_prod':
+            continue
+        add_database(db)
+        delete_list = set()
+        total = Member.objects.using(db).all().count()
+        chunks = total / 500 + 1
+        for i in range(chunks):
+            start = i * 500
+            finish = (i + 1) * 500
+            for member in Member.objects.using(db).all()[start:finish]:
+                try:
+                    Member.objects.using('umbrella').get(pk=member.id)
+                except Member.DoesNotExist:
+                    delete_list.add(member.id)
+                try:
+                    Member.objects.using('umbrella').get(email=member.email)
+                except Member.DoesNotExist:
+                    delete_list.add(member.id)
+                try:
+                    Member.objects.using('umbrella').get(phone=member.phone)
+                except Member.DoesNotExist:
+                    delete_list.add(member.id)
+        Member.objects.using(db).filter(pk__in=list(delete_list)).delete()
+
+        dbh = client[db]
+        dbh.ikwen_member.create_index([('email', pymongo.ASCENDING)], unique=True)
+        dbh.ikwen_member.create_index([('phone', pymongo.ASCENDING)], unique=True)
+
+
+def set_birthdays():
+    for service in Service.objects.all():
+        db = service.database
+        add_database(db)
+        total = Member.objects.using(db).filter(dob__isnull=False).count()
+        chunks = total / 500 + 1
+        for i in range(chunks):
+            start = i * 500
+            finish = (i + 1) * 500
+            for member in Member.objects.using(db).filter(dob__isnull=False)[start:finish]:
+                member.birthday = member.dob.strftime('%m%d')
+                member.save(using=db)

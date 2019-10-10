@@ -128,6 +128,7 @@ class Member(AbstractUser):
     phone = models.CharField(max_length=30, db_index=True, blank=True, null=True)
     gender = models.CharField(max_length=15, blank=True, null=True)
     dob = models.DateField(blank=True, null=True)
+    birthday = models.IntegerField(blank=True, null=True)  # Integer value of birthday only as MMDD. Eg:1009 for Oct. 09
     language = models.CharField(max_length=10, blank=True, null=True, default=get_language)
     photo = MultiImageField(upload_to=PROFILE_UPLOAD_TO, blank=True, null=True, max_size=600, small_size=200, thumb_size=100)
     cover_image = models.ImageField(upload_to=COVER_UPLOAD_TO, blank=True, null=True)
@@ -263,8 +264,11 @@ class Member(AbstractUser):
         var['status'] = self.get_status()
         import ikwen.conf.settings
         var['photo'] = ikwen.conf.settings.MEDIA_URL + self.photo.small_name if self.photo.name else Member.AVATAR
-        url = reverse('ikwen:profile', args=(self.id, ))
-        var['url'] = ikwenize(url)
+        member_detail_view = getattr(settings, 'MEMBER_DETAIL_VIEW', 'ikwen:profile')
+        url = reverse(member_detail_view, args=(self.id, ))
+        if member_detail_view == 'ikwen:profile':
+            url = ikwenize(url)
+        var['url'] = url
         try:
             var['permissions'] = ','.join(UserPermissionList.objects.get(user=self).permission_fk_list)
         except UserPermissionList.DoesNotExist:

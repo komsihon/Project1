@@ -137,7 +137,7 @@ class HybridListView(ListView):
             context['q'] = self.request.GET.get('q')
             context['objects_page'] = objects_page
             min_page = page - (page % self.max_visible_page_count) + 1
-            max_page = min_page + self.max_visible_page_count
+            max_page = min_page + min(paginator.num_pages, self.max_visible_page_count)
             context['page_range'] = range(min_page, max_page + 1)
             if fmt == 'html_results':
                 return render(self.request, self.html_results_template_name, context)
@@ -213,17 +213,30 @@ class HybridListView(ListView):
                 queryset = queryset.filter(**kwargs)
         return queryset
 
+    def get_list_filter(self):
+        return self.list_filter
+
     def get_filter(self):
+        """
+        Generates the filter options based on self.get_list_filter()
+        """
         options = []
-        for item in self.list_filter:
-            if callable(item):
+        for item in self.get_list_filter():
+            if callable(item) or (type(item) is str and item.find('.') > 0):
+                if type(item) is str:
+                    item = import_by_path(item)
                 filter = item()
                 choices = filter.lookups()
+                try:
+                    is_date_filter = item.is_date_filter
+                except:
+                    is_date_filter = False
                 if choices:
                     options.append({
                         'title': filter.title,
                         'parameter_name': filter.parameter_name,
-                        'choices': filter.lookups()
+                        'choices': filter.lookups(),
+                        'is_date_filter': is_date_filter
                     })
             else:
                 if type(item) is tuple:
@@ -299,8 +312,10 @@ class HybridListView(ListView):
         return response
 
     def filter_queryset(self, queryset):
-        for item in self.list_filter:
-            if callable(item):
+        for item in self.get_list_filter():
+            if callable(item) or (type(item) is str and item.find('.') > 0):
+                if type(item) is str:
+                    item = import_by_path(item)
                 filter = item()
                 queryset = filter.queryset(self.request, queryset)
             else:

@@ -91,6 +91,9 @@ class Application(AbstractWatchModel):
     deployment_url_name = models.CharField(max_length=100, blank=True, null=True,
                                       help_text=_("Django URL name: <strong>[<em>namespace</em>:]view_name</strong> "
                                                   "of the view that handles deployment of this application."))
+    referrer_bind_callback = models.CharField(max_length=150, blank=True, null=True,
+                                              help_text=_("Callback to run to actually bind a referrer to a member "
+                                                          "in this application."))
     is_public = models.BooleanField(default=True,
                                     help_text=_("If true, the <em>Deploy</em> button appears on the "
                                                 "application's description page on ikwen website."))
@@ -209,10 +212,6 @@ class Service(models.Model):
     status = models.CharField(max_length=15, default=PENDING, choices=STATUS_CHOICES)
     is_public = models.BooleanField(default=True,
                                     help_text=_("If true, the service can appear in ikwen search results."))
-    is_standalone = models.BooleanField(default=False,
-                                        help_text=_("If true, the service is considered to be running in total "
-                                                    "isolation from ikwen platform and thus has his own umbrella "
-                                                    "database and all links point internally; no link to ikwen.com"))
     # Date of expiry of the service. The billing system automatically sets it to
     # IkwenInvoice.due_date + IkwenInvoice.tolerance
     # IkwenInvoice in this case is the invoice addressed to client for this Service
@@ -629,6 +628,13 @@ class AbstractConfig(Model):
                     "<ul><li>Personal Payment accounts (Personal PayPal, Personal Mobile Money, etc.)</li>"
                     "<li>Set the Checkout minimum without restriction</li>"
                     "<li>Technical tools like configuring their own Google Analytics scripts, etc.</li></ul>"))
+    is_standalone = models.BooleanField(default=False,
+                                        help_text=_("If checked, the service is considered to be running in total "
+                                                    "isolation from ikwen platform and thus has his own umbrella "
+                                                    "database and all links point internally; no link to ikwen.com"))
+    register_with_dob = models.BooleanField(default=False,
+                                            help_text=_("If checked, visitors will be asked for date of birth upon "
+                                                        "registration."))
     decimal_precision = models.IntegerField(default=2)
     can_manage_currencies = models.BooleanField(default=False)
     last_currencies_rates_update = models.DateTimeField(editable=False, null=True)
@@ -723,6 +729,7 @@ class Config(AbstractConfig):
                 obj_mirror.currency_symbol = self.currency_symbol
                 obj_mirror.cash_out_min = self.cash_out_min
                 obj_mirror.is_pro_version = self.is_pro_version
+                obj_mirror.is_standalone = self.is_standalone
                 obj_mirror.can_manage_currencies = self.can_manage_currencies
                 obj_mirror.sms_api_script_url = self.sms_api_script_url
                 super(Config, obj_mirror).save(using=db)
@@ -885,7 +892,7 @@ class XEmailObject(models.Model):
     subject = models.CharField(max_length=255, db_index=True)
     body = models.TextField()
     status = models.TextField(db_index=True)  # "OK" if mail sent.
-    type = models.CharField(max_length=30, choices=TYPE_CHOICES, db_index=True)
+    type = models.CharField(max_length=30, choices=TYPE_CHOICES, default=TRANSACTIONAL, db_index=True)
     created_on = models.DateTimeField(default=timezone.now, editable=False, db_index=True)
 
     class Meta:
