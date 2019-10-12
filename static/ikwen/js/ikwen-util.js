@@ -456,7 +456,7 @@
         let tabsWidth = 0,
             mt = parseInt($('#admin-content .tab-content').css('margin-top'));
         $('.content-tab-list .tab').each((i, elt) => {
-            tabsWidth += $(elt).width()
+            if ($(elt).is(':visible')) tabsWidth += $(elt).width()
         });
         if (tabsWidth > $('#admin-content').width()) {
             $('#admin-content .tab-content').css('margin-top', (mt + 45) + 'px');

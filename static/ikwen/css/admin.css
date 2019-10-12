@@ -180,7 +180,7 @@ footer a {color: #999}
 .empty-list .notice {margin-bottom: 4vh;}
 .empty-list .btn {min-width: 200px}
 #results {clear: both}
-#admin-tools + #results {margin-top: 45px;}
+#admin-tools + #results {margin-top: 20px;}
 .content-tab-list {position: fixed;width: 100%;z-index: 10;}
 
 .images-uploader .frame {height: 200px;float: left;margin: 0 10px 10px 0;overflow: hidden;width: 100%;}
@@ -221,8 +221,9 @@ footer a {color: #999}
     #admin-tools + .content-tab-list {padding-top: 15px;}
     .content-tab-list + .tab-content {margin-top: 45px;}
     #admin-tools + .content-tab-list {margin-top: 40px;background: #fff;padding-top: 0;}
-    #admin-tools + .content-tab-list + .tab-content {margin-top: 57px;}
+    #admin-tools + .content-tab-list + .tab-content {margin-top: 93px;}
     .pagination {margin-left: 5px}
+    #page-navigation {margin-right: 5px}
 }
 
 @media (min-width: 768px) {

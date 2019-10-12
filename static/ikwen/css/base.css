@@ -346,9 +346,9 @@ footer .company-name {color: #666; text-decoration: none}
     .navbar-default #nav-xs.navbar-nav .open .dropdown-menu>li>a {color: #545454;line-height: 35px;}
     .navbar-right .dropdown-menu {left: auto;right: 3px;top: 10px;}
     #navbar-results {border-top: 1px solid #eee}
-    .nav-tabs.swiper-wrapper {background: #f8f6f6; border-bottom: none}
+    .nav-tabs.swiper-wrapper {border-bottom: none;}
     .nav-tabs > .tab {margin-bottom: -2px}
-    .nav-tabs > .tab > a {border-radius: 0;border-top: 2px solid transparent;border-bottom: 2px solid transparent;color: #aaa;font-weight: 700;line-height: 2;text-align: center;font-size: 15px;}
+    .nav-tabs > .tab > a {background: #f8f6f6;border-radius: 0;border-top: 2px solid transparent;border-bottom: 2px solid transparent;color: #aaa;font-weight: 700;line-height: 2;text-align: center;font-size: 15px;}
     .nav-tabs > .tab.active > a, .nav-tabs > .tab.active > a:hover, .nav-tabs > .tab.active > a:focus {
         background: none;
         border: none;
@@ -456,6 +456,7 @@ footer .company-name {color: #666; text-decoration: none}
 }
 
 @media all and (display-mode: standalone) {
-    #network-manager {height: 3px;left: 0;position: fixed;top: 0;width: 100%;z-index: 1000000;}
+    #network-manager {height: 2px;left: 0;position: fixed;top: 0;width: 100%;z-index: 1000000;}
+    #network-manager .progress-bar {background: #3498db; height: 2px;left: 0;position: fixed;top: 0;width: 100%;z-index: 1000000;}
     .install-pwa {display: none}
 }
