@@ -261,8 +261,8 @@
                     groupName = $(this).data('name'),
                     count = $('div#' + groupId + ' li.member:not(.tpl)').length;
                 $('div#group-update h5 em').text(groupName);
-                $('div.tab-pane').removeClass('active').hide();
-                $('div#' + groupId).addClass('active').show();
+                $('div.tab-pane').removeClass('active');
+                $('div#' + groupId).addClass('active');
                 if (count > 0 && $(window).width() >= 768) {
                     $('div#' + groupId + ' li.member.active').click();
                     return;

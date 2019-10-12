@@ -127,8 +127,8 @@ class Member(AbstractUser):
     tags = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     phone = models.CharField(max_length=30, db_index=True, blank=True, null=True)
     gender = models.CharField(max_length=15, blank=True, null=True)
-    dob = models.DateField(blank=True, null=True)
-    birthday = models.IntegerField(blank=True, null=True)  # Integer value of birthday only as MMDD. Eg:1009 for Oct. 09
+    dob = models.DateField(blank=True, null=True, db_index=True)
+    birthday = models.IntegerField(blank=True, null=True, db_index=True)  # Integer value of birthday only as MMDD. Eg:1009 for Oct. 09
     language = models.CharField(max_length=10, blank=True, null=True, default=get_language)
     photo = MultiImageField(upload_to=PROFILE_UPLOAD_TO, blank=True, null=True, max_size=600, small_size=200, thumb_size=100)
     cover_image = models.ImageField(upload_to=COVER_UPLOAD_TO, blank=True, null=True)
@@ -164,6 +164,11 @@ class Member(AbstractUser):
 
     def __unicode__(self):
         return self.get_username()
+
+    def save(self, **kwargs):
+        if self.dob:
+            self.birthday = int(self.dob.strftime('%m%d'))
+        super(Member, self).save(**kwargs)
 
     def get_short_name(self):
         "Returns the short name for the user."

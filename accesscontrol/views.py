@@ -788,7 +788,7 @@ class Community(HybridListView):
         if email:
             try:
                 member = Member.objects.using(UMBRELLA).filter(email=email)[0]
-                response = {'error': _("This email already exists")}
+                response = {'error': _("This email already exists. The person was sent an invitation mail")}
                 invite_member(service, member)
                 HttpResponse(json.dumps(response), content_type='application/json')
             except:
@@ -800,14 +800,14 @@ class Community(HybridListView):
             try:
                 member = Member.objects.using(UMBRELLA).filter(phone=phone)[0]
                 invite_member(service, member)
-                response = {'error': _("This phone already exists")}
+                response = {'error': _("This phone already exists. The person was sent an invitation mail")}
                 HttpResponse(json.dumps(response), content_type='application/json')
             except:
                 pass
             try:
                 member = Member.objects.filter(phone='237' + phone)[0]
                 invite_member(service, member)
-                response = {'error': _("This phone already exists")}
+                response = {'error': _("This phone already exists. The person was sent an invitation mail")}
                 HttpResponse(json.dumps(response), content_type='application/json')
             except:
                 pass

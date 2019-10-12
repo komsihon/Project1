@@ -433,3 +433,24 @@ def set_birthdays():
             for member in Member.objects.using(db).filter(dob__isnull=False)[start:finish]:
                 member.birthday = member.dob.strftime('%m%d')
                 member.save(using=db)
+
+
+def set_index_on_dob():
+    client = MongoClient('46.101.107.75', 27017)
+
+    for service in Service.objects.all():
+        db = service.database
+        dbh = client[db]
+        dbh.ikwen_member.create_index([('dob', pymongo.ASCENDING)])
+        dbh.ikwen_member.create_index([('birthday', pymongo.ASCENDING)])
+
+    app = Application.objects.get(slug='foulassi')
+    for service in Service.objects.filter(app=app):
+        db = service.database
+        dbh = client[db]
+        dbh.foulassi_sudent.create_index([('dob', pymongo.ASCENDING)])
+        dbh.foulassi_sudent.create_index([('birthday', pymongo.ASCENDING)])
+
+    dbh = client['ikwen_umbrella_prod']
+    dbh.foulassi_sudent.create_index([('dob', pymongo.ASCENDING)])
+    dbh.foulassi_sudent.create_index([('birthday', pymongo.ASCENDING)])

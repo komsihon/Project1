@@ -1,43 +1,45 @@
 {% load i18n static humanize auth_tokens %}
 {% include 'core/snippets/spinner.html' %}
 <ul class="people object-list">
-{% for obj in nonrel_perm_list %}
-    {% with user=obj.user %}
-    <li id="{{ user.id }}" class="ik-li member {{ user.get_status }}{% if user.is_ghost %} ghost{% endif %}"
-        data-id="{{ user.id }}" data-status="{{ user.get_status }}"
-        data-permissions="{% for perm in obj.permission_fk_list %},{{ perm }}{% endfor %}">
-        {% if member_detail_view %}
-            {% url member_detail_view user.id as member_url %}
-        {% else %}
-            {% url 'ikwen:profile' user.id as member_url %}
-        {% endif %}
-    {% if user.photo and user.photo.name %}
-        <a href="{% if member_detail_view %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
-           class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ user.photo.small_name }})"></a>
-    {% else %}
-        <a href="{% if member_detail_view %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
-           class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
-    {% endif %}
-        <div class="info">
+    {% for obj in nonrel_perm_list %}
+        {% with user=obj.user %}
+        <li id="{{ user.id }}" class="ik-li member {{ user.get_status }}{% if user.is_ghost %} ghost{% endif %}"
+            data-id="{{ user.id }}" data-status="{{ user.get_status }}"
+            data-permissions="{% for perm in obj.permission_fk_list %},{{ perm }}{% endfor %}">
+            {% if member_detail_view %}
+                {% url member_detail_view user.id as member_url %}
+            {% else %}
+                {% url 'ikwen:profile' user.id as member_url %}
+            {% endif %}
+        {% if user.photo and user.photo.name %}
             <a href="{% if member_detail_view %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
-               class="full_name">{{ user.full_name }}</a>
-            <p class="about">{{ user.phone }}, {{ user.email }}</p>
-        </div>
-        {% if user.is_ghost %}
-        <div class="actions">
-            <i class="action glyphicon glyphicon-edit" title="{% trans "Edit" %}"></i>
-        </div>
+               class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ user.photo.small_name }})"></a>
+        {% else %}
+            <a href="{% if member_detail_view %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
+               class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
         {% endif %}
-        <li class="member tpl" style="display: none">
-            <a class="photo"></a>
             <div class="info">
-                <a class="full_name"></a>
-                <p class="about"></p>
+                <a href="{% if member_detail_view %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
+                   class="full_name">{{ user.full_name }}</a>
+                <p class="about">{{ user.phone }}, {{ user.email }}</p>
             </div>
+            {% if user.is_ghost %}
+            <div class="actions">
+                <i class="action glyphicon glyphicon-edit" title="{% trans "Edit" %}"></i>
+            </div>
+            {% endif %}
         </li>
+        {% endwith %}
+    {% endfor %}
+    <li class="ik-li member tpl" style="display: none">
+        <a class="photo bg-img target_url"></a>
+        <div class="info">
+            <a class="full_name target_url"></a>
+            <p class="about">
+                <span class="phone"></span>, <span class="email"></span>
+            </p>
+        </div>
     </li>
-    {% endwith %}
-{% endfor %}
 </ul>
 {% if objects_page.paginator.num_pages > 1 %}
 <ul class="pagination">

@@ -13,6 +13,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
@@ -23,7 +24,9 @@ from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 from permission_backend_nonrel.models import UserPermissionList, GroupPermissionList
 
-from ikwen.conf.settings import IKWEN_SERVICE_ID
+from echo.models import Balance
+from echo.utils import LOW_MAIL_LIMIT, notify_for_low_messaging_credit, notify_for_empty_messaging_credit
+from ikwen.conf.settings import IKWEN_SERVICE_ID, WALLETS_DB_ALIAS
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.accesscontrol.models import Member
 from ikwen.accesscontrol.backends import UMBRELLA
@@ -359,6 +362,20 @@ def invite_member(service, member):
         subject = _("Join our community on ikwen.")
         email_type = XEmailObject.REVIVAL
     if invitation_message or join_reward_pack_list:
+        with transaction.atomic(using=WALLETS_DB_ALIAS):
+            balance, update = Balance.objects.using(WALLETS_DB_ALIAS).get_or_create(service_id=service.id)
+            if 0 < balance.mail_count < LOW_MAIL_LIMIT:
+                try:
+                    notify_for_low_messaging_credit(service, balance)
+                except:
+                    logger.error("Failed to notify %s for low messaging credit." % service, exc_info=True)
+            if balance.mail_count == 0 and not getattr(settings, 'UNIT_TESTING', False):
+                try:
+                    notify_for_empty_messaging_credit(service, balance)
+                except:
+                    logger.error("Failed to notify %s for empty messaging credit." % service, exc_info=True)
+                return
+        invitation_message = invitation_message.replace('$client', member.first_name)
         extra_context = {
             'member_name': member.first_name,
             'join_reward_pack_list': join_reward_pack_list,
@@ -370,6 +387,9 @@ def invite_member(service, member):
             msg = XEmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
             msg.type = email_type
+            if not getattr(settings, 'UNIT_TESTING', False):
+                balance.mail_count -= 1
+            balance.save()
             Thread(target=lambda m: m.send(), args=(msg,)).start()
             notice = "%s: Invitation sent message to member after ghost registration attempt" % service.project_name_slug
             logger.error(notice, exc_info=True)
@@ -380,8 +400,9 @@ def invite_member(service, member):
 
 def bind_referrer_to_member(service, referrer, member):
     app = service.app
-    referrer_bind_callback = import_by_path(app.referrer_bind_callback)
-    referrer_bind_callback(service, referrer, member)
+    if app.referrer_bind_callback:
+        referrer_bind_callback = import_by_path(app.referrer_bind_callback)
+        referrer_bind_callback(service, referrer, member)
 
 
 def shift_ghost_member(member, db='default'):

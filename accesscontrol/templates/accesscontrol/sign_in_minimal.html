@@ -177,15 +177,15 @@
                 if ($(this).prop('checked')) {
                     $('#submit').removeProp('disabled').removeClass('default')
                 } else $('#submit').prop('disabled', true).addClass('default')
-            }).on('click', '#submit', function() {
+            }).on('click', '#submit:not(.processing)', function() {
                 if ($('#content').hasClass('register step2')) {
                     $('.errorlist').remove();
                     {% if settings.REGISTER_WITH_DOB %}
                         if (!checkDOB()) return false;
                     {% endif %}
                     if (!$('#accept-terms').prop('checked')) return false;
-                    $(this).addClass('processing');
                 }
+                $(this).addClass('processing');
             }).on('keydown', '#auth input, #auth select', function(e) {
                 // This Manages what happens when we press enter in the form
                 // returning false on $(form).submit() does not prevent the
@@ -206,8 +206,12 @@
                             if (!checkDOB()) e.preventDefault();
                         {% endif %}
                         if (!$('#accept-terms').prop('checked')) e.preventDefault();
-                        $('#submit').addClass('processing');
                     }
+                    if ($('#submit').hasClass('processing')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    $('#submit').addClass('processing');
                 }
             });
             $('#username').keyup(function(e) {
