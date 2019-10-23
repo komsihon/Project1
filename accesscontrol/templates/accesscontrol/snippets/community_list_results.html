@@ -1,7 +1,7 @@
 {% load i18n static humanize auth_tokens %}
 {% include 'core/snippets/spinner.html' %}
 <ul class="people object-list">
-    {% for obj in nonrel_perm_list %}
+    {% for obj in objects_page.object_list  %}
         {% with user=obj.user %}
         <li id="{{ user.id }}" class="ik-li member {{ user.get_status }}{% if user.is_ghost %} ghost{% endif %}"
             data-id="{{ user.id }}" data-status="{{ user.get_status }}"

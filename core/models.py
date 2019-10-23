@@ -238,6 +238,7 @@ class Service(models.Model):
     custom_service_count_history = ListField(editable=False)
     cash_out_count_history = ListField(editable=False)
 
+    total_community = models.IntegerField(default=0)
     total_turnover = models.IntegerField(default=0)
     total_earnings = models.IntegerField(default=0)
     total_transaction_earnings = models.IntegerField(default=0)
@@ -572,6 +573,10 @@ class AbstractConfig(Model):
     cash_out_min = models.IntegerField(_("cash-out minimum"), blank=True, null=True,
                                        default=getattr(settings, 'CASH_OUT_MIN', 0),
                                        help_text="Minimum balance that allows cash out.")
+    cash_out_rate = models.IntegerField(_("cash-out rate"), blank=True, null=True,
+                                        default=getattr(settings, 'CASH_OUT_RATE', 0),
+                                        help_text="Fees charged to IAO upon cash out. Rate calculated from amount "
+                                                  "on the wallet at the moment of cash out.")
     logo = models.ImageField(upload_to=LOGO_UPLOAD_TO, verbose_name=_("Your logo"), blank=True, null=True,
                              help_text=_("Image in <strong>PNG with transparent background</strong> is advised. "
                                          "(Maximum 400 x 400px)"))
@@ -690,6 +695,7 @@ class AbstractConfig(Model):
         config.contact_email = self.contact_email
         config.contact_phone = self.contact_phone
         config.cash_out_min = self.cash_out_min
+        config.cash_out_rate = self.cash_out_rate
         config.currency_code = self.currency_code
         config.currency_symbol = self.currency_symbol
         return config

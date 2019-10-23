@@ -17,3 +17,6 @@ GENDER_CHOICES = (
 
 STARTED = 'Started'
 COMPLETE = 'Complete'
+
+ACCEPTED = 'Accepted'
+REJECTED = 'Rejected'

@@ -152,7 +152,7 @@
         </div>
         {% block stage %}
             <div id="stage">
-                {% if not is_member %}
+                {% if is_company and not is_member %}
                     {% include 'rewarding/snippets/cr_join_widget.html' %}
                 {% endif %}
                 <header id="cover" class="subtle-shade">
@@ -300,7 +300,7 @@
                     </section>
                 </div>
             </div>
-            {% if not is_member %}
+            {% if is_company and not is_member %}
                 <div class="bottom-join has-shade">
                     <div class="container-fluid">
                         {% include 'rewarding/snippets/cr_join_widget.html' %}

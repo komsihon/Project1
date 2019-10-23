@@ -466,7 +466,7 @@ def get_value_list(csv_or_sequence):
     return [float(val.strip()) for val in csv_or_sequence.split(',')]
 
 
-def slice_watch_objects(klass, duration=0, time_field='last_payment_on'):
+def slice_watch_objects(klass, duration=0, time_field='last_payment_on', using='default'):
     """
     Gets a slice of watch objects which time_field match the duration
     Eg:
@@ -485,17 +485,17 @@ def slice_watch_objects(klass, duration=0, time_field='last_payment_on'):
     yesterday_end = datetime(yesterday.year, yesterday.month, yesterday.day, 23, 59, 59)
     if duration == 0:
         kwargs = {time_field + '__gte': midnight}
-        queryset = klass._default_manager.filter(**kwargs)
+        queryset = klass._default_manager.using(using).filter(**kwargs)
     elif duration == 1:
         range_start = datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0)
         kwargs = {time_field + '__range': (range_start, yesterday_end)}
-        queryset = klass._default_manager.filter(**kwargs)
+        queryset = klass._default_manager.using(using).filter(**kwargs)
     else:
         days_back = duration + 1
         period_start = now - timedelta(days=days_back)
         range_start = datetime(period_start.year, period_start.month, period_start.day, 0, 0)
         kwargs = {time_field + '__range': (range_start, yesterday_end)}
-        queryset = klass._default_manager.filter(**kwargs)
+        queryset = klass._default_manager.using(using).filter(**kwargs)
     object_list = list(queryset)
     for obj in object_list:
         set_counters(obj)
@@ -591,6 +591,26 @@ def set_counters(watch_object, *args, **kwargs):
                 watch_object.__dict__[field].append(0)
             else:
                 watch_object.__dict__[field] = '0'
+    watch_object.counters_reset_on = timezone.now()
+    watch_object.save(using=db)
+
+
+def clear_counters(watch_object):
+    """
+    Empty all history fields and set the matching totals to 0
+    """
+    history_fields = [field for field in watch_object.__dict__.keys() if field.endswith('_history')]
+    db = router.db_for_write(watch_object.__class__, instance=watch_object)
+    for field in history_fields:
+        if type(watch_object.__dict__[field]) is list:
+            watch_object.__dict__[field] = []
+        else:
+            watch_object.__dict__[field] = ''
+        matching_total_field = 'total_' + field.replace('_history', '')
+        try:
+            watch_object.__dict__[matching_total_field] = 0
+        except KeyError:
+            pass
     watch_object.counters_reset_on = timezone.now()
     watch_object.save(using=db)
 

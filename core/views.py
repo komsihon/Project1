@@ -354,9 +354,12 @@ class DashboardBase(TemplateView):
     transactions_count_title = _("Transactions")
     transactions_avg_revenue_title = _('ARPT <i class="text-muted">Avg. Eearning Per Transaction</i>')
 
+    def get_service(self, **kwargs):
+        return get_service_instance()
+
     def get_context_data(self, **kwargs):
         context = super(DashboardBase, self).get_context_data(**kwargs)
-        service = get_service_instance()
+        service = self.get_service(**kwargs)
         set_counters(service)
         earnings_today = calculate_watch_info(service.earnings_history)
         earnings_yesterday = calculate_watch_info(service.earnings_history, 1)
@@ -413,7 +416,6 @@ class DashboardBase(TemplateView):
                 pass
             if last_cash_out.amount_paid:
                 last_cash_out.amount = last_cash_out.amount_paid
-        service = get_service_instance()
         try:
             balance = 0
             for wallet in OperatorWallet.objects.using('wallets').filter(nonrel_id=service.id):

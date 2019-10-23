@@ -422,7 +422,7 @@ def delete_duplicate_users_from_local_dbs():
 
 
 def set_birthdays():
-    for service in Service.objects.all():
+    for service in Service.objects.filter(project_name_slug='tchopetyamo'):
         db = service.database
         add_database(db)
         total = Member.objects.using(db).filter(dob__isnull=False).count()
@@ -438,19 +438,15 @@ def set_birthdays():
 def set_index_on_dob():
     client = MongoClient('46.101.107.75', 27017)
 
-    for service in Service.objects.all():
-        db = service.database
-        dbh = client[db]
-        dbh.ikwen_member.create_index([('dob', pymongo.ASCENDING)])
-        dbh.ikwen_member.create_index([('birthday', pymongo.ASCENDING)])
-
     app = Application.objects.get(slug='foulassi')
     for service in Service.objects.filter(app=app):
         db = service.database
+        if not db:
+            continue
         dbh = client[db]
-        dbh.foulassi_sudent.create_index([('dob', pymongo.ASCENDING)])
-        dbh.foulassi_sudent.create_index([('birthday', pymongo.ASCENDING)])
+        dbh.foulassi_student.create_index([('dob', pymongo.ASCENDING)])
+        dbh.foulassi_student.create_index([('birthday', pymongo.ASCENDING)])
 
     dbh = client['ikwen_umbrella_prod']
-    dbh.foulassi_sudent.create_index([('dob', pymongo.ASCENDING)])
-    dbh.foulassi_sudent.create_index([('birthday', pymongo.ASCENDING)])
+    dbh.foulassi_student.create_index([('dob', pymongo.ASCENDING)])
+    dbh.foulassi_student.create_index([('birthday', pymongo.ASCENDING)])

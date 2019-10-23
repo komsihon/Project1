@@ -76,7 +76,7 @@ class HybridListView(ListView):
         context['page_size'] = self.page_size
         context['total_objects'] = self.get_queryset().count()
         context['filter'] = self.get_filter()
-        model = self.get_queryset().model
+        model = queryset.model
         meta = model._meta
         context['verbose_name'] = meta.verbose_name
         context['verbose_name_plural'] = meta.verbose_name_plural
