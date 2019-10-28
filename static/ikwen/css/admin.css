@@ -178,7 +178,7 @@ footer a {color: #999}
 .object-list .list-group-item:first-of-type {border-top: none}
 .empty-list {background: #fafafa; border-radius: 4px; border: 3px dashed #ddd; margin: 10vh auto 0; padding: 10vh; text-align: center}
 .empty-list .notice {margin-bottom: 4vh;}
-.empty-list .btn {min-width: 200px}
+.empty-list .btn {min-width: 200px;}
 #results {clear: both}
 #admin-tools + #results {margin-top: 20px;}
 .content-tab-list {position: fixed;width: 100%;z-index: 10;}

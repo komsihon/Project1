@@ -7,6 +7,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
+from django.utils.module_loading import import_by_path
 from django.views.generic import TemplateView
 
 from ikwen.core.constants import PENDING
@@ -24,12 +25,22 @@ from ikwen.core.models import CASH_OUT_REQUEST_EVENT, OperatorWallet, Config, Se
 from ikwen.cashout.models import CashOutRequest, CashOutAddress, CashOutMethod
 
 
+def _get_service(request, using=None):
+    path = getattr(settings, 'GET_WALLET_SERVICE', None)
+    if path:
+        finder = import_by_path(path)
+        if using:
+            return finder(request, using=using)
+        return finder(request)
+    return get_service_instance(using=using)
+
+
 # TODO: Write test for this function. Create and call the right template in the sending of mail
 @user_passes_test(is_bao)
 def request_cash_out(request, *args, **kwargs):
     provider = request.GET['provider']
     method = CashOutMethod.objects.using(UMBRELLA).get(slug=provider)
-    business = get_service_instance(using=UMBRELLA)
+    business = _get_service(request, using=UMBRELLA)
     try:
         address = CashOutAddress.objects.using(UMBRELLA).get(service=business, method=method)
     except CashOutAddress.DoesNotExist:
@@ -48,7 +59,8 @@ def request_cash_out(request, *args, **kwargs):
         response = {'error': 'Balance too low', 'cash_out_min': iao_profile.cash_out_min}
         return HttpResponse(json.dumps(response), 'content-type: text/json')
     with transaction.atomic():
-        cor = CashOutRequest(service_id=business.id, member_id=member.id, amount=wallet.balance,
+        amount = wallet.balance * (100 - iao_profile.cash_out_rate) / 100
+        cor = CashOutRequest(service_id=business.id, member_id=member.id, amount=amount,
                              method=method.name, account_number=address.account_number, provider=provider)
         cor.save(using='wallets')
         # TODO: Implement direct payment to user mobile when everything is stable
@@ -82,7 +94,8 @@ def request_cash_out(request, *args, **kwargs):
         subject = _("Cash-out request on %s" % business.project_name)
         html_content = get_mail_content(subject, '', template_name='cashout/mails/request_notice.html',
                                         extra_context={'cash_out_request': cor, 'business': business,
-                                                       'service': vendor, 'config': vendor_config, 'iao': iao})
+                                                       'service': vendor, 'config': vendor_config, 'iao': iao,
+                                                       'wallet': wallet.balance, 'iao_profile': iao_profile})
         msg = EmailMessage(subject, html_content, sender, [iao.email])
         msg.bcc = ['k.sihon@ikwen.com', 'contact@ikwen.com']
         msg.content_subtype = "html"
@@ -96,7 +109,7 @@ def manage_payment_address(request, *args, **kwargs):
     action = request.GET['action']
     address_id = request.GET.get('address_id')
     if action == 'update':
-        service = get_service_instance(using=UMBRELLA)
+        service = _get_service(request, using=UMBRELLA)
         method_id = request.GET['method_id']
         name = request.GET['name']
         account_number = request.GET['account_number']
@@ -156,7 +169,7 @@ class Payments(TemplateView):
     template_name = 'cashout/payments.html'
 
     def get_context_data(self, **kwargs):
-        service = get_service_instance(using=UMBRELLA)
+        service = _get_service(self.request, using=UMBRELLA)
         context = super(Payments, self).get_context_data(**kwargs)
         from datetime import datetime
         cash_out_min = service.config.cash_out_min

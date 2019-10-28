@@ -734,6 +734,7 @@ class Config(AbstractConfig):
                 obj_mirror.currency_code = self.currency_code
                 obj_mirror.currency_symbol = self.currency_symbol
                 obj_mirror.cash_out_min = self.cash_out_min
+                obj_mirror.cash_out_rate = self.cash_out_rate
                 obj_mirror.is_pro_version = self.is_pro_version
                 obj_mirror.is_standalone = self.is_standalone
                 obj_mirror.can_manage_currencies = self.can_manage_currencies

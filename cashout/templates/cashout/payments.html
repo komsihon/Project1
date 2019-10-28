@@ -157,8 +157,10 @@
                                     <div class="clearfix"></div>
                                 </li>
                             </ul>
-                            <button class="btn btn-sm btn-primary new-address pull-right"
-                                    data-toggle="modal" data-target="#update-payment-address">{% trans "ADD NEW" %}</button>
+                            {% if user.is_bao %}
+                                <button class="btn btn-sm btn-primary new-address pull-right"
+                                        data-toggle="modal" data-target="#update-payment-address">{% trans "ADD NEW" %}</button>
+                            {% endif %}
                         </div>
                         <div class="clearfix"></div>
                     </div>

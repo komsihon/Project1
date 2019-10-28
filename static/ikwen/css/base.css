@@ -457,6 +457,6 @@ footer .company-name {color: #666; text-decoration: none}
 
 @media all and (display-mode: standalone) {
     #network-manager {height: 2px;left: 0;position: fixed;top: 0;width: 100%;z-index: 1000000;}
-    #network-manager .progress-bar {background: #3498db; height: 2px;left: 0;position: fixed;top: 0;width: 100%;z-index: 1000000;}
+    #network-manager .progress-bar {background: #3498db}
     .install-pwa {display: none}
 }

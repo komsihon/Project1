@@ -141,9 +141,10 @@ class Register(TemplateView):
                 for path in events:
                     event = import_by_path(path)
                     event(request, *args, **kwargs)
-                import ikwen.conf.settings as ikwen_settings
-                ikwen_service = Service.objects.using(UMBRELLA).get(pk=ikwen_settings.IKWEN_SERVICE_ID)
-                add_event(ikwen_service, WELCOME_ON_IKWEN_EVENT, member)
+                if not getattr(settings, 'UNIT_TESTING', False):
+                    import ikwen.conf.settings as ikwen_settings
+                    ikwen_service = Service.objects.using(UMBRELLA).get(pk=ikwen_settings.IKWEN_SERVICE_ID)
+                    add_event(ikwen_service, WELCOME_ON_IKWEN_EVENT, member)
                 reward_pack_list = None
                 if not getattr(settings, 'IS_IKWEN', False):
                     service = get_service_instance()

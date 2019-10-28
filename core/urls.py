@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls import patterns, url
 
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from ikwen.core.appmodule.views import ModuleList, ConfigureModule, ChangeModule
 
 from ikwen.flatpages.views import ChangeFlatPage
@@ -15,7 +15,7 @@ from ikwen.accesscontrol.views import SignIn, SignInMinimal, AccountSetup, updat
     join, set_collaborator_permissions, move_member_to_group, toggle_member, \
     list_collaborators, MemberList, deny_access, Register, StaffWithoutPermission,\
     staff_router, SetNewPasswordSMSRecovery
-from ikwen.accesscontrol.utils import EmailConfirmationPrompt, ConfirmEmail, PhoneConfirmation
+from ikwen.accesscontrol.utils import EmailConfirmationPrompt, ConfirmEmail, PhoneConfirmation, is_staff
 from ikwen.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, \
     ServiceExpired, reset_notices_counter, get_queued_sms, LegalMentions, TermsAndConditions, Configuration, \
     upload_customization_image, list_projects, upload_image, load_event_content
