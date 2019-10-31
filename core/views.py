@@ -29,7 +29,7 @@ from ikwen.billing.utils import get_invoicing_config_instance, get_billing_cycle
     get_billing_cycle_months_count, refresh_currencies_exchange_rates
 from ikwen.cashout.models import CashOutRequest
 from ikwen.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, Country, \
-    OperatorWallet
+    OperatorWallet, XEmailObject
 from ikwen.core.utils import get_service_instance, DefaultUploadBackend, add_database_to_settings, \
     add_database, calculate_watch_info, set_counters
 from ikwen.core.generic import HybridListView, ChangeObjectBase, CustomizationImageUploadBackend
@@ -477,3 +477,20 @@ class Offline(TemplateView):
     Offline page for the PWA
     """
     template_name = 'core/offline.html'
+    
+
+class SentEmailLog(HybridListView):
+    model = XEmailObject
+    html_results_template_name = 'core/sent_email_log_results.html'
+    template_name = 'core/sent_email_log.html'
+    list_filter = (
+        'type',
+        ('created_on', _('Date')),
+    )
+
+
+class SentEmailDetail(ChangeObjectBase):
+    model = XEmailObject
+    model_admin = getattr(settings, 'IKWEN_CONFIG_MODEL_ADMIN', 'ikwen.core.admin.XEmailObjectAdmin')
+    template_name = 'core/sent_email_detail.html'
+    context_object_name = 'email'

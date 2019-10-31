@@ -18,7 +18,7 @@ from ikwen.accesscontrol.views import SignIn, SignInMinimal, AccountSetup, updat
 from ikwen.accesscontrol.utils import EmailConfirmationPrompt, ConfirmEmail, PhoneConfirmation, is_staff
 from ikwen.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, \
     ServiceExpired, reset_notices_counter, get_queued_sms, LegalMentions, TermsAndConditions, Configuration, \
-    upload_customization_image, list_projects, upload_image, load_event_content
+    upload_customization_image, list_projects, upload_image, load_event_content, SentEmailLog, SentEmailDetail
 
 REGISTER = 'register'
 SIGN_IN = 'sign_in'
@@ -89,6 +89,10 @@ urlpatterns = patterns(
     url(r'^get_queued_sms$', get_queued_sms, name='get_queued_sms'),
     url(r'^legal-mentions$', LegalMentions.as_view(), name='legal_mentions'),
     url(r'^terms-and-conditions$', TermsAndConditions.as_view(), name='terms_and_conditions'),
+
+    # The following url link to the page which display  emails log.
+    url(r'^sentEmailLog/$', user_passes_test(is_staff)(SentEmailLog.as_view()), name='sent_email_log'),
+    url(r'^sentEmailDetail/(?P<object_id>[-\w]+)$', user_passes_test(is_staff)(SentEmailDetail.as_view()), name='sent_email_detail'),
 
     url(r'^(?P<project_name_slug>[-\w]+)/$', CompanyProfile.as_view(), name='company_profile'),
 

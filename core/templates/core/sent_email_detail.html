@@ -1,0 +1,34 @@
+{% extends 'core/change_object_base.html' %}
+{% load i18n static humanize user_agents auth_tokens media_from_provider cache %}
+
+{% block page_title %}
+<title> Email to {{ email.to }} </title>
+{% endblock %}
+
+{% block head_js %}
+    {{ block.super }}
+    <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>
+        <a href="{% url 'ikwen:sent_email_log'%}">Email Log</a>
+    </li>
+    <li>{{ email.to }} &nbsp;&nbsp;on&nbsp;&nbsp;{{ email.created_on|date }}</li>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'echo/css/swiper.min.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'embed-doc/css/embed-doc.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'echo/css/echo.css' %}"/>
+    <link href="{% static 'ikwen/css/uploader-single.css' %}" media="screen" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content">
+        <div class="container-fluid">
+            {{ email.body|safe }}
+        </div>
+    </div>
+{% endblock %}

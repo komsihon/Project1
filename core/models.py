@@ -905,6 +905,9 @@ class XEmailObject(models.Model):
     class Meta:
         db_table = 'ikwen_sent_email'
 
+    def __unicode__(self):
+        return self.to
+
 
 class Module(Model):
     """

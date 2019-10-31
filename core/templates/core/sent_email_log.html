@@ -1,0 +1,31 @@
+{% extends "core/object_list_base.html" %}
+{% load i18n humanize staticfiles admin_list %}
+
+{% block page_title %}
+    <title> Email Log </title>
+{% endblock %}
+
+{% block head_style %}
+    {{ block.super }}
+    <style>
+        #admin-tools-actions{
+            display: none;
+        }
+        .email-infos-mobile {
+            display: none;
+        }
+
+        @media only screen and (max-device-width: 767px) {
+            .email-infos {
+                display: none;
+            }
+            .email-infos-mobile {
+                display: block;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>Email Log</li>
+{% endblock %}

@@ -12,7 +12,7 @@ from ikwen.core.utils import generate_icons, get_mail_content, get_service_insta
 
 from ikwen.core.models import RETAIL_APP_SLUG, Module
 
-from ikwen.core.models import Application, Config, Service, ConsoleEventType
+from ikwen.core.models import Application, Config, Service, ConsoleEventType, XEmailObject
 from django.utils.translation import gettext_lazy as _
 
 import logging
@@ -189,6 +189,10 @@ class ModuleAdmin(admin.ModelAdmin):
         fields = ('name', 'slug', 'description', 'url_name', 'homepage_section_renderer', 'is_pro')
     else:
         fields = ('title', 'content', 'is_active', )
+
+
+class XEmailObjectAdmin(admin.ModelAdmin):
+    list_display = ('to', 'subject', 'body', 'created_on')
 
 
 if getattr(settings, 'IS_UMBRELLA', False):
