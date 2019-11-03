@@ -134,7 +134,7 @@ def get_service_instance(using='default', check_cache=True):
     """
     from ikwen.core.models import Service
     service_id = getattr(settings, 'IKWEN_SERVICE_ID')
-    return Service.objects.using(using).select_related('member').get(pk=service_id)
+    return Service.objects.using(using).select_related('member', 'app').get(pk=service_id)
 
 
 def add_database_to_settings(db_info, engine='django_mongodb_engine'):

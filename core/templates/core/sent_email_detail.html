@@ -32,3 +32,12 @@
         </div>
     </div>
 {% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (() => {
+            $('div#admin-nav .email-log').addClass('active');
+        })()
+       </script>
+{% endblock %}

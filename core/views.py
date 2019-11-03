@@ -481,7 +481,7 @@ class Offline(TemplateView):
 
 class SentEmailLog(HybridListView):
     model = XEmailObject
-    html_results_template_name = 'core/sent_email_log_results.html'
+    html_results_template_name = 'core/snippets/sent_email_log_results.html'
     template_name = 'core/sent_email_log.html'
     list_filter = (
         'type',

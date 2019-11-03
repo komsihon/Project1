@@ -8,18 +8,11 @@
 {% block head_style %}
     {{ block.super }}
     <style>
-        #admin-tools-actions{
+        #admin-tools-actions, .email-infos-mobile {
             display: none;
         }
-        .email-infos-mobile {
-            display: none;
-        }
-
         @media only screen and (max-device-width: 767px) {
-            .email-infos {
-                display: none;
-            }
-            .email-infos-mobile {
+            .email-infos , .email-infos-mobile {
                 display: block;
             }
         }
@@ -28,4 +21,13 @@
 
 {% block breadcrumb_location %}
     <li>Email Log</li>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (() => {
+            $('div#admin-nav .email-log').addClass('active');
+        })()
+       </script>
 {% endblock %}
