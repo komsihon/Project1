@@ -325,6 +325,10 @@ footer .company-name {color: #666; text-decoration: none}
     .ik-li .actions .glyphicon, #selection-control .glyphicon {font-size: 21px;margin-left: 15px;}
     .ik-li .actions .glyphicon:first-child, #selection-control .glyphicon:first-child {margin-left: 0}
     .ik-li:not(.selected):hover .actions {background: #fff;border-radius: 3px;box-shadow: -1px 1px 7px 3px rgba(0, 0, 0, .1);margin-top: 0;position: absolute;padding: 3px 3px 5px;}
+    .ik-li:not(.selected):hover .actions.menu {background: none;bottom: auto;box-shadow: none;right: 0;top: 0px}
+    .ik-li:not(.selected):hover .actions.menu .glyphicon {background: none}
+    .ik-li:not(.selected):hover .actions.menu .glyphicon:hover {border: none}
+    .ik-li:not(.selected):hover .actions.menu .dropdown-menu {margin-top: -25px}
     .input-sm {font-size: 15px}
     #nav-xs.navbar-nav>li>a {padding: 16px 12px;float: left;}
     #nav-xs.navbar-nav>li:first-child>a {padding-left: 0}
