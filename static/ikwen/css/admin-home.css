@@ -13,7 +13,7 @@ form.set-domain-name .form-group {margin-right: 15px}
 .btn-outline-primary:hover { color: #fff; background-color: #007bff; border-color: #007bff; }
 .btn-outline-primary:focus, .btn-outline-primary.focus { box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5); }
 
-.section-about {color: #5a5a5a !important;font-size: 15px;}
+.section-about {margin: 3vh 0;color: #5a5a5a !important;font-size: 15px;}
 .slow .toggle-group { transition: left 0.7s; -webkit-transition: left 0.7s; }
 
 .toggle-handle { background-color: #fff; }
