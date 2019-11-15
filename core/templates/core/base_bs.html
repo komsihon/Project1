@@ -22,6 +22,7 @@
               <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
             <![endif]-->
             <script src="{% static 'ikwen/js/jquery-1.12.4.min.js' %}"></script>
+            <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=19.10.12"></script>
         {% endblock %}
     </head>
     {% block after_head %}{% endblock %}
@@ -212,7 +213,6 @@
         <script src="{% static 'ikwen/js/bootstrap.min.js' %}"></script>
         <script src="{% static 'ikwen/hammerjs/hammer.min.js' %}"></script>
         <script src="{% static 'ikwen/hammerjs/jquery.hammer.js' %}"></script>
-        <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=19.10.12"></script>
         {% block js %}
             <script>
                 (function() {
