@@ -190,7 +190,7 @@ class Service(models.Model):
     project_name = models.CharField(max_length=60,
                                     help_text="Name of the project")
     project_name_slug = models.SlugField(unique=True)
-    home_folder = models.CharField(max_length=150, blank=True, null=True,
+    home_folder = models.CharField(max_length=150, blank=True, null=True, default='',
                                    help_text="The absolute path to website home folder on the server")
     settings_template = models.CharField(max_length=255, blank=True, null=True,
                                          help_text="Template name for generating actual settings of this service")

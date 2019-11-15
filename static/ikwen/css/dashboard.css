@@ -102,10 +102,7 @@
     padding: 10px 10px 20px
 }
 
-.performances header {
-    margin-bottom: 15px;
-    padding: 0 5px
-}
+.performances header {margin-bottom: 15px}
 
 .performances h5 {
     float: left;
@@ -153,6 +150,13 @@
 .ranking li span:last-child {
     float: right
 }
+#trend-chart {width: 100%;height: 400px; overflow: hidden!important;}
+#trend-chart > div { margin-left: -14px!important; }
+.business-trend {margin-top: 11vh;}
+.pie-chart {width: 100%; height: 200px;}
+.line-chart {width: 100%; height: 200px; overflow: hidden!important;}
+.line-chart > div { margin-left: -24px!important;}
+
 @media (max-width: 767px) {
     #admin-content > .container-fluid {padding-left: 10px; padding-right: 10px}
     .watch.last-week, .watch.last-28-days {margin-top: 25px}
@@ -167,6 +171,8 @@
     .ranking li {padding: 10px 5px;height: 42px;}
     .figure, .figure-lg {text-align: center}
     .payments > div h6, .payments > div a {font-size: 15px}
+    #trend-chart {height: 300px;}
+    .line-chart {height: 150px;}
 }
 @media (min-width: 992px) {
     #admin-content {padding-left: 270px;}

@@ -17,7 +17,7 @@
     <link rel='stylesheet' href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
     <link rel='stylesheet' href="{% static 'ikwen/swiper/css/swiper.min.css' %}" />
     <link href="{% static 'embed-doc/css/embed-doc.css' %}?v=19.9.27" media="screen" rel="stylesheet" type="text/css" />
-    <link href="{% static 'ikwen/css/admin.css' %}?v=19.10.12" media="screen" rel="stylesheet" type="text/css" />
+    <link href="{% static 'ikwen/css/admin.css' %}?v=19.11.7" media="screen" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block head_js %}
@@ -160,12 +160,12 @@
                     if ($(this).parents('.ik-li').find('.actions').length === 0) return;
                     if ($(this).parents('.actions').length === 0) $(this).removeAttr('href');
                 });
-                var position = $('#admin-content').scrollTop(),
+                let position = $('#admin-content').scrollTop(),
                     navHeight = $('#navbar').height(),
                     appNavMT = $('#app-nav').css('margin-top'),
                     stagePadding = $('#container.admin').css('padding-top');
                 $('#admin-content').scroll(function() {
-                    var scroll = $(this).scrollTop(),
+                    let scroll = $(this).scrollTop(),
                         delta = Math.abs(scroll - position);
                     if (scroll > position) {
                         $('#navbar').css('top', '-' + navHeight + 'px');
@@ -183,10 +183,10 @@
             $('body').on('click', '.ik-li', function() {
                 if ($(this).find('> .select').length <= 0) return;
                 $(this).toggleClass('selected');
-                var id = $(this).data('id'),
+                let id = $(this).data('id'),
                     count = $('.ik-li.selected').length;
                 if (count > 0) {
-                    var selected = [];
+                    let selected = [];
                     $('.ik-li.selected').each(function() {
                         selected.push($(this).data('id'));
                     }).data('id');
@@ -195,12 +195,18 @@
                 }
                 else $('#selection-control').removeClass('visible');
             }).on('click', 'li .trash', function() {
-                var selection = $(this).parents('li').data('id'),
+                let selection = $(this).parents('li').data('id'),
                     modelName = $(this).parents('li').data('model-name'),
                     deleteEndpoint = $(this).parents('ul').data('delete-endpoint');
                 deleteSelection(selection, modelName, deleteEndpoint);
+            }).on('click', 'li .icon-action', function() {
+                let id = $(this).parents('li').data('id'),
+                    action = $(this).data('action');
+                $.getJSON('', {action: action, object_id: id}, function() {
+
+                })
             }).on('click', '.pagination .page', function() {
-                var query = window.location.search,
+                let query = window.location.search,
                     page = $(this).data('val');
                 if (query && query !== '?') query += '&format=html_results&page=' + page;
                 else query = 'format=html_results&page=' + page;
@@ -229,19 +235,19 @@
                 $(this).hide();
                 $('div#admin-tools .tool').hide();
             }).on('click', '#admin-tools .action.export', function() {
-                var url = window.location.pathname, params = [];
+                let url = window.location.pathname, params = [];
                 $('div#admin-tools .filter select').each(function() {
-                    var paramName = $(this).prop('name');
+                    let paramName = $(this).prop('name');
                     if (paramName) params[paramName] = $(this).val();
                 });
                 $('div#admin-tools .filter input').each(function() {
-                    var paramName = $(this).prop('name');
+                    let paramName = $(this).prop('name');
                     if (paramName) params[paramName] = $(this).val();
                 });
                 params['q'] = $('#context-search').val();
-                var query = window.location.search,
+                let query = window.location.search,
                     paramString = '';
-                for (var key in params) paramString += '&' + key + '=' + params[key];
+                for (let key in params) paramString += '&' + key + '=' + params[key];
                 if (query && query !== '?') query += paramString;
                 else query = paramString.substr(1);
                 window.location = url + '?action=export&' + query;
@@ -256,24 +262,24 @@
                 $('#selection-control').removeClass('visible');
             });
             $('div#selection-control .trash').click(function() {
-                var selection = $('#selection-control').data('selection');
+                let selection = $('#selection-control').data('selection');
                 deleteSelection(selection);
             });
             function deleteSelection(selection, modelName, deleteEndpoint) {
                 if (!confirm("{% trans "Confirm deletion ?" %}")) return;
                 $('body, div#selection-control .trash').css('cursor', 'wait');
-                var params = {action: 'delete', selection: selection},
+                let params = {action: 'delete', selection: selection},
                 endpoint = deleteEndpoint ? deleteEndpoint : ikwen.deleteEndpoint;
                 if (modelName) params.model_name = modelName;
                 $.getJSON(endpoint, params, function(data) {
                     $('body, div#selection-control .trash').css('cursor', '');
-                    var list = selection.split(',');
-                    if (data.deleted) for (var i=0; i<data.deleted.length; i++) $('#' + data.deleted[i]).remove();
+                    let list = selection.split(',');
+                    if (data.deleted) for (let i=0; i<data.deleted.length; i++) $('#' + data.deleted[i]).remove();
                     $('#selection-control').removeClass('visible');
                     ikwen.showFloatingNotice(data.message);
                 })
             }
-            var searchDescriptor = [{endpoint: '{{ request.path }}'}],
+            let searchDescriptor = [{endpoint: '{{ request.path }}'}],
                 filterDescriptor = {
                     endpoint: '{{ request.META.get_full_path }}',
                     resultTplSelector: '#results li.ik-li'
@@ -284,7 +290,7 @@
             ikwen.setupHTMLResultsFilter(htmlFilterDescriptor);
             ikwen.resetAdminTools = function() {
                 if ($(window).width() < 768) return;
-                var actionsWidgetsCount = $('#admin-tools-actions .action').length,
+                let actionsWidgetsCount = $('#admin-tools-actions .action').length,
                     maxFilterWidgets = 2;
                 if ($(window).width() < 1200) {
                     maxFilterWidgets = 3 - actionsWidgetsCount;
@@ -292,7 +298,7 @@
                 } else {
                     maxFilterWidgets = 7 - actionsWidgetsCount;
                 }
-                var filterWidgetsCount = $('.tool.filter').length;
+                let filterWidgetsCount = $('.tool.filter').length;
                 if (filterWidgetsCount > maxFilterWidgets) {
                     $('.tool.filter').prependTo('#admin-tools .floating-filter');
                     $('.show-floating-filter').show();

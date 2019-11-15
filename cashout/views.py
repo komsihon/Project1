@@ -36,7 +36,6 @@ def _get_service(request, using=None):
 
 
 # TODO: Write test for this function. Create and call the right template in the sending of mail
-@user_passes_test(is_bao)
 def request_cash_out(request, *args, **kwargs):
     provider = request.GET['provider']
     method = CashOutMethod.objects.using(UMBRELLA).get(slug=provider)
@@ -95,7 +94,7 @@ def request_cash_out(request, *args, **kwargs):
         html_content = get_mail_content(subject, '', template_name='cashout/mails/request_notice.html',
                                         extra_context={'cash_out_request': cor, 'business': business,
                                                        'service': vendor, 'config': vendor_config, 'iao': iao,
-                                                       'wallet': wallet.balance, 'iao_profile': iao_profile})
+                                                       'wallet': wallet, 'iao_profile': iao_profile})
         msg = EmailMessage(subject, html_content, sender, [iao.email])
         msg.bcc = ['k.sihon@ikwen.com', 'contact@ikwen.com']
         msg.content_subtype = "html"
@@ -104,7 +103,6 @@ def request_cash_out(request, *args, **kwargs):
     return HttpResponse(json.dumps({'success': True}), 'content-type: text/json')
 
 
-@user_passes_test(is_bao)
 def manage_payment_address(request, *args, **kwargs):
     action = request.GET['action']
     address_id = request.GET.get('address_id')

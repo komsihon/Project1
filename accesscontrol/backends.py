@@ -31,7 +31,9 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                 except Member.DoesNotExist:
                     return None
         elif api_signature:
-            service = get_service_instance()
+            service = kwargs.pop('service', None)
+            if not service:
+                service = get_service_instance()
             if api_signature != service.api_signature:
                 return None
             return service.member
