@@ -207,11 +207,7 @@
                         {% endif %}
                         if (!$('#accept-terms').prop('checked')) e.preventDefault();
                     }
-                    if ($('#submit').hasClass('processing')) {
-                        e.preventDefault();
-                        return;
-                    }
-                    $('#submit').addClass('processing');
+                    if ($('#submit').hasClass('processing')) e.preventDefault();
                 }
             });
             $('#username').keyup(function(e) {
