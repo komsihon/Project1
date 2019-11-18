@@ -68,7 +68,8 @@ def project_settings(request):
             'PROJECT_URL': getattr(settings, 'PROJECT_URL', ''),
             'MEMBER_AVATAR': getattr(settings, 'MEMBER_AVATAR', 'ikwen/img/login-avatar.jpg'),
             'DECIMAL_SEPARATOR': get_format('DECIMAL_SEPARATOR', lang, use_l10n=use_l10n),
-            'THOUSAND_SEPARATOR': get_format('THOUSAND_SEPARATOR', lang, use_l10n=use_l10n)
+            'THOUSAND_SEPARATOR': get_format('THOUSAND_SEPARATOR', lang, use_l10n=use_l10n),
+            'MEMBER_DETAIL_VIEW': getattr(settings, 'MEMBER_DETAIL_VIEW', None)
         },
         'service': service,
         'config': config,

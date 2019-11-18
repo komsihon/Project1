@@ -6,20 +6,20 @@
         <li id="{{ user.id }}" class="ik-li member {{ user.get_status }}{% if user.is_ghost %} ghost{% endif %}"
             data-id="{{ user.id }}" data-status="{{ user.get_status }}"
             data-permissions="{% for perm in obj.permission_fk_list %},{{ perm }}{% endfor %}">
-            {% if member_detail_view %}
-                {% url member_detail_view user.id as member_url %}
+            {% if settings.MEMBER_DETAIL_VIEW %}
+                {% url settings.MEMBER_DETAIL_VIEW user.id as member_url %}
             {% else %}
                 {% url 'ikwen:profile' user.id as member_url %}
             {% endif %}
         {% if user.photo and user.photo.name %}
-            <a href="{% if member_detail_view %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
+            <a href="{% if settings.MEMBER_DETAIL_VIEW %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
                class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ user.photo.small_name }})"></a>
         {% else %}
-            <a href="{% if member_detail_view %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
+            <a href="{% if settings.MEMBER_DETAIL_VIEW %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
                class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
         {% endif %}
             <div class="info">
-                <a href="{% if member_detail_view %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
+                <a href="{% if settings.MEMBER_DETAIL_VIEW %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
                    class="full_name">{{ user.full_name }}</a>
                 <p class="about">{{ user.phone }}, {{ user.email }}</p>
             </div>

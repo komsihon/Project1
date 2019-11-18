@@ -719,7 +719,6 @@ class Community(HybridListView):
         context['sudo_group'] = Group.objects.get(name=SUDO)
         context['profiletag_list'] = ProfileTag.objects.exclude(slug__in=['men', 'women']).filter(is_active=True, is_auto=False)
         context['preference_list'] = ProfileTag.objects.exclude(slug__in=[JOIN, REFERRAL]).filter(is_active=True, is_auto=True)
-        context['member_detail_view'] = getattr(settings, 'MEMBER_DETAIL_VIEW', None)
         return context
 
     def render_to_response(self, context, **response_kwargs):
