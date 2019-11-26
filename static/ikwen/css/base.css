@@ -211,7 +211,7 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 #nav-xs > li {float: left;}
 #nav-xs {padding: 0;margin: 0}
 #site-menu {background: #2c3e50;padding: 0;}
-.glyphicon + .label {margin: -15px 0 0 12px;position: absolute;}
+.glyphicon + .label {margin: 10px 0 0 -6px!important;position: absolute;}
 
 #content {padding: 55px 0 0;}
 #content.form {padding-top: 15%;}
@@ -407,7 +407,7 @@ footer .company-name {color: #666; text-decoration: none}
     #navbar .glyphicon {font-size: 21px}
     #site-menu {background:none; }
     .navbar-nav>li>a:not(.icon) {line-height: 22px;}
-    .glyphicon + .label {margin: -15px 0 0 15px;position: absolute;}
+    .glyphicon + .label {margin: 15px 0 0 -6px!important;position: absolute;}
     #content.container {padding-top: 75px;}
     .edge-panel-right {display: block;margin-right: 0;z-index: 20;}
     .tiles .ik-li {height: 280px;width: 33.33%;}
