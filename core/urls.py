@@ -13,8 +13,8 @@ from ikwen.core.views import get_location_by_ip
 from ikwen.accesscontrol.views import SignIn, SignInMinimal, AccountSetup, update_info, \
     update_password, ForgottenPassword, SetNewPassword, Profile, Community, CompanyProfile, \
     join, set_collaborator_permissions, move_member_to_group, toggle_member, \
-    list_collaborators, MemberList, deny_access, Register, StaffWithoutPermission,\
-    staff_router, SetNewPasswordSMSRecovery
+    list_collaborators, MemberList, deny_access, Register, StaffWithoutPermission, \
+    staff_router, SetNewPasswordSMSRecovery, upload_contacts_file
 from ikwen.accesscontrol.utils import EmailConfirmationPrompt, ConfirmEmail, PhoneConfirmation, is_staff
 from ikwen.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, \
     ServiceExpired, reset_notices_counter, get_queued_sms, LegalMentions, TermsAndConditions, Configuration, \
@@ -61,6 +61,7 @@ urlpatterns = patterns(
     url(r'^deny_access$', deny_access, name='deny_access'),
     url(r'^toggle_member$', toggle_member, name='toggle_member'),
     url(r'^community/$', permission_required('accesscontrol.ik_manage_community')(Community.as_view()), name='community'),
+    url(r'^upload_contacts_file/$', permission_required('accesscontrol.ik_manage_community')(upload_contacts_file), name='upload_contacts_file'),
     url(r'^flatPages/$', permission_required('accesscontrol.sudo')(FlatPageList.as_view()), name='flatpage_list'),
     url(r'^flatPage/$', permission_required('accesscontrol.sudo')(ChangeFlatPage.as_view()), name='change_flatpage'),
     url(r'^flatPage/(?P<page_id>[-\w]+)/$', permission_required('accesscontrol.sudo')(ChangeFlatPage.as_view()), name='change_flatpage'),

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import csv
 import json
 import logging
 import random
@@ -11,8 +12,10 @@ from django.contrib import messages
 from django.contrib.auth.models import Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
+from django.core.validators import validate_email
 from django.db import transaction
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
@@ -28,7 +31,7 @@ from echo.models import Balance
 from echo.utils import LOW_MAIL_LIMIT, notify_for_low_messaging_credit, notify_for_empty_messaging_credit
 from ikwen.conf.settings import IKWEN_SERVICE_ID, WALLETS_DB_ALIAS
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
-from ikwen.accesscontrol.models import Member
+from ikwen.accesscontrol.models import Member, DEFAULT_GHOST_PWD
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.core.models import Service, XEmailObject
 from ikwen.core.constants import MALE, FEMALE
@@ -587,3 +590,75 @@ class DOBFilter(object):
         member_id_list = [member.id for member in member_qs]
         queryset = queryset.filter(user_id__in=member_id_list)
         return queryset
+
+
+def import_contacts(filename, dry_run=True):
+    abs_path = getattr(settings, 'MEDIA_ROOT') + filename
+    fh = open(abs_path, 'r')
+    line = fh.readline()
+    fh.close()
+    data = line.split(',')
+    delimiter = ',' if len(data) > 0 else ';'
+    error = None
+    row_length = 4
+    with open(abs_path) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=delimiter)
+        i = -1
+        for row in csv_reader:
+            i += 1
+            if i == 0:
+                continue
+            if len(row) < row_length:
+                error = _("Missing information on line %(line)d. %(found)d tokens found, "
+                          "but %(expected)d expected." % {'line': i + 1, 'found': len(row), 'expected': row_length})
+                break
+            first_name = row[0].strip()
+            if not first_name:
+                error = _("Missing first name on line %d." % (i + 1))
+                break
+            last_name = row[1].strip()
+            if not last_name:
+                error = _("Missing last name on line %d." % (i + 1))
+                break
+            gender = row[2].strip()
+            if gender.lower().startswith("m") or gender == _('man'):
+                gender = MALE
+            elif gender.lower().startswith("f") or gender == _('woman'):
+                gender = FEMALE
+            else:
+                error = _("Unknown gender <strong>%(gender)s</strong> on line %(line)s. "
+                          "Must be either <b>Man</b> or <b>Woman</b>" % {'gender': gender, 'line': i + 1})
+                break
+            email = row[3].strip()
+            if email:
+                try:
+                    validate_email(email)
+                except ValidationError:
+                    error = _("Invalid email %(email)s on line %(line)d" % {'email': email, 'line': (i + 1)})
+                    break
+            phone = row[4].strip()
+            if phone:
+                phone = slugify(phone).replace('-', '')
+
+            if not (phone or email):
+                error = _("No phone or email on line %d" % (i + 1))
+                break
+
+            if not dry_run:
+                try:
+                    try:
+                        Member.objects.get(email=email)
+                        continue
+                    except Member.DoesNotExist:
+                        pass
+                    try:
+                        Member.objects.get(phone=phone)
+                        continue
+                    except Member.DoesNotExist:
+                        pass
+                    username = email if email else phone
+                    Member.objects.create_user(username, DEFAULT_GHOST_PWD, email=email, phone=phone, gender=gender,
+                                               first_name=first_name, last_name=last_name, is_ghost=True)
+                except:
+                    continue
+    return error

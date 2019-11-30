@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import logging
 from datetime import datetime, timedelta
 from time import strptime
 
@@ -42,6 +43,7 @@ except Service.DoesNotExist:
     IKWEN_BASE_URL = getattr(settings, 'IKWEN_BASE_URL') if getattr(settings, 'DEBUG',
                                                                     False) else ikwen.conf.settings.PROJECT_URL
 
+logger = logging.getLogger('ikwen')
 
 HybridListView = HybridListView   # Proxy import to make ikwen.core.views.HybridListView valid
 ChangeObjectBase = ChangeObjectBase   # Proxy import to make ikwen.core.views.ChangeObjectBase valid
@@ -99,7 +101,17 @@ class ServiceDetail(TemplateView):
 
     def get(self, request, *args, **kwargs):
         action = request.GET.get('action')
-        if action == 'transfer_ownership':
+        if action == 'update_domain':
+            new_domain = request.GET['new_domain']
+            is_naked_domain = True if request.GET['type'] == Service.MAIN else False
+            try:
+                service = get_service_instance(using=UMBRELLA)
+                service.update_domain(new_domain, is_naked_domain)
+            except:
+                logger.error("Failed to update domain to %s" % new_domain)
+                response = {'error': _("Unknown error occured.")}
+                return HttpResponse(json.dumps(response), 'content-type: text/json')
+        elif action == 'transfer_ownership':
             email = request.GET['email']
             try:
                 member = Member.objects.using(UMBRELLA).filter(email=email)[0]

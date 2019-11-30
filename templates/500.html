@@ -2,12 +2,6 @@
 {% load i18n static %}
 {% block meta %}
     {% include 'core/snippets/color_and_icons.html' %}
-    <meta property="description" content="{{ config.short_description }}" />
-    <meta property="og:title" content="{{ service.project_name }}" />
-    <meta property="og:image" content="{% get_media_prefix %}{{ config.logo.name }}" />
-    <meta property="og:description" content="{{ config.short_description }}" />
-    <meta property="og:url" content="{{ service.url }}" />
-    <meta property="og:site_name" content="{{ service.domain|upper }}" />
 {% endblock %}
 {% block page_title %}<title>Error 500 - ikwen </title>{% endblock %}
 {% block head_style %}
@@ -24,7 +18,8 @@
                 <img src="{% static 'ikwen/img/embarassed.jpg' %}" height="200"/>
                 <h2 style="font-size: 45px;">Oops !!!!</h2>
                 <p style="color: #888; font-weight: 300;padding-top:12px;font-size:21px"> {% trans "Something went wrong ..." %} </p>
-                <a class="btn btn-primary" href="/" style="font-size: 18px;margin-top: 15px;min-width:200px">
+                <a class="btn btn-primary" href="{% if request.META.HTTP_REFERER %}{{ request.META.HTTP_REFERER }}{% else %}/{% endif %}"
+                   style="font-size: 18px;margin-top: 15px;min-width:200px">
                     {% trans "Let's try again" %}
                 </a>
             </div>

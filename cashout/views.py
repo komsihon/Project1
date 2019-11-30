@@ -2,7 +2,6 @@ import json
 from time import strptime
 
 from django.conf import settings
-from django.contrib.auth.decorators import user_passes_test
 from django.db import transaction
 from django.http import HttpResponse
 from django.template import Context
@@ -13,7 +12,6 @@ from django.views.generic import TemplateView
 from ikwen.core.constants import PENDING
 
 from ikwen.accesscontrol.models import Member
-from ikwen.accesscontrol.utils import is_bao
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from django.core.mail import EmailMessage

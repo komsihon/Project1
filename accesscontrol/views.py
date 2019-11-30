@@ -5,6 +5,7 @@ import string
 from threading import Thread
 from datetime import datetime
 
+from ajaxuploader.views import AjaxFileUploader
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
@@ -35,16 +36,16 @@ from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.utils import send_welcome_email, shift_ghost_member, import_ghost_profile_to_member, \
-    invite_member, bind_referrer_to_member, DOBFilter, DateJoinedFilter
+    invite_member, bind_referrer_to_member, DOBFilter, DateJoinedFilter, import_contacts
 from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SMSPasswordResetForm, SetPasswordForm, \
-    SetPasswordFormSMSRecovery
+    SetPasswordFormSMSRecovery, test_fake_email
 from ikwen.accesscontrol.models import Member, AccessRequest, \
     SUDO, ACCESS_GRANTED_EVENT, COMMUNITY, WELCOME_EVENT, DEFAULT_GHOST_PWD, OwnershipTransfer
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.constants import MALE, FEMALE
 from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT, XEmailObject
 from ikwen.core.utils import get_service_instance, get_mail_content, add_database_to_settings, add_event, set_counters, \
-    increment_history_field, XEmailMessage
+    increment_history_field, XEmailMessage, DefaultUploadBackend
 from ikwen.core.utils import send_sms
 from ikwen.core.views import HybridListView
 from ikwen.revival.models import ProfileTag, MemberProfile, Revival, ObjectProfile
@@ -102,6 +103,7 @@ class Register(TemplateView):
             query_string = request.META.get('QUERY_STRING')
             try:
                 validate_email(username)
+                test_fake_email(username)
                 email = username
             except ValidationError:
                 pass
@@ -727,6 +729,8 @@ class Community(HybridListView):
             return self.load_member_detail(context)
         elif action == 'set_member_profiles':
             return self.set_member_profiles(context)
+        elif action == 'import_contacts_file':
+            return self.import_contacts_file(context)
         elif action == 'add_ghost_member':
             return self.add_ghost_member()
         return super(Community, self).render_to_response(context, **response_kwargs)
@@ -840,6 +844,33 @@ class Community(HybridListView):
         Thread(target=set_profile_tag_member_count).start()
         response = {'success': True, 'member': member.to_dict()}
         return HttpResponse(json.dumps(response), content_type='application/json')
+
+    def import_contacts_file(self, context):
+        media_url = getattr(settings, 'MEDIA_URL')
+        filename = self.request.GET['filename'].replace(media_url, '')
+        error = import_contacts(filename)
+        if error:
+            return HttpResponse(json.dumps({'error': error}))
+        import_contacts(filename, dry_run=False)
+        return render(self.request, 'accesscontrol/snippets/community_list_results.html', context)
+
+
+class ContactsUploadBackend(DefaultUploadBackend):
+
+    def upload_complete(self, request, filename, *args, **kwargs):
+        path = self.UPLOAD_DIR + "/" + filename
+        self._dest.close()
+        try:
+            error = import_contacts(path)
+        except Exception as e:
+            error = e.message
+        return {
+            'path': getattr(settings, 'MEDIA_URL') + path,
+            'error_message': error
+        }
+
+
+upload_contacts_file = AjaxFileUploader(ContactsUploadBackend)
 
 
 class MemberList(HybridListView):

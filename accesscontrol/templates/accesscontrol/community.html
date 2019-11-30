@@ -249,6 +249,37 @@
             </div>
         </div>
     </div>
+    <div id="modal-import" class="modal fade modal-import" tabindex="-1" role="dialog" aria-labelledby="modal-import">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" style="text-align: center">
+                <div class="modal-header no-border " style="background: #319dd5; color: #ffffff">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" style="color: #ffffff">&times;</span></button>
+                    <h4 class="modal-title" style="text-align: center">{% trans "Import from CSV file" %}</h4>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <div style="padding-top: 1.5vh;">
+                            <a href="{% static "ikwen/ikwen_Import_Contacts.csv" %}" style="text-decoration: none;">{% trans "Download CSV file model..." %}</a>
+                        </div>
+                        <div id="upload-container" class="upload-container text-center" style="padding-top: 1vh;width: 100%">
+                            <div class="uploader" style="display: block; margin: auto; position: static; height: 120px"></div>
+                            <div id="import-success" style="display: none">
+                                <div class="contact-filename text-success" style="font-size: 1.2em"></div>
+                            </div>
+                            <span id="import-error" class="text-danger" style="font-size: 1.2em"></span>
+                        </div>
+                        <input type="hidden" id="contact-file-url" name="contact_file_url" />
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border: none; padding-top: 0;text-align: center">
+                    <button class="btn btn-success btn-sm confirm-import" style="display: none; min-width: 200px">
+                        {% trans "Confirm" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block js %}
@@ -257,7 +288,7 @@
         (function() {
             $('div#admin-nav .community').addClass('active');
             $('#groups').on('click', '.group', function (e) {
-                var groupId = $(this).data('id'),
+                let groupId = $(this).data('id'),
                     groupName = $(this).data('name'),
                     count = $('div#' + groupId + ' li.member:not(.tpl)').length;
                 $('div#group-update h5 em').text(groupName);
@@ -284,7 +315,7 @@
                 return $tpl;
             }
             $('body').on('click', 'li.member', function() {
-                var memberId = $(this).data('id');
+                let memberId = $(this).data('id');
                 $('ul li.member').removeClass('active');
                 $(this).addClass('active');
                 $('div#object-detail .empty').hide();
@@ -296,7 +327,7 @@
                     ikwen.swipeInRightPanel()
                 }
             }).on('click', '.set-permissions', function() {
-                var memberId = $(this).data('member-id'),
+                let memberId = $(this).data('member-id'),
                     permissionIds = [];
                 $('div#permissions input:checked').each(function() {
                     permissionIds.push($(this).val())
@@ -308,7 +339,7 @@
                     }
                 });
             }).on('click', '.set-profiles', function() {
-                var memberId = $(this).data('member-id'),
+                let memberId = $(this).data('member-id'),
                     tagIds = [];
                 $('div#profiles input:checked').each(function() {
                     tagIds.push($(this).val())
@@ -319,7 +350,7 @@
                     }
                 });
             }).on('click', '#group-update .group', function() {
-                var groupId = $(this).data('id'),
+                let groupId = $(this).data('id'),
                     name = $(this).data('name'),
                     memberId = $(this).data('member-id');
                 $.getJSON('{% url 'ikwen:move_member_to_group' %}', {group_id: groupId, member_id: memberId}, function(data) {
@@ -332,7 +363,7 @@
                     }
                 });
             }).on('click', '#blocking button', function() {
-                var memberId = $(this).data('member-id'),
+                let memberId = $(this).data('member-id'),
                     status = $(this).data('status');
                 $.getJSON('{% url 'ikwen:toggle_member' %}', {member_id: memberId}, function(data) {
                     if (data.success) {
@@ -353,7 +384,7 @@
                 $('div#new-contact-profiles input[type=checkbox]').prop('checked', false);
                 $('div#new-contact-preferences input[type=checkbox]').prop('checked', false);
             }).on('click', '.add-contact', function() {
-                var name = $('#new-contact-name').val(),
+                let name = $('#new-contact-name').val(),
                     gender = $('#new-contact-gender').val(),
                     email = $('#new-contact-email').val(),
                     phone = $('#new-contact-phone').val(),
@@ -364,7 +395,7 @@
                 $('div#new-contact-preferences input:checked').each(function() {
                     tagIds.push($(this).val())
                 });
-                var params = {action: 'add_ghost_member', name: name, gender: gender,
+                let params = {action: 'add_ghost_member', name: name, gender: gender,
                     email: email, phone: phone, tag_ids: tagIds.join(',')};
                 $.getJSON('', params, function(data) {
                     if (data.error) {
@@ -375,19 +406,38 @@
                         $('.nav-tabs .tab:first').addClass('active').show();
                         $('.tab-pane').removeClass('active').hide();
                         $('.tab-pane:first').addClass('active').show();
-                        var $member = $('.tab-pane:first .member.tpl').clone().removeClass('tpl');
+                        let $member = $('.tab-pane:first .member.tpl').clone().removeClass('tpl');
                         $member = applyMemberTemplate($member, data.member);
                         $member.prependTo('.tab-pane:first .people').show();
                         ikwen.showFloatingNotice("{% trans "Member added" %}", '', 6)
                     }
                 });
+            }).on('click', '#modal-import .confirm-import', function() {
+                $.ajax({
+                    data: {action: 'import_contacts_file', filename: $("#contact-file-url").val()},
+                    error: function() {
+                        ikwen.showFloatingNotice("Oops! Something went wrong");
+                    },
+                    success: function(response) {
+                        try {
+                            response = JSON.parse(response);
+                            if (response.error) ikwen.showFloatingNotice(response.error);
+                        } catch (e) {
+                            $('.tab.group').removeClass('active');
+                            $('.tab.group.' + {{ group_list.0.name }}).addClass('active');
+                            $('div.tab-pane').hide();
+                            $('.tab-pane#' + {{ group_list.0.id }}).show().html(response);
+                            $('#modal-import').modal('hide');
+                        }
+                    }
+                });
             });
-            var searchDescriptor = [{
+            let searchDescriptor = [{
                 endpoint: '{% url 'ikwen:list_collaborators' %}',
                 resultTplSelector: '#results li.member'
             }];
             function beforeSearch() {
-                var q = $('form#context-search input').val();
+                let q = $('form#context-search input').val();
                 $('div#groups .group').removeClass('active');
                 $('div#groups .group.results').show().addClass('active').find('span').text(q);
                 $('div.tab-pane').hide();
@@ -398,6 +448,45 @@
             $('#context-search').unbind();
             ikwen.setupSearch('#context-search', '#results', searchDescriptor, beforeSearch);
             $('#admin-content').on('change', '#admin-tools .filter select', beforeSearch);
+
+            let uploader = new qq.FileUploader({
+                template: '<div class="qq-uploader" style="background: none">' +
+                    '<div class="qq-upload-drop-area"><span></span></div>' +
+                    '<div class="qq-upload-button">' +
+                        '<img class="modal-icon pb-10" src="{% static 'echo/img/import-csv-small.png' %}"' +
+                            'style="cursor: pointer;"' +
+                            "title='{% trans "Import contact list from CSV file" %}'>" +
+                    '</div>' +
+                    '<ul class="qq-upload-list"></ul>' +
+                '</div>',
+                action: "{% url 'ikwen:import_contacts_file' %}",
+                element: $('div#upload-container .uploader')[0],
+                allowedExtensions: ['csv'],
+                buttonText: "{% trans "Upload contact from CSV file" %}",
+                multiple: false,
+                onSubmit: function(id, fileName) {
+                    $('body').css('cursor', 'wait')
+                },
+                onComplete: function(id, fileName, responseJSON) {
+                    $('body').css('cursor', 'auto');
+                    if (responseJSON.error_message) {
+                        $('#import-success, .contact-filename, .confirm-import').hide();
+                        $('#import-error').html(responseJSON.error_message).show();
+                    } else if(responseJSON.success) {
+                        $('#contact-file-url').val(responseJSON.path);
+                        $('.contact-filename').text(fileName).show();
+                        $('#import-error').hide();
+                        $('#import-success, .confirm-import').show();
+                    } else {
+                        alert("upload failed!");
+                    }
+                },
+                params: {
+                    'csrf_token': '{{ csrf_token }}',
+                    'csrf_name': 'csrfmiddlewaretoken',
+                    'csrf_xname': 'X-CSRFToken'
+                }
+            });
         })()
     </script>
 {% endblock %}

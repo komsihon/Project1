@@ -2,11 +2,10 @@
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import get_current_site
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
-from django.db.models import Q
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from ikwen.accesscontrol.backends import UMBRELLA
 
 from ikwen.core.utils import get_mail_content, get_service_instance
 
@@ -16,9 +15,23 @@ __author__ = 'Kom Sihon'
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
-#from captcha.fields import ReCaptchaField
+from ikwen.conf.settings import STATIC_ROOT
+
 
 name_required = getattr(settings, 'NAME_REQUIRED', True)
+
+
+def test_fake_email(value):
+    if getattr(settings, 'ACCEPT_FAKE_MAILS', False):
+        return
+    provider = value.split('@')[1]
+    blacklist_file = STATIC_ROOT + 'fake_mails.txt'
+    try:
+        blacklist = [fake.strip().replace('@', '') for fake in open(blacklist_file).read().split(',')]
+        if provider in blacklist:
+            raise ValidationError(_('Fake email services are not allowed. Please, use a valid email provider'))
+    except:
+        pass
 
 
 class MemberForm(forms.Form):
@@ -26,7 +39,7 @@ class MemberForm(forms.Form):
     password = forms.CharField(max_length=30)
     password2 = forms.CharField(max_length=30)
     phone = forms.IntegerField(required=False)
-    email = forms.EmailField(required=False)
+    email = forms.EmailField(required=False, validators=[test_fake_email])
     first_name = forms.CharField(max_length=60, required=name_required)
     last_name = forms.CharField(max_length=60, required=name_required)
     gender = forms.CharField(max_length=15, required=False)

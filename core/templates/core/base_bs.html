@@ -12,7 +12,7 @@
 		{% block head_style %}
             <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
             <link rel='stylesheet' href="{% static 'ikwen/css/flatly.bootstrap.min.css' %}" />
-            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}?v=19.11.8" />
+            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}?v=19.11.26" />
 		{% endblock %}
         {% block head_js %}
             <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -22,7 +22,6 @@
               <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
             <![endif]-->
             <script src="{% static 'ikwen/js/jquery-1.12.4.min.js' %}"></script>
-            <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=19.10.12"></script>
         {% endblock %}
     </head>
     {% block after_head %}{% endblock %}
@@ -210,10 +209,11 @@
             </footer>
         {% endblock %}
         <div class="edge-swipe-overlay"></div>
-        <script src="{% static 'ikwen/js/bootstrap.min.js' %}"></script>
-        <script src="{% static 'ikwen/hammerjs/hammer.min.js' %}"></script>
-        <script src="{% static 'ikwen/hammerjs/jquery.hammer.js' %}"></script>
         {% block js %}
+            <script src="{% static 'ikwen/js/bootstrap.min.js' %}"></script>
+            <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=19.10.12"></script>
+            <script src="{% static 'ikwen/hammerjs/hammer.min.js' %}"></script>
+            <script src="{% static 'ikwen/hammerjs/jquery.hammer.js' %}"></script>
             <script>
                 (function() {
                     $('form#lang a').click(function() {

@@ -46,7 +46,7 @@
 
 @media (max-width: 767px) {
     .edge-panel-left {background: #f4f4f4}
-    .edge-panel-left .logo {background: #fff; margin-top: -20px; padding: 25px 0}
+    .edge-panel-left .logo {background: #fff;display: block;margin-top: -20px;padding: 25px 0;}
     #cards > .row {margin: 0}
     #cards, .events-col1, .events-col2 {padding: 0;}
     #stage .card {padding: 10px}
