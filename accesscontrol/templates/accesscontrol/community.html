@@ -33,6 +33,11 @@
     </style>
 {% endblock %}
 
+{% block head_js %}
+    {{ block.super }}
+    <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
+{% endblock %}
+
 {% block breadcrumb_location %}
     <li>{% trans "Community" %}</li>
 {% endblock %}
@@ -424,9 +429,9 @@
                             if (response.error) ikwen.showFloatingNotice(response.error);
                         } catch (e) {
                             $('.tab.group').removeClass('active');
-                            $('.tab.group.' + {{ group_list.0.name }}).addClass('active');
+                            $('.tab.group.{{ group_list.0.name }}').addClass('active');
                             $('div.tab-pane').hide();
-                            $('.tab-pane#' + {{ group_list.0.id }}).show().html(response);
+                            $('.tab-pane#{{ group_list.0.id }}').show().html(response);
                             $('#modal-import').modal('hide');
                         }
                     }
@@ -459,7 +464,7 @@
                     '</div>' +
                     '<ul class="qq-upload-list"></ul>' +
                 '</div>',
-                action: "{% url 'ikwen:import_contacts_file' %}",
+                action: "{% url 'ikwen:upload_contacts_file' %}",
                 element: $('div#upload-container .uploader')[0],
                 allowedExtensions: ['csv'],
                 buttonText: "{% trans "Upload contact from CSV file" %}",

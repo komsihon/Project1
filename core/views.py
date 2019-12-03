@@ -313,8 +313,14 @@ def render_service_deployed_event(event, request):
     try:
         invoice = Invoice.objects.using(database).get(pk=event.object_id)
     except Invoice.DoesNotExist:
-        invoice = Invoice.objects.using(UMBRELLA).get(pk=event.object_id)
-    service_deployed = invoice.service
+        try:
+            invoice = Invoice.objects.using(UMBRELLA).get(pk=event.object_id)
+        except:
+            invoice = None
+    service_deployed = invoice.service if invoice else Service.objects.get(pk=event.object_id)
+    show_pay_now = invoice.status != Invoice.PAID if invoice else False
+    due_date = invoice.due_date if invoice else None
+    is_daraja = service_deployed.app.slug == 'daraja'
     member = service_deployed.member
     if request.GET['member_id'] != member.id:
         data = {'title': 'New service deployed',
@@ -327,12 +333,16 @@ def render_service_deployed_event(event, request):
         data = {'obj': invoice,
                 'project_name': service_deployed.project_name,
                 'service_url': service_deployed.url,
-                'due_date': invoice.due_date,
-                'show_pay_now': invoice.status != Invoice.PAID}
-    data.update({'currency_symbol': currency_symbol,
-                 'details_url': IKWEN_BASE_URL + reverse('billing:invoice_detail', args=(invoice.id,)),
-                 'amount': invoice.amount,
-                 'MEMBER_AVATAR': ikwen_settings.MEMBER_AVATAR, 'IKWEN_MEDIA_URL': ikwen_settings.MEDIA_URL})
+                'due_date': due_date,
+                'is_daraja': is_daraja,
+                'show_pay_now': show_pay_now}
+    if is_daraja:
+        data.update({'details_url': reverse('daraja:registered_company_list')})
+    else:
+        data.update({'currency_symbol': currency_symbol,
+                     'details_url': IKWEN_BASE_URL + reverse('billing:invoice_detail', args=(invoice.id,)),
+                     'amount': invoice.amount,
+                     'MEMBER_AVATAR': ikwen_settings.MEMBER_AVATAR, 'IKWEN_MEDIA_URL': ikwen_settings.MEDIA_URL})
     c = Context(data)
     html_template = get_template(template_name)
     return html_template.render(c)
