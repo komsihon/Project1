@@ -14,6 +14,7 @@ from ikwen.billing.public.views import Pricing, Donate
 from ikwen.billing.mtnmomo.views import init_momo_transaction, check_momo_transaction_status, process_notification
 from ikwen.billing.yup.views import yup_process_notification
 from ikwen.billing.uba.views import uba_process_approved, uba_process_declined_or_cancelled
+from ikwen.billing.collect import confirm_service_invoice_payment
 
 urlpatterns = patterns(
     '',
@@ -42,6 +43,8 @@ urlpatterns = patterns(
 
     url(r'^pricing/$', Pricing.as_view(), name='pricing'),
     url(r'^donate/$', Donate.as_view(), name='donate'),
+    url(r'^confirm_service_invoice_payment/(?P<tx_id>[-\w]+)/(?P<signature>[-\w]+)/(?P<extra_months>[-\w]+)/(?P<lang>[-\w]+)$',
+        confirm_service_invoice_payment, name='confirm_service_invoice_payment'),
 
     url(r'^MoMo/setCheckout/$', MoMoSetCheckout.as_view(), name='momo_set_checkout'),
     url(r'^MoMo/initTransaction/$', init_momo_transaction, name='init_momo_transaction'),

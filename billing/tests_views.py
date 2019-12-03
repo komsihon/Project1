@@ -292,7 +292,7 @@ class BillingViewsTest(TestCase):
         response = self.client.post(reverse('billing:pull_invoice'), data=data)
         self.assertEqual(response.status_code, 200)
         resp = json.loads(response.content)
-        self.assertEqual(resp['error'], "Invalide API Signature.")
+        self.assertEqual(resp['error'], u"Invalide API Signature.")
 
     @override_settings(IKWEN_SERVICE_ID='54ad2bd9b37b335a18fe5801',
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',

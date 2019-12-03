@@ -196,7 +196,7 @@ def send_invoice_reminders():
         logger.error(u"Connexion error", exc_info=True)
     count, total_amount = 0, 0
     invoice_qs = Invoice.objects.filter(status=Invoice.PENDING, due_date__gte=now.date(), last_reminder__isnull=False)
-    print "%d invoice(s) candidate for reminder." % invoice_qs.count()
+    print ("%d invoice(s) candidate for reminder." % invoice_qs.count())
     for invoice in invoice_qs:
         subscription = invoice.subscription
         if getattr(settings, 'IS_IKWEN', False):
@@ -207,7 +207,7 @@ def send_invoice_reminders():
                 config = vendor.config
         diff = now - invoice.last_reminder
         if diff.days == invoicing_config.reminder_delay:
-            print "Processing invoice for Service %s" % str(invoice.subscription)
+            print ("Processing invoice for Service %s" % str(invoice.subscription))
             count += 1
             total_amount += invoice.amount
             member = invoice.subscription.member
@@ -228,16 +228,16 @@ def send_invoice_reminders():
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
                 invoice.last_reminder = timezone.now()
-                print "Sending mail to %s" % member.email
+                print ("Sending mail to %s" % member.email)
                 try:
                     if msg.send():
-                        print "Mail sent to %s" % member.email
+                        print ("Mail sent to %s" % member.email)
                         invoice.reminders_sent += 1
                     else:
-                        print "Sending mail to %s failed" % member.email
+                        print ("Sending mail to %s failed" % member.email)
                         logger.error(u"Reminder mail for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
                 except:
-                    print "Sending mail to %s failed" % member.email
+                    print ("Sending mail to %s failed" % member.email)
                     logger.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
                 invoice.save()
             if sms_text:
@@ -271,7 +271,7 @@ def send_invoice_overdue_notices():
     count, total_amount = 0, 0
     invoice_qs = Invoice.objects.filter(Q(status=Invoice.PENDING) | Q(status=Invoice.OVERDUE),
                                         due_date__lt=now, overdue_notices_sent__lt=3)
-    print "%d invoice(s) candidate for overdue notice." % invoice_qs.count()
+    print ("%d invoice(s) candidate for overdue notice." % invoice_qs.count())
     for invoice in invoice_qs:
         subscription = invoice.subscription
         if getattr(settings, 'IS_IKWEN', False):
@@ -286,7 +286,7 @@ def send_invoice_overdue_notices():
             invoice.status = Invoice.OVERDUE
             invoice.save()
         if not invoice.last_overdue_notice or diff.days == invoicing_config.overdue_delay:
-            print "Processing invoice for Service %s" % str(invoice.subscription)
+            print ("Processing invoice for Service %s" % str(invoice.subscription))
             count += 1
             total_amount += invoice.amount
             member = invoice.subscription.member
@@ -307,16 +307,16 @@ def send_invoice_overdue_notices():
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
                 invoice.last_overdue_notice = timezone.now()
-                print "Sending mail to %s" % member.email
+                print ("Sending mail to %s" % member.email)
                 try:
                     if msg.send():
-                        print "Mail sent to %s" % member.email
+                        print ("Mail sent to %s" % member.email)
                         invoice.overdue_notices_sent += 1
                     else:
-                        print "Sending mail to %s failed" % member.email
+                        print ("Sending mail to %s failed" % member.email)
                         logger.error(u"Overdue notice for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
                 except:
-                    print "Sending mail to %s failed" % member.email
+                    print ("Sending mail to %s failed" % member.email)
                     logger.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
                 invoice.save()
             if sms_text:
@@ -351,7 +351,7 @@ def suspend_customers_services():
     count, total_amount = 0, 0
     deadline = now - timedelta(days=invoicing_config.tolerance)
     invoice_qs = Invoice.objects.filter(due_date__lte=deadline, status=Invoice.OVERDUE)
-    print "%d invoice(s) candidate for service suspension." % invoice_qs.count()
+    print ("%d invoice(s) candidate for service suspension." % invoice_qs.count())
     for invoice in invoice_qs:
         subscription = invoice.subscription
         if getattr(settings, 'IS_IKWEN', False):
@@ -389,15 +389,15 @@ def suspend_customers_services():
                 sender = '%s <no-reply@%s>' % (config.company_name, vendor.domain)
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
-                print "Sending mail to %s" % member.email
+                print ("Sending mail to %s" % member.email)
                 try:
                     if msg.send():
-                        print "Mail sent to %s" % member.email
+                        print ("Mail sent to %s" % member.email)
                     else:
-                        print "Sending mail to %s failed" % member.email
+                        print ("Sending mail to %s failed" % member.email)
                         logger.error(u"Notice of suspension for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
                 except:
-                    print "Sending mail to %s failed" % member.email
+                    print ("Sending mail to %s failed" % member.email)
                     logger.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
             if sms_text:
                 if member.phone:

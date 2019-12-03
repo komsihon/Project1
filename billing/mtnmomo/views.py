@@ -88,7 +88,7 @@ def request_payment(request, tx):
         tx.is_running = False
         tx.status = MoMoTransaction.SUCCESS
         request.session['next_url'] = 'http://nextUrl'
-        momo_after_checkout(request, signature=request.session['signature'])
+        momo_after_checkout(request, transaction=tx, signature=request.session['signature'])
     elif getattr(settings, 'DEBUG', False):
         mtn_momo = json.loads(PaymentMean.objects.get(slug=MTN_MOMO).credentials)
         data.update({'_email': mtn_momo['merchant_email']})
@@ -101,7 +101,7 @@ def request_payment(request, tx):
             tx.message = resp['StatusDesc']
             tx.is_running = False
             tx.status = MoMoTransaction.SUCCESS
-            momo_after_checkout(request, signature=request.session['signature'])
+            momo_after_checkout(request, transaction=tx, signature=request.session['signature'])
         elif resp['StatusCode'] == '1000' and resp['StatusDesc'] == 'Pending':
             # Don't do anything here. Listen and process transaction on the callback URL view
             pass

@@ -16,6 +16,7 @@ from ikwen.core.models import Service, OperatorWallet
 from ikwen.core.utils import get_service_instance
 from ikwen.core.utils import set_counters, increment_history_field, add_database_to_settings
 from ikwen.partnership.models import ApplicationRetailConfig
+from daraja.models import DARAJA, DarajaConfig
 
 logger = logging.getLogger('ikwen')
 
@@ -463,17 +464,25 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug=
 
     partner = service_umbrella.retailer
     if partner:
-        if invoice.entries:
-            ikwen_earnings = 0
-            for entry in invoice.entries:
-                ikwen_earnings += entry.item.price * entry.quantity
+        partner_is_dara = True if partner.app.slug == DARAJA else False
+        if invoice.is_one_off and partner_is_dara:
+            try:
+                dara_share = DarajaConfig.objects.get(service=get_service_instance()).referrer_share_rate
+                ikwen_earnings = invoice.amount * (100 - dara_share) / 100
+            except:
+                logger.error("Error calculating Dara earnings. Invoice #%s - Service %s" % (invoice.number, service_umbrella.project_name))
         else:
-            retail_config = ApplicationRetailConfig.objects.get(partner=partner, app=app_umbrella)
-            if retail_config:
-                ikwen_earnings = retail_config.ikwen_monthly_cost * total_months
+            if invoice.entries:
+                ikwen_earnings = 0
+                for entry in invoice.entries:
+                    ikwen_earnings += entry.item.price * entry.quantity
             else:
-                billing_plan = service_umbrella.billing_plan
-                ikwen_earnings = billing_plan.monthly_cost * total_months
+                retail_config = ApplicationRetailConfig.objects.get(partner=partner, app=app_umbrella)
+                if retail_config:
+                    ikwen_earnings = retail_config.ikwen_monthly_cost * total_months
+                else:
+                    billing_plan = service_umbrella.billing_plan
+                    ikwen_earnings = billing_plan.monthly_cost * total_months
         partner_earnings = invoice.amount - ikwen_earnings
         add_database_to_settings(partner.database)
         partner_original = Service.objects.using(partner.database).get(pk=partner.id)
@@ -481,23 +490,27 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug=
         partner.raise_balance(partner_earnings, payment_mean_slug)
 
         service_partner = Service.objects.using(partner.database).get(pk=service_umbrella.id)
-        app_partner = service_partner.app
 
-        set_counters(partner_original)
-        increment_history_field(partner_original, 'turnover_history', invoice.amount)
-        increment_history_field(partner_original, 'invoice_earnings_history', partner_earnings)
-        increment_history_field(partner_original, 'earnings_history', partner_earnings)
-        increment_history_field(partner_original, 'invoice_count_history')
+        if partner_is_dara:
+            _set_dara_stats(partner_original, service_partner, partner_earnings)
+        else:
+            app_partner = service_partner.app
 
-        set_counters(service_partner)
-        increment_history_field(service_partner, 'invoice_earnings_history', partner_earnings)
-        increment_history_field(service_partner, 'earnings_history', partner_earnings)
-        increment_history_field(service_partner, 'invoice_count_history')
+            set_counters(partner_original)
+            increment_history_field(partner_original, 'turnover_history', invoice.amount)
+            increment_history_field(partner_original, 'invoice_earnings_history', partner_earnings)
+            increment_history_field(partner_original, 'earnings_history', partner_earnings)
+            increment_history_field(partner_original, 'invoice_count_history')
 
-        set_counters(app_partner)
-        increment_history_field(app_partner, 'invoice_earnings_history', partner_earnings)
-        increment_history_field(app_partner, 'earnings_history', partner_earnings)
-        increment_history_field(app_partner, 'invoice_count_history')
+            set_counters(service_partner)
+            increment_history_field(service_partner, 'invoice_earnings_history', partner_earnings)
+            increment_history_field(service_partner, 'earnings_history', partner_earnings)
+            increment_history_field(service_partner, 'invoice_count_history')
+
+            set_counters(app_partner)
+            increment_history_field(app_partner, 'invoice_earnings_history', partner_earnings)
+            increment_history_field(app_partner, 'earnings_history', partner_earnings)
+            increment_history_field(app_partner, 'invoice_count_history')
 
         set_counters(partner)
         increment_history_field(partner, 'turnover_history', invoice.amount)
@@ -524,6 +537,17 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug=
     increment_history_field(app_umbrella, 'invoice_earnings_history', ikwen_earnings)
     increment_history_field(app_umbrella, 'earnings_history', ikwen_earnings)
     increment_history_field(app_umbrella, 'invoice_count_history')
+
+
+def _set_dara_stats(partner_original, service_partner, partner_earnings):
+    set_counters(partner_original)
+    increment_history_field(partner_original, 'turnover_history', partner_earnings)
+    increment_history_field(partner_original, 'earnings_history', partner_earnings)
+    increment_history_field(partner_original, 'transaction_count_history')
+
+    set_counters(service_partner)
+    increment_history_field(service_partner, 'earnings_history', partner_earnings)
+    increment_history_field(service_partner, 'transaction_count_history')
 
 
 def _share_payment_and_set_stats_other(invoice, payment_mean_slug='mtn-momo'):
@@ -647,7 +671,10 @@ def refill_tsunami_messaging_bundle(service, is_early_payment):
         config = KakocaseProfile.objects.get(service=service)
     elif service.app.slug == 'webnode':
         config = WebNodeProfile.objects.get(service=service)
-    bundle = config.__getattribute__('bundle')
+    try:
+        bundle = config.bundle
+    except:
+        bundle = None
     if bundle:
         balance, update = Balance.objects.using('wallets').get_or_create(service_id=service.id)
         if is_early_payment:
