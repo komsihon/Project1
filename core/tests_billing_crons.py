@@ -39,17 +39,17 @@ class BillingUtilsTest(TestCase):
     def tearDown(self):
         wipe_test_data()
 
-    # @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
-    #                    EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-    #                    EMAIL_FILE_PATH='test_emails/billing/')
-    # def test_send_invoices(self):
-    #     Invoice.objects.all().delete()
-    #     invoicing_config = InvoicingConfig.objects.all()[0]
-    #     expiry = datetime.now() + timedelta(days=invoicing_config.gap)
-    #     Subscription.objects.all().update(expiry=expiry)
-    #     send_invoices()
-    #     sent = Invoice.objects.filter(reminders_sent=1).count()
-    #     self.assertEqual(sent, 2)
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
+                       EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
+                       EMAIL_FILE_PATH='test_emails/billing/')
+    def test_send_invoices(self):
+        Invoice.objects.all().delete()
+        invoicing_config = InvoicingConfig.objects.all()[0]
+        expiry = datetime.now() + timedelta(days=invoicing_config.gap)
+        Subscription.objects.all().update(expiry=expiry)
+        send_invoices()
+        sent = Invoice.objects.filter(reminders_sent=1).count()
+        self.assertEqual(sent, 2)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
@@ -78,38 +78,38 @@ class BillingUtilsTest(TestCase):
         service = Subscription.objects.get(pk='56eb6d04b37b3379b531b102')
         self.assertEqual(service.expiry, new_expiry.date())
 
-    # @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
-    #                    EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-    #                    EMAIL_FILE_PATH='test_emails/billing/')
-    # def test_send_invoices_reminders(self):
-    #     invoicing_config = InvoicingConfig.objects.all()[0]
-    #     due_date = datetime.now() + timedelta(days=10)
-    #     last_reminder = datetime.now() - timedelta(days=invoicing_config.reminder_delay)
-    #     Invoice.objects.all().update(due_date=due_date, last_reminder=last_reminder)
-    #     send_invoice_reminders()
-    #     sent = Invoice.objects.filter(reminders_sent=2).count()
-    #     self.assertEqual(sent, 3)
-    #
-    # @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
-    #                    EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-    #                    EMAIL_FILE_PATH='test_emails/billing/')
-    # def test_send_invoice_overdue_notices(self):
-    #     invoicing_config = InvoicingConfig.objects.all()[0]
-    #     due_date = datetime.now() - timedelta(days=1)
-    #     last_reminder = datetime.now() - timedelta(days=invoicing_config.reminder_delay)
-    #     Invoice.objects.all().update(due_date=due_date, last_reminder=last_reminder)
-    #     send_invoice_overdue_notices()
-    #     sent = Invoice.objects.filter(overdue_notices_sent=1).count()
-    #     self.assertEqual(sent, 3)
-    #
-    # @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
-    #                    SERVICE_SUSPENSION_ACTION='ikwen.core.tests_billing_crons.shutdown_service',
-    #                    EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
-    #                    EMAIL_FILE_PATH='test_emails/billing/')
-    # def test_shutdown_customers_services(self):
-    #     invoicing_config = InvoicingConfig.objects.all()[0]
-    #     due_date = datetime.now() - timedelta(days=invoicing_config.tolerance + 3)
-    #     Invoice.objects.all().update(due_date=due_date, status=Invoice.OVERDUE)
-    #     suspend_customers_services()
-    #     sent = Invoice.objects.filter(status=Invoice.EXCEEDED).count()
-    #     self.assertEqual(sent, 4)
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
+                       EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
+                       EMAIL_FILE_PATH='test_emails/billing/')
+    def test_send_invoices_reminders(self):
+        invoicing_config = InvoicingConfig.objects.all()[0]
+        due_date = datetime.now() + timedelta(days=10)
+        last_reminder = datetime.now() - timedelta(days=invoicing_config.reminder_delay)
+        Invoice.objects.all().update(due_date=due_date, last_reminder=last_reminder)
+        send_invoice_reminders()
+        sent = Invoice.objects.filter(reminders_sent=2).count()
+        self.assertEqual(sent, 3)
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
+                       EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
+                       EMAIL_FILE_PATH='test_emails/billing/')
+    def test_send_invoice_overdue_notices(self):
+        invoicing_config = InvoicingConfig.objects.all()[0]
+        due_date = datetime.now() - timedelta(days=1)
+        last_reminder = datetime.now() - timedelta(days=invoicing_config.reminder_delay)
+        Invoice.objects.all().update(due_date=due_date, last_reminder=last_reminder)
+        send_invoice_overdue_notices()
+        sent = Invoice.objects.filter(overdue_notices_sent=1).count()
+        self.assertEqual(sent, 3)
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101',
+                       SERVICE_SUSPENSION_ACTION='ikwen.core.tests_billing_crons.shutdown_service',
+                       EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
+                       EMAIL_FILE_PATH='test_emails/billing/')
+    def test_shutdown_customers_services(self):
+        invoicing_config = InvoicingConfig.objects.all()[0]
+        due_date = datetime.now() - timedelta(days=invoicing_config.tolerance + 3)
+        Invoice.objects.all().update(due_date=due_date, status=Invoice.OVERDUE)
+        suspend_customers_services()
+        sent = Invoice.objects.filter(status=Invoice.EXCEEDED).count()
+        self.assertEqual(sent, 4)

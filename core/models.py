@@ -206,7 +206,7 @@ class Service(models.Model):
                                                "<a href='http://support.ikwen.com/generic/APISignature'>"
                                                "support.ikwen.com/generic/APISignature</a>")
     billing_plan = models.ForeignKey('billing.CloudBillingPlan', blank=True, null=True)
-    billing_cycle = models.CharField(max_length=30, choices=BILLING_CYCLES_CHOICES, blank=True)
+    billing_cycle = models.CharField(max_length=30, choices=BILLING_CYCLES_CHOICES, default=MONTHLY)
     monthly_cost = models.PositiveIntegerField()
     version = models.CharField(max_length=15, blank=True, choices=VERSION_CHOICES)  # Free, Trial, Full
     status = models.CharField(max_length=15, default=PENDING, choices=STATUS_CHOICES)
