@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
 from datetime import datetime, timedelta
+from threading import Thread
 
 import requests
+from django.core.urlresolvers import reverse
 from requests.exceptions import SSLError, Timeout, RequestException
 
 from django.conf import settings
@@ -13,7 +15,7 @@ from django.utils.translation import gettext as _
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.billing.models import InvoicingConfig, Invoice, AbstractSubscription, Payment
 from ikwen.core.models import Service, OperatorWallet
-from ikwen.core.utils import get_service_instance
+from ikwen.core.utils import get_service_instance, get_mail_content, XEmailMessage
 from ikwen.core.utils import set_counters, increment_history_field, add_database_to_settings
 from ikwen.partnership.models import ApplicationRetailConfig
 from daraja.models import DARAJA, DarajaConfig
@@ -74,6 +76,9 @@ def get_billing_cycle_months_count(billing_cycle):
 
 
 def get_months_count_billing_cycle(months_count):
+    """
+    Gets the billing_cycle from months_count
+    """
     if months_count == 1:
         return Service.MONTHLY
     if months_count == 3:
@@ -492,7 +497,7 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug=
         service_partner = Service.objects.using(partner.database).get(pk=service_umbrella.id)
 
         if partner_is_dara:
-            _set_dara_stats(partner_original, service_partner, partner_earnings)
+            _set_dara_stats(partner_original, service_partner, invoice, partner_earnings)
         else:
             app_partner = service_partner.app
 
@@ -539,15 +544,35 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug=
     increment_history_field(app_umbrella, 'invoice_count_history')
 
 
-def _set_dara_stats(partner_original, service_partner, partner_earnings):
+def _set_dara_stats(partner_original, service_partner, invoice, dara_earnings):
     set_counters(partner_original)
-    increment_history_field(partner_original, 'turnover_history', partner_earnings)
-    increment_history_field(partner_original, 'earnings_history', partner_earnings)
+    increment_history_field(partner_original, 'turnover_history', dara_earnings)
+    increment_history_field(partner_original, 'earnings_history', dara_earnings)
     increment_history_field(partner_original, 'transaction_count_history')
 
     set_counters(service_partner)
-    increment_history_field(service_partner, 'earnings_history', partner_earnings)
+    increment_history_field(service_partner, 'earnings_history', dara_earnings)
     increment_history_field(service_partner, 'transaction_count_history')
+
+    ikwen_service = get_service_instance()
+    try:
+        config = ikwen_service.config
+        subject = _("New transaction on %s" % config.company_name)
+        dashboard_url = 'https://daraja.ikwen.com' + reverse('daraja:dashboard')
+        html_content = get_mail_content(subject, template_name='daraja/mails/new_transaction.html',
+                                        extra_context={'currency_symbol': config.currency_symbol, 'amount': invoice.amount,
+                                                       'dara_earnings': dara_earnings,
+                                                       'transaction_time': invoice.updated_on.strftime('%Y-%m-%d %H:%M:%S'),
+                                                       'account_balance': partner_original.balance,
+                                                       'dashboard_url': dashboard_url})
+        sender = 'ikwen Daraja <no-reply@ikwen.com>'
+        msg = XEmailMessage(subject, html_content, sender, [partner_original.member.email])
+        if getattr(settings, 'UNIT_TESTING', False):
+            msg.send()
+        else:
+            Thread(target=lambda m: m.send(), args=(msg,)).start()
+    except:
+        logger.error("Failed to notify %s Dara after follower purchase." % partner_original, exc_info=True)
 
 
 def _share_payment_and_set_stats_other(invoice, payment_mean_slug='mtn-momo'):

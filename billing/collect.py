@@ -18,6 +18,7 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.utils.http import urlquote
 from django.utils.translation import gettext as _, get_language, activate
 
+from daraja.models import DARAJA
 from echo.utils import LOW_MAIL_LIMIT, notify_for_low_messaging_credit, notify_for_empty_messaging_credit
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.core.constants import CONFIRMED
@@ -82,6 +83,7 @@ def set_invoice_checkout(request, *args, **kwargs):
     lang = get_language()
     model_name = 'billing.Invoice'
     mean = request.GET.get('mean', MTN_MOMO)
+    MoMoTransaction.objects.using(WALLETS_DB_ALIAS).filter(object_id=invoice_id).delete()
     tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS)\
         .create(service_id=service.id, type=MoMoTransaction.CASH_OUT, amount=amount, phone='N/A', model=model_name,
                 object_id=invoice_id, task_id=signature, wallet=mean, username=request.user.username, is_running=True)
@@ -209,7 +211,8 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
     share_payment_and_set_stats(invoice, total_months, mean)
     member = request.user
     vendor = service.retailer
-    if vendor:
+    vendor_is_dara = vendor and vendor.app.slug == DARAJA
+    if vendor and not vendor_is_dara:
         add_database_to_settings(vendor.database)
         sudo_group = Group.objects.using(vendor.database).get(name=SUDO)
     else:
@@ -227,10 +230,13 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
                                                        'early_payment': is_early_payment})
         sender = '%s <no-reply@%s>' % (vendor.config.company_name, ikwen_service.domain)
         msg = XEmailMessage(subject, html_content, sender, [member.email])
-        if vendor != ikwen_service:
+        if vendor != ikwen_service and not vendor_is_dara:
             msg.service = vendor
         msg.content_subtype = "html"
-        Thread(target=lambda m: m.send(), args=(msg,)).start()
+        if getattr(settings, 'UNIT_TESTING', False):
+            msg.send()
+        else:
+            Thread(target=lambda m: m.send(), args=(msg,)).start()
     return HttpResponse("Notification received")
 
 

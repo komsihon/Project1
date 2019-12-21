@@ -11,14 +11,14 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.utils.translation import activate, gettext as _
 
+from ikwen.conf.settings import WALLETS_DB_ALIAS
+from ikwen.core.models import Service
+from ikwen.billing.models import Invoice, InvoiceEntry, InvoiceItem, InvoicingConfig
+from ikwen.billing.utils import get_subscription_model, get_product_model, \
+    get_invoice_generated_message
+from ikwen.core.utils import get_mail_content, XEmailMessage, add_database
 from echo.models import Balance
 from echo.utils import notify_for_low_messaging_credit, LOW_MAIL_LIMIT, notify_for_empty_messaging_credit
-from ikwen.conf.settings import WALLETS_DB_ALIAS
-from ikwen.accesscontrol.models import Member
-from ikwen.billing.models import Invoice, InvoiceEntry, InvoiceItem
-from ikwen.billing.utils import get_invoicing_config_instance, get_subscription_model, get_product_model, \
-    get_invoice_generated_message
-from ikwen.core.utils import get_service_instance, get_mail_content, XEmailMessage
 
 logger = logging.getLogger('ikwen')
 
@@ -27,17 +27,20 @@ Subscription = get_subscription_model()
 
 
 def pull_invoice(request, *args, **kwargs):
-    invoicing_config = get_invoicing_config_instance()
-    if not invoicing_config.pull_invoice:
-        notice = "Cannot import when not explicitly configured to do so. You must set activate " \
-                 "pull_invoice in your platform configuration for import to work."
+    api_signature = request.POST.get('api_signature')
+    try:
+        service = Service.objects.get(api_signature=api_signature)
+    except:
+        notice = "Invalid API Signature."
         response = {'error': notice}
         return HttpResponse(json.dumps(response))
 
-    service = get_service_instance()
-    api_signature = request.POST.get('api_signature')
-    if api_signature != service.api_signature:
-        notice = "Invalide API Signature."
+    db = service.database
+    add_database(db)
+    invoicing_config, update = InvoicingConfig.objects.using(db).get_or_create(service=service)
+    if not invoicing_config.pull_invoice:
+        notice = "Cannot import when not explicitly configured to do so. You must set activate " \
+                 "pull_invoice in your platform configuration for import to work."
         response = {'error': notice}
         return HttpResponse(json.dumps(response))
 
@@ -49,7 +52,7 @@ def pull_invoice(request, *args, **kwargs):
     try:
         number = request.POST['invoice_number'].strip()
         try:
-            Invoice.objects.get(number=number)
+            Invoice.objects.using(db).get(number=number)
             errors.append("Invoice with number '%s' already exists. Invoice numbers must be unique." % number)
             do_pull = False
         except Invoice.DoesNotExist:
@@ -93,8 +96,8 @@ def pull_invoice(request, *args, **kwargs):
     currency_code = request.POST.get('currency_code', 'XAF')
     if reference_id:
         try:
-            subscription = Subscription.objects.select_related('member, product').get(reference_id=reference_id)
-        except Member.DoesNotExist:
+            subscription = Subscription.objects.using(db).select_related('member, product').get(reference_id=reference_id)
+        except Subscription.DoesNotExist:
             do_pull = False
             notice = "reference_id '%s' not found." % reference_id
             errors.append(notice)
@@ -103,7 +106,8 @@ def pull_invoice(request, *args, **kwargs):
             'error': '\n'.join(errors),
             'missing': 'Following parameters are missing: ' + ', '.join(missing)
         }
-        HttpResponse(json.dumps(response))
+        return HttpResponse(json.dumps(response))
+
     product = subscription.product
     if product:
         short_description = product.name
@@ -114,9 +118,9 @@ def pull_invoice(request, *args, **kwargs):
     entry = InvoiceEntry(item=item, short_description=short_description, quantity=quantity,
                          quantity_unit=quantity_unit, total=amount)
     invoice_entries.append(entry)
-    invoice = Invoice.objects.create(number=number, member=subscription.member, subscription=subscription,
-                                     amount=amount, months_count=quantity, due_date=due_date, entries=invoice_entries)
-    service = get_service_instance()
+    invoice = Invoice.objects.using(db).create(number=number, member=subscription.member, subscription=subscription,
+                                               amount=amount, months_count=quantity, due_date=due_date,
+                                               entries=invoice_entries)
     config = service.config
     member = subscription.member
     if member.email:
@@ -129,15 +133,15 @@ def pull_invoice(request, *args, **kwargs):
                 return
             subject, message, sms_text = get_invoice_generated_message(invoice)
             try:
-                currency = Currency.objects.get(code=currency_code).symbol
-            except Currency.DoesNotExist:
+                currency = Currency.objects.using(db).get(code=currency_code).symbol
+            except:
                 try:
                     currency = Currency.active.default().symbol
                 except:
                     currency = currency_code
 
             invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id, ))
-            html_content = get_mail_content(subject, template_name='billing/mails/notice.html',
+            html_content = get_mail_content(subject, template_name='billing/mails/notice.html', service=service,
                                             extra_context={'invoice': invoice, 'member_name': member.first_name,
                                                            'invoice_url': invoice_url, 'cta': _("Pay now"),
                                                            'currency': currency})
@@ -150,5 +154,5 @@ def pull_invoice(request, *args, **kwargs):
                 msg.send()
             else:
                 Thread(target=lambda m: m.send(), args=(msg, )).start()
-    response = {'success': True}
+    response = {'success': True, 'invoice_id': invoice.id}
     return HttpResponse(json.dumps(response))

@@ -712,7 +712,7 @@ def import_subscriptions(filename, dry_run=True):
     data = line.split(',')
     delimiter = ',' if len(data) > 0 else ';'
     error = None
-    row_length = 9
+    row_length = 11
     now = datetime.now()
     with open(abs_path) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=delimiter)
@@ -725,13 +725,7 @@ def import_subscriptions(filename, dry_run=True):
                 error = _("Missing information on line %(line)d. %(found)d tokens found, "
                           "but %(expected)d expected." % {'line': i + 1, 'found': len(row), 'expected': row_length})
                 break
-            email = row[0].strip()
-            try:
-                validate_email(email)
-            except ValidationError:
-                error = _("Invalid email %(email)s on line %(line)d" % {'email': email, 'line': (i + 1)})
-                break
-            reference_id = row[1].strip()
+            reference_id = row[0].strip()
             if reference_id:
                 try:
                     Subscription.objects.get(reference_id=reference_id)
@@ -740,15 +734,23 @@ def import_subscriptions(filename, dry_run=True):
                     break
                 except Subscription.DoesNotExist:
                     pass
-            product_id = row[2].strip().capitalize()
+            email = row[1].strip()
             try:
-                product = Product.objects.get(pk=product_id, is_active=True)
-            except Product.DoesNotExist:
-                pk_list = [obj.id for obj in Product.objects.filter(is_active=True)]
-                error = _("Product ID <ins>%(pk)s</ins> not found or inactive. Line %(line)d. \n"
-                          "Must be one of <b>%(pk_list)s</b>" % {'pk': product_id, 'line': i + 1, 'pk_list': ', '.join(pk_list)})
+                validate_email(email)
+            except ValidationError:
+                error = _("Invalid email %(email)s on line %(line)d" % {'email': email, 'line': (i + 1)})
                 break
-            cost = row[3].lower().strip()
+            first_name = row[2].strip().capitalize()
+            last_name = row[3].strip().capitalize()
+            product_name = row[4].strip().capitalize()
+            try:
+                product = Product.objects.get(name__iexact=product_name, is_active=True)
+            except Product.DoesNotExist:
+                name_list = [obj.name for obj in Product.objects.filter(is_active=True)]
+                error = _("Product Name <ins>%(name)s</ins> not found or inactive. Line %(line)d. \n"
+                          "Must be one of <b>%(name_list)s</b>" % {'name': product_name, 'line': i + 1, 'name_list': ', '.join(name_list)})
+                break
+            cost = row[5].lower().strip()
             if cost:
                 try:
                     cost = float(cost)
@@ -758,7 +760,7 @@ def import_subscriptions(filename, dry_run=True):
                     break
             else:
                 cost = product.cost
-            months_count = row[4].lower().strip()
+            months_count = row[6].lower().strip()
             try:
                 months_count = int(months_count)
                 if months_count not in [1, 3, 6, 12]:
@@ -768,7 +770,7 @@ def import_subscriptions(filename, dry_run=True):
                 error = _("Invalid billing cycle <ins>%(billing_cycle)s</ins> on line %(line)d. "
                           "Expected one of: 1, 3, 6 or 12" % {'billing_cycle': months_count, 'line': i + 1})
                 break
-            since = row[5].strip()
+            since = row[7].strip()
             if since:
                 try:
                     st = strptime(since.replace(' ', '').replace('/', '-'), '%Y-%m-%d')
@@ -779,11 +781,11 @@ def import_subscriptions(filename, dry_run=True):
                         since = datetime(st.tm_year, st.tm_mon, st.tm_mday)
                     except:
                         error = _("Incorrect subscription date <ins>%(since)s</ins> on line %(line)d. "
-                                  "Must be in the format Year-Month-Day" % {'since': since, 'line': i + 1})
+                                  "Must be in the format YYYY-MM-DD" % {'since': since, 'line': i + 1})
                         break
             else:
                 since = now
-            exp = row[6].strip()
+            exp = row[8].strip()
             try:
                 st = strptime(exp.replace(' ', '').replace('/', '-'), '%Y-%m-%d')
                 expiry = date(st.tm_year, st.tm_mon, st.tm_mday)
@@ -795,14 +797,14 @@ def import_subscriptions(filename, dry_run=True):
                     error = _("Incorrect expiry <ins>%(expiry)s</ins> on line %(line)d. "
                               "Must be in the format Year-Month-Day" % {'expiry': exp, 'line': i + 1})
                     break
-            tolerance = row[7].lower().strip()
+            tolerance = row[9].lower().strip()
             try:
                 tolerance = int(tolerance)
             except ValueError:
                 error = _("Invalid tolerance <ins>%(tolerance)s</ins> on line %(line)d. "
                           "Expected integer value" % {'tolerance': tolerance, 'line': i + 1})
                 break
-            status = row[8].strip()
+            status = row[10].strip()
             if status.lower() not in ['pending', 'active', 'suspended', 'canceled']:
                 error = _("Invalid status <ins>%(status)s</ins> on line %(line)d. Must be one of: "
                           "<b>Pending</b>, <b>Active</b>, <b>Suspended</b> or <b>Canceled</b>." % {'status': status, 'line': i + 1})
@@ -812,7 +814,8 @@ def import_subscriptions(filename, dry_run=True):
                     try:
                         member = Member.objects.filter(email=email)[0]
                     except IndexError:
-                        member = Member.objects.create_user(email, DEFAULT_GHOST_PWD, email=email, is_ghost=True)
+                        member = Member.objects.create_user(email, DEFAULT_GHOST_PWD, email=email,
+                                                            first_name=first_name, last_name=last_name, is_ghost=True)
                     Subscription.objects.create(member=member, product=product, reference_id=reference_id,
                                                 monthly_cost=cost, billing_cycle=billing_cycle,
                                                 invoice_tolerance=tolerance, since=since, expiry=expiry,
