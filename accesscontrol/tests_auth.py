@@ -31,7 +31,7 @@ from ikwen.revival.models import MemberProfile
 from echo.models import Balance
 
 
-def wipe_test_data():
+def wipe_test_data(db=None):
     """
     This test was originally built with django-nonrel 1.6 which had an error when flushing the database after
     each test. So the flush is performed manually with this custom tearDown()
@@ -44,10 +44,15 @@ def wipe_test_data():
     import ikwen.rewarding.models
     import ikwen_kakocase.kakocase.models
     import permission_backend_nonrel.models
+    import daraja.models
     OperatorWallet.objects.using('wallets').all().delete()
     MoMoTransaction.objects.using('wallets').all().delete()
     Balance.objects.using('wallets').all().delete()
-    for alias in getattr(settings, 'DATABASES').keys():
+    if db:
+        aliases = [db]
+    else:
+        aliases = getattr(settings, 'DATABASES').keys()
+    for alias in aliases:
         if alias == 'wallets':
             continue
         Group.objects.using(alias).all().delete()
@@ -79,6 +84,9 @@ def wipe_test_data():
             model.objects.using(alias).all().delete()
         for name in ('TsunamiBundle', 'OperatorProfile', ):
             model = getattr(ikwen_kakocase.kakocase.models, name)
+            model.objects.using(alias).all().delete()
+        for name in ('DarajaConfig', 'DaraRequest', 'Dara', 'Invitation', ):
+            model = getattr(daraja.models, name)
             model.objects.using(alias).all().delete()
 
 
