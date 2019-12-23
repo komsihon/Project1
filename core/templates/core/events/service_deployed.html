@@ -1,15 +1,23 @@
 {% load i18n staticfiles humanize auth_tokens %}
 <div class="col-xs-4 col-sm-3">
-    <img src="{% static 'ikwen/img/rocket.png' %}" alt="Invoice" class="img-responsive" style="margin-top: 1.5em" />
+    {% if is_daraja %}
+        <img src="{% static 'daraja/icons/icon-256x256.png' %}" alt="Daraja" class="img-responsive" style="margin-top: 1.5em" />
+    {% else %}
+        <img src="{% static 'ikwen/img/rocket.png' %}" alt="Invoice" class="img-responsive" style="margin-top: 1.5em" />
+    {% endif %}
 </div>
 <div class="col-xs-8 col-sm-9">
     <h4 class="text-primary">{% trans "You are online" %}</h4>
+    {% if is_daraja %}
+    <p>{% blocktrans %}Welcome to the business network.{% endblocktrans %}</p>
+    {% else %}
     <p>{% blocktrans %}Your platform <a href="{{ service_url }}" target="_blank">{{ project_name }}</a> was successfully deployed.<br>
         The invoice for service setup has been generated, and is due on <ins class="text-muted">{{ due_date }}</ins>.{% endblocktrans %}</p>
     <p>
+    {% endif %}
         <span class="text-primary" style="font-size: 21px">{{ currency_symbol }}</span>
         <strong class="text-primary" style="font-size: 21px">{{ amount|intcomma }}</strong>
-        {% if not show_pay_now %}
+        {% if not show_pay_now and not is_daraja %}
             <a href="{{ details_url }}" target="_blank" style="margin-left: 7px">{% trans "Details" %}</a>
         {% endif %}
     </p>
@@ -17,5 +25,10 @@
 {% if show_pay_now %}
     <div class="col-xs-8 col-xs-offset-2 col-sm-offset-3 col-sm-6" style="margin-top: 15px">
         <a href="{{ details_url }}" target="_blank" class="btn btn-warning btn-sm btn-block">{% trans "Pay now" %}</a>
+    </div>
+{% endif %}
+{% if is_daraja %}
+    <div class="col-xs-8 col-xs-offset-2 col-sm-offset-3 col-sm-6" style="margin-top: 45px">
+        <a href="{{ details_url }}" class="btn btn-success btn-sm btn-block">{% trans "Choose your companies" %}</a>
     </div>
 {% endif %}
