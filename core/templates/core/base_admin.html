@@ -205,13 +205,15 @@
                 $.getJSON('', {action: action, object_id: id}, function() {
 
                 })
-            }).on('click', '.pagination .page', function() {
+            }).on('click', '.pagination .page:not(.disabled)', function() {
                 let query = window.location.search,
                     page = $(this).data('val');
                 if (query && query !== '?') query += '&format=html_results&page=' + page;
                 else query = 'format=html_results&page=' + page;
-                $('div#results .spinner').fadeIn();
-                $('div#admin-content .stage').load('', query);
+                let $resultsStage = $(this).parents('.results-stage');
+                if ($resultsStage.length === 0) $resultsStage = $('#results');
+                $resultsStage.find('.spinner').fadeIn();
+                $resultsStage.load('', query);
             });
 
             $('#admin-content').on('click', '#admin-tools .glyphicon-search', function() {

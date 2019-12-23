@@ -74,6 +74,7 @@ class HybridListView(ListView):
         context[context_object_name] = queryset.order_by(*self.ordering)[:self.page_size]
         context['queryset'] = queryset
         context['page_size'] = self.page_size
+        context['max_visible_page_count'] = self.get_max_visible_page_count(queryset)
         context['total_objects'] = self.get_queryset().count()
         context['filter'] = self.get_filter()
         model = queryset.model
@@ -136,9 +137,15 @@ class HybridListView(ListView):
                 objects_page = paginator.page(paginator.num_pages)
             context['q'] = self.request.GET.get('q')
             context['objects_page'] = objects_page
-            min_page = page - (page % self.max_visible_page_count) + 1
-            max_page = min_page + min(paginator.num_pages, self.max_visible_page_count)
+            max_visible_page_count = context['max_visible_page_count']
+            min_page = page - (page % max_visible_page_count)
+            if min_page < max_visible_page_count:
+                min_page += 1
+            max_page = min(min_page + max_visible_page_count, paginator.num_pages)
+            if page == paginator.num_pages:
+                min_page = page - max_visible_page_count
             context['page_range'] = range(min_page, max_page + 1)
+            context['max_page'] = max_page
             if fmt == 'html_results':
                 return render(self.request, self.html_results_template_name, context)
             else:
@@ -190,6 +197,9 @@ class HybridListView(ListView):
                 except:
                     continue
         return super(HybridListView, self).get(request, *args, **kwargs)
+
+    def get_max_visible_page_count(self, queryset):
+        return self.max_visible_page_count
 
     def get_search_results(self, queryset, max_chars=None):
         """

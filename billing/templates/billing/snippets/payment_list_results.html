@@ -59,8 +59,10 @@
     {% endfor %}
 </ul>
 {% if objects_page.paginator.num_pages > 1 %}
-<ul class="pagination">
-    <li class="disabled" data-val="first"><a href="javascript:;" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
+<ul class="pagination" style="float: left">
+    {% if objects_page.paginator.num_pages > max_visible_page_count and page_range.0 >= max_visible_page_count  %}
+        <li class="page" data-val="first"><a href="javascript:;" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
+    {% endif %}
     {% for page in page_range %}
         <li class="page{% if page == objects_page.number %} active{% endif %}" data-val="{{ page }}">
             <a href="javascript:;">
@@ -68,11 +70,13 @@
             </a>
         </li>
     {% endfor %}
-    <li data-val="-1"><a href="javascript:;" aria-label="Next"><span aria-hidden="true">»</span></a></li>
+    {% if objects_page.paginator.num_pages > max_visible_page_count and max_page < objects_page.paginator.num_pages %}
+        <li class="page{% if max_page == objects_page.paginator.num_pages %} disabled{% endif %}" data-val="-1"><a href="javascript:;" aria-label="Next"><span aria-hidden="true">»</span></a></li>
+    {% endif %}
 </ul>
 {% endif %}
 <div id="page-navigation" class="text-muted">
-    {% if objects_page.paginator.num_pages > 1 %}
+    {% if objects_page.paginator.num_pages > 1  %}
         <p>{% blocktrans with count=objects_page.paginator.count start=objects_page.start_index end=objects_page.end_index %}
             {{ start }} – {{ end }} of {{ count }} results{% endblocktrans %}</p>
     {% else %}

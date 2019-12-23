@@ -14,6 +14,7 @@ from django.test.client import Client
 from django.test.utils import override_settings
 from django.utils import unittest
 
+from daraja.models import DarajaConfig
 from echo.models import Balance
 from ikwen.billing.models import Invoice, IkwenInvoiceItem, InvoiceEntry, SupportCode
 
@@ -37,6 +38,7 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
     def setUp(self):
         self.client = Client()
         add_database_to_settings('test_kc_partner_jumbo')
+        add_database_to_settings('test_kc_referrer')
         for fixture in self.fixtures:
             call_command('loaddata', fixture)
 
@@ -280,6 +282,68 @@ class IkwenCoreViewsTestCase(unittest.TestCase):
 
         partner_wallet = OperatorWallet.objects.using('wallets').get(nonrel_id='56eb6d04b9b531b10537b331')
         self.assertEqual(partner_wallet.balance, 11000)
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', DEBUG=True,
+                       EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
+                       EMAIL_FILE_PATH='test_emails/core/', UNIT_TESTING=True)
+    def test_pay_one_off_invoice_with_service_having_dara_retailer(self):
+        """
+        Walks all through the payment from choosing the payment mean,
+        setting checkout, confirm payment and having its Service expiry extended.
+        If the Service is deployed through a Dara partner. Share earnings accordingly
+        """
+        call_command('loaddata', 'billing_invoices.yaml')
+        call_command('loaddata', 'drj_setup_data.yaml')
+        call_command('loaddata', 'ikwen_members.yaml', database='test_kc_referrer')
+        call_command('loaddata', 'setup_data.yaml', database='test_kc_referrer')
+        call_command('loaddata', 'drj_setup_data.yaml', database='test_kc_referrer')
+        DarajaConfig.objects.create(referrer_share_rate=20)
+        now = datetime.now()
+        dara_service = Service.objects.get(pk='58aab5ca4fc0c21cb231e582')
+        Service.objects.filter(pk='56eb6d04b37b3379b531b102').update(expiry=now.date(), retailer=dara_service)
+        Invoice.objects.filter(pk='56eb6d04b37b3379d531e012').update(is_one_off=True, amount=20000)
+        self.client.login(username='member2', password='admin')
+        response = self.client.post(reverse('billing:momo_set_checkout'), {'product_id': '56eb6d04b37b3379d531e012'})
+        json_resp = json.loads(response.content)
+        notification_url = json_resp['notification_url']
+        response = self.client.get(notification_url, data={'status': 'Success', 'phone': '655003321',
+                                                           'message': 'OK', 'operator_tx_id': 'OP_TX_1'})
+        self.assertEqual(response.status_code, 200)
+        s = Service.objects.get(pk='56eb6d04b37b3379b531b102')
+        new_expiry = now + timedelta(days=30)
+        self.assertEqual(s.expiry, new_expiry.date())
+
+        cache.clear()
+        service = Service.objects.get(pk='56eb6d04b37b3379b531b102')
+        self.assertEqual(service.turnover_history, [20000])
+        self.assertEqual(service.invoice_earnings_history, [16000])
+        self.assertEqual(service.earnings_history, [16000])
+        self.assertEqual(service.invoice_count_history, [1])
+
+        app = service.app
+        self.assertEqual(app.turnover_history, [20000])
+        self.assertEqual(app.invoice_earnings_history, [16000])
+        self.assertEqual(app.earnings_history, [16000])
+        self.assertEqual(app.invoice_count_history, [1])
+
+        dara_service = Service.objects.get(pk='58aab5ca4fc0c21cb231e582')
+        self.assertEqual(dara_service.turnover_history, [20000])
+        self.assertEqual(dara_service.invoice_earnings_history, [16000])
+        self.assertEqual(dara_service.earnings_history, [16000])
+        self.assertEqual(dara_service.invoice_count_history, [1])
+
+        partner_app = dara_service.app
+        self.assertEqual(partner_app.turnover_history, [20000])
+        self.assertEqual(partner_app.invoice_earnings_history, [16000])
+        self.assertEqual(partner_app.earnings_history, [16000])
+        self.assertEqual(partner_app.invoice_count_history, [1])
+
+        service_mirror = Service.objects.using('test_kc_referrer').get(pk='58aab5ca4fc0c21cb231e582')
+        self.assertEqual(service_mirror.earnings_history, [4000])
+        self.assertEqual(service_mirror.transaction_count_history, [1])
+
+        partner_wallet = OperatorWallet.objects.using('wallets').get(nonrel_id='58aab5ca4fc0c21cb231e582')
+        self.assertEqual(partner_wallet.balance, 4000)
 
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', DEBUG=True,
                        EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
