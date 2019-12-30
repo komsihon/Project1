@@ -137,7 +137,7 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
     lang = kwargs['lang']
     activate(lang)
     try:
-        tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS).get(pk=tx_id)
+        tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS).get(pk=tx_id, is_running=True)
         if not getattr(settings, 'DEBUG', False):
             tx_timeout = getattr(settings, 'IKWEN_PAYMENT_GATEWAY_TIMEOUT', 15) * 60
             expiry = tx.created_on + timedelta(seconds=tx_timeout)
@@ -202,7 +202,7 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
         except SupportBundle.DoesNotExist:
             logger.error("Free Support Code not created for %s" % service, exc_info=True)
     service.save()
-    mean = request.session['mean']
+    mean = tx.wallet
     is_early_payment = False
     if service.app.slug == 'kakocase' or service.app.slug == 'webnode':
         if invoice.due_date <= now.date():
