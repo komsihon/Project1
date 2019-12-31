@@ -494,11 +494,11 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug=
 
         partner.raise_balance(partner_earnings, payment_mean_slug)
 
-        service_partner = Service.objects.using(partner.database).get(pk=service_umbrella.id)
-
         if partner_is_dara:
+            service_partner = Service.objects.using(partner.database).get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
             _set_dara_stats(partner_original, service_partner, invoice, partner_earnings)
         else:
+            service_partner = Service.objects.using(partner.database).get(pk=service_umbrella.id)
             app_partner = service_partner.app
 
             set_counters(partner_original)
@@ -545,11 +545,6 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug=
 
 
 def _set_dara_stats(partner_original, service_partner, invoice, dara_earnings):
-    set_counters(partner_original)
-    increment_history_field(partner_original, 'turnover_history', dara_earnings)
-    increment_history_field(partner_original, 'earnings_history', dara_earnings)
-    increment_history_field(partner_original, 'transaction_count_history')
-
     set_counters(service_partner)
     increment_history_field(service_partner, 'earnings_history', dara_earnings)
     increment_history_field(service_partner, 'transaction_count_history')
@@ -567,6 +562,7 @@ def _set_dara_stats(partner_original, service_partner, invoice, dara_earnings):
                                                        'dashboard_url': dashboard_url})
         sender = 'ikwen Daraja <no-reply@ikwen.com>'
         msg = XEmailMessage(subject, html_content, sender, [partner_original.member.email])
+        msg.content_subtype = "html"
         if getattr(settings, 'UNIT_TESTING', False):
             msg.send()
         else:

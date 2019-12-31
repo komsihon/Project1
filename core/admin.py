@@ -147,7 +147,7 @@ class ServiceAdmin(admin.ModelAdmin):
 if getattr(settings, 'IS_IKWEN', False):
     _list_display = ('service', 'company_name', 'short_description', 'contact_email', 'contact_phone')
     _general_fields = ('service', 'company_name', 'short_description', 'slogan',
-                       'description', 'currency_code', 'currency_symbol', 'is_standalone')
+                       'description', 'currency_code', 'currency_symbol', 'is_pro_version', 'is_standalone')
 else:
     _list_display = ('company_name', 'short_description', 'contact_email', 'contact_phone')
     _general_fields = ('company_name', 'short_description', 'slogan',
