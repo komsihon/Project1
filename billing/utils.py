@@ -545,6 +545,11 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug=
 
 
 def _set_dara_stats(partner_original, service_partner, invoice, dara_earnings):
+    set_counters(partner_original)
+    increment_history_field(partner_original, 'turnover_history', dara_earnings)
+    increment_history_field(partner_original, 'earnings_history', dara_earnings)
+    increment_history_field(partner_original, 'transaction_count_history')
+
     set_counters(service_partner)
     increment_history_field(service_partner, 'earnings_history', dara_earnings)
     increment_history_field(service_partner, 'transaction_count_history')
