@@ -10,7 +10,7 @@ from requests.exceptions import SSLError, Timeout, RequestException
 from django.conf import settings
 from django.db import transaction
 from django.db.models import get_model
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as _, activate
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.billing.models import InvoicingConfig, Invoice, AbstractSubscription, Payment
@@ -557,6 +557,7 @@ def _set_dara_stats(partner_original, service_partner, invoice, dara_earnings):
     ikwen_service = get_service_instance()
     try:
         config = ikwen_service.config
+        activate(partner_original.member.language)
         subject = _("New transaction on %s" % config.company_name)
         dashboard_url = 'https://daraja.ikwen.com' + reverse('daraja:dashboard')
         html_content = get_mail_content(subject, template_name='daraja/mails/new_transaction.html',

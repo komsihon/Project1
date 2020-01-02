@@ -16,7 +16,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Sum
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.utils.http import urlquote
-from django.utils.translation import gettext as _, get_language, activate
+from django.utils.translation import gettext as _, activate
 
 from daraja.models import DARAJA
 from echo.utils import LOW_MAIL_LIMIT, notify_for_low_messaging_credit, notify_for_empty_messaging_credit
@@ -80,14 +80,13 @@ def set_invoice_checkout(request, *args, **kwargs):
     request.session['object_id'] = invoice_id
     request.session['extra_months'] = extra_months
 
-    lang = get_language()
     model_name = 'billing.Invoice'
     mean = request.GET.get('mean', MTN_MOMO)
     MoMoTransaction.objects.using(WALLETS_DB_ALIAS).filter(object_id=invoice_id).delete()
     tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS)\
         .create(service_id=service.id, type=MoMoTransaction.CASH_OUT, amount=amount, phone='N/A', model=model_name,
                 object_id=invoice_id, task_id=signature, wallet=mean, username=request.user.username, is_running=True)
-    notification_url = reverse('billing:confirm_service_invoice_payment', args=(tx.id, signature, extra_months, lang))
+    notification_url = reverse('billing:confirm_service_invoice_payment', args=(tx.id, signature, extra_months))
     cancel_url = reverse('billing:invoice_detail', args=(invoice_id, ))
     return_url = reverse('billing:invoice_detail', args=(invoice_id, ))
 
@@ -134,8 +133,6 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
     phone = request.GET['phone']
     tx_id = kwargs['tx_id']
     extra_months = int(kwargs['extra_months'])
-    lang = kwargs['lang']
-    activate(lang)
     try:
         tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS).get(pk=tx_id, is_running=True)
         if not getattr(settings, 'DEBUG', False):
@@ -222,6 +219,7 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
     add_event(vendor, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
 
     if member.email:
+        activate(member.language)
         invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
         subject, message, sms_text = get_payment_confirmation_message(payment, member)
         html_content = get_mail_content(subject, message, service=vendor, template_name='billing/mails/notice.html',
