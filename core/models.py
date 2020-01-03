@@ -406,12 +406,11 @@ class Service(models.Model):
         fh.write(apache_tpl.render(apache_context))
         fh.close()
 
-        self.domain = new_domain
-        if "go.ikwen.com" in self.url:
-            self.url = self.url.replace('http://go.ikwen.com/' + self.project_name_slug, 'http://' + new_domain)
-        else:
+        if "go.ikwen.com" not in self.url:
             subprocess.call(['sudo', 'unlink', '/etc/apache2/sites-enabled/' + previous_domain + '.conf'])
-            self.url = self.url.replace('http://' + previous_domain, 'http://' + new_domain)
+
+        self.domain = new_domain
+        self.url = 'http://' + new_domain
         self.save(using='umbrella')
         db = self.database
         add_database_to_settings(db)

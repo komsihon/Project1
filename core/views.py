@@ -462,7 +462,7 @@ class AdminHomeBase(TemplateView):
         action = request.GET.get('action')
         if action == 'update_domain':
             service = get_service_instance(using=UMBRELLA)
-            new_domain = request.GET['new_domain']
+            new_domain = request.GET['new_domain'].lower()
             is_naked_domain = True if request.GET['type'] == Service.MAIN else False
             service.update_domain(new_domain, is_naked_domain)
             service.reload_settings(service.settings_template, is_naked_domain=is_naked_domain)
