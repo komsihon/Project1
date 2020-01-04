@@ -462,12 +462,13 @@ class Service(models.Model):
         is_naked_domain = "go.ikwen.com" not in self.url
         if is_naked_domain:
             apache_alias = '/etc/apache2/sites-enabled/' + self.domain + '.conf'
-        else:
-            apache_alias = '/etc/apache2/sites-enabled/go_ikwen/' + self.project_name_slug + '.conf'
+            if os.path.exists(apache_alias):
+                os.unlink(apache_alias)
+        go_apache_alias = '/etc/apache2/sites-enabled/go_ikwen/' + self.project_name_slug + '.conf'
+        if os.path.exists(go_apache_alias):
+            os.unlink(go_apache_alias)
         if os.path.exists(media_root):
             shutil.rmtree(media_root)
-        if os.path.exists(apache_alias):
-            os.unlink(apache_alias)
         if os.path.exists(self.home_folder):
             shutil.rmtree(self.home_folder)
 
