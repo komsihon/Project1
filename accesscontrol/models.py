@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractUser, Group
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.db.models.signals import post_delete
 from django.template.defaultfilters import slugify
 from django.utils.datetime_safe import strftime
 from django.utils.translation import gettext as _, get_language
@@ -228,7 +229,7 @@ class Member(AbstractUser):
                 .update(email=self.email, phone=self.phone, gender=self.gender, first_name=self.first_name,
                         last_name=self.last_name, full_name=self.first_name + ' ' + self.last_name,
                         photo=self.photo.name, cover_image=self.cover_image.name, phone_verified=self.phone_verified,
-                        email_verified=self.email_verified)
+                        email_verified=self.email_verified, language=self.language)
 
     def propagate_password_change(self, new_password):
         for s in self.get_services():
@@ -338,3 +339,18 @@ class OwnershipTransfer(Model):
 
     class Meta:
         db_table = 'ikwen_ownership_transfer'
+
+
+def delete_member_profile(sender, **kwargs):
+    """
+    Receiver of the post_delete signal for Member. This signal mostly
+    deletes associated MemberProfile
+    """
+    if sender != Member:  # Avoid unending recursive call
+        return
+    instance = kwargs['instance']
+    from ikwen.revival.models import MemberProfile
+    MemberProfile.objects.filter(member=instance).delete()
+
+
+post_delete.connect(delete_member_profile, dispatch_uid="member_post_delete_id")

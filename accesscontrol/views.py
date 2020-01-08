@@ -696,6 +696,7 @@ class Community(HybridListView):
     context_object_name = 'nonrel_perm_list'
     ordering = ('-id', )
     ajax_ordering = ('-id', )
+    show_import = True
 
     def get_queryset(self):
         group_name = self.request.GET.get('group_name')
@@ -733,6 +734,8 @@ class Community(HybridListView):
             return self.import_contacts_file(context)
         elif action == 'add_ghost_member':
             return self.add_ghost_member()
+        elif action == 'delete_ghost_member':
+            return self.delete_ghost_member()
         return super(Community, self).render_to_response(context, **response_kwargs)
 
     def load_member_detail(self, context):
@@ -827,6 +830,14 @@ class Community(HybridListView):
                 last_name = ' '.join(tk[1:])
 
         username = email if email else phone
+        if not email:
+            # If there is no email provided, set email to the same value as phone
+            # to avoid duplicate error due to multiple empty emails
+            email = phone
+        if not phone:
+            # If there is no phone provided, set phone to the same value as email
+            # to avoid duplicate error due to multiple empty phones
+            phone = email
         member = Member.objects.create_user(username, DEFAULT_GHOST_PWD, first_name=first_name, last_name=last_name,
                                             email=email, phone=phone, gender=gender, is_ghost=True)
         tag = JOIN
@@ -853,6 +864,12 @@ class Community(HybridListView):
             return HttpResponse(json.dumps({'error': error}))
         import_contacts(filename, dry_run=False)
         return render(self.request, 'accesscontrol/snippets/community_list_results.html', context)
+
+    def delete_ghost_member(self, *args, **kwargs):
+        member_id = self.request.GET['member_id']
+        Member.objects.filter(pk=member_id, is_ghost=True).delete()
+        response = {'success': True}
+        return HttpResponse(json.dumps(response), content_type='application/json')
 
 
 class ContactsUploadBackend(DefaultUploadBackend):

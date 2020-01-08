@@ -36,7 +36,8 @@ from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.core.models import Service, XEmailObject
 from ikwen.core.constants import MALE, FEMALE
 from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, XEmailMessage
-from ikwen.revival.models import MemberProfile, ProfileTag
+from ikwen.revival.models import MemberProfile, ProfileTag, Revival
+from ikwen.revival.utils import set_profile_tag_member_count
 from ikwen.rewarding.utils import get_join_reward_pack_list, JOIN, REFERRAL
 
 logger = logging.getLogger('ikwen')
@@ -600,7 +601,16 @@ def import_contacts(filename, dry_run=True):
     data = line.split(',')
     delimiter = ',' if len(data) > 0 else ';'
     error = None
-    row_length = 4
+    row_length = 5
+
+    tag = JOIN
+    join_tag, update = ProfileTag.objects.get_or_create(name=tag, slug=tag, is_auto=True)
+    service = Service.objects.using(UMBRELLA).get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
+    Revival.objects.using(UMBRELLA).get_or_create(service=service, model_name='core.Service', object_id=service.id,
+                                                  mail_renderer='ikwen.revival.utils.render_suggest_create_account_mail',
+                                                  profile_tag_id=join_tag.id,
+                                                  get_kwargs='ikwen.rewarding.utils.get_join_reward_pack_list')
+
     with open(abs_path) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=delimiter)
         i = -1
@@ -634,7 +644,8 @@ def import_contacts(filename, dry_run=True):
                 try:
                     validate_email(email)
                 except ValidationError:
-                    error = _("Invalid email %(email)s on line %(line)d" % {'email': email, 'line': (i + 1)})
+                    error = _("Invalid email <strong>%(email)s</strong> on "
+                              "line %(line)d" % {'email': email, 'line': (i + 1)})
                     break
             phone = row[4].strip()
             if phone:
@@ -642,6 +653,23 @@ def import_contacts(filename, dry_run=True):
 
             if not (phone or email):
                 error = _("No phone or email on line %d" % (i + 1))
+                break
+
+            profile_names = row[5].split(',')
+            tag_fk_list = [join_tag.id]
+            profile_error = False
+            for name in profile_names:
+                name = name.strip()
+                try:
+                    profile = ProfileTag.objects.get(name=name)
+                    tag_fk_list.append(profile.id)
+                except ProfileTag.DoesNotExist:
+                    error = _("Unexisting profile <strong>%(name)s</strong> on line %(line)d. "
+                              "Please create first." % {'name': name, 'line': (i + 1)})
+                    profile_error = True
+                    break
+
+            if profile_error:
                 break
 
             if not dry_run:
@@ -657,8 +685,14 @@ def import_contacts(filename, dry_run=True):
                     except Member.DoesNotExist:
                         pass
                     username = email if email else phone
-                    Member.objects.create_user(username, DEFAULT_GHOST_PWD, email=email, phone=phone, gender=gender,
-                                               first_name=first_name, last_name=last_name, is_ghost=True)
+                    full_name = first_name + ' ' + last_name
+                    member = Member.objects.create_user(username, DEFAULT_GHOST_PWD, email=email, phone=phone,
+                                                        gender=gender, first_name=first_name, last_name=last_name,
+                                                        full_name=full_name, is_ghost=True)
+                    member_profile, update = MemberProfile.objects.get_or_create(member=member)
+                    member_profile.tag_fk_list.extend(tag_fk_list)
+                    member_profile.save()
                 except:
                     continue
+        Thread(target=set_profile_tag_member_count).start()
     return error

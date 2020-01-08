@@ -7,6 +7,7 @@
 
 {% block head_style %}
     {{ block.super }}
+    <link href="{% static 'ikwen/css/uploader-single.css' %}" media="screen" rel="stylesheet" type="text/css" />
     <style>
         #groups {clear: both}
         #groups .results a {color: #333}
@@ -269,7 +270,7 @@
                         <div id="upload-container" class="upload-container text-center" style="padding-top: 1vh;width: 100%">
                             <div class="uploader" style="display: block; margin: auto; position: static; height: 120px"></div>
                             <div id="import-success" style="display: none">
-                                <div class="contact-filename text-success" style="font-size: 1.2em"></div>
+                                <div class="contact-filename text-success" style="color: #15a53c;font-size: 1.2em"></div>
                             </div>
                             <span id="import-error" class="text-danger" style="font-size: 1.2em"></span>
                         </div>
@@ -278,7 +279,7 @@
                     </div>
                 </div>
                 <div class="modal-footer" style="border: none; padding-top: 0;text-align: center">
-                    <button class="btn btn-success btn-sm confirm-import" style="display: none; min-width: 200px">
+                    <button class="btn btn-green btn-sm confirm-import" style="display: none; min-width: 200px">
                         {% trans "Confirm" %}
                     </button>
                 </div>
@@ -367,7 +368,7 @@
                         ikwen.showFloatingNotice("{% trans 'Member moved to group' %}" + ' ' + name, '', 6)
                     }
                 });
-            }).on('click', '#blocking button', function() {
+            }).on('click', '.toggle-member', function() {
                 let memberId = $(this).data('member-id'),
                     status = $(this).data('status');
                 $.getJSON('{% url 'ikwen:toggle_member' %}', {member_id: memberId}, function(data) {
@@ -381,7 +382,16 @@
                             $('div#blocking button').text("{% trans 'Activate' %}").data('status', 'Blocked');
                             $('#permissions, #group-update').hide();
                         }
-                        ikwen.showFloatingNotice("{% trans 'Permissions successfully updated' %}", '', 6)
+                        ikwen.showFloatingNotice("{% trans 'Member status successfully updated' %}", '', 6)
+                    }
+                });
+            }).on('click', '.delete-member', function() {
+                let memberId = $(this).data('member-id');
+                $.getJSON('', {action: 'delete_ghost_member', member_id: memberId}, function(data) {
+                    if (data.success) {
+                        $(`#${memberId}`).remove();
+                        $('div#object-detail .content').html('');
+                        ikwen.showFloatingNotice("{% trans 'Member successfully deleted' %}", '', 6);
                     }
                 });
             }).on('click', '#admin-tools .add', function() {

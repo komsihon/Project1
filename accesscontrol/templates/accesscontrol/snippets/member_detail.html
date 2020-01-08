@@ -69,12 +69,19 @@
             </div>
             <div class="clearfix"></div>
         </div>
-        <div id="blocking" style="margin-top: 45px">
-            <h5>{% trans "Block/Activate" %}</h5>
-            {% if member.is_active %}
-                <button class="btn btn-danger btn-sm btn-block">{% trans "Block" %}</button>
+        <div style="margin-top: 45px">
+            {% if member.is_ghost %}
+                <button class="btn btn-danger btn-sm btn-block delete-member"
+                        data-member-id="{{ member.id }}">{% trans "Delete" %}</button>
             {% else %}
-                <button class="btn btn-danger btn-sm btn-block">{% trans "Activate" %}</button>
+                <h5>{% trans "Block/Activate" %}</h5>
+                {% if member.is_active %}
+                    <button class="btn btn-danger btn-sm btn-block toggle-member"
+                            data-member-id="{{ member.id }}">{% trans "Block" %}</button>
+                {% else %}
+                    <button class="btn btn-danger btn-sm btn-block toggle-member"
+                            data-member-id="{{ member.id }}">{% trans "Activate" %}</button>
+                {% endif %}
             {% endif %}
         </div>
     </div>
