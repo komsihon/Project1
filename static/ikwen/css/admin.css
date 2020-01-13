@@ -182,7 +182,6 @@ footer a {color: #999}
 #results {clear: both}
 #admin-tools + #results {margin-top: 20px;}
 .content-tab-list {position: fixed;width: 100%;z-index: 10;}
-.tab-content .tab-pane {display: none}
 .tab-content .tab-pane.active {display: block}
 
 .images-uploader .frame {height: 200px;float: left;margin: 0 10px 10px 0;overflow: hidden;width: 100%;}
@@ -292,6 +291,7 @@ footer a {color: #999}
     .results-filter {padding: 35px 10px 5px 0;}
     #admin-content .member .info, #admin-content .ik-li .info {max-width: 600px;}
     #admin-content .has-edge-panel-right .member .info, #admin-content .has-edge-panel-right .ik-li .info {max-width: 400px;}
+    .content-tab-list {padding-right: 315px}
     .has-edge-panel-right .content-tab-list {padding-right: 570px}
     .pagination {margin-left: 0}
     .card-section {margin-bottom: 50px;}

@@ -254,12 +254,17 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 .nav > .tab {position: relative; display: block;}
 .nav > .tab > a {position: relative;display: block;padding: 10px 6px;text-decoration: none;}
 .nav-tabs > .tab {float: left;margin-bottom: -1px;}
-.nav-tabs > .tab > a {line-height: 1.42857143;/* border: 1px solid transparent; */border-radius: 4px 4px 0 0;}
-.nav-tabs > .tab.active > a, .nav-tabs > .tab.active > a:hover, .nav-tabs > .tab.active > a:focus {
+.nav-tabs > .tab > a {line-height: 1.42857143;/* border: 1px solid transparent; */text-align: center;}
+/*.nav-tabs > .tab.active > a, .nav-tabs > .tab.active > a:hover, .nav-tabs > .tab.active > a:focus {*/
+    /*color: #2c3e50;*/
+    /*background-color: #f6f6f6;*/
+    /*border-bottom: 3px solid #1565C0;*/
+    /*cursor: default;*/
+/*}*/
+.nav-tabs > .tab.active {
     color: #2c3e50;
     background-color: #f6f6f6;
     border-bottom: 3px solid #1565C0;
-    /* border-bottom-color: #3F51B5; */
     cursor: default;
 }
 .social-sharing .dropdown-menu a i {float: left;font-size: 25px;margin: 6px 10px 0 0;width: 22px;}
@@ -356,7 +361,7 @@ footer .company-name {color: #666; text-decoration: none}
     .nav-tabs > .tab.active > a, .nav-tabs > .tab.active > a:hover, .nav-tabs > .tab.active > a:focus {
         background: none;
         border: none;
-        border-bottom: 5px solid #1b6d85;
+        border-bottom: 3px solid #1565C0;
         color: #555;
     }
     .bottom-shade-xs {box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .1)}
@@ -409,10 +414,13 @@ footer .company-name {color: #666; text-decoration: none}
     .navbar-nav>li>a:not(.icon) {line-height: 22px;}
     .glyphicon + .label {margin: 15px 0 0 -6px!important;position: absolute;}
     #content.container {padding-top: 75px;}
+    .nav-tabs {border-bottom: 1px solid transparent}
+    .nav-tabs > .tab.swiper-slide {max-width: 140px;}
     .edge-panel-right {display: block;margin-right: 0;z-index: 20;}
     .tiles .ik-li {height: 280px;width: 33.33%;}
     .tiles .ik-li .glyphicon-edit {display: none}
-    .nav > .tab > a {padding: 10px 15px;border-bottom: 3px solid transparent;}
+    .nav > .tab > a {border-bottom: 3px solid transparent;border-left: 1px solid #ddd;padding: 10px 15px;}
+    .nav > .tab:first-child > a, .nav > .tab.active > a, .nav > .tab.active + .tab > a {border-left: none;}
     .ik-li .date {float: right}
     .payment-method {display: inline}
 }

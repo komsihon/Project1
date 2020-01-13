@@ -275,27 +275,27 @@
             }
             if (field == 'id') $tpl.attr('id', value);
             if (typeof value == 'string' || typeof value == 'number') $tpl.data(field, value);
-            
+
             /* Some common boolean fields */
             if (field == 'status') $tpl.addClass(value)
         }
         return $tpl
     };
 
-    var $epl = $('.edge-panel-left'),
+    let $epl = $('.edge-panel-left'),
         $eso = $('.edge-swipe-overlay'),
         isMenuSwipe = false;
     $('body').on('click', '.nav-tabs .tab', function() {
         $('.nav-tabs .tab').removeClass('active');
         $(this).addClass('active');
-        if ($(this).hasClass('swiper-slide')) {
-            var i = $(this).index();
+        if ($(this).hasClass('swiper-slide') && contentTabPaneSwiper) {
+            let i = $(this).index();
             contentTabPaneSwiper.slideTo(i, 300, false)
         }
     }).on('click', '.menu-button', function() {
         showEdgePanelLeft();
     }).on('click', '.edge-swipe-overlay', function(e) {
-        var elt = e.target.className;
+        let elt = e.target.className;
         if (elt.indexOf('edge-swipe-overlay') >= 0 || elt.indexOf('close') >= 0) {
             history.back();  // Causes the processHash() function to run
         }
@@ -412,85 +412,80 @@
         location.hash = 'edge-panel-disclosed';
     };
 
-    var contentTabListSwiper, contentTabPaneSwiper;
+    let contentTabListSwiper, contentTabPaneSwiper;
 
     function initContentTabListSwiper() {
         if ($('.content-tab-list').length === 0 || contentTabListSwiper) return;
 
-        $('.content-tab-list').addClass('bottom-shade');
         $('.content-tab-list .nav-tabs').addClass('swiper-wrapper');
         $('.content-tab-list .tab').addClass('swiper-slide');
         contentTabListSwiper = new Swiper('.content-tab-list .swiper-container', {
-             slidesPerView: 5,
-             breakpoints: {
-                 479: {
-                     slidesPerView: 4
-                 },
-                 369: {
-                     slidesPerView: 3
-                 }
+            slidesPerView: 'auto',
+            nextButton: '.swiper-button-next',
+            prevButton: '.swiper-button-prev',
+            breakpoints: {
+                767: {
+                    slidesPerView: 5
+                },
+                479: {
+                    slidesPerView: 4
+                },
+                369: {
+                    slidesPerView: 3
+                }
              }
         });
-        $('<div class="swiper-wrapper"></div>').prependTo('.tab-content');
-        $('.tab-pane').addClass('swiper-slide').appendTo('.tab-content .swiper-wrapper');
-        $('.tab-content').addClass('swiper-container');
-        contentTabPaneSwiper = new Swiper('.tab-content.swiper-container', {
-            slidesPerView: 1,
-            spaceBetween: 15,
-            onSlideChangeEnd: function(swiper) {
-                var i = swiper.activeIndex + 1;
-                $('.nav-tabs .tab:nth-child(' + i + ')').click();
-                contentTabListSwiper.slideTo(swiper.activeIndex)
+        if ($(window).width() < 768) {
+            $('.content-tab-list').addClass('bottom-shade');
+            if ($('.tab-content .swiper-wrapper').length === 0) $('<div class="swiper-wrapper"></div>').prependTo('.tab-content');
+            $('.tab-pane').addClass('swiper-slide').appendTo('.tab-content .swiper-wrapper');
+            $('.tab-content').addClass('swiper-container');
+            contentTabPaneSwiper = new Swiper('.tab-content.swiper-container', {
+                slidesPerView: 1,
+                spaceBetween: 15,
+                onSlideChangeEnd: function (swiper) {
+                    var i = swiper.activeIndex + 1;
+                    $('.nav-tabs .tab:nth-child(' + i + ')').click();
+                    contentTabListSwiper.slideTo(swiper.activeIndex)
+                }
+            });
+            let i = $('.nav-tabs .tab.active').index();
+            contentTabPaneSwiper.slideTo(i)
+        } else {
+            let totalTabWidths = 0;
+            $('.content-tab-list .tab').each(function() {
+                totalTabWidths += $(this).width();
+            });
+            if (totalTabWidths > $('.content-tab-list .nav-tabs').width()) {
+                $('.swiper-button-prev, .swiper-button-next').removeClass('hidden')
             }
-        });
-        var i = $('.nav-tabs .tab.active').index();
-        contentTabPaneSwiper.slideTo(i)
-    }
-
-    let tabContentOffsetChanged = false;
-
-    function setTabContentOffset() {
-        /*
-        * Resets the tab content margin-top if tabs span on more than one line
-        */
-        let tabsWidth = 0,
-            mt = parseInt($('#admin-content .tab-content').css('margin-top'));
-        $('.content-tab-list .tab').each((i, elt) => {
-            if ($(elt).is(':visible')) tabsWidth += $(elt).width()
-        });
-        if (tabsWidth > $('#admin-content').width()) {
-            $('#admin-content .tab-content').css('margin-top', (mt + 45) + 'px');
-            tabContentOffsetChanged = true
-        } else if (tabContentOffsetChanged) {
-            $('#admin-content .tab-content').css('margin-top', (mt - 45) + 'px')
         }
     }
 
-    if ($(window).width() < 768) initContentTabListSwiper();
-    else setTabContentOffset();
-
-    $( window ).resize(c.debouncer(function (e) {
-        var winWidth = $(window).width();
-        if (winWidth < 768) {
-            initContentTabListSwiper()
-        } else if (winWidth >= 768) {
-            if (winWidth >= 992) $epl.show().css('margin-left', 0);
-            if (!contentTabListSwiper) {
-                setTabContentOffset();
-                return;
-            }
+    c.reloadTabView = function() {
+        let winWidth = $(window).width();
+        if (contentTabListSwiper) {
             contentTabListSwiper.destroy();
             contentTabListSwiper = null;
+        }
+        if (contentTabPaneSwiper) {
             contentTabPaneSwiper.destroy();
             contentTabPaneSwiper = null;
+        }
+        initContentTabListSwiper();
+        if (winWidth >= 768) {
             $('.content-tab-list').removeClass('bottom-shade');
-            $('.content-tab-list .nav-tabs').removeClass('swiper-wrapper').css('transform', 'none');
-            $('.content-tab-list .tab').removeClass('swiper-slide').css({width: 'auto', marginRight: 0});
             $('.tab-pane').removeClass('swiper-slide').appendTo('.tab-content');
             $('.tab-content .swiper-wrapper').remove();
             $('.tab-content').addClass('swiper-container');
-            setTabContentOffset();
         }
+    };
+
+    initContentTabListSwiper();
+
+    $( window ).resize(c.debouncer(function (e) {
+        if ($(window).width() >= 992) $epl.show().css('margin-left', 0);
+        c.reloadTabView();
     }));
 
     w.ikwen = c; /*Creating the namespace ikwen for all this*/

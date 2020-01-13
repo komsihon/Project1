@@ -45,14 +45,15 @@
             <li class="ik-li list-group-item" id="{{ payment.id }}" data-id="{{ payment.id }}">
                 <a href="{{ obj_url }}">{{ subscription }}</a>
                 <div>
-                    <span class="pull-left text-muted hidden-xs">{{ payment.invoice }} - {{ payment.created_on|date }}</span>
-                    <span class="pull-left text-muted visible-xs">
-                        {{ payment.invoice.number }} - {{ payment.created_on|date:"Y-m-d" }}
-                    </span>
+                    <span class="pull-left text-muted hidden-xs">{{ payment.invoice }} - {{ payment.created_on|date:"Y-m-d H:i" }}</span>
+                    <span class="pull-left text-muted visible-xs">{{ payment.invoice.number }}</span>
                     <span class="pull-right">
                         <span class="text-muted" style="font-size: .8em">{{ currency_symbol }}</span>
                         <strong>{{ payment.amount|intcomma }}</strong>
                     </span>
+                </div>
+                <div class="pull-left visible-xs text-muted" style="clear: both; font-size: .8em; margin-bottom: -10px">
+                    {{ payment.created_on|date:"Y-m-d H:i" }}
                 </div>
             </li>
         {% endwith %}
