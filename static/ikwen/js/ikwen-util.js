@@ -412,7 +412,7 @@
         location.hash = 'edge-panel-disclosed';
     };
 
-    let contentTabListSwiper, contentTabPaneSwiper;
+    let contentTabListSwiper, contentTabPaneSwiper, windowWidth = $(window).width();
 
     function initContentTabListSwiper() {
         if ($('.content-tab-list').length === 0 || contentTabListSwiper) return;
@@ -484,8 +484,10 @@
     initContentTabListSwiper();
 
     $( window ).resize(c.debouncer(function (e) {
-        if ($(window).width() >= 992) $epl.show().css('margin-left', 0);
-        c.reloadTabView();
+        var newWindowWith = $(window).width();
+        if (newWindowWith >= 992) $epl.show().css('margin-left', 0);
+        if ((windowWidth < 768 && newWindowWith > 768) || (windowWidth > 768 && newWindowWith < 768))
+            c.reloadTabView();
     }));
 
     w.ikwen = c; /*Creating the namespace ikwen for all this*/
