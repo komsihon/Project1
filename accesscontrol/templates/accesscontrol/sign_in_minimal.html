@@ -4,11 +4,12 @@
 {% block page_title %}<title>{{ service.project_name }} - {% trans "Sign in" %} </title>{% endblock %}
 {% block head_style %}
     {{ block.super }}
-    <link rel='stylesheet' href="{% static 'ikwen/css/sign-in.css' %}?v=19.9.30" />
+    <link rel='stylesheet' href="{% static 'ikwen/css/sign-in.css' %}?v=20.1.11" />
 {% endblock %}
 
 {% block content %}
-    <div id="content" class="form container init">
+    {% include 'core/snippets/language_switcher.html' %}
+    <div id="content" class="form container init" style="clear: both">
         <p class="failure" style="display: none; font-size: 1em; padding: 9px"></p>
         {% if messages %}
             {% for msg in messages %}<p class="msg-tag {{ msg.tags }}" style="font-size: 1em; padding: 9px">{{ msg }}</p>{% endfor %}

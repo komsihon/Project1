@@ -182,6 +182,8 @@ footer a {color: #999}
 #results {clear: both}
 #admin-tools + #results {margin-top: 20px;}
 .content-tab-list {position: fixed;width: 100%;z-index: 10;}
+.tab-content .tab-pane {display: none}
+.tab-content .tab-pane.active {display: block}
 
 .images-uploader .frame {height: 200px;float: left;margin: 0 10px 10px 0;overflow: hidden;width: 100%;}
 .images-uploader .image {background: no-repeat center;border: solid 1px #DBE6FF;margin-right: 10px;}

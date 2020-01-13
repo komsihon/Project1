@@ -9,6 +9,9 @@
 #navbar {display: none}
 html, body {height: 100%}
 body {/* background: #f8f6f6 url(../../ikwen/img/ikwen_login-bg.jpg) no-repeat center fixed; */background: #eaeaea;background-size: cover;}
+.lang-switcher {float: right; padding: 15px}
+.lang-switcher select {background: none}
+.lang-switcher i {display: none}
 #content.form.register {padding-top: 3%}
 #stage {background: #fff;border-radius: 4px;float: none;padding: 0;}
 .login-title, .register-title {border-bottom: 1px solid #eee; margin-top: 0; padding: 1.3em 0 1em; text-align: center}
