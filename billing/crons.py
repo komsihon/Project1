@@ -110,7 +110,7 @@ def send_invoices():
                     entries.append(entry)
             except CROperatorProfile.DoesNotExist:
                 pass
-        invoice = Invoice.objects.create(subscription=subscription, amount=amount, number=number,
+        invoice = Invoice.objects.create(subscription=subscription, member=subscription.member, amount=amount, number=number,
                                          due_date=subscription.expiry, months_count=months_count, entries=entries)
         count += 1
         total_amount += amount
