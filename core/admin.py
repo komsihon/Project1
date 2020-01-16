@@ -162,6 +162,7 @@ class ConfigAdmin(admin.ModelAdmin):
         (_('Social'), {'fields': ('facebook_link', 'twitter_link', 'google_plus_link', 'instagram_link', 'linkedin_link', )}),
         (_('Mailing'), {'fields': ('welcome_message', 'signature', )}),
     )
+    raw_id_fields = ('service', )
     list_filter = ('company_name', 'contact_email', )
     save_on_top = True
 
