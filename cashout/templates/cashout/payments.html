@@ -7,7 +7,7 @@
 
 {% block head_style %}
     {{ block.super }}
-    <link rel='stylesheet' href="{% static 'ikwen/css/payments.css' %}" />
+    <link rel='stylesheet' href="{% static 'ikwen/css/payments.css' %}?v=20.2.21" />
 {% endblock %}
 
 {% block breadcrumb_location %}
@@ -17,14 +17,14 @@
 {% block admin_content %}
     <div id="admin-content">
         <div class="container-fluid">
-            <div id="wallet" class="col-xs-12">
+            <div class="col-xs-12 wallet">
                 <div class="box subtle-shade">
                     <h3 class="title">
                         <span>{% trans "Your wallet" %}</span>
                     </h3>
                     <ul style="padding: 0">
                         {% for wallet in wallets %}
-                        <li class="wallet col-xs-12 col-sm-4">
+                        <li class="provider col-xs-12 col-sm-4">
                             <div class="" style="padding-left: 0">
                                 <span class="img" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ wallet.payment_mean.provider_logo.name }})"></span>
                                 <span class="balance">

@@ -11,14 +11,15 @@
 .box h3 {font-size: 18px; font-weight: 700; margin-top: 0}
 .box .action {border-top: 1px solid #ddd; font-weight: 700;
     margin-top: 2em; padding-top: 5px; text-align: right}
-#wallet .title {margin-bottom: 15px}
-#wallet .currency {float: right; font-size: 1.5em; font-weight: 400}
-#wallet .wallet {display: block; padding: 5px 0}
-#wallet .wallet:last-of-type {border-bottom: none}
-#wallet .wallet .img {background: no-repeat center; background-size: 100% auto; float: left; margin-right: 10px;
+.wallet .title {margin-bottom: 15px}
+.wallet .currency {float: right; font-size: 1.5em; font-weight: 400}
+.wallet .provider {display: block; padding: 5px 0}
+/*.wallet .currency {float: left;font-size: .7em;font-weight: 400;}*/
+.wallet .provider:last-of-type {border-bottom: none}
+.wallet .provider .img {background: no-repeat center; background-size: 100% auto; float: left; margin-right: 10px;
     height: 45px; width: 45px}
-#wallet .wallet .balance {float: left; font-size: 1.2em; padding-top: 10px; font-weight: 400}
-#wallet .wallet .glyphicon.action {color: #999; font-size: 21px; margin-top: 7px; padding: 4px}
+.wallet .provider .balance {float: left; font-size: 1.2em; padding-top: 10px; font-weight: 400}
+.wallet .provider .glyphicon.action {color: #999; font-size: 21px; margin-top: 7px; padding: 4px}
 .request-result {clear: both; margin-bottom: 0; padding-top: 5px;}
 .listing {padding-left: 0; margin-top: 1.5em; min-height: 100px}
 .listing li {display: block; float: left; padding-bottom: 7px; width: 100%}
@@ -32,19 +33,19 @@ ul.actions {margin-left: -138px}
 #confirm-cash-out .spinner {height: 35px; margin-top: -30px}
 #show-addresses, .new-address {font-weight: 700; letter-spacing: 1px}
 @media (max-width: 767px) {
-    #wallet {margin-bottom: 1em}
-    #wallet .wallet {border-bottom: 1px solid #ddd}
+    .wallet {margin-bottom: 1em}
+    .wallet .provider {border-bottom: 1px solid #ddd}
     #addresses {margin-top: 1em}
-    #wallet .balance {font-size: .95em}
+    .wallet .balance {font-size: .95em}
     #show-addresses {margin-top: 1em}
 }
 @media (min-width: 768px) {
-    #wallet .title {margin-bottom: 30px}
-    #wallet .wallet {padding: 10px 0}
-    #wallet .wallet .balance {font-size: 1.3em;padding-top: 10px;}
-    #wallet {margin-bottom: 2em}
+    .wallet .title {margin-bottom: 30px}
+    .wallet .provider {padding: 10px 0}
+    .wallet .provider .balance {font-size: 1.3em;padding-top: 10px;}
+    .wallet {margin-bottom: 2em}
     .box {padding: 15px}
-    #wallet .box {padding-bottom: 20px}
+    .wallet .box {padding-bottom: 20px}
     .last-payment {margin-top: 1em}
     .payment-address .img {border: 1px solid #ddd; border-radius: 3px; float: left; height: 85px;
     padding: 14px 0 15px; text-align: center; width: 40%}
