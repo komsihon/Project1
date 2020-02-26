@@ -110,6 +110,15 @@ body {color: #464646;}
 .color-expired, .color-rejected, .color-danger {color: #ee4032}
 .color-active, .color-confirmed, .color-success {color: #2ab732}
 
+#modal-generic-notice .modal-header {border-bottom: none}
+#modal-generic-notice .illustration img {margin: auto}
+#modal-generic-notice .illustration.cover {background: no-repeat center; background-size: cover; border-top-left-radius: 5px;
+    border-top-right-radius: 5px; height: 270px; margin: -15px -15px}
+#modal-generic-notice .success {background: no-repeat center url(../img/green-tick.gif);background-size: cover;height: 270px;border: none;margin: -15px;}
+#modal-generic-notice .illustration.cover {background: no-repeat center; background-size: cover; border-top-left-radius: 5px;
+    border-top-right-radius: 5px; height: 270px; margin: -15px -15px}
+#modal-generic-notice h4 {font-weight: 600}
+
 .member, .ik-li {background: #fff; border-bottom: 1px solid #eee;display: block;float: left;padding: 10px;width: 100%;transition: border .1s;}
 .ik-li.clearfix {border-bottom: none}
 .member:hover, .ik-li:hover {background: #f8f8f8}
@@ -367,6 +376,7 @@ footer .company-name {color: #666; text-decoration: none}
     .bottom-shade-xs {box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .1)}
     .ik-li .date {position: absolute; right: 6px}
     .pulse {margin: 12px 0 0 10px}
+    #modal-generic-notice .illustration .cover {height: 200px}
 }
 @media (min-width: 768px) {
     .modal .actions {margin-top: 2em}

@@ -209,9 +209,40 @@
             </footer>
         {% endblock %}
         <div class="edge-swipe-overlay"></div>
+        <div class="modal fade" id="modal-generic-notice" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content modal-info">
+                    <div class="modal-header text-center">
+                        <div class="illustration cover"></div>
+                        <div class="illustration success" style="">
+
+                        </div>
+                        <div class="illustration error">
+                            <img class="img-responsive" src="{% static 'ikwen/img/warning-icon.png' %}" />
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="modal-body text-center">
+                        <h4 class="title"></h4>
+                        <p class="message text-muted"></p>
+                        <div>
+                            <div class="actions">
+                                <div class="col-xs-12 col-sm-4 pull-right action">
+                                    <a class="btn btn-success btn-block btn-sm btn-ok" data-dismiss="modal" aria-label="OK">{% trans "OK" %}</a>
+                                </div>
+                                <div class="col-xs-12 col-sm-4 pull-left action">
+                                    <button data-dismiss="modal" class="btn btn-default btn-block btn-sm">{% trans 'Cancel' %}</button>
+                                </div>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         {% block js %}
             <script src="{% static 'ikwen/js/bootstrap.min.js' %}"></script>
-            <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=20.1.13.17"></script>
+            <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=20.2.24"></script>
             <script src="{% static 'ikwen/hammerjs/hammer.min.js' %}"></script>
             <script src="{% static 'ikwen/hammerjs/jquery.hammer.js' %}"></script>
             <script>

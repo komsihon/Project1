@@ -110,6 +110,27 @@
         $('#top-notice-ctnr').fadeIn().delay(duration * 1000).fadeOut();
     };
 
+    /**
+     * Pops up a Modal to show a notice. Interesting for handling AJAX responses
+     *
+     * @param typeOrImageURL : String containing either 'Success', 'Error' or URL of an image. That is used to
+     *                         modify the look of the modal
+     * @param title : title of the modal
+     * @param message : message to show in the modal
+     * @param url : url on the OK button of the dialog
+     */
+    c.showNoticeDialog = function(typeOrImageURL, title, message, url) {
+        $('#modal-generic-notice .title').html(title);
+        $('#modal-generic-notice .message').html(message);
+        if (url) $('#modal-generic-notice .btn-ok').prop('href', url);
+        else $('#modal-generic-notice .btn-ok').prop('href', 'javascript:;');
+        $('#modal-generic-notice .illustration').hide();
+        if (typeOrImageURL.toLowerCase() === 'success') $('#modal-generic-notice .success').show();
+        else if (typeOrImageURL.toLowerCase() === 'error')$('#modal-generic-notice .error').show();
+        else $('#modal-generic-notice .cover').css('background-image', `url(${typeOrImageURL})`).show();
+        $('#modal-generic-notice').modal({backdrop: 'static', keyboard: false});
+    };
+
     var call = [];
     c.setupSearch = function(inputSelector, resultPanelSelector, descriptors, beforeSearch, afterResults) {
         $('body').on('keyup', inputSelector, function() {
@@ -378,22 +399,6 @@
         });
         $eso.fadeOut('fast');
     }
-
-    /**
-     * Appends authentication tokens to "href" of all A elements
-     * contained in the element with the given selector
-     * @param selector a jQuery selector
-     */
-    c.appendAuthTokens = function(selector) {
-        if (ikwen.URL_KEY && ikwen.URL_RAND) {
-            $(selector).find('a').each(function () {
-                var href = $(this).attr('href');
-                if (href.indexOf('?') == -1) href += '?key=' + ikwen.URL_KEY + '&rand=' + ikwen.URL_RAND;
-                else href += '&key=' + ikwen.URL_KEY + '&rand=' + ikwen.URL_RAND;
-                $(this).attr('href', href);
-            })
-        }
-    };
 
     c.debouncer = function(func, timeout) { // Trick to capture window resize ended event
        var timeoutID , timeout = timeout || 200;
