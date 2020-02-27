@@ -1,4 +1,4 @@
-{% load i18n static %}
+{% load i18n static humanize %}
 <div class="modal fade" id="payment-methods" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content modal-info">
@@ -24,6 +24,19 @@
                                 <img src="{% static 'ikwen/img/logo-OM-200x166.png' %}" height="90" />
                             </a>
                         </li>
+                        {% if dara_cash %}
+                            <li class="col-sm-4 payment-method dara-cash"
+                                {% if dara_cash %}data-action-url="{% url dara_cash.action_url_name %}?mean=dara-cash"{% endif %}>
+                                <a class="logo" style="border: 3px solid #3e59f0; height: 90px" title="{% trans "Pay with Dara Cash" %}">
+                                    <img src="{% static 'ikwen/img/logo-daraja-100.png' %}" height="80" />
+                                </a>
+                                <span style="border-radius: 3px; display: block; text-align: center; margin-top: 5px; padding: 2px;">
+                                    <sup class="text-muted">XAF</sup>
+{#                                    <strong>{{ dara_cash.balance|floatformat:"0"|intcomma }}</strong>#}
+                                    <strong>5,000</strong>
+                                </span>
+                            </li>
+                        {% endif %}
                         {% if config.is_pro_version and paypal %}
                             <li class="col-sm-4 payment-method" data-action-url="{% url paypal.action_url_name %}?mean=paypal">
                                 <a class="logo" href="#" style="border: 1px solid #eee">
