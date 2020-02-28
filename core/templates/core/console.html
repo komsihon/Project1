@@ -175,27 +175,30 @@
                     </div>
                 </div>
                 <div>
-                {% for event in event_list %}
-                    {% with service=event.service event_type=event.event_type %}
-                    <div id="{{ event.id }}" class="{{ service.project_name_slug }} card subtle-shade" data-base-url="{{ service.go_url }}">
-                        <h3>
-                            {% if service.config.logo.name %}
-                                <img src="{{ service.config.logo.url }}" width="30" />
-                            {% endif %}
-                            <a href="{{ service.url }}">{{ service.project_name }}</a>
-                            <time>{{ event.created_on|naturaltime }}</time>
-                        </h3>
-                        <div class="{{ event_type.codename }}">
-                            <div class="content row">
-                                <div class="loading"{% if event_type.min_height %}
-                                 style="min-height: {{ event_type.min_height }}px; line-height: {{ event_type.min_height }}px"{% endif %}>
-                                    <p class="dots">...</p>
+                    {% for event in event_list %}
+                        {% with service=event.service event_type=event.event_type %}
+                        <div id="{{ event.id }}" class="{{ service.project_name_slug }} card subtle-shade" data-base-url="{{ service.go_url }}">
+                            <h3>
+                                {% if service.config.logo.name %}
+                                    <img src="{{ service.config.logo.url }}" width="30" />
+                                {% endif %}
+                                <a href="{{ service.url }}">{{ service.project_name }}</a>
+                                <time>{{ event.created_on|naturaltime }}</time>
+                            </h3>
+                            <div class="{{ event_type.codename }}">
+                                <div class="content row">
+                                    <div class="loading"{% if event_type.min_height %}
+                                     style="min-height: {{ event_type.min_height }}px; line-height: {{ event_type.min_height }}px"{% endif %}>
+                                        <p class="dots">...</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
                     {% endwith %}
-                {% endfor %}
+                    {% endfor %}
+                    <div style="padding-top: 30px">
+                        {% include 'core/snippets/spinner.html' %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -238,7 +241,7 @@
                 loadingCards = false;
             $(window).scroll(function() {
                 if (dataSourceEmpty || loadingCards) return;
-                var scrollTop = $(this).scrollTop(),
+                let scrollTop = $(this).scrollTop(),
                     threshold = Math.max($('footer').height(), 60),
                     consoleMenuThreshold = 375;
                 if ($('#communities-suggestions').length > 0) consoleMenuThreshold = 650;
@@ -247,14 +250,16 @@
                 } else  $('.console-menu').removeClass('fixed');
                 if ($(document).height() - $(this).height() - scrollTop <= threshold) {
                     loadingCards = true;
-                    var start = $('div#cards .card').length;
+                    let start = $('div#cards .card').length;
+                    $('#cards .spinner').show();
                     $.getJSON('{% url 'ikwen:console' %}', {start: start, format: 'json'}, function(events) {
-                        if (events.length == 0) {
+                        $('#cards .spinner').hide();
+                        if (events.length === 0) {
                             dataSourceEmpty = true;
                             return;
                         }
-                        for (var i=0; i<events.length; i++) {
-                            var event = events[i],
+                        for (let i=0; i<events.length; i++) {
+                            let event = events[i],
                                 $card = $('div#cards .card.tpl').clone().removeClass('tpl');
                             $card.attr('id', event.id);
                             $card.data('base-url', event.project_url);
@@ -271,7 +276,7 @@
                 }
             });
             $('div#cards .card:not(.tpl, .empty, .loaded)').each(function() {
-                var id = $(this).attr('id');
+                let id = $(this).attr('id');
                 loadCardContent(id);
             });
             $.getJSON('{% url 'ikwen:reset_notices_counter' %}', {target: '{{ request.GET.target }}'}, function(data) {})
