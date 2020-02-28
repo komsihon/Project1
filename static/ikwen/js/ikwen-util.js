@@ -117,13 +117,20 @@
      *                         modify the look of the modal
      * @param title : title of the modal
      * @param message : message to show in the modal
-     * @param url : url on the OK button of the dialog
+     * @param url : url of the OK button of the dialog
+     * @param OKText : text on the OK button. Defaults to "OK"
+     * @param cancelText : text on the Cancel button. Defaults to "Cancel". Set it to null to remove the Cancel button
      */
-    c.showNoticeDialog = function(typeOrImageURL, title, message, url) {
+    c.showNoticeDialog = function(typeOrImageURL, title, message, url, OKText, cancelText) {
         $('#modal-generic-notice .title').html(title);
         $('#modal-generic-notice .message').html(message);
         if (url) $('#modal-generic-notice .btn-ok').prop('href', url);
         else $('#modal-generic-notice .btn-ok').prop('href', 'javascript:;');
+        if (OKText) ('#modal-generic-notice .btn-ok').text(OKText);
+        else ('#modal-generic-notice .btn-ok').text("OK");
+        if (cancelText) ('#modal-generic-notice .btn-cancel').show().text(cancelText);
+        else ('#modal-generic-notice .btn-cancel').show().text("Cancel");
+        if (cancelText === null) ('#modal-generic-notice .btn-cancel').hide();
         $('#modal-generic-notice .illustration').hide();
         if (typeOrImageURL.toLowerCase() === 'success') $('#modal-generic-notice .success').show();
         else if (typeOrImageURL.toLowerCase() === 'error')$('#modal-generic-notice .error').show();
@@ -131,10 +138,10 @@
         $('#modal-generic-notice').modal({backdrop: 'static', keyboard: false});
     };
 
-    var call = [];
+    let call = [];
     c.setupSearch = function(inputSelector, resultPanelSelector, descriptors, beforeSearch, afterResults) {
         $('body').on('keyup', inputSelector, function() {
-            var q = $(inputSelector).val(),
+            let q = $(inputSelector).val(),
                 min = $(resultPanelSelector).data('min-search-chars');
             if (min) {
                 if (q.length < parseInt(min)) {
@@ -147,14 +154,14 @@
                 if (beforeSearch() === false) return;
             }
             $(resultPanelSelector).find('.empty').hide();
-            if (call.length == 0) $(resultPanelSelector).find('.spinner').show();
+            if (call.length === 0) $(resultPanelSelector).find('.spinner').show();
             $(resultPanelSelector).show();
-            for (var i=0; i<descriptors.length; i++) {
-                var descriptor = descriptors[i],
+            for (let i=0; i<descriptors.length; i++) {
+                let descriptor = descriptors[i],
                     url = descriptor.endpoint,
                     params = {q: q, start: 0, length: 10, format: 'json'},
-                    selector = descriptor.resultTplSelector;
-                var maxChars = descriptor.maxChars;  // The maximum number of chars to take into consideration
+                    selector = descriptor.resultTplSelector,
+                    maxChars = descriptor.maxChars;  // The maximum number of chars to take into consideration
                 if (maxChars) {
                     try {
                         params.max_chars = maxChars();
@@ -162,8 +169,8 @@
                         params.max_chars = maxChars
                     }
                 }
-                grabResults(url, params, resultPanelSelector, selector, call.length, afterResults, descriptor.jsonp);
                 call.push(q);
+                grabResults(url, params, resultPanelSelector, selector, call.length, afterResults, descriptor.jsonp);
                 // TODO: Manage multiple descriptors and sectioned results
             }
         });
@@ -171,7 +178,7 @@
 
     c.setupHTMLResultsSearch = function(inputSelector, resultPanelSelector, descriptors) {
         $(inputSelector).keyup(function() {
-            var q = $(inputSelector).val(),
+            let q = $(inputSelector).val(),
                 min = $(inputSelector).data('min-search-chars');
             if (min) {
                 if (q.length > 0 && q.length < parseInt(min)) {
@@ -180,15 +187,18 @@
                 }
             }
             // if (call.length == 0) $(resultPanelSelector).find('.spinner').show();
-            var length = descriptors.length;
-            for (var i=0; i<length; i++) {
-                var descriptor = descriptors[i],
+            let length = descriptors.length;
+            for (let i=0; i<length; i++) {
+                let descriptor = descriptors[i],
                     url = descriptor.endpoint,
                     query = 'q=' + q + '&format=html_results';
+                call.push(q);
+                $.ajax({
+                    url: url
+                });
                 $(resultPanelSelector).load(url, query, function() {
                     $(resultPanelSelector).find('.spinner').fadeOut();
                 });
-                call.push(q);
             }
         });
     };
@@ -200,11 +210,11 @@
             if (beforeSearch) beforeSearch();
             $(resultPanelSelector).find('.empty').hide();
             $(resultPanelSelector).show().find('.spinner').show();
-            var url = descriptor.endpoint,
+            let url = descriptor.endpoint,
                 params = {start: 0, length: 100, format: 'json'},
                 selector = descriptor.resultTplSelector;
             $('div#admin-nav .filter li.active').each(function () {
-                var paramName = $(this).parent().data('param');
+                let paramName = $(this).parent().data('param');
                 params[paramName] = $(this).data('value');
             });
             grabResults(url, params, resultPanelSelector, selector, call.length, afterResults);
@@ -213,31 +223,31 @@
 
     c.setupHTMLResultsFilter = function(descriptor, beforeSearch, afterResults) {
         $('#admin-content').on('change', '#admin-tools .filter select', function() {
-            var resultPanelSelector = descriptor.resultPanelSelector;
+            let resultPanelSelector = descriptor.resultPanelSelector;
             if (beforeSearch) beforeSearch();
             $(resultPanelSelector).find('.empty').hide();
             $(resultPanelSelector).show().find('.spinner').fadeIn();
             var url = window.location.pathname,
                 params = {start: 0, length: 100, format: 'html_results'};
             $('div#admin-tools .filter select').each(function() {
-                var paramName = $(this).prop('name');
+                let paramName = $(this).prop('name');
                 if (paramName) params[paramName] = $(this).val();
             });
             $('div#admin-tools .filter input').each(function() {
-                var paramName = $(this).prop('name');
+                let paramName = $(this).prop('name');
                 if (paramName) params[paramName] = $(this).val();
             });
             params['q'] = $('#context-search').val();
-            var query = window.location.search,
+            let query = window.location.search,
                 paramString = '';
-            for (var key in params) {
+            for (let key in params) {
                 paramString += '&' + key + '=' + params[key]
             }
             if (query && query !== '?') query += paramString;
             else query = paramString.substr(1);
             $(resultPanelSelector).load(url, query, function() {
                 $(resultPanelSelector).find('.spinner').fadeOut();
-                for (var key in params) {
+                for (let key in params) {
                     $('#' + key).val(params[key])
                 }
                 if (afterResults) afterResults();
@@ -246,15 +256,19 @@
     };
 
     function grabResults(url, params, resultPanelSelector, resultSelector, callSeqNumber, afterResults, jsonp) {
-        if (jsonp) url.indexOf('?') == -1 ? url += '?callback=?' : url += '&callback=?';
+        if (jsonp) url.indexOf('?') === -1 ? url += '?callback=?' : url += '&callback=?';
         $.getJSON(url, params, function(data) {
-            if (data.error) return;
-            if (data.length == 0) $(resultPanelSelector).find('.empty').show();
+            if (call[call.length - 1] !== params['q']) return;  // Show results only for the last value of q
             $(resultPanelSelector).find('.spinner').hide();
+            if (data.error) {
+                c.showFloatingNotice(data.error);
+                return;
+            }
+            if (data.length === 0) $(resultPanelSelector).find('.empty').show();
             $(resultSelector + ':not(.tpl)').remove();
-            var objectList = jsonp ? data.object_list : data;
-            for (var i=0; i<objectList.length; i++) {
-                var $tpl = $(resultSelector + '.tpl').clone().removeClass('tpl');
+            let objectList = jsonp ? data.object_list : data;
+            for (let i=0; i<objectList.length; i++) {
+                let $tpl = $(resultSelector + '.tpl').clone().removeClass('tpl');
                 $tpl = c.genericTemplateFunc($tpl, objectList[i]);
                 $tpl.insertBefore(resultSelector + '.tpl').show();
             }

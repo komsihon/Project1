@@ -12,7 +12,7 @@
 		{% block head_style %}
             <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
             <link rel='stylesheet' href="{% static 'ikwen/css/flatly.bootstrap.min.css' %}" />
-            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}?v=20.1.13" />
+            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}?v=20.2.24" />
 		{% endblock %}
         {% block head_js %}
             <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -227,11 +227,11 @@
                         <p class="message text-muted"></p>
                         <div>
                             <div class="actions">
-                                <div class="col-xs-12 col-sm-4 pull-right action">
-                                    <a class="btn btn-success btn-block btn-sm btn-ok" data-dismiss="modal" aria-label="OK">{% trans "OK" %}</a>
+                                <div class="col-xs-12 col-sm-3 pull-right action">
+                                    <a class="btn btn-block btn-sm btn-deep-blue btn-ok" aria-label="OK">{% trans "OK" %}</a>
                                 </div>
-                                <div class="col-xs-12 col-sm-4 pull-left action">
-                                    <button data-dismiss="modal" class="btn btn-default btn-block btn-sm">{% trans 'Cancel' %}</button>
+                                <div class="col-xs-12 col-sm-3 pull-left action">
+                                    <button data-dismiss="modal" class="btn btn-default btn-block btn-sm btn-cancel">{% trans 'Cancel' %}</button>
                                 </div>
                             </div>
                             <div class="clearfix"></div>
@@ -242,13 +242,13 @@
         </div>
         {% block js %}
             <script src="{% static 'ikwen/js/bootstrap.min.js' %}"></script>
-            <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=20.2.24"></script>
+            <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=20.2.28"></script>
             <script src="{% static 'ikwen/hammerjs/hammer.min.js' %}"></script>
             <script src="{% static 'ikwen/hammerjs/jquery.hammer.js' %}"></script>
             <script>
                 (function() {
                     $('form#lang a').click(function() {
-                        var lang = $(this).data('val');
+                        let lang = $(this).data('val');
                         $('form#lang input[name=language]').val(lang);
                         $('form#lang').submit();
                         return false
@@ -266,7 +266,7 @@
                         $('.edge-panel-left').addClass('has-shade').appendTo('.edge-swipe-overlay')
                     }
                     $(window).resize(ikwen.debouncer(function (e) {
-                        var winWidth = $(window).width();
+                        let winWidth = $(window).width();
                         if (winWidth < 768) {
                             if (!$('#navbar-search').is(':visible')) {
                                 $('#navbar-search').prependTo('body');
@@ -288,7 +288,7 @@
                     }));
 
                     {% url 'ikwen:list_projects' as list_projects_url %}
-                    var searchDescriptor = [{
+                    let searchDescriptor = [{
                         endpoint: '{{ list_projects_url|ikwenize }}',
                         resultTplSelector: '#navbar-results .ik-li',
                         jsonp: true
