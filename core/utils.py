@@ -341,6 +341,7 @@ class DefaultUploadBackend(LocalUploadBackend):
                     'path': url + '?rand=' + rand
                 }
             except IOError as e:
+                logger.error("File failed to upload. May be invalid or corrupted image file", exc_info=True)
                 if settings.DEBUG:
                     raise e
                 return {'error': 'File failed to upload. May be invalid or corrupted image file'}
@@ -730,32 +731,36 @@ def generate_icons(logo_path, output_folder=None):
     else:
         ICONS_FOLDER = output_folder
 
+    folder = media_root + ICONS_FOLDER
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
     # WEB FAVICONS
     for d in (16, 32, 96):
         img = Image.open(logo_path)
         img.thumbnail((d, d), Image.ANTIALIAS)
-        output = media_root + ICONS_FOLDER + 'favicon-%dx%d.png' % (d, d)
+        output = folder + 'favicon-%dx%d.png' % (d, d)
         img.save(output, format="PNG", quality=100)
 
     # iOS FAVICONS
     for d in (57, 60, 72, 76, 114, 120, 144, 152, 180):
         img = Image.open(logo_path)
         img.thumbnail((d, d), Image.ANTIALIAS)
-        output = media_root + ICONS_FOLDER + 'apple-icon-%dx%d.png' % (d, d)
+        output = folder + 'apple-icon-%dx%d.png' % (d, d)
         img.save(output, format="PNG", quality=100)
 
     # Android FAVICONS
     for d in (36, 48, 72, 96, 144, 192, 512):
         img = Image.open(logo_path)
         img.thumbnail((d, d), Image.ANTIALIAS)
-        output = media_root + ICONS_FOLDER + 'android-icon-%dx%d.png' % (d, d)
+        output = folder + 'android-icon-%dx%d.png' % (d, d)
         img.save(output, format="PNG", quality=100)
 
     # MS FAVICONS
     for d in (70, 144, 150, 310):
         img = Image.open(logo_path)
         img.thumbnail((d, d), Image.ANTIALIAS)
-        output = media_root + ICONS_FOLDER + 'ms-icon-%dx%d.png' % (d, d)
+        output = folder + 'ms-icon-%dx%d.png' % (d, d)
         img.save(output, format="PNG", quality=100)
 
 

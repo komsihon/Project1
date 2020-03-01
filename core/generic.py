@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import os
+import logging
 from copy import deepcopy
 from datetime import datetime, timedelta, date
 
@@ -31,6 +32,8 @@ from ikwen.accesscontrol.models import Member
 from ikwen.core.models import Service, AbstractConfig
 from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_icons, get_model_admin_instance
 from ikwen.revival.models import ProfileTag, Revival
+
+logger = logging.getLogger('ikwen')
 
 
 class HybridListView(ListView):
@@ -723,6 +726,7 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
                 'url': url
             }
         except IOError as e:
+            logger.error("File failed to upload. May be invalid or corrupted image file", exc_info=True)
             if settings.DEBUG:
                 raise e
             return {'error': 'File failed to upload. May be invalid or corrupted image file'}
