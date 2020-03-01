@@ -28,7 +28,7 @@
         <div class="container-fluid">
             <div class="configuration-stage">
                 {% if config.cover_image and config.cover_image.name %}
-                <header id="cover" class="subtle-shade" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ config.cover_image.name }});">
+                    <header id="cover" class="subtle-shade" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ config.cover_image.name }});">
                 {% else %}
                     <header id="cover" class="subtle-shade" style="background-image: url({% static 'ikwen/img/default-cover-company.jpg' %});">
                 {% endif %}

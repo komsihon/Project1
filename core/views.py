@@ -13,7 +13,7 @@ from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http.response import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.template import Context
 from django.template.defaultfilters import slugify
 from django.template.loader import get_template
@@ -29,11 +29,11 @@ from ikwen.billing.models import Invoice, SupportCode
 from ikwen.billing.utils import get_invoicing_config_instance, get_billing_cycle_days_count, \
     get_billing_cycle_months_count, refresh_currencies_exchange_rates
 from ikwen.cashout.models import CashOutRequest
+from ikwen.core.generic import HybridListView, ChangeObjectBase, CustomizationImageUploadBackend
 from ikwen.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, Country, \
     OperatorWallet, XEmailObject
 from ikwen.core.utils import get_service_instance, DefaultUploadBackend, add_database_to_settings, \
     add_database, calculate_watch_info, set_counters
-from ikwen.core.generic import HybridListView, ChangeObjectBase, CustomizationImageUploadBackend
 from ikwen.rewarding.models import CROperatorProfile
 
 try:

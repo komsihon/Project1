@@ -35,10 +35,14 @@ EMAIL_CONFIRMATION = 'email_confirmation'
 CONFIRM_EMAIL = 'confirm_email'
 STAFF_ROUTER = 'staff_router'
 
+logout_redirect_url = getattr(settings, "LOGOUT_REDIRECT_URL", None)
+if not logout_redirect_url:
+    logout_redirect_url = getattr(settings, 'LOGIN_URL')
+
 urlpatterns = patterns(
     '',
-    url(r'^logout$', 'django.contrib.auth.views.logout', {'next_page': getattr(settings, "LOGIN_URL")}, name=LOGOUT),
-    url(r'^signOut$', 'django.contrib.auth.views.logout', {'next_page': getattr(settings, "LOGIN_URL")}),
+    url(r'^logout$', 'django.contrib.auth.views.logout', {'next_page': logout_redirect_url}, name=LOGOUT),
+    url(r'^signOut$', 'django.contrib.auth.views.logout', {'next_page': logout_redirect_url}),
     url(r'^signIn/$', SignInMinimal.as_view(), name=SIGN_IN),
     url(r'^doSignIn/$', SignIn.as_view(), name=DO_SIGN_IN),
     url(r'^register/$', Register.as_view(), name=REGISTER),
