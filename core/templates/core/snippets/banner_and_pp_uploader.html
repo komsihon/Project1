@@ -4,7 +4,7 @@
     (function() {
         ikwen.initUploader = function(selector, title, usage, target) {
             var uploader = new qq.FileUploader({
-                action: "{% url 'ikwen:upload_customization_image' %}?img_upload_context={{ img_upload_context }}&member_id={{ request.user.id }}&service_id={{ service.id }}&usage=" + usage,
+                action: "{% url 'ikwen:upload_customization_image' %}?img_upload_context={{ img_upload_context }}&member_id={{ request.user.id }}&service_id={{ target_service.id }}&usage=" + usage,
                 element: $(selector)[0],
                 buttonText: title,
                 multiple: false,

@@ -141,7 +141,7 @@ class Configuration(ChangeObjectBase):
 
     def get_context_data(self, **kwargs):
         context = super(Configuration, self).get_context_data(**kwargs)
-        context['service'] = context['config'].service
+        context['target_service'] = context['config'].service
         context['is_company'] = True
         context['img_upload_context'] = self.UPLOAD_CONTEXT
         context['billing_cycles'] = Service.BILLING_CYCLES_CHOICES
