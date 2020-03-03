@@ -126,11 +126,11 @@
         $('#modal-generic-notice .message').html(message);
         if (url) $('#modal-generic-notice .btn-ok').prop('href', url);
         else $('#modal-generic-notice .btn-ok').prop('href', 'javascript:;');
-        if (OKText) ('#modal-generic-notice .btn-ok').text(OKText);
-        else ('#modal-generic-notice .btn-ok').text("OK");
-        if (cancelText) ('#modal-generic-notice .btn-cancel').show().text(cancelText);
-        else ('#modal-generic-notice .btn-cancel').show().text("Cancel");
-        if (cancelText === null) ('#modal-generic-notice .btn-cancel').hide();
+        if (OKText) $('#modal-generic-notice .btn-ok').text(OKText);
+        else $('#modal-generic-notice .btn-ok').text("OK");
+        if (cancelText) $('#modal-generic-notice .btn-cancel').show().text(cancelText);
+        else $('#modal-generic-notice .btn-cancel').show().text("Cancel");
+        if (cancelText === null) $('#modal-generic-notice .btn-cancel').hide();
         $('#modal-generic-notice .illustration').hide();
         if (typeOrImageURL.toLowerCase() === 'success') $('#modal-generic-notice .success').show();
         else if (typeOrImageURL.toLowerCase() === 'error')$('#modal-generic-notice .error').show();
