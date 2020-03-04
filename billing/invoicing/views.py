@@ -27,8 +27,6 @@ from django.views.generic import TemplateView
 
 from currencies.context_processors import currencies
 
-from echo.models import Balance
-from echo.utils import notify_for_low_messaging_credit, LOW_MAIL_LIMIT, notify_for_empty_messaging_credit
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.core.constants import PENDING_FOR_PAYMENT
 from ikwen.accesscontrol.backends import UMBRELLA
@@ -208,6 +206,8 @@ class ChangeSubscription(ChangeObjectBase):
         service = get_service_instance()
         config = service.config
         with transaction.atomic(using=WALLETS_DB_ALIAS):
+            from echo.models import Balance
+            from echo.utils import notify_for_low_messaging_credit, LOW_MAIL_LIMIT, notify_for_empty_messaging_credit
             balance, update = Balance.objects.using(WALLETS_DB_ALIAS).get_or_create(service_id=service.id)
             if 0 < balance.mail_count < LOW_MAIL_LIMIT:
                 try:
@@ -437,6 +437,8 @@ class InvoiceDetail(TemplateView):
         increment_history_field(service, 'transaction_count_history')
         increment_history_field(service, 'invoice_count_history')
         if member.email:
+            from echo.models import Balance
+            from echo.utils import notify_for_low_messaging_credit, LOW_MAIL_LIMIT, notify_for_empty_messaging_credit
             balance = Balance.objects.using(WALLETS_DB_ALIAS).get(service_id=service.id)
             if 0 < balance.mail_count < LOW_MAIL_LIMIT:
                 notify_for_low_messaging_credit(service, balance)
