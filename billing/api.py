@@ -17,8 +17,6 @@ from ikwen.billing.models import Invoice, InvoiceEntry, InvoiceItem, InvoicingCo
 from ikwen.billing.utils import get_subscription_model, get_product_model, \
     get_invoice_generated_message
 from ikwen.core.utils import get_mail_content, XEmailMessage, add_database
-from echo.models import Balance
-from echo.utils import notify_for_low_messaging_credit, LOW_MAIL_LIMIT, notify_for_empty_messaging_credit
 
 logger = logging.getLogger('ikwen')
 
@@ -125,6 +123,8 @@ def pull_invoice(request, *args, **kwargs):
     member = subscription.member
     if member.email:
         with transaction.atomic(using=WALLETS_DB_ALIAS):
+            from echo.models import Balance
+            from echo.utils import notify_for_low_messaging_credit, LOW_MAIL_LIMIT, notify_for_empty_messaging_credit
             balance, update = Balance.objects.using(WALLETS_DB_ALIAS).get_or_create(service_id=service.id)
             if 0 < balance.mail_count < LOW_MAIL_LIMIT:
                 notify_for_low_messaging_credit(service, balance)

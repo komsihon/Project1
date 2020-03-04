@@ -22,7 +22,6 @@ from django.views.decorators.cache import cache_page
 from django.views.generic.base import TemplateView
 
 import ikwen.conf.settings
-from echo.models import Balance
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT, OwnershipTransfer
 from ikwen.billing.models import Invoice, SupportCode
@@ -92,6 +91,7 @@ class ServiceDetail(TemplateView):
             support_code = None
         if support_code and support_code.expiry < now:
             support_code.expired = True
+        from echo.models import Balance
         echo_balance, update = Balance.objects.using('wallets').get_or_create(service_id=srvce.id)
         context['srvce'] = srvce  # Service named srvce in context to avoid collision with service from template_context_processors
         context['support_code'] = support_code
