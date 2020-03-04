@@ -27,7 +27,6 @@ from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 from permission_backend_nonrel.models import UserPermissionList, GroupPermissionList
 
-from echo.models import Balance
 from echo.utils import LOW_MAIL_LIMIT, notify_for_low_messaging_credit, notify_for_empty_messaging_credit
 from ikwen.conf.settings import IKWEN_SERVICE_ID, WALLETS_DB_ALIAS
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
@@ -367,6 +366,7 @@ def invite_member(service, member):
         email_type = XEmailObject.REVIVAL
     if invitation_message or join_reward_pack_list:
         with transaction.atomic(using=WALLETS_DB_ALIAS):
+            from echo.models import Balance
             balance, update = Balance.objects.using(WALLETS_DB_ALIAS).get_or_create(service_id=service.id)
             if 0 < balance.mail_count < LOW_MAIL_LIMIT:
                 try:
