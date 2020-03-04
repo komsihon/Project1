@@ -12,9 +12,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
 
-from echo.utils import count_pages
 from ikwen.conf.settings import WALLETS_DB_ALIAS
-from echo.models import Balance, SMSObject
 from ikwen.conf import settings as ikwen_settings
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
@@ -157,6 +155,8 @@ class ChangeProfileTag(ChangeObjectBase):
         return HttpResponse(json.dumps(response))
 
     def run_test(self, request):
+        from echo.utils import count_pages
+        from echo.models import Balance, SMSObject
         revival_id = request.GET['revival_id']
         test_email_list = request.GET['test_email_list'].split(',')
         test_phone_list = request.GET['test_phone_list'].split(',')
