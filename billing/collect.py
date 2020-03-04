@@ -19,7 +19,6 @@ from django.utils.http import urlquote
 from django.utils.translation import gettext as _, activate
 
 from daraja.models import DARAJA
-from echo.utils import LOW_MAIL_LIMIT, notify_for_low_messaging_credit, notify_for_empty_messaging_credit
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.core.constants import CONFIRMED
 from ikwen.accesscontrol.backends import UMBRELLA
@@ -32,7 +31,6 @@ from ikwen.billing.utils import get_invoicing_config_instance, get_days_count, g
     notify_event
 from ikwen.core.models import Service
 from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content, XEmailMessage
-from echo.models import Balance
 
 logger = logging.getLogger('ikwen')
 
@@ -243,6 +241,8 @@ def confirm_invoice_payment(request, *args, **kwargs):
     This function has no URL associated with it.
     It serves as ikwen setting "MOMO_AFTER_CHECKOUT"
     """
+    from echo.models import Balance
+    from echo.utils import LOW_MAIL_LIMIT, notify_for_low_messaging_credit, notify_for_empty_messaging_credit
     tx = kwargs.get('transaction')
     now = datetime.now()
     service = get_service_instance()
@@ -345,6 +345,8 @@ def product_set_checkout(request, *args, **kwargs):
 
 
 def product_do_checkout(request, *args, **kwargs):
+    from echo.models import Balance
+    from echo.utils import LOW_MAIL_LIMIT, notify_for_low_messaging_credit, notify_for_empty_messaging_credit
     tx = kwargs.get('transaction')
     invoice_id = request.session['object_id']
     mean = request.session['mean']
