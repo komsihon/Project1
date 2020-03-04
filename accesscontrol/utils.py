@@ -404,7 +404,10 @@ def invite_member(service, member):
 
 def bind_referrer_to_member(service, referrer, member):
     app = service.app
-    if app.referrer_bind_callback:
+    if service.project_name_slug == 'playground':
+        referrer_bind_callback = import_by_path('playground.views.referee_registration_callback')
+        referrer_bind_callback(service, referrer, member)
+    elif app.referrer_bind_callback:
         referrer_bind_callback = import_by_path(app.referrer_bind_callback)
         referrer_bind_callback(service, referrer, member)
 

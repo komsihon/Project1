@@ -118,6 +118,7 @@ body {color: #464646;}
 #modal-generic-notice .illustration.cover {background: no-repeat center; background-size: cover; border-top-left-radius: 5px;
     border-top-right-radius: 5px; height: 270px; margin: -15px -15px}
 #modal-generic-notice h4 {font-weight: 600}
+#modal-generic-notice .message {color: #616675}
 
 .member, .ik-li {background: #fff; border-bottom: 1px solid #eee;display: block;float: left;padding: 10px;width: 100%;transition: border .1s;}
 .ik-li.clearfix {border-bottom: none}
