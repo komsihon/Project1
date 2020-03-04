@@ -1,10 +1,18 @@
+from django.conf import settings
 from django.core.cache import cache
 
+from ikwen.core.utils import add_database
 from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.orangemoney.views import ORANGE_MONEY
 from ikwen.billing.models import PaymentMean
 from ikwen.accesscontrol.backends import UMBRELLA
 from daraja.models import Dara, BonusWallet, DARA_CASH
+
+
+if getattr(settings, 'DEBUG', False):
+    _umbrella_db = 'ikwen_umbrella'
+else:
+    _umbrella_db = 'ikwen_umbrella_prod'
 
 
 def payment_means(request):
@@ -37,7 +45,8 @@ def payment_means(request):
         'payment_mean_list': list(PaymentMean.objects.exclude(slug=DARA_CASH).filter(is_active=True))
     }
     try:
-        dara = Dara.objects.using(UMBRELLA).get(member=request.user)
+        add_database(_umbrella_db)
+        dara = Dara.objects.using(_umbrella_db).get(member=request.user)
         bonus_wallet, update = BonusWallet.objects.using('wallets').get_or_create(dara_id=dara.id)
         dara_cash = PaymentMean.objects.get(slug='dara-cash', is_active=True)
         dara_cash.balance = bonus_wallet.cash
