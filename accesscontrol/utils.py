@@ -402,14 +402,14 @@ def invite_member(service, member):
             logger.error(notice, exc_info=True)
 
 
-def bind_referrer_to_member(service, referrer, member):
+def bind_referrer_to_member(request, service):
     app = service.app
     if service.project_name_slug == 'playground':
         referrer_bind_callback = import_by_path('playground.views.referee_registration_callback')
-        referrer_bind_callback(service, referrer, member)
+        referrer_bind_callback(request, service=service)
     elif app.referrer_bind_callback:
         referrer_bind_callback = import_by_path(app.referrer_bind_callback)
-        referrer_bind_callback(service, referrer, member)
+        referrer_bind_callback(request, service=service)
 
 
 def shift_ghost_member(member, db='default'):

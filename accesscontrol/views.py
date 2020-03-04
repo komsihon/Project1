@@ -992,7 +992,7 @@ def join(request, *args, **kwargs):
     Thread(target=lambda m: m.send(), args=(msg, )).start()
     if referrer_id:
         referrer = Member.objects.get(pk=referrer_id)
-        bind_referrer_to_member(service, referrer, member)
+        bind_referrer_to_member(request, service)
         referrer_profile, update = MemberProfile.objects.using(db).get_or_create(member=referrer)
         men_tag, update = ProfileTag.objects.using(db).get_or_create(name='Men', slug='men', is_reserved=True)
         women_tag, update = ProfileTag.objects.using(db).get_or_create(name='Women', slug='women', is_reserved=True)
