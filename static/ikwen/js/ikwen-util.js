@@ -125,7 +125,7 @@
         $('#modal-generic-notice .title').html(title);
         $('#modal-generic-notice .message').html(message);
         if (url) $('#modal-generic-notice .btn-ok').prop('href', url);
-        else $('#modal-generic-notice .btn-ok').prop('href', 'javascript:;');
+        else $('#modal-generic-notice .btn-ok').prop('href', 'javascript:closeNoticeDialog();');
         if (OKText) $('#modal-generic-notice .btn-ok').text(OKText);
         else $('#modal-generic-notice .btn-ok').text("OK");
         if (cancelText) $('#modal-generic-notice .btn-cancel').show().text(cancelText);
@@ -136,6 +136,10 @@
         else if (typeOrImageURL.toLowerCase() === 'error')$('#modal-generic-notice .error').show();
         else $('#modal-generic-notice .cover').css('background-image', `url(${typeOrImageURL})`).show();
         $('#modal-generic-notice').modal({backdrop: 'static', keyboard: false});
+    };
+
+    window.closeNoticeDialog = function() {
+        $('#modal-generic-notice').modal('hide')
     };
 
     let call = [];
