@@ -220,10 +220,13 @@
                                 </li>
                             {% endfor %}
                             <li class="ik-li">
-                                <a href="{% url 'kako:product_list' %}?smart_link=yes&revival=yes&smart_object_id={{ obj.id }}">
+                                {% url 'kako:product_list' as product_list_url %}
+                                {% if product_list_url %}
+                                <a href="{{ product_list_url }}?smart_link=yes&revival=yes&smart_object_id={{ obj.id }}">
                                     <i class="icon link"></i>
                                     {% trans "Add products" %}
                                 </a>
+                                {% endif %}
                             </li>
                         </ul>
                     </section>

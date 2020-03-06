@@ -61,7 +61,10 @@ class ChangeProfileTag(ChangeObjectBase):
             items_fk_list = self.request.GET.get('items_fk_list').split(',')
             context['set_cyclic'] = True
         context['items_fk_list'] = ','.join(items_fk_list)
-        context['item_list'] = get_item_list('kako.Product', items_fk_list)
+        try:
+            context['item_list'] = get_item_list('kako.Product', items_fk_list)
+        except:
+            pass
         return context
 
     def get(self, request, *args, **kwargs):
