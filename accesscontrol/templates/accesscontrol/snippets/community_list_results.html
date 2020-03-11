@@ -12,14 +12,14 @@
                 {% url 'ikwen:profile' user.id as member_url %}
             {% endif %}
         {% if user.photo and user.photo.name %}
-            <a href="{% if settings.MEMBER_DETAIL_VIEW %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
+            <a href="{% if settings.MEMBER_DETAIL_VIEW %}{{ member_url }}{% else %}javascript:;{% endif %}"
                class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ user.photo.small_name }})"></a>
         {% else %}
-            <a href="{% if settings.MEMBER_DETAIL_VIEW %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
+            <a href="{% if settings.MEMBER_DETAIL_VIEW %}{{ member_url }}{% else %}javascript:;{% endif %}"
                class="photo" style="background-image: url({% static 'ikwen/img/login-avatar.jpg' %})"></a>
         {% endif %}
             <div class="info">
-                <a href="{% if settings.MEMBER_DETAIL_VIEW %}{{ member_url }}{% else %}{{ member_url|ikwenize }}{% endif %}"
+                <a href="{% if settings.MEMBER_DETAIL_VIEW %}{{ member_url }}{% else %}javascript:;{% endif %}"
                    class="full_name">{{ user.full_name }}</a>
                 <p class="about">{{ user.phone }}, {{ user.email }}</p>
             </div>

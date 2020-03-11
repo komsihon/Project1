@@ -279,7 +279,7 @@
                                 <li>
                                     <label>{% trans "Website" %}</label>
                                     <span>
-                                        <a href="{{ page_service.url }}" target="_blank">{{ page_service.url }}</a>
+                                        <a href="{{ page_service.url }}{% if request.GET.referrer %}?referrer={{ request.GET.referrer }}{% endif %}" target="_blank">{{ page_service.url }}</a>
                                     </span>
                                 </li>
                                 {% if profile_address %}
