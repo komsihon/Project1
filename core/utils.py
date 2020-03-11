@@ -736,7 +736,7 @@ def generate_icons(logo_path, output_folder=None):
         os.makedirs(folder)
 
     # WEB FAVICONS
-    for d in (16, 32, 96):
+    for d in (16, 32, 96, 128, 256):
         img = Image.open(logo_path)
         img.thumbnail((d, d), Image.ANTIALIAS)
         output = folder + 'favicon-%dx%d.png' % (d, d)
