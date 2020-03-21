@@ -14,6 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from ikwen.accesscontrol.backends import UMBRELLA
 from import_export.admin import ImportExportMixin
 
+from currencies.models import Currency
 from ikwen.accesscontrol.models import Member, SUDO
 from ikwen.billing.models import Payment, AbstractInvoice, InvoicingConfig, Invoice, NEW_INVOICE_EVENT, \
     SUBSCRIPTION_EVENT, PaymentMean, MoMoTransaction, CloudBillingPlan, PAYMENT_CONFIRMATION, SupportBundle
@@ -355,7 +356,16 @@ class InvoiceAdmin(CustomBaseAdmin, ImportExportMixin):
             add_event(service, PAYMENT_CONFIRMATION, member=member, object_id=invoice.id)
             subject, message, sms_text = get_payment_confirmation_message(instance, member)
             if member.email:
-                html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html')
+                try:
+                    currency = Currency.active.default().symbol
+                except:
+                    currency = config.currency_code
+                invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
+                subject, message, sms_text = get_payment_confirmation_message(instance, member)
+                html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
+                                                extra_context={'member_name': member.first_name, 'invoice': invoice,
+                                                               'cta': _("View invoice"), 'invoice_url': invoice_url,
+                                                               'currency': currency})
                 sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
