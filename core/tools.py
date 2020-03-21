@@ -58,10 +58,10 @@ def setup_dev_env(app_name, username, database=None, project_name=None,
                                                     company_name_slug=project_name_slug, signature=mail_signature)
     c.save(using='default')
     InvoicingConfig.objects.create(service=s)
-    FlatPage.objects.create(url=FlatPage.AGREEMENT, title=FlatPage.AGREEMENT)
-    FlatPage.objects.create(url=FlatPage.LEGAL_MENTIONS, title=FlatPage.LEGAL_MENTIONS)
-    Group.objects.create(name=COMMUNITY)
-    sudo_group = Group.objects.create(name=SUDO)
+    FlatPage.objects.get_or_create(url=FlatPage.AGREEMENT, title=FlatPage.AGREEMENT)
+    FlatPage.objects.get_or_create(url=FlatPage.LEGAL_MENTIONS, title=FlatPage.LEGAL_MENTIONS)
+    Group.objects.get_or_create(name=COMMUNITY)
+    sudo_group, change = Group.objects.get_or_create(name=SUDO)
     UserPermissionList.objects.get_or_create(user=m)
     add_user_to_group(m,  sudo_group)
 
@@ -77,8 +77,8 @@ def setup_dev_env(app_name, username, database=None, project_name=None,
     m.business_notices = 0
     m.personal_notices = 0
     m.save(using='default')
-    print "\nDev environment successfully created."
-    print "Add this to your project settings: IKWEN_SERVICE_ID = '%s'\n\n" % s.pk
+    print ("\nDev environment successfully created.")
+    print ("Add this to your project settings: IKWEN_SERVICE_ID = '%s'\n\n" % s.pk)
 
 
 def generate_random_key(length, alpha_num=False):

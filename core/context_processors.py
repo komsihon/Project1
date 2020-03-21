@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.utils import translation
 from django.utils.formats import get_format
@@ -17,6 +18,11 @@ def project_settings(request):
     """
     Adds utility project url and ikwen base url context variable to the context.
     """
+    key = 'project_settings'
+    settings_var = cache.get(key)
+    if settings_var:
+        return settings_var
+
     console_uri = reverse('ikwen:console')
     if not getattr(settings, 'IS_IKWEN', False):
         console_uri = console_uri.replace('/ikwen', '')
@@ -52,7 +58,7 @@ def project_settings(request):
 
     lang = translation.get_language()
     use_l10n = getattr(settings, 'USE_L10N', False)
-    return {
+    settings_var = {
         'settings': {
             'DEBUG': getattr(settings, 'DEBUG', False),
             'IS_IKWEN': getattr(settings, 'IS_IKWEN', False),
@@ -81,13 +87,21 @@ def project_settings(request):
         'legal_mentions_page': legal_mentions_page,
         'about_page': about_page,
     }
+    cache.set(key, settings_var, 5 * 60)
+    return settings_var
 
 
 def app_modules(request):
     """
     Grabs all active app modules
     """
+    key = 'app_modules:' + request.META['mod_wsgi.application_group']
+    modules = cache.get(key)
+    if modules:
+        return modules
+
     modules = {'app_modules': Module.objects.all().count() > 0}
     for obj in Module.objects.filter(is_active=True):
         modules[obj.slug] = obj
+    cache.set(key, modules, 5 * 60)
     return modules

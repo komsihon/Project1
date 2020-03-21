@@ -2,6 +2,7 @@
 
 from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractUser, Group
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import post_delete
@@ -198,6 +199,10 @@ class Member(AbstractUser):
         return list(set(self.collaborates_on) | set(self.customer_on))
 
     def _get_customer_on(self):
+        key = 'customer_on:' + self.id
+        res = cache.get(key)
+        if res:
+            return res
         from ikwen.accesscontrol.backends import UMBRELLA
         res = []
         for pk in self.customer_on_fk_list:
@@ -210,6 +215,10 @@ class Member(AbstractUser):
     customer_on = property(_get_customer_on)
 
     def _get_collaborates_on(self):
+        key = 'collaborates_on:' + self.id
+        res = cache.get(key)
+        if res:
+            return res
         from ikwen.accesscontrol.backends import UMBRELLA
         res = []
         for pk in self.collaborates_on_fk_list:
