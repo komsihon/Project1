@@ -41,16 +41,16 @@ def project_settings(request):
 
     agreement_page, legal_mentions_page, about_page = None, None, None
     try:
-        agreement_page = FlatPage.objects.get(url=FlatPage.AGREEMENT)
-    except FlatPage.DoesNotExist:
+        agreement_page = FlatPage.objects.get(url=FlatPage.AGREEMENT).to_dict()
+    except:
         pass
     try:
-        legal_mentions_page = FlatPage.objects.get(url=FlatPage.LEGAL_MENTIONS)
-    except FlatPage.DoesNotExist:
+        legal_mentions_page = FlatPage.objects.get(url=FlatPage.LEGAL_MENTIONS).to_dict()
+    except:
         pass
     try:
-        about_page = FlatPage.objects.get(url='about')
-    except FlatPage.DoesNotExist:
+        about_page = FlatPage.objects.get(url='about').to_dict()
+    except:
         pass
 
     service = Service.objects.get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
