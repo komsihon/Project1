@@ -32,8 +32,7 @@
                                 </a>
                                 <span style="border-radius: 3px; display: block; text-align: center; margin-top: 5px; padding: 2px;">
                                     <sup class="text-muted">XAF</sup>
-{#                                    <strong>{{ dara_cash.balance|floatformat:"0"|intcomma }}</strong>#}
-                                    <strong>5,000</strong>
+                                    <strong>{{ dara_cash.balance|floatformat:"0"|intcomma }}</strong>
                                 </span>
                             </li>
                         {% endif %}
@@ -59,8 +58,9 @@
             let productId = $(this).data('product-id');
             $('#payment-product-id').val(productId);
             $('#payment-methods').modal('show');
-        }).on('click', '.payment-method', function() {
+        }).on('click', '.payment-method:not(.processing)', function() {
             let actionURL = $(this).data('action-url');
+            $('.payment-method').addClass('processing');
             $('#payment-methods .spinner').show();
             $('form#payment-start-flow').prop('action', actionURL).submit()
         });
