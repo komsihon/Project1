@@ -87,7 +87,8 @@ def project_settings(request):
         'legal_mentions_page': legal_mentions_page,
         'about_page': about_page,
     }
-    cache.set(key, settings_var, 5 * 60)
+    cache_timeout = getattr(settings, 'CACHE_TIMEOUT', 5)
+    cache.set(key, settings_var, cache_timeout * 60)
     return settings_var
 
 
@@ -95,13 +96,15 @@ def app_modules(request):
     """
     Grabs all active app modules
     """
-    key = 'app_modules:' + request.META['mod_wsgi.application_group']
+    key = 'app_modules'
     modules = cache.get(key)
     if modules:
         return modules
 
     modules = {'app_modules': Module.objects.all().count() > 0}
     for obj in Module.objects.filter(is_active=True):
-        modules[obj.slug] = obj
-    cache.set(key, modules, 5 * 60)
+        modules[obj.slug] = obj.to_dict()
+
+    cache_timeout = getattr(settings, 'CACHE_TIMEOUT', 5)
+    cache.set(key, modules, cache_timeout * 60)
     return modules

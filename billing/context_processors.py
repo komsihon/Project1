@@ -5,7 +5,6 @@ from ikwen.core.utils import add_database
 from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.orangemoney.views import ORANGE_MONEY
 from ikwen.billing.models import PaymentMean
-from ikwen.accesscontrol.backends import UMBRELLA
 from daraja.models import Dara, BonusWallet, DARA_CASH
 
 
@@ -54,5 +53,7 @@ def payment_means(request):
         means['payment_mean_list'].append(dara_cash)
     except:
         pass
-    cache.set(key, means, 5 * 60)
+
+    cache_timeout = getattr(settings, 'CACHE_TIMEOUT', 5)
+    cache.set(key, means, cache_timeout * 60)
     return means

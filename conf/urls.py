@@ -21,6 +21,7 @@ urlpatterns = patterns(
     url(r'^kakocase/', include('ikwen_kakocase.kakocase.urls', namespace='kakocase')),
     url(r'^shavida/', include('ikwen_shavida.shavida.urls', namespace='shavida')),
     url(r'^webnode/', include('ikwen_webnode.webnode.urls', namespace='webnode')),
+    url(r'^daraja/', include('daraja.urls', namespace='daraja')),
 
     url(r'^echo/', include('echo.urls', namespace='echo')),
     url(r'^page/(?P<url>[-\w]+)/$', FlatPageView.as_view(), name='flatpage'),
