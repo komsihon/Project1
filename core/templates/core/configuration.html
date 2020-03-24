@@ -27,15 +27,15 @@
     <div id="admin-content" class="change-form no-edge-panel-right">
         <div class="container-fluid">
             <div class="configuration-stage">
-                {% if config.cover_image and config.cover_image.name %}
-                    <header id="cover" class="subtle-shade" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ config.cover_image.name }});">
+                {% if target_config.cover_image and target_config.cover_image.name %}
+                    <header id="cover" class="subtle-shade" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ target_config.cover_image.name }});">
                 {% else %}
                     <header id="cover" class="subtle-shade" style="background-image: url({% static 'ikwen/img/default-cover-company.jpg' %});">
                 {% endif %}
                     <div id="banner">
                         <div class="frame">
-                            {% if config.logo and config.logo.name %}
-                                <div class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }})">
+                            {% if target_config.logo and target_config.logo.name %}
+                                <div class="photo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ target_config.logo.name }})">
                                     <div class="upload-image"></div>
                                 </div>
                             {% else %}
@@ -57,13 +57,13 @@
                                 <span class="sr-only"></span>
                             </div>
                         </div>
-                        <h2 class="text-has-shade">{{ config.full_name }}</h2>
+                        <h2 class="text-has-shade">{{ target_config.full_name }}</h2>
                     </div>
                 </header>
                 <form id="configuration" class="admin-form pull-left" enctype="multipart/form-data" method="post" style="width: auto">{% csrf_token %}
-                    <input type="hidden" name="object_id" value="{{ config.id }}" />
-                    <input type="hidden" name="company_name_slug" value="{{ config.company_name_slug }}" />
-                    {% if config.can_manage_currencies %}
+                    <input type="hidden" name="object_id" value="{{ target_config.id }}" />
+                    <input type="hidden" name="company_name_slug" value="{{ target_config.company_name_slug }}" />
+                    {% if target_config.can_manage_currencies %}
                         {% include 'core/snippets/currencies_config.html' %}
                     {% endif %}
                     {% include 'core/snippets/model_admin_form.html' %}
