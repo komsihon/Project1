@@ -1254,7 +1254,9 @@ def render_access_request_event(event, request):
 
 def render_welcome_event(event, request):
     html_template = get_template('accesscontrol/events/welcome_event.html')
-    c = Context({})
+    from ikwen.conf.settings import MEDIA_URL
+    service = event.service
+    c = Context({'service': service, 'config': service.config, 'IKWEN_MEDIA_URL': MEDIA_URL})
     return html_template.render(c)
 
 

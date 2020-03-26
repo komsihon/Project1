@@ -42,5 +42,10 @@
         <p>
             {% blocktrans %}You were happily added to our community. Thank you for joining us.{% endblocktrans %}
         </p>
+        <div class="col-sm-8 col-sm-offset-2">
+            <a class="btn btn-block btn-green" href="{{ service.url }}">{% blocktrans with project_name=service.project_name %}
+                Visit {{ project_name }}
+            {% endblocktrans %}</a>
+        </div>
     </div>
 {% endif %}

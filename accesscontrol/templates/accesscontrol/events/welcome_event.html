@@ -1,7 +1,15 @@
-{% load i18n %}
-<div style="margin-top: -7px; padding: 0 15px">
-    <h4 class="text-primary">{% trans "Welcome" %}</h4>
-    <p>
+{% load static i18n %}
+<div style="margin-top: -7px">
+    <h4 class="text-primary" style="padding: 0 15px">{% trans "Welcome" %}</h4>
+    <div class="event-media">
+        <div class="stretched card-tile" style="background-image: url({% if config.cover_image.name %}{{ IKWEN_MEDIA_URL }}{{ config.cover_image.name }}){% else %}{% static 'ikwen/img/default-cover-company.jpg' %}{% endif %}"></div>
+    </div>
+    <p style="padding: 0 15px">
         {% blocktrans %}You were happily added to our community. Thank you for joining us.{% endblocktrans %}
     </p>
+    <div class="col-xs-8 col-xs-offset-2 col-sm-6 col-sm-offset-3">
+        <a class="btn btn-block btn-green" href="{{ service.url }}">{% blocktrans with project_name=service.project_name %}
+            Visit {{ project_name }}
+        {% endblocktrans %}</a>
+    </div>
 </div>

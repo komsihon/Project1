@@ -58,8 +58,7 @@ class PhoneVerificationMiddleware(object):
         if rm.namespace == 'ikwen':
             from ikwen.core.urls import PHONE_CONFIRMATION, LOGOUT,\
                 ACCOUNT_SETUP, UPDATE_INFO, UPDATE_PASSWORD,  STAFF_ROUTER
-            if rm.url_name == LOGOUT or rm.url_name == ACCOUNT_SETUP or rm.url_name == UPDATE_INFO or \
-               rm.url_name == UPDATE_PASSWORD or rm.url_name == PHONE_CONFIRMATION or rm.url_name == STAFF_ROUTER:
+            if rm.url_name in [LOGOUT, ACCOUNT_SETUP, UPDATE_INFO, UPDATE_PASSWORD, PHONE_CONFIRMATION, STAFF_ROUTER]:
                 return
         if request.user.is_authenticated() and not request.user.phone_verified:
             next_url = reverse('ikwen:phone_confirmation')
@@ -76,9 +75,8 @@ class EmailVerificationMiddleware(object):
         if rm.namespace == 'ikwen':
             from ikwen.core.urls import EMAIL_CONFIRMATION, CONFIRM_EMAIL, LOGOUT,\
                 ACCOUNT_SETUP, UPDATE_INFO, UPDATE_PASSWORD,  STAFF_ROUTER
-            if rm.url_name == LOGOUT or rm.url_name == ACCOUNT_SETUP or rm.url_name == UPDATE_INFO or \
-                    rm.url_name == UPDATE_PASSWORD or rm.url_name == EMAIL_CONFIRMATION or \
-                    rm.url_name == STAFF_ROUTER or rm.url_name == CONFIRM_EMAIL:
+            if rm.url_name in [LOGOUT, ACCOUNT_SETUP, UPDATE_INFO, UPDATE_PASSWORD,
+                               EMAIL_CONFIRMATION, STAFF_ROUTER, CONFIRM_EMAIL]:
                 return
         if request.user.is_authenticated() and request.user.is_staff and not request.user.email_verified:
             # First check if email not already verified in umbrella database
