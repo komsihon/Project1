@@ -87,7 +87,7 @@ class ChangeProduct(ChangeObjectBase):
 
 
 class SubscriptionList(HybridListView):
-    queryset = Subscription.objects.select_related('member, product').exclude(status=PENDING_FOR_PAYMENT)
+    queryset = Subscription.objects.select_related('member', 'product').exclude(status=PENDING_FOR_PAYMENT)
     ordering = ('-id', )
     list_filter = ('product', 'status', ('since', _("Subs. Date")), 'expiry')
     context_object_name = 'subscription_list'
@@ -463,7 +463,7 @@ class InvoiceDetail(TemplateView):
         action = request.GET.get('action')
         invoice_id = kwargs['invoice_id']
         try:
-            invoice = Invoice.objects.select_related('member, subscription').get(pk=invoice_id)
+            invoice = Invoice.objects.select_related('member', 'subscription').get(pk=invoice_id)
         except Invoice.DoesNotExist:
             raise Http404("Invoice not found")
         if action == 'cash_in':
