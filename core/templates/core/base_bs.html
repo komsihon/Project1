@@ -12,7 +12,7 @@
 		{% block head_style %}
             <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
             <link rel='stylesheet' href="{% static 'ikwen/css/flatly.bootstrap.min.css' %}" />
-            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}?v=20.3.4" />
+            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}?v=20.3.27" />
 		{% endblock %}
         {% block head_js %}
             <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -33,148 +33,74 @@
             <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 20%"></div>
         </div>
         {% block header %}
-            {% with collaborates_on=user.collaborates_on %}
-                {% url "ikwen:account_setup" as account_setup_url %}
-                <nav id="navbar" class="navbar navbar-default navbar-static-top">
-                    <div class="container-fluid">
-                        <div class="navbar-header">
-                            <div class="container-fluid">
-                                <i class="glyphicon glyphicon-menu-left back"></i>
-                                <div class="menu-button">
-                                    <span class="sr-only">Toggle navigation</span>
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                </div>
-                                {% block header_brand %}
-                                    <a class="navbar-brand hidden-xs" href="{{ service.url }}">
-                                        <strong>{{ service.project_name }}</strong>
-                                    </a>
-                                    <strong class="navbar-brand visible-xs">{{ service.project_name }}</strong>
-                                {% endblock %}
-                                {% block site_menu_xs %}
-                                    <nav class="visible-xs pull-right">
-                                        <ul id="nav-xs" class="nav navbar-nav navbar-right">
-                                            <li class="show-search">
-                                                <a>
-                                                    <i class="glyphicon glyphicon-search"></i>
-                                                </a>
-                                            </li>
-                                            {% if user.is_authenticated %}
-                                                {% if collaborates_on|length >= 1 %}
-                                                    <li class="dropdown">
-                                                        <a id="apps-xs" class="dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                            <i class="glyphicon glyphicon-th-large"></i>
-                                                        </a>
-                                                        <ul class="dropdown-menu" aria-labelledby="apps-xs" style="right: -39px">
-                                                            {% for app in collaborates_on %}
-                                                                <li><a href="{{ app.admin_url }}">{{ app.project_name }}</a></li>
-                                                            {% endfor %}
-                                                        </ul>
-                                                    </li>
-                                                {% endif %}
-                                                <li class="home">
-                                                    <a href="{{ settings.IKWEN_CONSOLE_URL }}">
-                                                        <i class="glyphicon glyphicon-bell" aria-hidden="true"></i>
-                                                        {% if user.get_notice_count > 0 %}
-                                                            {% if user.get_notice_count >= 100 %}
-                                                                <span class="label label-danger">99+</span>
-                                                            {% else %}
-                                                                <span class="label label-danger">{{ user.get_notice_count }}</span>
-                                                            {% endif %}
-                                                        {% endif %}
-                                                    </a>
-                                                </li>
-                                                <li class="dropdown">
-                                                    <a id="user-menu-xs" class="dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                        <i class="glyphicon glyphicon-user"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu" aria-labelledby="user-menu-xs">
-                                                        <li style="padding: 3px 20px"> {{ user.get_short_name }} </li>
-                                                        <li role="separator" class="divider"></li>
-                                                        <li>
-                                                            <a href="{{ account_setup_url|ikwenize }}">{% trans "Account setup" %}</a>
-                                                        </li>
-                                                        <li><a href="{% url "ikwen:logout" %}">{% trans "Logout" %}</a> </li>
-                                                    </ul>
-                                                </li>
-                                            {% else %}
-                                                <li>
-                                                    <a href="{% url 'ikwen:sign_in' %}" style="float: left">{% trans "Login" %}</a>
-                                                </li>
-                                            {% endif %}
-                                        </ul>
-                                    </nav>
-                                {% endblock %}
+            {% url "ikwen:account_setup" as account_setup_url %}
+            <nav id="navbar" class="navbar navbar-default navbar-static-top">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <div class="container-fluid">
+                            <i class="glyphicon glyphicon-menu-left back"></i>
+                            <div class="menu-button">
+                                <span class="sr-only">Toggle navigation</span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
                             </div>
-                        </div>
-                        <div id="navbar-search" class="navbar-form navbar-left">
-                            <form id="search" autocomplete="off" onsubmit="return false">
-                                <i class="glyphicon glyphicon-menu-left hide-search visible-xs"></i>
-                                <i class="glyphicon glyphicon-search hidden-xs"></i>
-                                <input type="text" name="radix" class="form-control input-md" placeholder="{% trans "Search ikwen" %}">
-                                <input type="hidden" name="q">
-                                <span class="spinner" style="display: none"></span>
-                            </form>
-                            <div id="navbar-results" style="display: none" data-min-search-chars="2">
-                                <div class="stage">
-                                    {% include 'core/snippets/spinner.html' %}
-                                    <ul style="float: left; padding-left: 0; width: 100%">
-                                        <li class="ik-li tpl" style="display: none">
-                                            <a class="target_url" style="display: block">
-                                                <span class="image rounded photo logo bg-img" style="background-image: url({% static 'ikwen/img/no_photo.png' %})"></span>
-                                                <div class="info">
-                                                     <div class='full_name project_name has-faded-edge'></div>
-                                                    <p class="about short_description minor-tag"></p>
-                                                </div>
-                                                <div class="clearfix"></div>
+                            {% block header_brand %}
+                                <a class="navbar-brand hidden-xs" href="{{ service.url }}">
+                                    <strong>{{ service.project_name }}</strong>
+                                </a>
+                                <strong class="navbar-brand visible-xs">{{ service.project_name }}</strong>
+                            {% endblock %}
+                            {% block site_menu_xs %}
+                                <nav class="visible-xs pull-right">
+                                    <ul id="nav-xs" class="nav navbar-nav navbar-right">
+                                        <li class="show-search">
+                                            <a>
+                                                <i class="glyphicon glyphicon-search"></i>
                                             </a>
                                         </li>
-                                    </ul>
-                                    <div class="clearfix"></div>
-                                </div>
-                                <div class="clearfix"></div>
-                            </div>
-                        </div>
-                        {% block site_menu %}
-                            <div id="site-menu" class="collapse navbar-collapse">
-                                <div class="container-fluid">
-                                    <ul class="nav navbar-nav navbar-right" style="margin: 0 -15px 0 0">
                                         {% if user.is_authenticated %}
-                                            {% if collaborates_on|length == 1 %}
-                                                <li id="user-apps" class="visible-lg">
-                                                    <a href="{{ collaborates_on.0.admin_url }}">{{ collaborates_on.0.project_name }}</a>
-                                                </li>
-                                            {% endif %}
                                             {% if collaborates_on|length >= 1 %}
-                                                <li id="user-apps" class="dropdown{% if collaborates_on|length == 1 %} hidden-lg{% endif %}">
-                                                    <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <li class="dropdown app-drawer">
+                                                    <a id="apps-xs" class="dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                         <i class="glyphicon glyphicon-th-large"></i>
                                                     </a>
-                                                    <ul class="dropdown-menu" aria-labelledby="apps">
+                                                    <ul class="dropdown-menu app-drawer" aria-labelledby="apps-xs" style="right: -46px">
+                                                        <li class="ik-apps">
+                                                            <div>
+                                                                {% for app in ikwen_apps %}
+                                                                <a href="{{ app.url }}" class="ik-app" style="clear: none">
+                                                                    <div class="logo" style="background-image: url({{ app.logo }})"></div>
+                                                                    <div class="name">{{ app.project_name }}</div>
+                                                                    <div class="clearfix"></div>
+                                                                </a>
+                                                                {% endfor %}
+                                                                <div class="clearfix"></div>
+                                                            </div>
+                                                        </li>
                                                         {% for app in collaborates_on %}
                                                             <li><a href="{{ app.admin_url }}">{{ app.project_name }}</a></li>
                                                         {% endfor %}
                                                     </ul>
                                                 </li>
                                             {% endif %}
-                                            <li id="user-home">
+                                            <li class="home">
                                                 <a href="{{ settings.IKWEN_CONSOLE_URL }}">
-                                                    <i class="glyphicon glyphicon-bell"></i>
+                                                    <i class="glyphicon glyphicon-bell" aria-hidden="true"></i>
                                                     {% if user.get_notice_count > 0 %}
                                                         {% if user.get_notice_count >= 100 %}
-                                                            <span class="label label-danger" style="margin-top: -18px">99+</span>
+                                                            <span class="label label-danger">99+</span>
                                                         {% else %}
-                                                            <span class="label label-danger" style="margin-top: -18px">{{ user.get_notice_count }}</span>
+                                                            <span class="label label-danger">{{ user.get_notice_count }}</span>
                                                         {% endif %}
                                                     {% endif %}
                                                 </a>
                                             </li>
-                                            <li id="user-menu" class="dropdown">
-                                                <a class="icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <li class="dropdown">
+                                                <a id="user-menu-xs" class="dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     <i class="glyphicon glyphicon-user"></i>
                                                 </a>
-                                                <ul class="dropdown-menu" aria-labelledby="user-menu">
+                                                <ul class="dropdown-menu" aria-labelledby="user-menu-xs">
                                                     <li style="padding: 3px 20px"> {{ user.get_short_name }} </li>
                                                     <li role="separator" class="divider"></li>
                                                     <li>
@@ -184,17 +110,108 @@
                                                 </ul>
                                             </li>
                                         {% else %}
-                                            <li class="hidden-xs">
-                                                <a href="{% url 'ikwen:sign_in' %}" class="cta">{% trans "Login" %}</a>
+                                            <li>
+                                                <a href="{% url 'ikwen:sign_in' %}" style="float: left">{% trans "Login" %}</a>
                                             </li>
                                         {% endif %}
                                     </ul>
-                                </div>
-                            </div>
-                        {% endblock %}
+                                </nav>
+                            {% endblock %}
+                        </div>
                     </div>
-                </nav>
-            {% endwith %}
+                    <div id="navbar-search" class="navbar-form navbar-left">
+                        <form id="search" autocomplete="off" onsubmit="return false">
+                            <i class="glyphicon glyphicon-menu-left hide-search visible-xs"></i>
+                            <i class="glyphicon glyphicon-search hidden-xs"></i>
+                            <input type="text" name="radix" class="form-control input-md" placeholder="{% trans "Search ikwen" %}">
+                            <input type="hidden" name="q">
+                            <span class="spinner" style="display: none"></span>
+                        </form>
+                        <div id="navbar-results" style="display: none" data-min-search-chars="2">
+                            <div class="stage">
+                                {% include 'core/snippets/spinner.html' %}
+                                <ul style="float: left; padding-left: 0; width: 100%">
+                                    <li class="ik-li tpl" style="display: none">
+                                        <a class="target_url" style="display: block">
+                                            <span class="image rounded photo logo bg-img" style="background-image: url({% static 'ikwen/img/no_photo.png' %})"></span>
+                                            <div class="info">
+                                                 <div class='full_name project_name has-faded-edge'></div>
+                                                <p class="about short_description minor-tag"></p>
+                                            </div>
+                                            <div class="clearfix"></div>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+                    {% block site_menu %}
+                        <div id="site-menu" class="collapse navbar-collapse">
+                            <div class="container-fluid">
+                                <ul class="nav navbar-nav navbar-right" style="margin: 0 -15px 0 0">
+                                    {% if user.is_authenticated %}
+                                        {% if collaborates_on %}
+                                            <li id="user-apps" class="dropdown app-drawer">
+                                                <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="glyphicon glyphicon-th-large"></i>
+                                                </a>
+                                                <ul class="dropdown-menu" aria-labelledby="apps">
+                                                    <li class="ik-apps">
+                                                        <div>
+                                                            {% for app in ikwen_apps %}
+                                                            <a href="{{ app.url }}" class="ik-app" style="clear: none">
+                                                                <div class="logo" style="background-image: url({{ app.logo }})"></div>
+                                                                <div class="name">{{ app.project_name }}</div>
+                                                                <div class="clearfix"></div>
+                                                            </a>
+                                                            {% endfor %}
+                                                            <div class="clearfix"></div>
+                                                        </div>
+                                                    </li>
+                                                    {% for app in collaborates_on %}
+                                                        <li><a href="{{ app.admin_url }}">{{ app.project_name }}</a></li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </li>
+                                        {% endif %}
+                                        <li id="user-home">
+                                            <a href="{{ settings.IKWEN_CONSOLE_URL }}">
+                                                <i class="glyphicon glyphicon-bell"></i>
+                                                {% if user.get_notice_count > 0 %}
+                                                    {% if user.get_notice_count >= 100 %}
+                                                        <span class="label label-danger" style="margin-top: -18px">99+</span>
+                                                    {% else %}
+                                                        <span class="label label-danger" style="margin-top: -18px">{{ user.get_notice_count }}</span>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </a>
+                                        </li>
+                                        <li id="user-menu" class="dropdown">
+                                            <a class="icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <i class="glyphicon glyphicon-user"></i>
+                                            </a>
+                                            <ul class="dropdown-menu" aria-labelledby="user-menu">
+                                                <li style="padding: 3px 20px"> {{ user.get_short_name }} </li>
+                                                <li role="separator" class="divider"></li>
+                                                <li>
+                                                    <a href="{{ account_setup_url|ikwenize }}">{% trans "Account setup" %}</a>
+                                                </li>
+                                                <li><a href="{% url "ikwen:logout" %}">{% trans "Logout" %}</a> </li>
+                                            </ul>
+                                        </li>
+                                    {% else %}
+                                        <li class="hidden-xs">
+                                            <a href="{% url 'ikwen:sign_in' %}" class="cta">{% trans "Login" %}</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% endblock %}
+                </div>
+            </nav>
         {% endblock %}
         {% block selection_control %}{% endblock %}
         {% block content %}{% endblock %}

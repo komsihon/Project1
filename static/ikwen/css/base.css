@@ -191,9 +191,17 @@ time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;
 }
 #navbar .glyphicon {color: #fff;cursor: pointer;font-size: 18px;}
 #navbar .back {display: none;float:left;font-size: 24px;margin: 12px 15px 0 10px;}
+.app-drawer .dropdown-menu {max-height: 600px; overflow: auto; width: 330px;}
+.ik-apps>div {border-bottom: 1px solid #eee;margin: 10px 10px 15px;padding-bottom: 10px;}
+a.ik-app {border-radius: 5px;clear: none;float: left;margin-left: 10px;padding: 3px 10px;
+    text-decoration: none; text-align: center;width: 90px;}
+a.ik-app:first-child {margin-left: 0}
+a.ik-app:hover, .dropdown-menu>li>a.ik-app:active {background: #f5f5ff;}
+.ik-app .logo {background: no-repeat center; background-size: cover; height: 40px;margin: auto;overflow: hidden;width: 40px;}
+.ik-app .name {clear: both;color: #545454;margin-top: 10px;text-align: center;}
 .navbar-default .navbar-brand {padding: 18px 0 0 0;margin-left: 10px;}
 .letter-i {color: #26C6DA;float: none;}
-#navbar .navbar-header {height: 55px;/* overflow: hidden */}
+#navbar .navbar-header {height: 55px}
 #navbar-search {
     display: none;
     background: #fff;
@@ -347,6 +355,11 @@ footer .company-name {color: #666; text-decoration: none}
     .input-sm {font-size: 15px}
     #nav-xs.navbar-nav>li>a {padding: 16px 12px;float: left;}
     #nav-xs.navbar-nav>li:first-child>a {padding-left: 0}
+    #navbar .navbar-nav .open .dropdown-menu.app-drawer {max-height: 450px; width: 272px}
+    .ik-apps>div {margin: 10px 5px 10px;}
+    a.ik-app {border-radius: 5px;clear: none;float: left;margin-left: 5px;padding: 3px 5px;
+        text-decoration: none;text-align: center;width: 80px}
+    a.ik-app:first-child {margin-left: 0}
     .navbar-default .navbar-brand {margin-left: 0;max-width: 100px;overflow: hidden;}
     .navbar-default .navbar-brand > * {float: left; width: 300%}
     .navbar-default .navbar-brand .letter-i {float: none}

@@ -199,10 +199,6 @@ class Member(AbstractUser):
         return list(set(self.collaborates_on) | set(self.customer_on))
 
     def _get_customer_on(self):
-        key = 'customer_on:' + self.id
-        res = cache.get(key)
-        if res:
-            return res
         from ikwen.accesscontrol.backends import UMBRELLA
         res = []
         for pk in self.customer_on_fk_list:
@@ -215,10 +211,6 @@ class Member(AbstractUser):
     customer_on = property(_get_customer_on)
 
     def _get_collaborates_on(self):
-        key = 'collaborates_on:' + self.id
-        res = cache.get(key)
-        if res:
-            return res
         from ikwen.accesscontrol.backends import UMBRELLA
         res = []
         for pk in self.collaborates_on_fk_list:

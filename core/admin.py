@@ -171,6 +171,16 @@ class ConfigAdmin(admin.ModelAdmin):
             return HttpResponseForbidden("You are not allowed to delete Configuration of the platform")
         super(ConfigAdmin, self).delete_model(request, obj)
 
+    def get_queryset(self, request):
+        try:
+            from daraja.models import DARAJA
+            app = Application.objects.get(slug=DARAJA)
+            dara_service_id_list = [service.id for service in Service.objects.filter(app=app)]
+            return Config.objects.exclude(service__in=dara_service_id_list)
+        except:
+            pass
+        return super(ConfigAdmin, self).get_queryset(request)
+
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
             return ('service',)

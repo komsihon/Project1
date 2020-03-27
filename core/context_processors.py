@@ -7,10 +7,9 @@ from django.utils import translation
 from django.utils.formats import get_format
 
 from ikwen.core.models import Module, Service
-
 from ikwen.conf import settings as ikwen_settings
 from ikwen.flatpages.models import FlatPage
-
+from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.core.views import IKWEN_BASE_URL
 
 
@@ -90,6 +89,72 @@ def project_settings(request):
     cache_timeout = getattr(settings, 'CACHE_TIMEOUT', 5)
     cache.set(key, settings_var, cache_timeout * 60)
     return settings_var
+
+
+def member_services(request):
+    member = request.user
+    if member.is_anonymous():
+        return {}
+
+    key = 'ikwen_apps:' + member.id
+    ikwen_apps = cache.get(key)
+    daraja, foulassi, tsunami = None, None, None
+    cache_timeout = getattr(settings, 'CACHE_TIMEOUT', 5) * 60
+    if not ikwen_apps:
+        try:
+            daraja = Service.objects.using(UMBRELLA).get(project_name_slug='daraja')
+            if daraja.id in member.collaborates_on_fk_list:
+                daraja.url = daraja.admin_url
+                member.collaborates_on_fk_list.remove(daraja.id)
+        except:
+            pass
+        try:
+            foulassi = Service.objects.using(UMBRELLA).get(project_name_slug='foulassi')
+            if foulassi.id in member.collaborates_on_fk_list:
+                foulassi.url = foulassi.admin_url
+                member.collaborates_on_fk_list.remove(foulassi.id)
+        except:
+            pass
+        try:
+            tsunami = Service.objects.using(UMBRELLA).get(project_name_slug='kakocase')
+            if tsunami.id in member.collaborates_on_fk_list:
+                tsunami.url = tsunami.admin_url
+                member.collaborates_on_fk_list.remove(tsunami.id)
+        except:
+            pass
+        ikwen_apps = [daraja.to_dict(), foulassi.to_dict(), tsunami.to_dict()]
+        cache.set(key, ikwen_apps, cache_timeout)
+
+    key = 'customer_on:' + member.id
+    customer_on = cache.get(key)
+    if not customer_on:
+        customer_on = []
+        for pk in member.customer_on_fk_list:
+            try:
+                customer_on.append(Service.objects.using(UMBRELLA).get(pk=pk).to_dict())
+            except:
+                member.customer_on_fk_list.remove(pk)
+                member.save(using=UMBRELLA)
+        cache.set(key, customer_on, cache_timeout)
+
+    key = 'collaborates_on:' + member.id
+    collaborates_on = cache.get(key)
+    if not collaborates_on:
+        collaborates_on = []
+        for pk in member.collaborates_on_fk_list:
+            try:
+                collaborates_on.append(Service.objects.using(UMBRELLA).get(pk=pk).to_dict())
+            except:
+                member.collaborates_on_fk_list.remove(pk)
+                member.save(using=UMBRELLA)
+        collaborates_on = member.collaborates_on
+        cache.set(key, collaborates_on, cache_timeout)
+
+    return {
+        'ikwen_apps': ikwen_apps,
+        'customer_on': customer_on,
+        'collaborates_on': collaborates_on
+    }
 
 
 def app_modules(request):
