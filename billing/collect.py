@@ -94,7 +94,7 @@ def set_invoice_checkout(request, *args, **kwargs):
 
     if getattr(settings, 'UNIT_TESTING', False):
         return HttpResponse(json.dumps({'notification_url': notification_url}), content_type='text/json')
-    gateway_url = getattr(settings, 'IKWEN_PAYMENT_GATEWAY_URL', 'https://payment.ikwen.com/v1')
+    gateway_url = getattr(settings, 'IKWEN_PAYMENT_GATEWAY_URL', 'http://payment.ikwen.com/v1')
     endpoint = gateway_url + '/request_payment'
     params = {
         'username': getattr(settings, 'IKWEN_PAYMENT_GATEWAY_USERNAME', service.project_name_slug),
@@ -204,7 +204,7 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
             is_early_payment = True
         refill_tsunami_messaging_bundle(service, is_early_payment)
     share_payment_and_set_stats(invoice, total_months, mean)
-    member = request.user
+    member = service.member
     vendor = service.retailer
     vendor_is_dara = vendor and vendor.app.slug == DARAJA
     if vendor and not vendor_is_dara:
