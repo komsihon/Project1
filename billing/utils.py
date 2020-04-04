@@ -470,7 +470,7 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug=
     partner = service_umbrella.retailer
     if partner:
         partner_is_dara = True if partner.app.slug == DARAJA else False
-        if invoice.is_one_off and partner_is_dara:
+        if partner_is_dara:
             try:
                 dara_share = DarajaConfig.objects.get(service=get_service_instance()).referrer_share_rate
                 ikwen_earnings = invoice.amount * (100 - dara_share) / 100

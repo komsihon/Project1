@@ -59,6 +59,13 @@ class HybridListView(ListView):
     show_import = False
     export_resource = None
 
+    def get_template_names(self):
+        meta = self.get_queryset().model._meta
+        if self.template_name:
+            return [self.template_name]
+        else:
+            return ["%s/%s_list.html" % (meta.app_label, meta.model_name), 'core/object_list_base.html']
+
     def get_context_data(self, **kwargs):
         context = super(HybridListView, self).get_context_data(**kwargs)
         queryset = self.get_queryset()
@@ -92,9 +99,7 @@ class HybridListView(ListView):
             context['is_sortable'] = True if model().order_of_appearance is not None else False
         except AttributeError:
             pass
-        if not self.change_object_url_name:
-            self.change_object_url_name = '%s:change_%s' % (meta.app_label, meta.model_name)
-        context['change_object_url_name'] = self.change_object_url_name
+        context['change_object_url_name'] = self.get_change_object_url_name(self.request, **kwargs)
         context['html_results_template_name'] = self.html_results_template_name
         context['show_import'] = self.show_import
         context['show_export'] = self.export_resource is not None
@@ -200,6 +205,13 @@ class HybridListView(ListView):
                 except:
                     continue
         return super(HybridListView, self).get(request, *args, **kwargs)
+
+    def get_change_object_url_name(self, request, **kwargs):
+        if self.change_object_url_name:
+            return self.change_object_url_name
+        queryset = self.get_queryset()
+        meta = queryset.model._meta
+        return '%s:change_%s' % (meta.app_label, meta.model_name)
 
     def get_max_visible_page_count(self, queryset):
         return self.max_visible_page_count
@@ -393,7 +405,7 @@ class ChangeObjectBase(TemplateView):
     model_admin = None
     object_list_url = None  # Django url name of the object list page
     change_object_url = None  # Django url name of the change object page
-    template_name = 'core/change_object_base.html'
+    template_name = None
     embed_doc_template_name = None
     context_object_name = 'obj'
     profiles_aware = False  # If set to true, object ProfileTag management utilities will be integrated to the object
@@ -429,6 +441,13 @@ class ChangeObjectBase(TemplateView):
         else:
             form = ModelForm(instance=model())
         return form
+
+    def get_template_names(self):
+        meta = self.get_model()._meta
+        if self.template_name:
+            return [self.template_name]
+        else:
+            return ["%s/change_%s.html" % (meta.app_label, meta.model_name), 'core/change_object_base.html']
 
     def get_embed_doc_template_name(self):
         meta = self.get_model()._meta
@@ -591,7 +610,7 @@ class ChangeObjectBase(TemplateView):
         else:
             context = self.get_context_data(**kwargs)
             context['errors'] = form.errors
-            return render(request, self.template_name, context)
+            return render(request, self.get_template_names(), context)
 
     def get_object_list_url(self, request, obj, *args, **kwargs):
         model = self.get_model()
@@ -614,7 +633,7 @@ class ChangeObjectBase(TemplateView):
             try:
                 if obj is None:
                     obj = model()
-                url = reverse('%s:change_%s' % (obj._meta.app_label, obj._meta.model_name))
+                url = reverse('%s:change_%s' % (obj._meta.app_label, obj._meta.model_name), args=(obj.id, ))
             except:
                 url = request.META['HTTP_REFERER']
         return url

@@ -69,10 +69,9 @@
                                                         <li class="ik-apps">
                                                             <div>
                                                                 {% for app in ikwen_apps %}
-                                                                <a href="{{ app.url }}" class="ik-app" style="clear: none">
-                                                                    <div class="logo" style="background-image: url({{ app.logo }})"></div>
+                                                                <a href="{{ app.url }}" class="ik-app">
+                                                                    <div class="logo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ app.logo }})"></div>
                                                                     <div class="name">{{ app.project_name }}</div>
-                                                                    <div class="clearfix"></div>
                                                                 </a>
                                                                 {% endfor %}
                                                                 <div class="clearfix"></div>
@@ -161,10 +160,9 @@
                                                     <li class="ik-apps">
                                                         <div>
                                                             {% for app in ikwen_apps %}
-                                                            <a href="{{ app.url }}" class="ik-app" style="clear: none">
-                                                                <div class="logo" style="background-image: url({{ app.logo }})"></div>
+                                                            <a href="{{ app.url }}" class="ik-app">
+                                                                <div class="logo" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ app.logo }})"></div>
                                                                 <div class="name">{{ app.project_name }}</div>
-                                                                <div class="clearfix"></div>
                                                             </a>
                                                             {% endfor %}
                                                             <div class="clearfix"></div>

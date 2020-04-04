@@ -6,11 +6,11 @@ from django.core.urlresolvers import reverse, NoReverseMatch
 from django.utils import translation
 from django.utils.formats import get_format
 
-from ikwen.core.models import Module, Service
-from ikwen.conf import settings as ikwen_settings
-from ikwen.flatpages.models import FlatPage
 from ikwen.accesscontrol.backends import UMBRELLA
+from ikwen.conf import settings as ikwen_settings
+from ikwen.core.models import Module, Service
 from ikwen.core.views import IKWEN_BASE_URL
+from ikwen.flatpages.models import FlatPage
 
 
 def project_settings(request):
@@ -106,6 +106,7 @@ def member_services(request):
             if daraja.id in member.collaborates_on_fk_list:
                 daraja.url = daraja.admin_url
                 member.collaborates_on_fk_list.remove(daraja.id)
+            daraja = daraja.to_dict()
         except:
             pass
         try:
@@ -113,6 +114,7 @@ def member_services(request):
             if foulassi.id in member.collaborates_on_fk_list:
                 foulassi.url = foulassi.admin_url
                 member.collaborates_on_fk_list.remove(foulassi.id)
+            foulassi = foulassi.to_dict()
         except:
             pass
         try:
@@ -120,9 +122,10 @@ def member_services(request):
             if tsunami.id in member.collaborates_on_fk_list:
                 tsunami.url = tsunami.admin_url
                 member.collaborates_on_fk_list.remove(tsunami.id)
+            tsunami = tsunami.to_dict()
         except:
             pass
-        ikwen_apps = [daraja.to_dict(), foulassi.to_dict(), tsunami.to_dict()]
+        ikwen_apps = [daraja, foulassi, tsunami]
         cache.set(key, ikwen_apps, cache_timeout)
 
     key = 'customer_on:' + member.id

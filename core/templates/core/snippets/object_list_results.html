@@ -7,7 +7,7 @@
         <a href="{{ obj_url }}">{{ obj }}</a>
         {% with obj_details=obj.get_obj_details %}
             {% if obj_details %}
-                <div class="text-muted">{{ obj_details }}</div>
+                <div class="text-muted">{{ obj_details|safe }}</div>
             {% endif %}
         {% endwith %}
         <div class="actions">

@@ -87,8 +87,9 @@ def send_invoices():
 
         entries = []
         if type(subscription) is Service:
+            from daraja.models import DARAJA
             partner = subscription.retailer
-            if partner:
+            if partner and partner.app.slug == DARAJA:
                 retail_config = ApplicationRetailConfig.objects.get(partner=partner, app=subscription.app)
                 ikwen_price = retail_config.ikwen_monthly_cost
             else:

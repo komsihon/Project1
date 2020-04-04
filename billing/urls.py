@@ -43,7 +43,7 @@ urlpatterns = patterns(
 
     url(r'^pricing/$', Pricing.as_view(), name='pricing'),
     url(r'^donate/$', Donate.as_view(), name='donate'),
-    url(r'^confirm_service_invoice_payment/(?P<tx_id>[-\w]+)/(?P<signature>[-\w]+)/(?P<extra_months>[-\w]+)$',
+    url(r'^confirm_service_invoice_payment/(?P<tx_id>[-\w]+)/(?P<signature>[-\w]+)/(?P<extra_months>[\d]+)$',
         confirm_service_invoice_payment, name='confirm_service_invoice_payment'),
 
     url(r'^MoMo/setCheckout/$', MoMoSetCheckout.as_view(), name='momo_set_checkout'),

@@ -386,7 +386,7 @@ def suspend_customers_services():
                             else:
                                 logger.error(u"Notice of suspension for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
                     except:
-                        print "Sending mail to %s failed" % member.email
+                        print ("Sending mail to %s failed" % member.email)
                         logger.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
 
             if sms_text and member.phone:

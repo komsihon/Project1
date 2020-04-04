@@ -282,9 +282,9 @@ class Service(models.Model):
 
     def to_dict(self):
         var = to_dict(self)
-        config = self.config
-        var['logo'] = config.logo.url if config.logo.name else Service.LOGO_PLACEHOLDER
-        var['short_description'] = config.short_description
+        basic_config = self.basic_config
+        var['logo'] = basic_config.logo.name if basic_config.logo.name else Service.LOGO_PLACEHOLDER
+        var['short_description'] = basic_config.short_description
         try:
             del(var['database'])
             del(var['turnover_history'])
