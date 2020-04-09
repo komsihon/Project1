@@ -52,7 +52,7 @@ class HybridListView(ListView):
     ordering = ('-id', )
     list_filter = ()
     ajax_ordering = ('-id', )
-    template_name = 'core/object_list_base.html'
+    template_name = None
     html_results_template_name = 'core/snippets/object_list_results.html'
     embed_doc_template_name = None
     change_object_url_name = None
