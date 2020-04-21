@@ -1,16 +1,23 @@
 # -*- coding: utf-8 -*-
+__author__ = 'Kom Sihon'
+
 from django import forms
 from django.conf import settings
 from django.contrib.admin.sites import NotRegistered
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib.auth.models import Permission, Group
 from djangotoolbox.admin import admin
+from django.utils.translation import ugettext as _
+from import_export import resources, fields
 from permission_backend_nonrel.admin import NonrelPermissionCustomUserAdmin
 
+from ikwen.core.utils import get_service_instance
 from ikwen.accesscontrol.backends import ARCH_EMAIL
 from ikwen.accesscontrol.models import Member
+from permission_backend_nonrel.models import UserPermissionList
 
-__author__ = 'Kom Sihon'
+
+service = get_service_instance()
 
 
 class MemberCreationForm(forms.ModelForm):
@@ -93,6 +100,60 @@ class MemberAdmin(NonrelPermissionCustomUserAdmin):
             return qs
         else:
             return super(MemberAdmin, self).get_queryset(request)
+
+
+class MemberResource(resources.ModelResource):
+    registration = fields.Field(column_name=_('Registration'))
+    name = fields.Field(column_name=_('Name'))
+    gender = fields.Field(column_name=_('Gender'))
+    email = fields.Field(column_name=_('Email'))
+    phone = fields.Field(column_name=_('Phone'))
+    if service.config.register_with_dob:
+        dob = fields.Field(column_name=_('Birthday'))
+    profiles = fields.Field(column_name=_('Profiles'))
+    preferences = fields.Field(column_name=_('Preferences'))
+
+    class Meta:
+        model = UserPermissionList
+        if service.config.register_with_dob:
+            fields = ('registration', 'name', 'gender', 'email', 'phone', 'dob', 'profiles', 'preferences')
+            export_order = ('registration', 'name', 'gender', 'email', 'dob', 'phone', 'profiles', 'preferences')
+        else:
+            fields = ('registration', 'name', 'gender', 'email', 'phone', 'profiles', 'preferences')
+            export_order = ('registration', 'name', 'gender', 'email', 'phone', 'profiles', 'preferences')
+
+    def dehydrate_registration(self, obj):
+        return obj.user.date_joined.strftime('%y-%m-%d %H:%M')
+
+    def dehydrate_name(self, obj):
+        return obj.user.full_name
+
+    def dehydrate_gender(self, obj):
+        try:
+            return _(obj.user.gender)
+        except:
+            return '---'
+
+    def dehydrate_email(self, obj):
+        return obj.user.email
+
+    def dehydrate_phone(self, obj):
+        return obj.user.phone
+
+    def dehydrate_dob(self, obj):
+        try:
+            return obj.user.dob.strftime('%y-%m-%d')
+        except:
+            return '---'
+
+    def dehydrate_profiles(self, obj):
+        profile_tag_list = [tag.name for tag in obj.user.profile_tag_list]
+        return ", ".join(profile_tag_list)
+
+    def dehydrate_preferences(self, obj):
+        preference_list = [tag.name for tag in obj.user.preference_list]
+        return ", ".join(preference_list)
+
 
 if getattr(settings, 'IS_UMBRELLA', False):
     admin.site.register(Member, MemberAdmin)

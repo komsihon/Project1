@@ -97,10 +97,18 @@
                     </a>
                     {% if show_import %}
                         <button class="btn btn-sm btn-success cta pull-right action"
-                           title="{% blocktrans %}Import {{ verbose_name }} list from CSV file{% endblocktrans %}"
+                           title="{% blocktrans %}Import Member list from CSV file{% endblocktrans %}"
                            style="margin-right: 5px" data-toggle="modal" data-target="#modal-import">
                             <i class="fa fa-file-import"></i>
                             <span class="hidden-xs">{% trans "Import" %}</span>
+                        </button>
+                    {% endif %}
+                    {% if user.is_bao and show_export %}
+                        <button class="btn btn-sm btn-success cta pull-right action export"
+                           title="{% blocktrans %}Export Member list to CSV file{% endblocktrans %}"
+                           style="margin-right: 5px">
+                            <i class="fa fa-file-export"></i>
+                            <span class="hidden-xs">{% trans "Export" %}</span>
                         </button>
                     {% endif %}
                 </div>
@@ -128,11 +136,11 @@
                 </div>
             </div>
             <div class="tab-content">
-                <div role="tabpanel" class="tab-pane active" id="{{ group_list.0.id }}">
+                <div role="tabpanel" class="tab-pane active results-stage" id="{{ group_list.0.id }}">
                     {% include 'accesscontrol/snippets/community_list_results.html' %}
                 </div>
                 {% for group in group_list|slice:'1:' %}
-                    <div role="tabpanel" class="tab-pane" id="{{ group.id }}">
+                    <div role="tabpanel" class="tab-pane results-stage" id="{{ group.id }}">
                         <ul class="people">
                             <li class="member tpl" style="display: none">
                                 <a class="photo"></a>
@@ -144,7 +152,7 @@
                         </ul>
                     </div>
                 {% endfor %}
-                <div role="tabpanel" class="tab-pane" id="{{ sudo_group.id }}">
+                <div role="tabpanel" class="tab-pane results-stage" id="{{ sudo_group.id }}">
                     {% include 'core/snippets/spinner.html' %}
                     <ul class="people">
                         <li class="member tpl" style="display: none">

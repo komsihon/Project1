@@ -222,6 +222,32 @@ class Member(AbstractUser):
         return res
     collaborates_on = property(_get_collaborates_on)
 
+    def _get_profile_tag_list(self):
+        from ikwen.revival.models import MemberProfile, ProfileTag
+        member_profile, change = MemberProfile.objects.get_or_create(member=self)
+        res = []
+        for pk in member_profile.tag_fk_list:
+            try:
+                res.append(ProfileTag.objects.get(pk=pk, is_active=True, is_auto=False, is_reserved=False))
+            except:
+                member_profile.tag_fk_list.remove(pk)
+                member_profile.save()
+        return res
+    profile_tag_list = property(_get_profile_tag_list)
+
+    def _get_preference_list(self):
+        from ikwen.revival.models import MemberProfile, ProfileTag
+        member_profile, change = MemberProfile.objects.get_or_create(member=self)
+        res = []
+        for pk in member_profile.tag_fk_list:
+            try:
+                res.append(ProfileTag.objects.get(pk=pk, is_active=True, is_auto=True, is_reserved=False))
+            except:
+                member_profile.tag_fk_list.remove(pk)
+                member_profile.save()
+        return res
+    preference_list = property(_get_preference_list)
+
     def propagate_changes(self):
         for s in self.get_services():
             db = s.database

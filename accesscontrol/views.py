@@ -41,6 +41,7 @@ from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SMSPassword
     SetPasswordFormSMSRecovery, test_fake_email
 from ikwen.accesscontrol.models import Member, AccessRequest, \
     SUDO, ACCESS_GRANTED_EVENT, COMMUNITY, WELCOME_EVENT, DEFAULT_GHOST_PWD, OwnershipTransfer
+from ikwen.accesscontrol.admin import MemberResource
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.constants import MALE, FEMALE
 from ikwen.core.models import Application, Service, ConsoleEvent, WELCOME_ON_IKWEN_EVENT, XEmailObject
@@ -697,6 +698,7 @@ class Community(HybridListView):
     ordering = ('-id', )
     ajax_ordering = ('-id', )
     show_import = True
+    export_resource = MemberResource
 
     def get_queryset(self):
         group_name = self.request.GET.get('group_name')
@@ -737,6 +739,12 @@ class Community(HybridListView):
         elif action == 'delete_ghost_member':
             return self.delete_ghost_member()
         return super(Community, self).render_to_response(context, **response_kwargs)
+
+    def get_export_filename(self, file_format):
+        date_str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        service = get_service_instance()
+        filename = "Community_%s_%s.%s" % (service.project_name_slug, date_str, file_format.get_extension())
+        return filename
 
     def load_member_detail(self, context):
         member_id = self.request.GET['member_id']
