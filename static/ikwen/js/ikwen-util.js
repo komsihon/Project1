@@ -513,5 +513,27 @@
             c.reloadTabView();
     }));
 
+    c.initSortable = function(selector, pageSize) {
+        if (!selector) selector = '.object-list';
+        if (!pageSize) {
+            pageSize = ikwen.pageSize;
+            if (!pageSize) pageSize = 50;
+        }
+        $(selector).sortable({
+            placeholder: "sortable-placeholder",
+            forcePlaceholderSize: true,
+            update: function (event, ui) {
+                let sorted = [],
+                    currentPage = $('.pagination .page.active').data('val');
+                if (!currentPage) currentPage = 1;
+                $(`${selector} li`).each(function (i) {
+                    let index = (currentPage - 1) * pageSize + i;
+                    sorted.push($(this).attr('id') + ':' + index)
+                });
+                $.getJSON('', {sorted: sorted.join(',')})
+            }
+        }).disableSelection();
+    };
+
     w.ikwen = c; /*Creating the namespace ikwen for all this*/
 })(window);

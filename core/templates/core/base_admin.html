@@ -213,7 +213,11 @@
                 let $resultsStage = $(this).parents('.results-stage');
                 if ($resultsStage.length === 0) $resultsStage = $('#results');
                 $resultsStage.find('.spinner').fadeIn();
-                $resultsStage.load('', query);
+                {% if is_sortable %}
+                    $resultsStage.load('', query, ikwen.initSortable);
+                {% else %}
+                    $resultsStage.load('', query);
+                {% endif %}
             });
 
             $('#admin-content').on('click', '#admin-tools .glyphicon-search', function() {
@@ -288,8 +292,13 @@
                 },
                 htmlFilterDescriptor = {resultPanelSelector: '#results'};
             ikwen.setupHTMLResultsSearch('#context-search', '#results', searchDescriptor);
-            ikwen.setupFilter('#results', filterDescriptor);
-            ikwen.setupHTMLResultsFilter(htmlFilterDescriptor);
+            {% if is_sortable %}
+                ikwen.setupFilter('#results', filterDescriptor, null);
+                ikwen.setupHTMLResultsFilter(htmlFilterDescriptor, null, ikwen.initSortable);
+            {% else %}
+                ikwen.setupFilter('#results', filterDescriptor);
+                ikwen.setupHTMLResultsFilter(htmlFilterDescriptor);
+            {% endif %}
             ikwen.resetAdminTools = function() {
                 if ($(window).width() < 768) return;
                 let actionsWidgetsCount = $('#admin-tools-actions .action').length,

@@ -1,16 +1,7 @@
 <script>
     (function() {
-        $(".object-list").sortable({
-            placeholder: "sortable-placeholder",
-            forcePlaceholderSize: true,
-            update: function (event, ui) {
-                var sorted = [];
-                $('.object-list li').each(function (i) {
-                    sorted.push($(this).attr('id') + ':' + i)
-                });
-                $.getJSON('', {sorted: sorted.join(',')})
-            }
-        }).disableSelection();
+        ikwen.pageSize = {{ page_size }};
+        ikwen.initSortable();
         $('#admin-content').on('click', '.actions .active.on', function() {
             var objectId = $(this).parents('.ik-li').data('id');
             $(this).toggleClass('on off');
