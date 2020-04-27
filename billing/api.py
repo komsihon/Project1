@@ -10,6 +10,7 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.http import HttpResponse
 from django.utils.translation import activate, gettext as _
+from django.views.decorators.csrf import csrf_exempt
 
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.core.models import Service
@@ -24,6 +25,7 @@ Product = get_product_model()
 Subscription = get_subscription_model()
 
 
+@csrf_exempt
 def pull_invoice(request, *args, **kwargs):
     api_signature = request.POST.get('api_signature')
     try:
@@ -37,8 +39,8 @@ def pull_invoice(request, *args, **kwargs):
     add_database(db)
     invoicing_config, update = InvoicingConfig.objects.using(db).get_or_create(service=service)
     if not invoicing_config.pull_invoice:
-        notice = "Cannot import when not explicitly configured to do so. You must set activate " \
-                 "pull_invoice in your platform configuration for import to work."
+        notice = "Cannot import when not explicitly configured to do so. You must activate " \
+                 "'pull_invoice' in your platform configuration for import to work."
         response = {'error': notice}
         return HttpResponse(json.dumps(response))
 
@@ -94,16 +96,15 @@ def pull_invoice(request, *args, **kwargs):
     currency_code = request.POST.get('currency_code', 'XAF')
     if reference_id:
         try:
-            subscription = Subscription.objects.using(db).select_related('member, product').get(reference_id=reference_id)
+            subscription = Subscription.objects.using(db).select_related('member', 'product').get(reference_id=reference_id)
         except Subscription.DoesNotExist:
             do_pull = False
             notice = "reference_id '%s' not found." % reference_id
             errors.append(notice)
     if not do_pull:
-        response = {
-            'error': '\n'.join(errors),
-            'missing': 'Following parameters are missing: ' + ', '.join(missing)
-        }
+        response = {'error': '\n'.join(errors)}
+        if missing:
+            response['missing'] = 'Following parameters are missing: ' + ', '.join(missing)
         return HttpResponse(json.dumps(response))
 
     product = subscription.product

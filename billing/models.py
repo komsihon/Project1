@@ -59,9 +59,9 @@ class InvoicingConfig(models.Model):
                                             help_text="Payment details are routed to this URL upon service suspension. "
                                                       "See <a href='http://support.ikwen.com/billing/configuration-suspension-return-url'>"
                                                       "support.ikwen.com/billing/configuration-suspension-return-url</a> for more details.")
-    pull_invoice = models.BooleanField(default=False,
+    pull_invoice = models.BooleanField(_("Activate Pull API"), default=False,
                                        help_text="Check if you want your invoices to be pulled from an external system. "
-                                                 "You will have to send data to http://go.ikwen.com/your_project_name/billing/api/pull_invoice "
+                                                 "You will have to send data to https://api.ikwen.com/billing/pull_invoice "
                                                  "when an invoice is issued. See <a href='http://support.ikwen.com/billing/pulling-invoice-from-external-system'>"
                                                  "http://support.ikwen.com/billing/pulling-invoice-from-external-system</a> for more details.")
 
