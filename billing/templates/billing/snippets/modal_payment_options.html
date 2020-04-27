@@ -12,6 +12,7 @@
                     <input type="hidden" id="amount" name="amount" />
                     <input type="hidden" name="payment_conf" value="{% if payment_conf %}{{ payment_conf }}{% else %}default{% endif %}" />
                     <ul class="row" style="padding-left: 0">
+                        {% if payment_mean_list %}
                         <li class="col-sm-4 payment-method{% if payment_mean_list|length <= 2 %} col-sm-offset-2{% endif %}"
                             {% if mtn_momo %}data-action-url="{% url mtn_momo.action_url_name %}"{% endif %}>
                             <a class="logo" style="background: #ffca06" title="{% trans "Pay with MTN Mobile Money" %}">
@@ -42,6 +43,9 @@
                                     <img src="{% static 'ikwen/img/payment-logo.jpg' %}" height="90" style="width: 100%"/>
                                 </a>
                             </li>
+                        {% endif %}
+                        {% else %}
+                            <li>No active payment method</li>
                         {% endif %}
                     </ul>
                     <div class="clearfix"></div>
