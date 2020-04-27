@@ -154,6 +154,7 @@ class HybridListView(ListView):
                 min_page = page - max_visible_page_count
             context['page_range'] = range(min_page, max_page + 1)
             context['max_page'] = max_page
+            context['has_image'] = self.get_has_image(queryset)
             if fmt == 'html_results':
                 return render(self.request, self.html_results_template_name, context)
             else:
@@ -216,6 +217,24 @@ class HybridListView(ListView):
     def get_max_visible_page_count(self, queryset):
         return self.max_visible_page_count
 
+    def get_has_image(self, queryset):
+        try:
+            model_obj = queryset.order_by('-id')[0]  # Take last created object as it tends to have most updated fields
+            keys = model_obj.__dict__.keys()
+            if not 'image' in keys:
+                keys.append('image')
+            if not 'photo' in keys:
+                keys.append('photo')
+            for key in keys:
+                try:
+                    field = model_obj.__getattribute__(key)
+                except:
+                    continue
+                if isinstance(field, ImageFieldFile):
+                    return True
+        except:
+            return False
+
     def get_search_results(self, queryset, max_chars=None):
         """
         Default search function that filters the queryset based on
@@ -273,7 +292,8 @@ class HybridListView(ListView):
                 choices = []
                 is_date_filter = False
                 try:
-                    elt = self.get_queryset()[0].__getattribute__(item)
+                    sample = self.get_queryset().order_by('-id')[0]  # Take last created object as they tend to have more updated fields
+                    elt = sample.__getattribute__(item)
                 except IndexError:
                     pass
                 if isinstance(elt, datetime) or isinstance(elt, date):
@@ -536,11 +556,9 @@ class ChangeObjectBase(TemplateView):
         model = self.get_model()
         model_admin = self.get_model_admin()
         object_admin = get_model_admin_instance(model, model_admin)
-        object_id = kwargs.get('object_id')
-        object_id = request.POST.get('object_id', object_id)
+        obj = self.get_object(**kwargs)
         before = None
-        if object_id:
-            obj = self.get_object(**kwargs)
+        if obj:
             before = deepcopy(obj)
         else:
             obj = model()
@@ -602,7 +620,7 @@ class ChangeObjectBase(TemplateView):
                 next_url = self.get_change_object_url(request, obj, *args, **kwargs)
             else:
                 next_url = self.get_object_list_url(request, obj, *args, **kwargs)
-            if object_id:
+            if before:
                 messages.success(request, u'%s <strong>%s</strong> %s' % (obj._meta.verbose_name.capitalize(), unicode(obj), _('successfully updated')))
             else:
                 messages.success(request, u'%s <strong>%s</strong> %s' % (obj._meta.verbose_name.capitalize(), unicode(obj), _('successfully updated')))

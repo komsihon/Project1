@@ -30,6 +30,11 @@
         <div class="container-fluid">
             {{ email.body|safe }}
         </div>
+        {% if email.status != 'OK' %}
+            <div class="failure" style="margin-bottom: 15px; padding: 15px">
+                {{ email.status }}
+            </div>
+        {% endif %}
     </div>
 {% endblock %}
 

@@ -158,9 +158,11 @@ class ConfigAdmin(admin.ModelAdmin):
     list_display = _list_display
     fieldsets = (
         (_('General'), {'fields': _general_fields}),
+        (_('Branding'), {'fields': ('brand_color',)}),
         (_('Address & Contact'), {'fields': ('contact_email', 'contact_phone', 'address', 'country', 'city')}),
-        (_('Social'), {'fields': ('facebook_link', 'twitter_link', 'google_plus_link', 'instagram_link', 'linkedin_link', )}),
+        (_('Social'), {'fields': ('facebook_link', 'twitter_link', 'instagram_link', 'linkedin_link', )}),
         (_('Mailing'), {'fields': ('welcome_message', 'signature', )}),
+        (_('External scripts'), {'fields': ('scripts', )}),
     )
     raw_id_fields = ('service', )
     list_filter = ('company_name', 'contact_email', )

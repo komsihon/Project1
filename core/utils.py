@@ -63,7 +63,7 @@ class XEmailMessage(EmailMessage):
             if sent:
                 email.status = "OK"
                 set_counters(service)
-                field =  email_type.lower() + '_email_history'
+                field = email_type.lower() + '_email_history'
                 increment_history_field(service, field)
             email.save(using=db)
         except Exception as e:

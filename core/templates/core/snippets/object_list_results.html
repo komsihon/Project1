@@ -4,12 +4,25 @@
     {% for obj in objects_page.object_list %}
     {% url change_object_url_name obj.id as obj_url %}
     <li class="ik-li list-group-item {{ obj.status }}" id="{{ obj.id }}" data-id="{{ obj.id }}">
-        <a href="{{ obj_url }}">{{ obj }}</a>
-        {% with obj_details=obj.get_obj_details %}
-            {% if obj_details %}
-                <div class="text-muted">{{ obj_details|safe }}</div>
-            {% endif %}
-        {% endwith %}
+        {% if has_image %}
+            <a href="{{ obj_url }}" class="image"
+               style="background-image: url({% if obj.image.name %}{% get_media_prefix %}{{ obj.image.name }}{% else %}{{ settings.IKWEN_MEDIA_URL }}no_photo.png{% endif %})"></a>
+            <div class="info">
+                <a href="{{ obj_url }}" class="title">{{ obj }}</a>
+                {% with obj_details=obj.get_obj_details %}
+                    {% if obj_details %}
+                        <p class="about text-muted">{{ obj_details|safe }}</p>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        {% else %}
+            <a href="{{ obj_url }}">{{ obj }}</a>
+            {% with obj_details=obj.get_obj_details %}
+                {% if obj_details %}
+                    <div class="text-muted">{{ obj_details|safe }}</div>
+                {% endif %}
+            {% endwith %}
+        {% endif %}
         <div class="actions">
             {% if has_is_active_field %}
                 {% if obj.is_active %}

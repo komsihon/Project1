@@ -581,6 +581,8 @@ class AbstractConfig(Model):
     cover_image = models.ImageField(upload_to=COVER_UPLOAD_TO, blank=True, null=True,
                                     help_text=_("Cover image used as decoration of company's profile page "
                                                 "and also to use on top of the mails. (Max. 800px width)"))
+    brand_color = models.CharField(_("Brand color"), max_length=7, default="#ffffff", blank=True, null=True,
+                                   help_text=_("HEX code for the color of top bar on mobile devices."))
     signature = models.TextField(blank=True, verbose_name=_("Mail signature"),
                                  help_text=_("Signature on all mails. HTML allowed."))
     invitation_message = models.TextField(_("Invitation message"), blank=True, null=True,
@@ -877,6 +879,23 @@ class QueuedSMS(Model):
 
     class Meta:
         db_table = 'ikwen_queued_sms'
+
+
+class Photo(models.Model):
+    UPLOAD_TO = 'photos'
+    image = MultiImageField(upload_to=UPLOAD_TO, max_size=800)
+
+    def delete(self, *args, **kwargs):
+        try:
+            os.unlink(self.image.path)
+            os.unlink(self.image.small_path)
+            os.unlink(self.image.thumb_path)
+        except:
+            pass
+        super(Photo, self).delete(*args, **kwargs)
+
+    def __unicode__(self):
+        return self.image.url
 
 
 class XEmailObject(models.Model):
