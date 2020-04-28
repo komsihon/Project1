@@ -131,7 +131,8 @@ def pull_invoice(request, *args, **kwargs):
                 notify_for_low_messaging_credit(service, balance)
             if balance.mail_count <= 0:
                 notify_for_empty_messaging_credit(service, balance)
-                return
+                response = {'success': True, 'warning': "Email not set due to empty mail credit"}
+                return HttpResponse(json.dumps(response))
             subject, message, sms_text = get_invoice_generated_message(invoice)
             try:
                 currency = Currency.objects.using(db).get(code=currency_code).symbol
