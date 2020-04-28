@@ -697,7 +697,7 @@ class Configuration(ChangeObjectBase):
         form = model_form(request.POST, instance=obj)
         if form.is_valid():
             obj = form.save()
-            obj.save(using=UMBRELLA)
+            obj.save(using='default')
             next_url = self.get_object_list_url(request, obj, *args, **kwargs)
             messages.success(request, _('Configuration successfully updated'))
             return HttpResponseRedirect(next_url)
