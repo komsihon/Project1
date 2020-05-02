@@ -60,9 +60,7 @@
 
 {% block js %}
     {{ block.super }}
-    {% if is_sortable %}
-        {% include 'core/snippets/sort_and_actions.html' %}
-    {% endif %}
+    {% include 'core/snippets/sort_and_actions.html' %}
     <script type="text/javascript">
         (function() {
             var target = '{{ verbose_name_plural|slugify }}' ? '{{ verbose_name_plural|slugify }}' : 'blank';
