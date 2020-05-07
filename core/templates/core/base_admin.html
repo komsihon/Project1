@@ -206,8 +206,22 @@
 
                 })
             }).on('click', '.pagination .page:not(.disabled)', function() {
+                let params = [];
+                $('div#admin-tools .filter select').each(function() {
+                    let paramName = $(this).prop('name');
+                    if (paramName) params[paramName] = $(this).val();
+                });
+                $('div#admin-tools .filter input').each(function() {
+                    let paramName = $(this).prop('name');
+                    if (paramName) params[paramName] = $(this).val();
+                });
+                params['q'] = $('#context-search').val();
                 let query = window.location.search,
-                    page = $(this).data('val');
+                    page = $(this).data('val'),
+                    paramString = '';
+                for (let key in params) paramString += '&' + key + '=' + params[key];
+                if (query && query !== '?') query += paramString;
+                else query = paramString.substr(1);
                 if (query && query !== '?') query += '&format=html_results&page=' + page;
                 else query = 'format=html_results&page=' + page;
                 let $resultsStage = $(this).parents('.results-stage');

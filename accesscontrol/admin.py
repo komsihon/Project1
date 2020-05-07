@@ -130,7 +130,7 @@ class MemberResource(resources.ModelResource):
 
     def dehydrate_gender(self, obj):
         try:
-            return _(obj.user.gender)
+            return obj.user.gender
         except:
             return '---'
 

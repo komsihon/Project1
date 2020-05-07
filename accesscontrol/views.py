@@ -168,7 +168,9 @@ class Register(TemplateView):
                     if getattr(settings, 'IS_IKWEN', False):
                         next_url = reverse('ikwen:console')
                     else:
-                        next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', None)
+                        next_url_view = getattr(settings, 'REGISTER_REDIRECT_URL', None)
+                        if not next_url_view:
+                            next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', None)
                         if next_url_view:
                             next_url = reverse(next_url_view)
                         else:

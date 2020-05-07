@@ -42,12 +42,14 @@
     </form>
     <div id="admin-tools-actions">
         {% url change_object_url_name as change_object_url %}
+        {% if show_add %}
         <a href="{{ change_object_url }}" class="btn btn-sm btn-success cta add pull-right action"
                 title="{% blocktrans %}Add new {{ verbose_name }}{% endblocktrans %}">
             <i class="glyphicon glyphicon-plus"></i>
             <span class="hidden-xs">{% trans "Add" %}</span>
             {% if first_setup %}<div class="pulse"></div>{% endif %}
         </a>
+        {% endif %}
         {% if show_import %}
             <button class="btn btn-sm btn-success cta pull-right action"
                title="{% blocktrans %}Import {{ verbose_name }} list from CSV file{% endblocktrans %}"

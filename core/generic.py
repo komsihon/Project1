@@ -25,7 +25,7 @@ from django.utils.translation import ugettext as _
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.forms.fields import DateField, DateTimeField
-from import_export.formats.base_formats import XLS
+from import_export.formats.base_formats import XLS, CSV
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
@@ -56,6 +56,7 @@ class HybridListView(ListView):
     html_results_template_name = 'core/snippets/object_list_results.html'
     embed_doc_template_name = None
     change_object_url_name = None
+    show_add = True
     show_import = False
     export_resource = None
 
@@ -83,7 +84,7 @@ class HybridListView(ListView):
         context_object_name = self.get_context_object_name(self.object_list)
         context[context_object_name] = queryset.order_by(*self.ordering)[:self.page_size]
         context['queryset'] = queryset
-        context['page_size'] = self.page_size
+        context['page_size'] = self.get_page_size(self.request)
         context['max_visible_page_count'] = self.get_max_visible_page_count(queryset)
         context['total_objects'] = self.get_queryset().count()
         context['filter'] = self.get_filter()
@@ -101,6 +102,7 @@ class HybridListView(ListView):
             pass
         context['change_object_url_name'] = self.get_change_object_url_name(self.request, **kwargs)
         context['html_results_template_name'] = self.html_results_template_name
+        context['show_add'] = self.show_add
         context['show_import'] = self.show_import
         context['show_export'] = self.export_resource is not None
         context['embed_doc_template_name'] = self.get_embed_doc_template_name()
@@ -213,6 +215,9 @@ class HybridListView(ListView):
         queryset = self.get_queryset()
         meta = queryset.model._meta
         return '%s:change_%s' % (meta.app_label, meta.model_name)
+
+    def get_page_size(self, request):
+        return self.page_size
 
     def get_max_visible_page_count(self, queryset):
         return self.max_visible_page_count
@@ -345,7 +350,7 @@ class HybridListView(ListView):
         return filename
 
     def export(self, queryset):
-        file_format = XLS()
+        file_format = CSV()
         data = self.export_resource().export(queryset)
         export_data = file_format.export_data(data)
         content_type = file_format.get_content_type()
