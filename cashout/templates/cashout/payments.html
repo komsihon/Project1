@@ -40,7 +40,7 @@
                         <div class="col-sm-8 text-muted last-payment">
                             {% if last_payment.status == 'Paid' %}
                                 <i class="glyphicon glyphicon-calendar"></i>
-                                {% trans "Your last payment was on" %} {{ last_payment.created_on|date }}
+                                {% trans "Your last payment was on" %} {{ last_payment.paid_on|date }}
                             {% else %}
                                 {% trans "No payment yet" %}
                             {% endif %}
@@ -76,9 +76,11 @@
                                 {% for tx in payments %}
                                     <li>
                                         <span>
-                                            {{ tx.created_on|date }}
                                             {% if tx.status == 'Pending' %}
-                                            <span class="label label-warning">{% trans "Pending" %}</span>
+                                                {{ tx.created_on|date }}
+                                                <span class="label label-warning">{% trans "Pending" %}</span>
+                                            {% else %}
+                                                {{ tx.paid_on|date }}
                                             {% endif %}
                                         </span>
                                         <span class="pull-right text-muted">{{ config.currency_symbol }} {{ tx.amount|floatformat:config.decimal_precision|intcomma }}</span>
