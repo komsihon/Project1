@@ -311,6 +311,6 @@ iframe#billing-stage {
     width: 100%;
 }
 /* Object Details ik-li info width must be overriden */
-#object-detail .ik-li .info {width: auto;max-width: 174px;}
+#object-detail .ik-li .info {margin-left: 10px;max-width: 165px;width: auto;}
 #delete-theme-logo {color: #ff3030; cursor: pointer; float: right}
 #delete-image {color: #ff3030;cursor: pointer;margin: 10px 10px 0 0;}
