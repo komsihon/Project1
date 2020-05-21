@@ -61,8 +61,11 @@ select#month {text-transform: capitalize}
 #terms-warning {font-size: 11px}
 
 @media (max-width: 767px) {
-    #stage {width: 90%}
+    body {background: none}
+    .login-title {border-bottom: none; font-size: 21px}
+    #stage {box-shadow: none; width: 90%}
     #content.form form {padding-left: 15px; padding-right: 15px}
+    #content.form.init form {margin-top: 45px}
     #content.form.register #submit {float: right; width: 180px}
     .login-with-ikwen {height: 50px}
 }

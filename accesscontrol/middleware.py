@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime, timedelta
+
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.core.urlresolvers import reverse
@@ -95,3 +97,47 @@ class EmailVerificationMiddleware(object):
             if next_url:
                 confirm_url += '?next=' + next_url
             return HttpResponseRedirect(confirm_url)
+
+
+class PWAMiddleware(object):
+    """
+    Performs necessary operations for User accessing using PWA
+    1 - Redirect to homepage
+    2 - Bind the PWAProfile if Member is authenticated
+    """
+    def process_response(self, request, response):
+        from ikwen.accesscontrol.models import PWAProfile
+        if request.GET.get('__pwa'):
+            pwa_profile_id = request.COOKIES.get('pwa_profile_id')
+            now = datetime.now()
+            new_profile = True
+            if pwa_profile_id:
+                try:
+                    pwa_profile = PWAProfile.objects.get(pk=pwa_profile_id)
+                    new_profile = False
+                except:
+                    pwa_profile = PWAProfile()
+            else:
+                pwa_profile = PWAProfile()
+            if request.user.is_authenticated():
+                member = request.user
+                if pwa_profile_id and not pwa_profile.member:
+                    PWAProfile.objects.filter(member=member).delete()
+                pwa_profile.member = member
+            pwa_profile.save()
+
+            new_response = response
+            next_url = request.GET.get('next', request.META.get('HTTP_REFERER'))
+            if not request.GET.get('__no_redirect'):
+                login_url = reverse('ikwen:sign_in')
+                if next_url:
+                    login_url += '?next=' + next_url
+                new_response = HttpResponseRedirect(login_url)
+
+            if new_profile:
+                expires = now + timedelta(days=1826)  # Expires in 5 years
+                secure = not getattr(settings, 'DEBUG', False)
+                new_response.set_cookie('pwa_profile_id', pwa_profile.id, expires=expires, secure=secure)
+
+            return new_response
+        return response

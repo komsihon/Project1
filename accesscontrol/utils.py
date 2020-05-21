@@ -29,7 +29,7 @@ from permission_backend_nonrel.models import UserPermissionList, GroupPermission
 
 from ikwen.conf.settings import IKWEN_SERVICE_ID, WALLETS_DB_ALIAS
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
-from ikwen.accesscontrol.models import Member, DEFAULT_GHOST_PWD
+from ikwen.accesscontrol.models import Member, DEFAULT_GHOST_PWD, PWAProfile
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.core.models import Service, XEmailObject
 from ikwen.core.constants import MALE, FEMALE
@@ -699,3 +699,37 @@ def import_contacts(filename, dry_run=True):
                     continue
         Thread(target=set_profile_tag_member_count).start()
     return error
+
+
+def update_push_subscription(request, *args, **kwargs):
+    """
+    Saves the user push subscription to the Database
+    """
+    pwa_profile_id = request.COOKIES.get('pwa_profile_id')
+    now = datetime.now()
+    new_profile = True
+    response = {'success': True}
+    if pwa_profile_id:
+        try:
+            pwa_profile = PWAProfile.objects.get(pk=pwa_profile_id)
+            new_profile = False
+        except:
+            pwa_profile = PWAProfile()
+    else:
+        pwa_profile = PWAProfile()
+    if request.user.is_authenticated():
+        member = request.user
+        if pwa_profile_id and not pwa_profile.member:
+            PWAProfile.objects.filter(member=member).delete()
+        pwa_profile.member = member
+    push_subscription = request.POST['value']
+    pwa_profile.subscribed_to_push_on = now
+    pwa_profile.push_subscription = push_subscription
+    pwa_profile.save()
+
+    response = HttpResponse(json.dumps(response))
+    if new_profile:
+        expires = now + timedelta(days=1826)  # Expires in 5 years
+        secure = not getattr(settings, 'DEBUG', False)
+        response.set_cookie('pwa_profile_id', pwa_profile.id, expires=expires, secure=secure)
+    return response

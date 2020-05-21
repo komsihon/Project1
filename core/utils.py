@@ -160,7 +160,7 @@ def add_database_to_settings(db_info, engine='django_mongodb_engine'):
     @param engine: database engine
     """
     tokens = db_info.strip().split('@')
-    db_info = tokens[0]
+    alias = tokens[0]
     username, password = None, None
     try:
         db_tokens = tokens[1].split(':')
@@ -175,17 +175,17 @@ def add_database_to_settings(db_info, engine='django_mongodb_engine'):
         host = getattr(settings, 'DATABASES')['default'].get('HOST', '127.0.0.1')
         port = getattr(settings, 'DATABASES')['default'].get('PORT')
     DATABASES = getattr(settings, 'DATABASES')
-    if DATABASES.get(db_info) is None:
-        DATABASES[db_info] = {
+    if DATABASES.get(alias) is None:  # If this alias was not yet added
+        DATABASES[alias] = {
             'ENGINE': engine,
-            'NAME': db_info,
+            'NAME': alias,
             'HOST': host
         }
         if port:
-            DATABASES[db_info]['PORT'] = port
+            DATABASES[alias]['PORT'] = port
         if username:
-            DATABASES[db_info]['USERNAME'] = username
-            DATABASES[db_info]['PASSWORD'] = password
+            DATABASES[alias]['USERNAME'] = username
+            DATABASES[alias]['PASSWORD'] = password
     setattr(settings, 'DATABASES', DATABASES)
 
 

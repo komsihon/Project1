@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
 import calendar
-import json
 from datetime import datetime, timedelta
 
-from django.contrib.auth.models import Group
 from django.core.management import call_command
-from django.core.urlresolvers import reverse
 from django.test.client import Client
 from django.test.utils import override_settings
 from django.utils import unittest
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.revival.models import ProfileTag, CyclicRevival, MemberProfile
-from ikwen.revival.utils import set_profile_tag_member_count
+from ikwen.revival.utils import reset_profile_tag_member_count
 from ikwen.revival.tests_views import wipe_test_data
 
 
@@ -42,7 +39,7 @@ class RevivalUtilsTestCase(unittest.TestCase):
         MemberProfile.objects.all().delete()
         call_command('loaddata', 'revivals.yaml')
         call_command('loaddata', 'member_profiles.yaml')
-        set_profile_tag_member_count()
+        reset_profile_tag_member_count()
         profile_tag1 = ProfileTag.objects.get(pk='58088fc0c253e5ddf0563951')
         profile_tag2 = ProfileTag.objects.get(pk='58088fc0c253e5ddf0563952')
         profile_tag3 = ProfileTag.objects.get(pk='58088fc0c253e5ddf0563953')

@@ -63,7 +63,7 @@
     {% include 'core/snippets/sort_and_actions.html' %}
     <script type="text/javascript">
         (function() {
-            var target = '{{ verbose_name_plural|slugify }}' ? '{{ verbose_name_plural|slugify }}' : 'blank';
+            let target = '{{ verbose_name_plural|slugify }}' ? '{{ verbose_name_plural|slugify }}' : 'blank';
             $('div#admin-nav .' + target).addClass('active');
             $('#start-date').datepicker({
                 altField: "#start-alt",

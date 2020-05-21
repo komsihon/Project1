@@ -42,24 +42,16 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                 if username:
                     username = username.strip().lower()
                 user = Member.objects.using(UMBRELLA).get(username=username)
-                if not user.check_password(password):
-                    return None
             except Member.DoesNotExist:
-                for m in Member.objects.using(UMBRELLA).filter(email=username):
-                    if m.check_password(password):
-                        user = m
-                        # At this stage turns the username initially input as a email into the actual username
-                        # Else the search of the user in the default database will rather use that email.
-                        username = m.username
-                        break
-                else:
+                try:
+                    user = Member.objects.using(UMBRELLA).get(email=username)
+                    username = user.username
+                except:
                     try:
                         phone = kwargs.get('phone')
                         if not phone:
                             return None
                         user = Member.objects.using(UMBRELLA).get(phone=phone)
-                        if not user.check_password(password):
-                            return None
                         username = user.username
                     except Member.DoesNotExist:
                         return None
@@ -86,6 +78,11 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                 perm_list, created = UserPermissionList.objects.get_or_create(user=user)
                 perm_list.group_fk_list.append(community.id)
                 perm_list.save()
+
+        if getattr(settings, 'AUTH_WITHOUT_PASSWORD', False) and not user.is_staff:
+            return user
+        if not user.check_password(password):
+            return None
         return user
 
     def get_user(self, user_id):

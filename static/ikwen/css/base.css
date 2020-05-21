@@ -9,6 +9,7 @@
 @import url('https://fonts.googleapis.com/css?family=Lato:300|PT+Sans:400,700');
 
 body {color: #464646;}
+body.show-directions {overflow: hidden}
 .working {cursor: wait}
 .success {background: #B6F1B6; border: 1px solid; border-radius: 3px; color: #039B03}
 .msg-tag.info {background: #dde9f1;border: 1px solid;border-radius: 3px;color: #1d2e9b}
@@ -135,7 +136,7 @@ body {color: #464646;}
 .ik-li .date {font-size: 11px}
 
 .ik-li .actions .glyphicon, .ik-li .actions .fa, .ik-li .actions .fas, #selection-control .glyphicon {
-    background: #fff;
+    /* background: #fff; */
     box-sizing: content-box;
     padding: 5px;
     border: 1px solid transparent;
@@ -144,7 +145,7 @@ body {color: #464646;}
 .ik-li.selected {border: 3px solid #9433ff; transition: border .1s}
 .ik-li.selected + .ik-li.selected {border-top: none}
 .ik-li .actions {display: none;float: right;}
-.ik-li:hover .select, .ik-li:not(.selected):hover .actions {display: block}
+.ik-li:hover .select, .ik-li:not(.selected):hover .actions {display: block;clear: right;}
 time {color: #888;float: right;font-size: 11px; font-weight: normal; padding: 0;}
 .ik-li .glyphicon.check {background: #fff; border-radius: 20px;color: #999;cursor: pointer;float: left;margin-right: 24px;margin-top: 18px;border: 1px solid;}
 .ik-li .glyphicon.check.active {border-color: transparent; background: #40af00;color: #fff;font-size: 9px}
@@ -240,7 +241,8 @@ a.ik-app:hover, .dropdown-menu>li>a.ik-app:active {background: #f5f5ff;}
 #content form ul.errorlist {padding-left: 0}
 #content form ul.errorlist li {color: #FF0808; list-style-type: none}
 
-.edge-swipe-overlay {background: rgba(0, 0, 0, .3);display: none; height: 100%;overflow: hidden;position: fixed;top: 0;width: 100%;z-index: 1000;}
+.directions-overlay {background: rgba(0, 0, 0, .8);display: none; height: 100%;overflow: hidden;position: fixed;top: 0;width: 100%;z-index: 10;}
+.edge-swipe-overlay, #pwa-overlay {background: rgba(0, 0, 0, .8);color: #fff;font-weight: 600;display: none;height: 100%;overflow: hidden;padding-top: 30px;position: fixed;top: 0;width: 100%;z-index: 1000;}
 .edge-panel-left {
     background: #ffffff;
     display: none;
@@ -334,6 +336,8 @@ footer .company-name {color: #666; text-decoration: none}
 .swiper-button-prev {left: 0 !important;border-top-right-radius: 3px;border-bottom-right-radius: 3px;}
 .swiper-button-next.swiper-button-disabled, .swiper-button-prev.swiper-button-disabled {pointer-events: visible !important;}
 
+.highlighted {position: absolute; z-index: 100}
+
 @media (max-width: 767px) {
     input[type="radio"], input[type="checkbox"] {float: left;height: 18px;margin-top: 1px;width: 18px;}
     label {font-size: 15px}
@@ -406,7 +410,7 @@ footer .company-name {color: #666; text-decoration: none}
     }
     #user-menu-xs {display: none}
     .navbar-default .navbar-brand {padding: 22px 15px 19px 0;}
-    .navbar>.container .navbar-brand, .navbar>.container-fluid .navbar-brand {margin-left: 0}
+    .navbar>.container .navbar-brand, .navbar>.container-fluid .navbar-brand {margin-left: 0;height: 65px;}
     #navbar .glyphicon.glyphicon-search {color: #d2d2d2;font-size: 15px;margin: 25px 0 0 10px;position: absolute;} 
     #navbar-search {
         background: transparent;

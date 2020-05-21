@@ -20,6 +20,9 @@ from ikwen.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, \
     ServiceExpired, reset_notices_counter, get_queued_sms, LegalMentions, TermsAndConditions, Configuration, \
     upload_customization_image, list_projects, upload_image, load_event_content, SentEmailLog, SentEmailDetail
 
+from ikwen.core.analytics import analytics
+
+
 REGISTER = 'register'
 SIGN_IN = 'sign_in'
 DO_SIGN_IN = 'do_sign_in'
@@ -99,9 +102,7 @@ urlpatterns = patterns(
     url(r'^sentEmailLog/$', user_passes_test(is_staff)(SentEmailLog.as_view()), name='sent_email_log'),
     url(r'^sentEmailDetail/(?P<object_id>[-\w]+)$', user_passes_test(is_staff)(SentEmailDetail.as_view()), name='sent_email_detail'),
 
-    url(r'^(?P<project_name_slug>[-\w]+)/$', CompanyProfile.as_view(), name='company_profile'),
+    url(r'^analytics$', analytics, name='analytics'),
 
-    # These URLs are for verification purposes. They are not regular pages of Ikwen website
-    url(r'^welcomeMail$', WelcomeMail.as_view()),
-    url(r'^baseExtMail$', BaseExtMail.as_view()),
+    url(r'^(?P<project_name_slug>[-\w]+)/$', CompanyProfile.as_view(), name='company_profile'),
 )

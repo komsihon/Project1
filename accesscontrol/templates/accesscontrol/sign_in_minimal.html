@@ -302,17 +302,22 @@
                         $('#content .failure').show().html("{% trans "Oops! An error occurred. Check your internet." %}");
                     },
                     success: function(data) {
-                        _$btn.removeClass('processing');
-                        $('#content').removeClass('init');
                         if (data.existing) {
-                            location.hash = 'login';
-                            $('#password').focus();
                             $('#auth').prop('action', "{% url 'ikwen:do_sign_in' %}?{{ request.META.QUERY_STRING|safe }}");
+                            if (data.no_password && !data.is_staff) {
+                                $('#password').val('---');  // --- is just a random password not to leave the field blank
+                                $('#submit').click();
+                                return
+                            }
+                            location.hash = 'login';
+                            _$btn.removeClass('processing');
+                            $('#content').removeClass('init');
+                            $('#password').focus();
                             if (username.isValidEmail()) {
                                 $('.forgotten-pwd').prop('href', '{{ forgotten_password_url|ikwenize }}' + '?' + 'username=' + username);
                             }
                         } else {
-                            $('#content').hide().addClass('register step1').fadeIn('normal', 'linear', function() {
+                            $('#content').hide().removeClass('init').addClass('register step1').fadeIn('normal', 'linear', function() {
                                 $('#password').focus();
                             });
                             $('#stage').removeClass('form-wrapper').addClass('col-sm-9 col-md-8');

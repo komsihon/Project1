@@ -235,6 +235,28 @@ class IkwenAuthTestCase(unittest.TestCase):
         member = authenticate(api_signature=service.api_signature)
         self.assertEqual(service.member, member)
 
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', AUTH_WITHOUT_PASSWORD=True)
+    def test_login_with_correct_username_and_without_password(self):
+        """
+        Authenticating without password works only for non staff Users
+        and setting AUTH_WITHOUT_PASSWORD set to True
+        """
+        Member.objects.filter(username='member3').update(is_staff=False)
+        response = self.client.post(reverse('ikwen:do_sign_in'), {'username': 'member3', 'password': '**'}, follow=True)
+        final = response.redirect_chain[-1]
+        location = final[0].strip('/').split('/')[-1]
+        self.assertEqual(location, 'console')
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101', AUTH_WITHOUT_PASSWORD=True)
+    def test_login_with_correct_username_only_and_user_is_staff(self):
+        """
+        Authenticating without username works only for non staff Users
+        and setting AUTH_WITHOUT_PASSWORD set to True
+        """
+        Member.objects.filter(username='member3').update(is_staff=True)
+        response = self.client.post(reverse('ikwen:do_sign_in'), {'username': 'member3', 'password': '**'})
+        self.assertIsNotNone(response.context['error_message'])
+
     @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b101')
     def test_register_with_password_mismatch(self):
         """

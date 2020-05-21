@@ -40,7 +40,7 @@ from ikwen.accesscontrol.utils import send_welcome_email, shift_ghost_member, im
 from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SMSPasswordResetForm, SetPasswordForm, \
     SetPasswordFormSMSRecovery, test_fake_email
 from ikwen.accesscontrol.models import Member, AccessRequest, \
-    SUDO, ACCESS_GRANTED_EVENT, COMMUNITY, WELCOME_EVENT, DEFAULT_GHOST_PWD, OwnershipTransfer
+    SUDO, ACCESS_GRANTED_EVENT, COMMUNITY, WELCOME_EVENT, DEFAULT_GHOST_PWD, OwnershipTransfer, PWAProfile
 from ikwen.accesscontrol.admin import MemberResource
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.constants import MALE, FEMALE
@@ -155,6 +155,9 @@ class Register(TemplateView):
                     set_counters(service)
                     increment_history_field(service, 'community_history')
                     reward_pack_list, coupon_count = reward_member(service, member, Reward.JOIN)
+                pwa_profile_id = request.COOKIES.get('pwa_profile_id')
+                if pwa_profile_id:
+                    PWAProfile.objects.filter(pk=pwa_profile_id).update(member=member)
                 send_welcome_email(member, reward_pack_list)
                 if request.GET.get('join'):
                     return join(request, *args, **kwargs)
@@ -176,7 +179,7 @@ class Register(TemplateView):
                         else:
                             next_url = ikwenize(reverse('ikwen:console'))
 
-                Thread(target=set_profile_tag_member_count).start()
+                set_profile_tag_member_count(member)
                 return HttpResponseRedirect(next_url)
             else:
                 msg = _("You already have an account on ikwen with this username. It was created on %s. "
@@ -225,6 +228,9 @@ class SignIn(TemplateView):
             for path in events:
                 event = import_by_path(path)
                 event(request, *args, **kwargs)
+            pwa_profile_id = request.COOKIES.get('pwa_profile_id')
+            if pwa_profile_id:
+                PWAProfile.objects.filter(pk=pwa_profile_id).update(member=member)
             if request.GET.get('join'):
                 return join(request, *args, **kwargs)
             query_string = request.META.get('QUERY_STRING')
@@ -276,19 +282,21 @@ class SignInMinimal(SignIn):
             try:
                 member = Member.objects.using(UMBRELLA).get(username__iexact=username)
                 if not member.is_ghost:
-                    response = {'existing': True}
+                    response = {'existing': True, 'is_staff': member.is_staff}
             except Member.DoesNotExist:
                 try:
-                    member = Member.objects.using(UMBRELLA).filter(email__iexact=username)[0]
+                    member = Member.objects.using(UMBRELLA).get(email__iexact=username)
                     if not member.is_ghost:
-                        response = {'existing': True}
-                except IndexError:
+                        response = {'existing': True, 'is_staff': member.is_staff}
+                except Member.DoesNotExist:
                     try:
                         member = Member.objects.using(UMBRELLA).get(phone=username)
                         if not member.is_ghost:
-                            response = {'existing': True}
+                            response = {'existing': True, 'is_staff': member.is_staff}
                     except Member.DoesNotExist:
                         pass
+            if getattr(settings, 'AUTH_WITHOUT_PASSWORD', False):
+                response['no_password'] = True
             return HttpResponse(json.dumps(response), 'content-type: text/json')
         return super(SignInMinimal, self).get(request, *args, **kwargs)
 
@@ -529,18 +537,18 @@ def update_info(request, *args, **kwargs):
             response = {'error': _('This e-mail already exists.')}
             return HttpResponse(json.dumps(response), content_type='application/json')
         except Member.DoesNotExist:
-            member.email = email
             if member.email != email:
                 member.email_verified = False
+            member.email = email
     if phone:
         try:
             Member.objects.get(phone=phone)
             response = {'error': _('This phone already exists.')}
             return HttpResponse(json.dumps(response), content_type='application/json')
         except Member.DoesNotExist:
-            member.phone = phone
             if member.phone != phone:
                 member.phone_verified = False
+            member.phone = phone
     if name:
         name_tokens = name.split(' ')
         first_name = name_tokens[0]
@@ -790,9 +798,10 @@ class Community(HybridListView):
                     Member.objects.using('default').filter(pk=member_id).update(gender=FEMALE)
                     Member.objects.using(UMBRELLA).filter(pk=member_id).update(gender=FEMALE)
         member_profile = MemberProfile.objects.get(member=member)
+        previous_tag_fk_list = member_profile.tag_fk_list
         member_profile.tag_fk_list = tag_fk_list
         member_profile.save()
-        Thread(target=set_profile_tag_member_count).start()
+        set_profile_tag_member_count(member, previous_tag_fk_list)
         return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
     def add_ghost_member(self, *args, **kwargs):
@@ -862,7 +871,7 @@ class Community(HybridListView):
                                                       mail_renderer='ikwen.revival.utils.render_suggest_create_account_mail',
                                                       profile_tag_id=join_tag.id, get_kwargs='ikwen.rewarding.utils.get_join_reward_pack_list')
 
-        Thread(target=set_profile_tag_member_count).start()
+        set_profile_tag_member_count(member)
         response = {'success': True, 'member': member.to_dict()}
         return HttpResponse(json.dumps(response), content_type='application/json')
 
@@ -959,6 +968,7 @@ def join(request, *args, **kwargs):
     member.is_staff = False
     member.is_superuser = False
     member.is_iao = False
+    member.is_bao = False
     member.date_joined = datetime.now()
     member.last_login = datetime.now()
     shift_ghost_member(member, db=db)

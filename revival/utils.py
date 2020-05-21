@@ -7,7 +7,12 @@ from ikwen.core.utils import get_mail_content
 from ikwen.revival.models import MemberProfile, ProfileTag
 
 
-def set_profile_tag_member_count():
+def reset_profile_tag_member_count():
+    """
+    Cleans current values of ProfileTag.member_count and recalculates
+    them by iterating over all MemberProfile objects. Can be used
+    after an issued causing inconsistent values
+    """
     d = {}
     for profile_tag in ProfileTag.objects.all():
         d[profile_tag] = 0
@@ -33,6 +38,32 @@ def set_profile_tag_member_count():
     for profile_tag, value in d.items():
         profile_tag.member_count = value
         profile_tag.save()
+
+
+def set_profile_tag_member_count(member, previous_tag_fk_list=[]):
+    """
+    Calculates and sets ProfileTag.member_count of ProfileTag affected
+    by an update in the MemberProfile.tag_fk_list of a Member
+    """
+    member_profile, update = MemberProfile.objects.get_or_create(member=member)
+    unchanged = set(member_profile.tag_fk_list) & set(previous_tag_fk_list)
+    removed = list(set(previous_tag_fk_list) - unchanged)
+    added = list(set(member_profile.tag_fk_list) - unchanged)
+    for tag_id in removed:
+        try:
+            tag = ProfileTag.objects.get(pk=tag_id)
+            tag.member_count -= 1
+            tag.save()
+        except:
+            continue
+
+    for tag_id in added:
+        try:
+            tag = ProfileTag.objects.get(pk=tag_id)
+            tag.member_count += 1
+            tag.save()
+        except:
+            continue
 
 
 def render_suggest_create_account_mail(target, service, revival, **kwargs):

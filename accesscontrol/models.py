@@ -313,6 +313,14 @@ class Member(AbstractUser):
         return var
 
 
+class PWAProfile(Model):
+    member = models.ForeignKey(Member, blank=True, null=True)
+    session_key = models.CharField(max_length=100, db_index=True)
+    installed_on = models.DateTimeField(blank=True, null=True, db_index=True)
+    subscribed_to_push_on = models.DateTimeField(blank=True, null=True, db_index=True)
+    push_subscription = models.TextField(blank=True, null=True)
+
+
 class OfficialIdentityDocument(Model):
     member = models.ForeignKey(Member, db_index=True)
     number = models.CharField(max_length=100, db_index=True)

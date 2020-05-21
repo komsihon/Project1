@@ -86,10 +86,10 @@
             let _$btn = $(this),
                 serviceId = $(this).data('service-id'),
                 params = {service_id: serviceId, format: 'json', referrer: '{{ request.GET.referrer }}'};
-            $('button.join-community').addClass('processing');
+            _$btn.addClass('processing');
             $.getJSON('{% url 'ikwen:join' %}', params, function(data) {
                 if (data.success) {
-                    $('button.join-community').fadeOut('normal', 'linear', function () {
+                    _$btn.fadeOut('normal', 'linear', function () {
                         _$btn.next().show();
                     });
                     window.location = window.location;  // Reload page to cause the Service to appear in apps drawer
