@@ -20,3 +20,13 @@ COMPLETE = 'Complete'
 
 ACCEPTED = 'Accepted'
 REJECTED = 'Rejected'
+
+
+PC = 'PC'
+TABLET = 'Tablet'
+MOBILE = 'Mobile'
+DEVICE_FAMILY_CHOICES = (
+    (PC, _('PC')),
+    (TABLET, _('Tablet')),
+    (MOBILE, _('Mobile'))
+)

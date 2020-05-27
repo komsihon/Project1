@@ -8,7 +8,7 @@ from ikwen.flatpages.views import ChangeFlatPage
 
 from ikwen.flatpages.views import FlatPageList
 
-from ikwen.core.views import get_location_by_ip
+from ikwen.core.views import get_location_by_ip, PWAConfig
 
 from ikwen.accesscontrol.views import SignIn, SignInMinimal, AccountSetup, update_info, \
     update_password, ForgottenPassword, SetNewPassword, Profile, Community, CompanyProfile, \
@@ -102,6 +102,7 @@ urlpatterns = patterns(
     url(r'^sentEmailLog/$', user_passes_test(is_staff)(SentEmailLog.as_view()), name='sent_email_log'),
     url(r'^sentEmailDetail/(?P<object_id>[-\w]+)$', user_passes_test(is_staff)(SentEmailDetail.as_view()), name='sent_email_detail'),
 
+    url(r'^PWAConfig$', permission_required('accesscontrol.sudo')(PWAConfig.as_view()), name='pwa_config'),
     url(r'^analytics$', analytics, name='analytics'),
 
     url(r'^(?P<project_name_slug>[-\w]+)/$', CompanyProfile.as_view(), name='company_profile'),

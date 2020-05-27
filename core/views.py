@@ -130,6 +130,7 @@ class Configuration(ChangeObjectBase):
     model_admin = getattr(settings, 'IKWEN_CONFIG_MODEL_ADMIN', 'ikwen.core.admin.ConfigAdmin')
     context_object_name = 'target_config'
     object_list_url = 'ikwen:configuration'
+    label_field = 'company_name'
 
     UPLOAD_CONTEXT = 'config'
 
@@ -519,3 +520,18 @@ class SentEmailDetail(ChangeObjectBase):
     model_admin = getattr(settings, 'IKWEN_CONFIG_MODEL_ADMIN', 'ikwen.core.admin.XEmailObjectAdmin')
     template_name = 'core/sent_email_detail.html'
     context_object_name = 'email'
+
+
+class PWAConfig(ChangeObjectBase):
+    template_name = 'core/pwa_config.html'
+    model = getattr(settings, 'IKWEN_CONFIG_MODEL', 'core.Config')
+    model_admin = getattr(settings, 'IKWEN_CONFIG_MODEL_ADMIN', 'ikwen.core.admin.ConfigAdmin')
+    context_object_name = 'target_config'
+    object_list_url = 'ikwen:pwa_config'
+    label_field = 'company_name'
+
+    UPLOAD_CONTEXT = 'config'
+
+    def get_object(self, **kwargs):
+        service_id = getattr(settings, 'IKWEN_SERVICE_ID')
+        return get_object_or_404(Service, pk=service_id).config

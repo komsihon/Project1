@@ -5,6 +5,7 @@ import logging
 from copy import deepcopy
 from datetime import datetime, timedelta, date
 
+from PIL import Image
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin import helpers
@@ -704,14 +705,18 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
         img_upload_context = request.GET['img_upload_context']
         media_root = getattr(settings, 'MEDIA_ROOT')
         usage = request.GET['usage']
+        full_path = media_root + path
         try:
-            with open(media_root + path, 'r') as f:
+            with open(full_path, 'r') as f:
                 content = File(f)
                 if img_upload_context == Configuration.UPLOAD_CONTEXT:
                     service_id = request.GET['service_id']
                     service = Service.objects.get(pk=service_id)
                     config = service.config
                     if usage == 'profile':
+                        img = Image.open(full_path)
+                        if img.size != (512, 512):
+                            return {'error': _('Invalid dimensions. Please upload a 512 x 512px image.')}
                         current_image_path = config.logo.path if config.logo.name else None
                         destination = media_root + AbstractConfig.LOGO_UPLOAD_TO + "/" + filename
                         config.logo.save(destination, content)
@@ -724,6 +729,9 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
                         destination2 = config.logo.path.replace(media_root, ikwen_settings.MEDIA_ROOT)
                         os.rename(destination, destination2)
                     else:
+                        img = Image.open(full_path)
+                        if img.size != (1000, 390):
+                            return {'error': _('Invalid dimensions. Please upload a 1000 x 590px image.')}
                         current_image_path = config.cover_image.path if config.cover_image.name else None
                         destination = media_root + AbstractConfig.COVER_UPLOAD_TO + "/" + filename
                         config.cover_image.save(destination, content)

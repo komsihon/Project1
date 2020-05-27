@@ -14,6 +14,7 @@ from djangotoolbox.fields import ListField
 
 from permission_backend_nonrel.models import UserPermissionList
 
+from ikwen.core.constants import DEVICE_FAMILY_CHOICES
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.fields import MultiImageField
 from ikwen.core.models import Service, Model, OperatorWallet
@@ -315,7 +316,7 @@ class Member(AbstractUser):
 
 class PWAProfile(Model):
     member = models.ForeignKey(Member, blank=True, null=True)
-    session_key = models.CharField(max_length=100, db_index=True)
+    device_type = models.CharField(max_length=100, choices=DEVICE_FAMILY_CHOICES, db_index=True)
     installed_on = models.DateTimeField(blank=True, null=True, db_index=True)
     subscribed_to_push_on = models.DateTimeField(blank=True, null=True, db_index=True)
     push_subscription = models.TextField(blank=True, null=True)

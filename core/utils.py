@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import os
 import random
 import re
@@ -23,9 +24,11 @@ from django.template import Context
 from django.template.defaultfilters import urlencode, slugify
 from django.template.loader import get_template
 from django.utils import timezone
+from pywebpush import webpush
 
 from ikwen.conf import settings as ikwen_settings
 from ikwen.core.fields import MultiImageFieldFile
+from ikwen.core.constants import PC, TABLET, MOBILE
 
 logger = logging.getLogger('ikwen')
 
@@ -251,6 +254,35 @@ def send_sms(recipient, text, label=None, script_url=None, fail_silently=True):
         else:
             requests.get(url)
             logger.debug('SMS submitted to %s through %s' % (recipient, base_url))
+
+
+def send_push(subscription_or_member, title, body, target_page=None, image_url=None):
+    from ikwen.accesscontrol.models import Member, PWAProfile
+    config = get_service_instance().config
+    if type(subscription_or_member) == Member:
+        try:
+            pwa_profile = PWAProfile.objects.get(member=subscription_or_member)
+            push_subscription = pwa_profile.push_subscription
+        except:
+            return
+    else:
+        push_subscription = subscription_or_member
+
+    notification = {
+        'title': title,
+        'body': body,
+        'target': target_page,
+        'badge': getattr(settings, 'MEDIA_URL') + config.badge.name,
+        'icon': getattr(settings, 'MEDIA_URL') + 'icons/android-icon-512x512.png'
+    }
+    if image_url:
+        notification['image'] = image_url
+    try:
+        webpush(json.loads(push_subscription), json.dumps(notification),
+                vapid_private_key=ikwen_settings.PUSH_PRIVATE_KEY,
+                vapid_claims={"sub": "mailto:" + config.contact_email})
+    except:
+        pass
 
 
 class DefaultUploadBackend(LocalUploadBackend):
@@ -787,3 +819,11 @@ def get_item_list(model_name, item_fk_list):
     tk = model_name.split('.')
     model = get_model(tk[0], tk[1])
     return list(model._default_manager.filter(pk__in=item_fk_list))
+
+
+def get_device_type(request):
+    if request.user_agent.is_mobile:
+        return MOBILE
+    if request.user_agent.is_tablet:
+        return TABLET
+    return PC

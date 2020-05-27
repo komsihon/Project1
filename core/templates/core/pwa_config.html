@@ -1,0 +1,37 @@
+{% extends "core/change_object_base.html" %}
+{% load i18n humanize static auth_tokens admin_list %}
+
+{% block page_title %}
+<title> {% trans "Android PWA" %} - ikwen </title>
+{% endblock %}
+
+{% block breadcrumb_location %}
+    <li>{% trans "Android App" %}</li>
+{% endblock %}
+
+{% block admin_content %}
+    <div id="admin-content" class="change-form no-edge-panel-right">
+        <div class="container-fluid">
+            <div class="configuration-stage">
+                <div id="badge-uploader">
+                    {% for img_obj in img_field_list %}
+                    <div style="padding-left: 0">
+                        {% with model_name=model image=img_obj.image image_field_name=img_obj.field label_field_name=label_field img_help_text=img_obj.help_text img_counter=img_obj.counter %}
+                            {% include 'core/snippets/uploader_single.html' %}
+                        {% endwith %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            $('div#admin-nav .pwa-config').addClass('active');
+        })()
+    </script>
+{% endblock %}

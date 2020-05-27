@@ -7,12 +7,12 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext as _, activate
 
 from pywebpush import webpush
 
 from ikwen.conf import settings as ikwen_settings
-from ikwen.core.utils import get_service_instance, get_mail_content
+from ikwen.core.utils import get_service_instance, get_mail_content, get_device_type
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.accesscontrol.models import PWAProfile, Member
 from ikwen.accesscontrol.backends import UMBRELLA
@@ -29,18 +29,19 @@ def analytics(request, *args, **kwargs):
     now = datetime.now()
     new_profile = True
     response = {'success': True}
+    device_type = get_device_type(request)
     if pwa_profile_id:
         try:
             pwa_profile = PWAProfile.objects.get(pk=pwa_profile_id)
             new_profile = False
         except:
-            pwa_profile = PWAProfile()
+            pwa_profile = PWAProfile(device_type=device_type)
     else:
-        pwa_profile = PWAProfile()
+        pwa_profile = PWAProfile(device_type=device_type)
     if request.user.is_authenticated():
         member = request.user
         if pwa_profile_id and not pwa_profile.member:
-            PWAProfile.objects.filter(member=member).delete()
+            PWAProfile.objects.filter(member=member, device_type=device_type).delete()
         pwa_profile.member = member
     if action == 'log_pwa_install':
         pwa_profile.installed_pwa_on = now
@@ -59,28 +60,37 @@ def notify_pwa_install(member):
     service = get_service_instance()
     install_count = PWAProfile.objects.filter(installed_pwa_on__isnull=False).count()
     if member:
-        title = member.full_name
-        body = _("This customer just installed you app. You can call or text to say thank you. \n"
-                 "Now you have your app installed by %d people" % install_count)
         member_detail_view = getattr(settings, 'MEMBER_DETAIL_VIEW', None)
         if member_detail_view:
             target_page = reverse(member_detail_view, args=(member.id, ))
         else:
             target_page = ikwenize(reverse('ikwen:profile', args=(member.id, )))
     else:
-        title = _("New app install")
-        body = _("An anonymous visitor just installed your app. \n"
-                 "Now you have it installed by %d people" % install_count)
         target_page = None
 
-    notification = {
-        'title': title,
-        'body': body,
-        'target': target_page,
-        'badge': getattr(settings, 'STATIC_URL') + '/ikwen/img/push-badge.png',
-        'icon': getattr(settings, 'MEDIA_URL') + '/ikwen/icons/android-icon-512x512.png'
-    }
     for staff in Member.objects.filter(is_staff=True):
+        if staff.language:
+            activate(staff.language)
+        else:
+            activate('en')
+
+        if member:
+            title = member.full_name
+            body = _("This customer just installed you app. You can call or text to say thank you. \n"
+                     "Now you have your app installed by %d people" % install_count)
+        else:
+            title = _("New app install")
+            body = _("An anonymous visitor just installed your app. \n"
+                     "Now you have it installed by %d people" % install_count)
+
+        notification = {
+            'title': title,
+            'body': body,
+            'target': target_page,
+            'badge': ikwen_settings.MEDIA_URL + 'img/push-badge.png',
+            'icon': ikwen_settings.MEDIA_URL + 'icons/android-icon-512x512.png'
+        }
+
         try:
             pwa_profile = PWAProfile.objects.using(UMBRELLA).get(member=staff)
             webpush(json.loads(pwa_profile.push_subscription), json.dumps(notification),

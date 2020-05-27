@@ -33,7 +33,7 @@ from ikwen.accesscontrol.models import Member, DEFAULT_GHOST_PWD, PWAProfile
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.core.models import Service, XEmailObject
 from ikwen.core.constants import MALE, FEMALE
-from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, XEmailMessage
+from ikwen.core.utils import get_service_instance, get_mail_content, send_sms, XEmailMessage, get_device_type
 from ikwen.revival.models import MemberProfile, ProfileTag, Revival
 from ikwen.revival.utils import set_profile_tag_member_count
 from ikwen.rewarding.utils import get_join_reward_pack_list, JOIN, REFERRAL
@@ -695,9 +695,9 @@ def import_contacts(filename, dry_run=True):
                     member_profile, update = MemberProfile.objects.get_or_create(member=member)
                     member_profile.tag_fk_list.extend(tag_fk_list)
                     member_profile.save()
+                    set_profile_tag_member_count(member)
                 except:
                     continue
-        Thread(target=set_profile_tag_member_count).start()
     return error
 
 
@@ -709,18 +709,19 @@ def update_push_subscription(request, *args, **kwargs):
     now = datetime.now()
     new_profile = True
     response = {'success': True}
+    device_type = get_device_type(request)
     if pwa_profile_id:
         try:
             pwa_profile = PWAProfile.objects.get(pk=pwa_profile_id)
             new_profile = False
         except:
-            pwa_profile = PWAProfile()
+            pwa_profile = PWAProfile(device_type=device_type)
     else:
-        pwa_profile = PWAProfile()
+        pwa_profile = PWAProfile(device_type=device_type)
     if request.user.is_authenticated():
         member = request.user
         if pwa_profile_id and not pwa_profile.member:
-            PWAProfile.objects.filter(member=member).delete()
+            PWAProfile.objects.filter(member=member, device_type=device_type).delete()
         pwa_profile.member = member
     push_subscription = request.POST['value']
     pwa_profile.subscribed_to_push_on = now

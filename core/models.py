@@ -201,6 +201,8 @@ class Service(models.Model):
                            help_text="URL of the service. WRITE IT WITHOUT A TRAILING SLASH")
     admin_url = models.CharField(max_length=150, blank=True,
                                  help_text=_("URL of the service's admin panel. WRITE IT WITHOUT A TRAILING SLASH"))
+    has_ssl = models.BooleanField(default=False,
+                                  help_text=_("If true, it means the service has its SSL Certificate installed."))
     api_signature = models.CharField(_("API Signature"), max_length=60, unique=True,
                                      help_text="Use it in your http API calls. More on "
                                                "<a href='http://support.ikwen.com/generic/APISignature'>"
@@ -399,7 +401,10 @@ class Service(models.Model):
         """
         previous_domain = self.domain
         if not web_server_config_template:
-            web_server_config_template = '%s/cloud_setup/apache.conf.html' % self.app.slug
+            if self.has_ssl:
+                web_server_config_template = '%s/cloud_setup/apache_ssl.conf.html' % self.app.slug
+            else:
+                web_server_config_template = '%s/cloud_setup/apache.conf.html' % self.app.slug
         apache_tpl = get_template(web_server_config_template)
         apache_context = Context({'is_naked_domain': is_naked_domain, 'domain': new_domain, 'ikwen_name': self.project_name_slug})
         fh = open(self.home_folder + '/apache.conf', 'w')
@@ -421,6 +426,32 @@ class Service(models.Model):
             self.save(using=db)
 
         subprocess.call(['sudo', 'ln', '-sf', self.home_folder + '/apache.conf', '/etc/apache2/sites-enabled/' + new_domain + '.conf'])
+        from ikwen.core.tools import reload_server
+        Thread(target=reload_server).start()
+
+    def activate_ssl(self, is_naked_domain=True):
+        """
+        Creates and activate an SSL Certificate for the domain
+        """
+        if "go.ikwen.com" in self.url:
+            return
+
+        subprocess.call(['sudo', 'certbot', 'certonly', '--apache', '-d', self.domain])
+
+        web_server_config_template = '%s/cloud_setup/apache_ssl.conf.html' % self.app.slug
+        apache_tpl = get_template(web_server_config_template)
+        apache_context = Context({'is_naked_domain': is_naked_domain, 'domain': self.domain, 'ikwen_name': self.project_name_slug})
+        fh = open(self.home_folder + '/apache.conf', 'w')
+        fh.write(apache_tpl.render(apache_context))
+        fh.close()
+
+        subprocess.call(['sudo', 'unlink', '/etc/apache2/sites-enabled/' + self.domain + '.conf'])
+        subprocess.call(['sudo', 'ln', '-sf', self.home_folder + '/apache.conf', '/etc/apache2/sites-enabled/' + self.domain + '.conf'])
+        self.has_ssl = True
+        db = self.database
+        add_database_to_settings(db)
+        self.save()
+        self.save(using=db)
         from ikwen.core.tools import reload_server
         Thread(target=reload_server).start()
 
@@ -530,6 +561,16 @@ class Service(models.Model):
             Service.objects.using(retailer.database).get(project_name_slug=self.project_name_slug).delete()
         self.delete()
 
+    def generate_pwa_manifest(self):
+        manifest_template = 'core/cloud_setup/manifest.json.html'
+        manifest_tpl = get_template(manifest_template)
+        config = self.config
+        apache_context = Context({'project_name': self.project_name, 'ikwen_name': self.project_name_slug,
+                                  'short_description': config.short_description})
+        fh = open(self.home_folder + '/conf/manifest.json', 'w')
+        fh.write(manifest_tpl.render(apache_context))
+        fh.close()
+
 
 class AbstractConfig(Model):
     """
@@ -575,10 +616,13 @@ class AbstractConfig(Model):
                                         default=getattr(settings, 'CASH_OUT_RATE', 0),
                                         help_text="Fees charged to IAO upon cash out. Rate calculated from amount "
                                                   "on the wallet at the moment of cash out.")
-    logo = models.ImageField(upload_to=LOGO_UPLOAD_TO, verbose_name=_("Your logo"), blank=True, null=True,
+    logo = models.ImageField(upload_to=LOGO_UPLOAD_TO, verbose_name=_("Your logo"), blank=True, null=True, editable=False,
                              help_text=_("Image in <strong>PNG with transparent background</strong> is advised. "
                                          "(Maximum 400 x 400px)"))
-    cover_image = models.ImageField(upload_to=COVER_UPLOAD_TO, blank=True, null=True,
+    badge = models.ImageField(upload_to=LOGO_UPLOAD_TO, verbose_name=_("Your badge"), blank=True, null=True,
+                              help_text=_("Image that appear in Android status bar when your notification arrives. "
+                                          "Use a white and transparent background image. (PNG format, 128 x 128px)"))
+    cover_image = models.ImageField(upload_to=COVER_UPLOAD_TO, blank=True, null=True, editable=False,
                                     help_text=_("Cover image used as decoration of company's profile page "
                                                 "and also to use on top of the mails. (Max. 800px width)"))
     brand_color = models.CharField(_("Brand color"), max_length=7, default="#ffffff", blank=True, null=True,
@@ -640,6 +684,8 @@ class AbstractConfig(Model):
     register_with_dob = models.BooleanField(default=False,
                                             help_text=_("If checked, visitors will be asked for date of birth upon "
                                                         "registration."))
+    is_pwa_ready = models.BooleanField(default=False,
+                                       help_text=_("True when everything is set to get the PWA working"))
     decimal_precision = models.IntegerField(default=2)
     can_manage_currencies = models.BooleanField(default=False)
     last_currencies_rates_update = models.DateTimeField(editable=False, null=True)

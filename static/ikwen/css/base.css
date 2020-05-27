@@ -22,6 +22,7 @@ body.show-directions {overflow: hidden}
 .arrow.up div:first-child {border-right: 1px solid; transform: skewX(-30deg); transform-origin: 10px 0 0}
 .arrow.up div:last-child {border-left: 1px solid; margin-left: -1px; transform: skewX(30deg); transform-origin: 10px 0 0}
 .tpl, .hide {display: none}
+.bleached {opacity: .5; filter: alpha(opacity: 50)}
 .actions .glyphicon, .glyphicon.action, .actions .fa, .fa.action, .actions .fas, .fas.action {
     /* border: 1px solid #ddd; */
     border-radius: 3px;
