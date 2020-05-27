@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-28 15:26+0100\n"
-"PO-Revision-Date: 2020-04-28 15:30+0100\n"
+"POT-Creation-Date: 2020-05-27 17:27+0100\n"
+"PO-Revision-Date: 2020-05-27 17:33+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -93,11 +93,11 @@ msgstr "Confirmation du nouveau mot de passe"
 msgid "Verification password"
 msgstr "Mot de passe de vérification"
 
-#: accesscontrol/models.py:138
+#: accesscontrol/models.py:139
 msgid "Service where user registered for the first time on ikwen"
 msgstr "Service où l'utilisateur s'est inscrit pour la première fois sur ikwen"
 
-#: accesscontrol/models.py:140
+#: accesscontrol/models.py:141
 msgid ""
 "Designates whether this user is an <strong>IAO</strong> (Ikwen Application "
 "Operator)."
@@ -105,7 +105,7 @@ msgstr ""
 "Indique si cet utilisateur est un< strong> OAI< / strong>/ (Opérateur "
 "d'Application Ikwen)."
 
-#: accesscontrol/models.py:143
+#: accesscontrol/models.py:144
 msgid ""
 "Designates whether this user is the Bao in the current service. Bao is the "
 "highest person in a deployed ikwen application. The only that can change or "
@@ -115,19 +115,19 @@ msgstr ""
 "personne la plus élevée dans une application ikwen déployée. Le seul qui "
 "peut changer ou bloquer Sudo."
 
-#: accesscontrol/models.py:152
+#: accesscontrol/models.py:153
 msgid "Email verification status"
 msgstr "État de vérification d'Email"
 
-#: accesscontrol/models.py:153
+#: accesscontrol/models.py:154
 msgid "Designates whether this email has been verified."
 msgstr "Indique si cet e-mail a été vérifié."
 
-#: accesscontrol/models.py:154
+#: accesscontrol/models.py:155
 msgid "Phone verification status"
 msgstr "État de vérification du téléphone"
 
-#: accesscontrol/models.py:155
+#: accesscontrol/models.py:156
 msgid ""
 "Designates whether this phone number has been verified by sending a "
 "confirmation code by SMS."
@@ -135,36 +135,36 @@ msgstr ""
 "Indique si ce numéro de téléphone a été vérifié en envoyant un code de "
 "confirmation par SMS."
 
-#: accesscontrol/models.py:361
+#: accesscontrol/models.py:365
 msgid "This person would like to have access and collaborate with you"
 msgstr "Cette personne aimerait  avoir accès et collaborer avec vous"
 
-#: accesscontrol/models.py:362
+#: accesscontrol/models.py:366
 msgid "This person would like to have access to your services"
 msgstr "Cette personne aimerait avoir accès à vos services"
 
-#: accesscontrol/tests_auth.py:403 accesscontrol/views.py:527
+#: accesscontrol/tests_auth.py:425 accesscontrol/views.py:537
 msgid "This e-mail already exists."
 msgstr "Cet email existe déjà."
 
-#: accesscontrol/tests_auth.py:413 accesscontrol/views.py:536
+#: accesscontrol/tests_auth.py:435 accesscontrol/views.py:546
 msgid "This phone already exists."
 msgstr "Ce numéro de téléphone existe déjà."
 
-#: accesscontrol/tests_auth.py:433 accesscontrol/views.py:553
+#: accesscontrol/tests_auth.py:455 accesscontrol/views.py:563
 msgid "Your information were successfully updated."
 msgstr "Vos informations ont été mises à jour avec succès."
 
-#: accesscontrol/tests_auth.py:455 accesscontrol/views.py:576
+#: accesscontrol/tests_auth.py:477 accesscontrol/views.py:586
 msgid "The current password is incorrect!"
 msgstr "Le mot de passe actuel est incorrect!"
 
-#: accesscontrol/tests_auth.py:465 accesscontrol/views.py:571
+#: accesscontrol/tests_auth.py:487 accesscontrol/views.py:581
 msgid "Passwords don't match."
 msgstr "Les mots de passe diffèrent."
 
-#: accesscontrol/tests_auth.py:471 accesscontrol/views.py:568
-#: accesscontrol/views.py:574
+#: accesscontrol/tests_auth.py:493 accesscontrol/views.py:578
+#: accesscontrol/views.py:584
 msgid "Your password was successfully updated."
 msgstr "Votre mot de passe a été mis à jour avec succès."
 
@@ -175,12 +175,12 @@ msgstr "Bienvenue chez %s"
 
 #: accesscontrol/utils.py:171 accesscontrol/utils.py:183
 #: accesscontrol/utils.py:266 accesscontrol/utils.py:284
-#: accesscontrol/views.py:460 accesscontrol/views.py:472
+#: accesscontrol/views.py:470 accesscontrol/views.py:482
 msgid "Could not send code. Please try again later"
 msgstr "Impossible d'envoyer le code. Réessayez plutard"
 
 #: accesscontrol/utils.py:193 accesscontrol/utils.py:292
-#: accesscontrol/views.py:486
+#: accesscontrol/views.py:496
 msgid "Invalid code. Please try again"
 msgstr "Code invalide. Réessayez SVP"
 
@@ -192,15 +192,15 @@ msgstr "Confirmez votre adresse mail et commencez !"
 msgid "Could not confirm email"
 msgstr "Impossible de confirmer votre email"
 
-#: accesscontrol/utils.py:361 revival/utils.py:50
+#: accesscontrol/utils.py:361 revival/utils.py:81
 msgid "Join us on ikwen and earn free coupons."
 msgstr "Rejoignez nous sur ikwen et gagnez des coupons gratuits."
 
-#: accesscontrol/utils.py:364 revival/utils.py:52
+#: accesscontrol/utils.py:364 revival/utils.py:83
 msgid "Join our community on ikwen."
 msgstr "Rejoignez notre communauté sur ikwen."
 
-#: accesscontrol/utils.py:517 accesscontrol/utils.py:560 core/generic.py:304
+#: accesscontrol/utils.py:517 accesscontrol/utils.py:560 core/generic.py:310
 #: core/templates/core/dashboard_base.html:27
 #: core/templates/core/dashboard_base.html:129
 #: core/templates/core/dashboard_base.html:133
@@ -209,14 +209,14 @@ msgstr "Rejoignez notre communauté sur ikwen."
 msgid "Today"
 msgstr "Aujourd'hui"
 
-#: accesscontrol/utils.py:518 core/generic.py:305
+#: accesscontrol/utils.py:518 core/generic.py:311
 #: core/templates/core/dashboard_base.html:33
 #: core/templates/core/dashboard_base.html:134
 #: partnership/templates/partnership/dashboard.html:15
 msgid "Yesterday"
 msgstr "Hier"
 
-#: accesscontrol/utils.py:519 core/generic.py:306
+#: accesscontrol/utils.py:519 core/generic.py:312
 msgid "Last 7 days"
 msgstr "Les 7 derniers jours"
 
@@ -228,15 +228,15 @@ msgstr "30 derniers jours"
 msgid "Tomorrow"
 msgstr "Demain"
 
-#: accesscontrol/utils.py:562 core/generic.py:311
+#: accesscontrol/utils.py:562 core/generic.py:317
 msgid "Next 7 days"
 msgstr "Les 7 prochains jours"
 
-#: accesscontrol/utils.py:563 core/generic.py:312
+#: accesscontrol/utils.py:563 core/generic.py:318
 msgid "Next 30 days"
 msgstr "Les 30 prochains jours"
 
-#: accesscontrol/utils.py:625 billing/invoicing/views.py:727
+#: accesscontrol/utils.py:625 billing/invoicing/views.py:729
 #, python-format
 msgid ""
 "Missing information on line %(line)d. %(found)d tokens found, but "
@@ -304,7 +304,7 @@ msgstr ""
 msgid "Sorry, passwords mismatch."
 msgstr "Désolé, les mots de passe diffèrent."
 
-#: accesscontrol/views.py:180
+#: accesscontrol/views.py:185
 #, python-format
 msgid ""
 "You already have an account on ikwen with this username. It was created on "
@@ -313,38 +313,38 @@ msgstr ""
 "Vous avez déjà un compte sur ikwen avec ce nom d'utilisateur. Il a été créé "
 "sur %s. Utilisez-le pour vous connecter."
 
-#: accesscontrol/views.py:251
+#: accesscontrol/views.py:259
 msgid "Invalid username/password or account inactive"
 msgstr "Nom d'utilisateur/mot de passe invalide ou compte inactif"
 
-#: accesscontrol/views.py:411 accesscontrol/views.py:503
+#: accesscontrol/views.py:421 accesscontrol/views.py:513
 msgid "Password successfully reset."
 msgstr "Mot de passe réinitialisé."
 
-#: accesscontrol/views.py:492
+#: accesscontrol/views.py:502
 msgid "Passwords mismatch. Please try again"
 msgstr "Les mots de passe diffèrent. Bien vouloir réessayer"
 
-#: accesscontrol/views.py:806
+#: accesscontrol/views.py:817
 msgid "This email already exists. The person was sent an invitation mail"
 msgstr "Cet email existe déjà. La personne a été invitée par mail"
 
-#: accesscontrol/views.py:818 accesscontrol/views.py:825
+#: accesscontrol/views.py:829 accesscontrol/views.py:836
 msgid "This phone already exists. The person was sent an invitation mail"
 msgstr "Ce numéro de téléphone existe déjà. La personne a été invitée par mail"
 
-#: accesscontrol/views.py:943 accesscontrol/views.py:1051
+#: accesscontrol/views.py:954 accesscontrol/views.py:1063
 msgid "You were added to our community. Thank you for joining us."
 msgstr ""
 "Vous avez été ajouté à notre communauté avec joie. Merci de nous avoir "
 "rejoint."
 
-#: accesscontrol/views.py:981
+#: accesscontrol/views.py:993
 #, python-format
 msgid "You just joined %s community"
 msgstr "Vous venez de rejoindre la communauté %s"
 
-#: accesscontrol/views.py:1022
+#: accesscontrol/views.py:1034
 #, python-format
 msgid ""
 "%(project_name)s is offering you %(count)d coupons for your referral to "
@@ -439,9 +439,9 @@ msgstr "Nom complet"
 #: billing/templates/billing/payment_mean_list.html:122
 #: billing/templates/billing/payment_mean_list.html:153
 #: billing/templates/billing/transaction_log.html:97
-#: cashout/templates/cashout/payments.html:213
-#: cashout/templates/cashout/payments.html:251
-#: core/templates/core/base_bs.html:249
+#: cashout/templates/cashout/payments.html:215
+#: cashout/templates/cashout/payments.html:253
+#: core/templates/core/base_bs.html:257
 #: core/templates/core/object_list_base.html:51
 #: core/templates/core/service_detail.html:115
 #: core/templates/core/service_detail.html:206
@@ -515,7 +515,7 @@ msgstr "Ajouter ouveau contact"
 
 #: accesscontrol/templates/accesscontrol/community.html:96
 #: billing/templates/billing/product_list.html:46
-#: core/templates/core/snippets/admin_tools.html:48
+#: core/templates/core/snippets/admin_tools.html:49
 #: revival/templates/revival/profile_tag_list.html:41
 msgid "Add"
 msgstr "Ajouter"
@@ -525,7 +525,7 @@ msgid "Import Member list from CSV file"
 msgstr "Importer une liste de client d'un fichier CSV"
 
 #: accesscontrol/templates/accesscontrol/community.html:103
-#: core/templates/core/snippets/admin_tools.html:56
+#: core/templates/core/snippets/admin_tools.html:58
 msgid "Import"
 msgstr "Importer"
 
@@ -534,7 +534,7 @@ msgid "Export Member list to CSV file"
 msgstr "Importer la liste de clients vers un fichier CSV"
 
 #: accesscontrol/templates/accesscontrol/community.html:111
-#: core/templates/core/snippets/admin_tools.html:63
+#: core/templates/core/snippets/admin_tools.html:65
 msgid "Export"
 msgstr "Exporter"
 
@@ -573,7 +573,7 @@ msgstr "Femme"
 #: billing/templates/billing/payment_mean_list.html:118
 #: billing/templates/billing/payment_mean_list.html:149
 #: billing/templates/billing/transaction_log.html:93
-#: core/templates/core/base_bs.html:246
+#: core/templates/core/base_bs.html:254
 #: core/templates/core/object_list_base.html:47
 msgid "OK"
 msgstr "OK"
@@ -944,7 +944,7 @@ msgid "Username or email"
 msgstr "Nom d'utilisateur ou email"
 
 #: accesscontrol/templates/accesscontrol/register.html:37
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:323
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:328
 msgid "Choose a password"
 msgstr "Choisissez un mot de passe"
 
@@ -1075,7 +1075,7 @@ msgid "Password too short. Use at least 6 characters."
 msgstr "Mot de passe trop court. Utilisez au moins 6 caractères."
 
 #: accesscontrol/templates/accesscontrol/register.html:246
-#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:337
+#: accesscontrol/templates/accesscontrol/sign_in_minimal.html:342
 msgid "Invalid date. Please check."
 msgstr "Date invalide. Vérifiez s'il vous plaît."
 
@@ -1285,6 +1285,7 @@ msgid "You asked a password reset for email"
 msgstr "Vous avez demandé à réinitialiser un mot de passe pour l'email"
 
 #: accesscontrol/templates/accesscontrol/mails/password_reset_instructions.html:7
+#: core/templates/core/base_bs.html:228
 msgid "Click the button below"
 msgstr "Cliquer le bouton ci-dessous"
 
@@ -1292,7 +1293,7 @@ msgstr "Cliquer le bouton ci-dessous"
 msgid "Edit"
 msgstr "Éditer"
 
-#: accesscontrol/templates/accesscontrol/snippets/community_list_results.html:59
+#: accesscontrol/templates/accesscontrol/snippets/community_list_results.html:63
 #: billing/templates/billing/snippets/admin_invoice_list_results.html:42
 #: billing/templates/billing/snippets/invoice_list_results.html:37
 #: billing/templates/billing/snippets/payment_list_results.html:81
@@ -1307,7 +1308,7 @@ msgstr ""
 "\n"
 "                 %(start)s – %(end)s de %(count)s résultats"
 
-#: accesscontrol/templates/accesscontrol/snippets/community_list_results.html:62
+#: accesscontrol/templates/accesscontrol/snippets/community_list_results.html:66
 #: billing/templates/billing/snippets/admin_invoice_list_results.html:45
 #: billing/templates/billing/snippets/invoice_list_results.html:40
 #: billing/templates/billing/snippets/payment_list_results.html:84
@@ -1371,8 +1372,8 @@ msgid "Move to group"
 msgstr "Déplacer vers"
 
 #: accesscontrol/templates/accesscontrol/snippets/member_detail.html:75
-#: cashout/templates/cashout/payments.html:123
-#: cashout/templates/cashout/payments.html:153
+#: cashout/templates/cashout/payments.html:125
+#: cashout/templates/cashout/payments.html:155
 msgid "Delete"
 msgstr "Effacer"
 
@@ -1549,7 +1550,7 @@ msgstr "Montant"
 #: billing/templates/billing/invoice_detail0.html:192
 #: billing/templates/billing/invoice_detail0.html:206
 #: billing/templates/billing/invoice_detail0.html:237
-#: cashout/templates/cashout/payments.html:183
+#: cashout/templates/cashout/payments.html:185
 #: core/templates/core/invoice_detail.html:127
 msgid "Method"
 msgstr "Méthode"
@@ -1579,17 +1580,17 @@ msgstr "partenaire"
 msgid "Month(s)"
 msgstr "Mois"
 
-#: billing/api.py:116 billing/bundle_crons.py:80 billing/invoicing/views.py:188
+#: billing/api.py:116 billing/bundle_crons.py:80 billing/invoicing/views.py:189
 msgid "Subscription"
 msgstr "Abonnement"
 
-#: billing/api.py:147 billing/bundle_crons.py:98 billing/bundle_crons.py:200
+#: billing/api.py:148 billing/bundle_crons.py:98 billing/bundle_crons.py:200
 #: billing/crons.py:139 billing/crons.py:221 billing/crons.py:300
 #: billing/crons.py:383 billing/crons_creolink.py:101
 #: billing/crons_creolink.py:175 billing/crons_creolink.py:251
 #: billing/crons_creolink.py:331 billing/invoicing_crons.py:85
 #: billing/invoicing_crons.py:175 billing/invoicing_crons.py:269
-#: billing/invoicing_crons.py:373 billing/invoicing/views.py:237
+#: billing/invoicing_crons.py:373 billing/invoicing/views.py:238
 #: billing/templates/billing/iao_invoice_list.html:60
 #: billing/templates/billing/invoice_detail.html:58
 #: billing/templates/billing/invoice_detail0.html:58
@@ -1623,7 +1624,7 @@ msgstr "Hébergement"
 msgid "Project %s"
 msgstr "Projet %s"
 
-#: billing/crons.py:106 core/models.py:910
+#: billing/crons.py:106 core/models.py:956
 msgid "Continuous Rewarding"
 msgstr "Continuous Rewarding"
 
@@ -1878,7 +1879,7 @@ msgstr "L'intervalle après lequel les factures sont envoyées au client."
 msgid "More details about this subscription."
 msgstr "Plus de détails à propos de cet abonnement."
 
-#: billing/models.py:189 core/models.py:219
+#: billing/models.py:189 core/models.py:221
 msgid "Date of expiry of the service."
 msgstr "Date d'expiration du service."
 
@@ -2088,20 +2089,20 @@ msgstr ""
 msgid "Subs. Date"
 msgstr "Date d'Abnmt"
 
-#: billing/invoicing/views.py:224
+#: billing/invoicing/views.py:225
 #, python-format
 msgid "Your invoice for subscription to %s"
 msgstr "Votre facture pour l'abonnement à %s"
 
-#: billing/invoicing/views.py:227
+#: billing/invoicing/views.py:228
 msgid "Your invoice for "
 msgstr "Vos factures pour "
 
-#: billing/invoicing/views.py:229
+#: billing/invoicing/views.py:230
 msgid "Your invoice for subscription"
 msgstr "Votre facture pour l'abonnement"
 
-#: billing/invoicing/views.py:253
+#: billing/invoicing/views.py:254
 #: billing/templates/billing/iao_invoice_list.html:51
 #: billing/templates/billing/invoice_detail.html:69
 #: billing/templates/billing/invoice_detail0.html:69
@@ -2110,25 +2111,25 @@ msgstr "Votre facture pour l'abonnement"
 msgid "Due date"
 msgstr "Date d'échéance"
 
-#: billing/invoicing/views.py:484
+#: billing/invoicing/views.py:485
 msgid "Payment date"
 msgstr "Date de paiement"
 
-#: billing/invoicing/views.py:701
+#: billing/invoicing/views.py:703
 msgid "Configuration successfully updated"
 msgstr "Configuration mise à jour avec succès"
 
-#: billing/invoicing/views.py:734
+#: billing/invoicing/views.py:736
 #, python-format
 msgid "Reference ID <ins>%(ref)s</ins> on line %(line)d already exists."
 msgstr "Reference ID <ins>%(ref)s</ins>à la ligne %(line)d existe déjà."
 
-#: billing/invoicing/views.py:743
+#: billing/invoicing/views.py:745
 #, python-format
 msgid "Invalid email %(email)s on line %(line)d"
 msgstr "Email invalide %(email)s à la ligne %(line)d"
 
-#: billing/invoicing/views.py:752
+#: billing/invoicing/views.py:754
 #, python-format
 msgid ""
 "Product Name <ins>%(name)s</ins> not found or inactive. Line %(line)d. \n"
@@ -2137,7 +2138,7 @@ msgstr ""
 "Produit <ins>%(name)s</ins> non trouvé ou inactif. Ligne %(line)d. \n"
 "Le nom doit être un parmi <b>%(name_list)s</b>"
 
-#: billing/invoicing/views.py:760
+#: billing/invoicing/views.py:762
 #, python-format
 msgid ""
 "Invalid cost <ins>%(cost)s</ins> on line %(line)d. Expected valid float or "
@@ -2146,7 +2147,7 @@ msgstr ""
 "Coût invalide <ins>%(cost)s</ins> à la ligne %(line)d. Doit être un nombre "
 "entier ou décimal"
 
-#: billing/invoicing/views.py:772
+#: billing/invoicing/views.py:774
 #, python-format
 msgid ""
 "Invalid billing cycle <ins>%(billing_cycle)s</ins> on line %(line)d. "
@@ -2155,7 +2156,7 @@ msgstr ""
 "Cycle de facturation invalide <ins>%(billing_cycle)s</ins> à la ligne "
 "%(line)d. Valeurs attendues: 1, 3, 6 or 12"
 
-#: billing/invoicing/views.py:785
+#: billing/invoicing/views.py:787
 #, python-format
 msgid ""
 "Incorrect subscription date <ins>%(since)s</ins> on line %(line)d. Must be "
@@ -2164,7 +2165,7 @@ msgstr ""
 "Date d'abonnement incorrecte <ins>%(since)s</ins> à la ligne %(line)d. Le "
 "bon format est YYYY-MM-DD"
 
-#: billing/invoicing/views.py:799
+#: billing/invoicing/views.py:801
 #, python-format
 msgid ""
 "Incorrect expiry <ins>%(expiry)s</ins> on line %(line)d. Must be in the "
@@ -2173,7 +2174,7 @@ msgstr ""
 "Date d'expiration incorrecte <ins>%(expiry)s</ins> à la ligne %(line)d. Le "
 "bon format est Année-Mois-Jour"
 
-#: billing/invoicing/views.py:806
+#: billing/invoicing/views.py:808
 #, python-format
 msgid ""
 "Invalid tolerance <ins>%(tolerance)s</ins> on line %(line)d. Expected "
@@ -2182,7 +2183,7 @@ msgstr ""
 "Tolérance invalide <ins>%(tolerance)s</ins> à la ligne %(line)d. Valeure "
 "entière attendue"
 
-#: billing/invoicing/views.py:811
+#: billing/invoicing/views.py:813
 #, python-format
 msgid ""
 "Invalid status <ins>%(status)s</ins> on line %(line)d. Must be one of: "
@@ -2348,7 +2349,7 @@ msgstr "ID de transaction"
 #: billing/templates/billing/invoice_detail.html:201
 #: billing/templates/billing/invoice_detail.html:232
 #: billing/templates/billing/invoice_detail0.html:201
-#: billing/templates/billing/invoice_detail0.html:232 core/views.py:513
+#: billing/templates/billing/invoice_detail0.html:232 core/views.py:514
 msgid "Date"
 msgstr ""
 
@@ -2619,19 +2620,19 @@ msgstr "Option tarifaire"
 msgid "Money transfer confirmation"
 msgstr "Confirmation du transfert d'argent"
 
-#: cashout/models.py:77
+#: cashout/models.py:78
 msgid "payment method"
 msgstr "méthode de paiement"
 
-#: cashout/models.py:78
+#: cashout/models.py:79
 msgid "Method used to pay the member"
 msgstr "Moyen utilisé pour le payement"
 
-#: cashout/models.py:83
+#: cashout/models.py:84
 msgid "Teller who processed this request"
 msgstr "Caissier qui a traité la requête"
 
-#: cashout/models.py:88
+#: cashout/models.py:89
 msgid "Request cash-out"
 msgstr "Demander un retrait"
 
@@ -2657,7 +2658,7 @@ msgid "Your last payment was on"
 msgstr "Votre dernier paiement était le"
 
 #: cashout/templates/cashout/payments.html:45
-#: cashout/templates/cashout/payments.html:88
+#: cashout/templates/cashout/payments.html:90
 msgid "No payment yet"
 msgstr "Aucun paiement"
 
@@ -2677,44 +2678,44 @@ msgstr "Demande échouée"
 msgid "You can cash out as from"
 msgstr "Vous pouvez retirer à partir de"
 
-#: cashout/templates/cashout/payments.html:98
+#: cashout/templates/cashout/payments.html:100
 msgid "How you get paid"
 msgstr "Comment vous êtes payé"
 
-#: cashout/templates/cashout/payments.html:120
-#: cashout/templates/cashout/payments.html:150
+#: cashout/templates/cashout/payments.html:122
+#: cashout/templates/cashout/payments.html:152
 msgid "Update"
 msgstr "Mise à jour"
 
-#: cashout/templates/cashout/payments.html:132
+#: cashout/templates/cashout/payments.html:134
 msgid "No payment method set"
 msgstr "Aucune méthode de paiement configurée"
 
-#: cashout/templates/cashout/payments.html:162
+#: cashout/templates/cashout/payments.html:164
 msgid "ADD NEW"
 msgstr "AJOUTER"
 
-#: cashout/templates/cashout/payments.html:194
+#: cashout/templates/cashout/payments.html:196
 msgid "Account number"
 msgstr "Nom du compte"
 
-#: cashout/templates/cashout/payments.html:200
+#: cashout/templates/cashout/payments.html:202
 msgid "Recipient name"
 msgstr "Nom du destinataire"
 
-#: cashout/templates/cashout/payments.html:226
+#: cashout/templates/cashout/payments.html:228
 msgid "Choose wallet provider"
 msgstr "Choisir l'opérateur"
 
-#: cashout/templates/cashout/payments.html:232
+#: cashout/templates/cashout/payments.html:234
 msgid "Cash-out from"
 msgstr "Retrait sur"
 
-#: cashout/templates/cashout/payments.html:266
+#: cashout/templates/cashout/payments.html:268
 msgid "New payment address"
 msgstr "Nouvelle addresse de paiement"
 
-#: cashout/templates/cashout/payments.html:275
+#: cashout/templates/cashout/payments.html:277
 msgid "Update address"
 msgstr "Addresse mise à jour"
 
@@ -2876,26 +2877,70 @@ msgstr "Mailing"
 msgid "External scripts"
 msgstr "Scripts externes"
 
+#: core/analytics.py:79
+#, python-format
+msgid ""
+"This customer just installed you app. You can call or text to say thank "
+"you. \n"
+"Now you have your app installed by %d people"
+msgstr ""
+"Ce client vient juste d'installer votre appli. Vous pourriez lui écrire ou "
+"l'appeler pour dire merci. \n"
+"À ce jour, vous comptez %d personnes qui l'ont installée"
+
+#: core/analytics.py:82
+msgid "New app install"
+msgstr "Nouvelle installation de votre appli"
+
+#: core/analytics.py:83
+#, python-format
+msgid ""
+"An anonymous visitor just installed your app. \n"
+"Now you have it installed by %d people"
+msgstr ""
+"Un visiteur non inscrit vient d'installer votre appli mobile. \n"
+"À ce jour, vous comptez %d personnes qui l'ont installée"
+
 #: core/constants.py:8
 msgid "Confirmed"
 msgstr "Confirmé"
 
-#: core/generic.py:307
+#: core/constants.py:29
+msgid "PC"
+msgstr ""
+
+#: core/constants.py:30
+msgid "Tablet"
+msgstr ""
+
+#: core/constants.py:31
+msgid "Mobile"
+msgstr ""
+
+#: core/generic.py:313
 msgid "Since the 1st"
 msgstr "Depuis le 1er"
 
-#: core/generic.py:321
+#: core/generic.py:327
 msgid "Yes"
 msgstr "Oui"
 
-#: core/generic.py:322
+#: core/generic.py:328
 msgid "No"
 msgstr "Non"
 
-#: core/generic.py:624 core/generic.py:626 core/appmodule/views.py:66
+#: core/generic.py:630 core/generic.py:632 core/appmodule/views.py:66
 #: partnership/views.py:83 theming/views.py:104
 msgid "successfully updated"
 msgstr "mis à jour avec succès"
+
+#: core/generic.py:719
+msgid "Invalid dimensions. Please upload a 512 x 512px image."
+msgstr ""
+
+#: core/generic.py:734
+msgid "Invalid dimensions. Please upload a 1000 x 590px image."
+msgstr ""
 
 #: core/models.py:92
 msgid ""
@@ -2965,95 +3010,99 @@ msgid "URL of the service's admin panel. WRITE IT WITHOUT A TRAILING SLASH"
 msgstr ""
 "URL du panneau d'administration du service.ECRIVEZ LE SANS LE SLASH FINAL"
 
-#: core/models.py:204 core/templates/core/service_detail.html:49
+#: core/models.py:205
+msgid "If true, it means the service has its SSL Certificate installed."
+msgstr ""
+
+#: core/models.py:206 core/templates/core/service_detail.html:49
 msgid "API Signature"
 msgstr ""
 
-#: core/models.py:214
+#: core/models.py:216
 msgid "If true, the service can appear in ikwen search results."
 msgstr ""
 "Si coché, le service pourrait apparaitre dans les resultats de recherche "
 "ikwen."
 
-#: core/models.py:541
+#: core/models.py:582
 msgid "HTTP API"
 msgstr "HTTP API"
 
-#: core/models.py:542
+#: core/models.py:583
 msgid "GSM Modem"
 msgstr "Modem GSM"
 
-#: core/models.py:547 core/models.py:753
+#: core/models.py:588 core/models.py:799
 msgid "balance"
 msgstr "solde"
 
-#: core/models.py:548
+#: core/models.py:589
 msgid "Website / Company name"
 msgstr "Nom du site/de l'entreprise"
 
-#: core/models.py:549
+#: core/models.py:590
 msgid "Website/Company name as you want it to appear in mails and pages."
 msgstr ""
 "Nom du site/de l'entreprise tel que vous voulez qu'il apparaisse dans les "
 "mails et les pages."
 
-#: core/models.py:551
+#: core/models.py:592
 msgid "Company address"
 msgstr "Adresse de l'entreprise"
 
-#: core/models.py:552
+#: core/models.py:593
 msgid "Your company address."
 msgstr "Adresse de votre entreprise."
 
-#: core/models.py:554
+#: core/models.py:595
 msgid "Country where HQ of the company are located."
 msgstr "Pays où se trouve la DG de l'entreprise."
 
-#: core/models.py:556
+#: core/models.py:597
 msgid "City where HQ of the company are located."
 msgstr "Ville où se trouve la DG de l'entreprise."
 
-#: core/models.py:558
+#: core/models.py:599
 msgid "Latitude of the Company location."
 msgstr "Latitude de l'emplacement de l'entreprise."
 
-#: core/models.py:560
+#: core/models.py:601
 msgid "Longitude of the Company location."
 msgstr "Longitude de l'emplacement de l'entreprise."
 
-#: core/models.py:562
+#: core/models.py:603
 msgid "Short description of your business <em>(150 chars max.)</em>."
 msgstr "Brève description de votre activité<em>(150 caractéres max)</em>."
 
-#: core/models.py:564
+#: core/models.py:605
 msgid "More detailed description of your business."
 msgstr "Description plus détaillée de votre activité."
 
-#: core/models.py:566
+#: core/models.py:607
 msgid "Your slogan <em>(60 chars max.)</em>."
 msgstr "Votre slogan<em>(60 caractéres max)</em>."
 
-#: core/models.py:568
+#: core/models.py:609
 msgid "Code of your currency. Eg: <strong>USD, GBP, EUR, XAF,</strong> ..."
 msgstr "Code de votre devise. Exple :<strong>US ,EURO, FCFA,GBP,</strong> ..."
 
-#: core/models.py:570
+#: core/models.py:611
 msgid "Symbol of your currency, Eg: <strong>$, £, €, XAF</strong>."
 msgstr "Symbole de votre devise, Ex :<strong>$, £, €, XAF</strong>."
 
-#: core/models.py:571
+#: core/models.py:612
 msgid "cash-out minimum"
 msgstr "retrait minimum"
 
-#: core/models.py:574
+#: core/models.py:615
 msgid "cash-out rate"
 msgstr "taux de retrait"
 
-#: core/models.py:578 theming/templates/theming/configure_theme_base.html:42
+#: core/models.py:619 theming/templates/theming/configure_theme_base.html:42
 msgid "Your logo"
 msgstr "Votre logo"
 
-#: core/models.py:579
+#: core/models.py:620
 msgid ""
 "Image in <strong>PNG with transparent background</strong> is advised. "
 "(Maximum 400 x 400px)"
@@ -3061,7 +3110,20 @@ msgstr ""
 "Image dans <strong>PNG avec l'arriere-plan transparent</strong> est "
 "conseillée. (Maximum 400 x 400px)"
 
-#: core/models.py:582
+#: core/models.py:622
+msgid "Your badge"
+msgstr "Votre badge"
+
+#: core/models.py:623
+msgid ""
+"Image that appear in Android status bar when your notification arrives. Use "
+"a white and transparent background image. (PNG format, 128 x 128px)"
+msgstr ""
+"L'image qui apparaît dans la barre de statut Android à l'arrivée de votre "
+"notification. Utiliser une image blanche sur fond transparent. (Format PNG, "
+"128 x 128px)"
+
+#: core/models.py:626
 msgid ""
 "Cover image used as decoration of company's profile page and also to use on "
 "top of the mails. (Max. 800px width)"
@@ -3069,68 +3131,68 @@ msgstr ""
 "Image de couverture utilisée comme décoration de la page de profil de la "
 "compagnie et également utilisé au dessus des courriers. (Max. 1000px witdth)"
 
-#: core/models.py:584
+#: core/models.py:628
 msgid "Brand color"
 msgstr "Couleur de votre brand"
 
-#: core/models.py:585
+#: core/models.py:629
 msgid "HEX code for the color of top bar on mobile devices."
 msgstr ""
 "Code Hexa de la couleur de la barre supérieure sur les appareils mobiles"
 
-#: core/models.py:586
+#: core/models.py:630
 msgid "Mail signature"
 msgstr "Signature de mail"
 
-#: core/models.py:587
+#: core/models.py:631
 msgid "Signature on all mails. HTML allowed."
 msgstr "Signature sur tous les mails. HTML autorisé."
 
-#: core/models.py:588
+#: core/models.py:632
 msgid "Invitation message"
 msgstr "Message d'invitation"
 
-#: core/models.py:590
+#: core/models.py:634
 msgid "Welcome message"
 msgstr "Message de bienvenue"
 
-#: core/models.py:592
+#: core/models.py:636
 msgid "Contact email"
 msgstr "Adresse email"
 
-#: core/models.py:595
+#: core/models.py:639
 msgid "Main phone number for your customers to contact you."
 msgstr "Numéro de téléphone principal où vos clients pourront vous joindre."
 
-#: core/models.py:597
+#: core/models.py:641
 msgid "Facebook link. Eg: https://www.facebook.com/mywebsite"
 msgstr "Lien Facebook. Expl: https://www.facebook.com/mywebsite"
 
-#: core/models.py:599
+#: core/models.py:643
 msgid "Twitter link. Eg: https://www.twitter.com/mywebsite"
 msgstr "Lien Twitter. Exple :https/:/www.twitter.com/mywebsite"
 
-#: core/models.py:601
+#: core/models.py:645
 msgid "Google+ link. Eg: https://www.googleplus.com/mywebsite"
 msgstr "Lien Google+. Exple: https://www.googleplus.com/mywebsite"
 
-#: core/models.py:603
+#: core/models.py:647
 msgid "Youtube link. Eg: https://www.youtube.com/mywebsite"
 msgstr "Lien Youtube. Exple: https://www.youtube.com/mywebsite"
 
-#: core/models.py:605
+#: core/models.py:649
 msgid "Instagram link. Eg: https://www.instagram.com/mywebsite"
 msgstr "Lien Instagram. Exple: https://www.instagram.com/mywebsite"
 
-#: core/models.py:607
+#: core/models.py:651
 msgid "Tumblr link. Eg: https://www.tumblr.com/mywebsite"
 msgstr "Lien Tumblr. Exple: https://www.tumblr.com/mywebsite"
 
-#: core/models.py:609
+#: core/models.py:653
 msgid "LinkedIn link. Eg: https://www.linkedin.com/mywebsite"
 msgstr "Lien LinkedIn. Exple: https://www.linkedin.com/mywebsite"
 
-#: core/models.py:611
+#: core/models.py:655
 msgid ""
 "External scripts like <em>Google Analytics tracking code, Facebook Pixels</"
 "em>, etc. <br> Please refer to <a href='http://support.ikwen.com/tutorials/"
@@ -3142,7 +3204,7 @@ msgstr ""
 "support.ikwen.com/tutorials-scripts</a> pour avoir les instructions "
 "détaillées sur l'ajout des scripts externes à votre plate-forme."
 
-#: core/models.py:616
+#: core/models.py:660
 msgid ""
 "Check to allow <strong>PayPal Direct Checkout</strong> that lets user enter "
 "his bank card directly."
@@ -3150,11 +3212,11 @@ msgstr ""
 "Cochez afin de permettre le <strong>Paiement Direct PayPal</strong>qui "
 "permettra a l'utilisateur d'entrer directement sa carte bancaire."
 
-#: core/models.py:618
+#: core/models.py:662
 msgid "SMS Sending method"
 msgstr "Méthode d'envoi de SMS"
 
-#: core/models.py:620
+#: core/models.py:664
 msgid ""
 "Method used to send SMS from the platform. If <strong>Modem</strong>, SMS "
 "will be queued and later read by a modem from the remote url <em>/ikwen/"
@@ -3164,11 +3226,11 @@ msgstr ""
 "strong>,le SMS sera en attente et plus tard lu part le modem à partir de la "
 "télécommande url<em>/ikwen/get_queued_sms</em>et envoyé précisement."
 
-#: core/models.py:623
+#: core/models.py:667
 msgid "Script URL"
 msgstr "URL du script"
 
-#: core/models.py:624
+#: core/models.py:668
 msgid ""
 "Model of SMS script url with parameters values written as <strong>"
 "$parameter</strong>. They will be replaced when sending. Eg: <em>http://"
@@ -3184,11 +3246,11 @@ msgstr ""
 "$label</strong>&recipient_param=<strong>$recipient</"
 "strong>&text_param=<strong>$text</strong></em>"
 
-#: core/models.py:628
+#: core/models.py:672
 msgid "pro version"
 msgstr "version pro"
 
-#: core/models.py:629
+#: core/models.py:673
 msgid ""
 "Standard version uses <strong>ikwen</strong> payment accounts (PayPal, "
 "MobileMoney, BankCard, etc.) and collects user's money upon purchases. He "
@@ -3206,26 +3268,30 @@ msgstr ""
 "Personnel de Paiement (Personnel PayPal, Personnel Mobile Money,etc.)</"
 "li><li>"
 
-#: core/models.py:637
+#: core/models.py:681
 msgid ""
 "If checked, the service is considered to be running in total isolation from "
 "ikwen platform and thus has his own umbrella database and all links point "
 "internally; no link to ikwen.com"
 msgstr ""
 
-#: core/models.py:641
+#: core/models.py:685
 msgid "If checked, visitors will be asked for date of birth upon registration."
 msgstr "Cochez pour ajouter la date de naissance au formulaire d'inscription."
 
-#: core/models.py:648
+#: core/models.py:688
+msgid "True when everything is set to get the PWA working"
+msgstr ""
+
+#: core/models.py:694
 msgid "Configurations of the platform"
 msgstr "Configurations de la plateforme"
 
-#: core/models.py:909
+#: core/models.py:955
 msgid "Transactional"
 msgstr "Transactionel"
 
-#: core/models.py:911
+#: core/models.py:957
 msgid "Revival"
 msgstr "Relance"
 
@@ -3238,12 +3304,12 @@ msgstr "Erreur inconnue survenue."
 msgid "%s does not have an account on ikwen."
 msgstr "%s does not have an account on ikwen."
 
-#: core/views.py:377 core/templates/core/invoice_detail.html:123
+#: core/views.py:378 core/templates/core/invoice_detail.html:123
 #: partnership/templates/partnership/dashboard.html:27
 msgid "Transactions"
 msgstr "Transactions"
 
-#: core/views.py:378
+#: core/views.py:379
 msgid "ARPT <i class=\"text-muted\">Avg. Eearning Per Transaction</i>"
 msgstr "GMPT <i class=\"text-muted\">Gain Moy. Par Transaction</i>"
 
@@ -3378,22 +3444,22 @@ msgstr "Configuration"
 msgid "Info & Billing"
 msgstr "Info et Facturation"
 
-#: core/templates/core/base_admin.html:275
+#: core/templates/core/base_admin.html:289
 msgid "Confirm deletion ?"
 msgstr "Confirmer l'annulation?"
 
-#: core/templates/core/base_admin.html:325
-#: core/templates/core/base_admin.html:328
+#: core/templates/core/base_admin.html:339
+#: core/templates/core/base_admin.html:342
 msgid "Remind me later"
 msgstr "Rappeler plus tard"
 
-#: core/templates/core/base_admin.html:325
-#: core/templates/core/base_admin.html:328
+#: core/templates/core/base_admin.html:339
+#: core/templates/core/base_admin.html:342
 msgid "Got it!"
 msgstr "Compris !"
 
-#: core/templates/core/base_admin.html:325
-#: core/templates/core/base_admin.html:328
+#: core/templates/core/base_admin.html:339
+#: core/templates/core/base_admin.html:342
 msgid "Show Help"
 msgstr "Afficher l'aide"
 
@@ -3531,6 +3597,14 @@ msgstr "mois"
 msgid "Unable to connect. Please check your internet."
 msgstr ""
 "Impossible de se connecter. Veuillez vérifier votre connexion internet."
+
+#: core/templates/core/pwa_config.html:5
+msgid "Android PWA"
+msgstr ""
+
+#: core/templates/core/pwa_config.html:9
+msgid "Android App"
+msgstr "Application Android"
 
 #: core/templates/core/service_detail.html:5
 msgid "Service info"
@@ -3798,6 +3872,19 @@ msgstr ""
 msgid "Visit your website"
 msgstr "Visitez votre site web"
 
+#: core/templates/core/mails/pwa_installed_notification.html:139
+msgid "You just got one user install your mobile app"
+msgstr "Un utilisateur vient juste d'installer votre appli mobile"
+
+#: core/templates/core/mails/pwa_installed_notification.html:195
+#, python-format
+msgid "Dear %(member_name)s,"
+msgstr "Cher %(member_name)s,"
+
+#: core/templates/core/mails/pwa_installed_notification.html:206
+msgid "View profile"
+msgstr "Voir le profil"
+
 #: core/templates/core/mails/service_deployed.html:7
 msgid "Congrats, you are online !"
 msgstr "Félicitations,vous êtes en ligne !"
@@ -3897,17 +3984,17 @@ msgstr "Ex: shop.votrentreprise.cm"
 msgid "Your domain name was successfully updated."
 msgstr "Votre nom de domaine a été mises à jour avec succès."
 
-#: core/templates/core/snippets/admin_tools.html:46
+#: core/templates/core/snippets/admin_tools.html:47
 #, python-format
 msgid "Add new %(verbose_name)s"
 msgstr "Ajouter un nouveau %(verbose_name)s"
 
-#: core/templates/core/snippets/admin_tools.html:53
+#: core/templates/core/snippets/admin_tools.html:55
 #, python-format
 msgid "Import %(verbose_name)s list from CSV file"
 msgstr "Importer une liste de %(verbose_name)s à partir d'un fichier CSV"
 
-#: core/templates/core/snippets/admin_tools.html:61
+#: core/templates/core/snippets/admin_tools.html:63
 msgid "Export as Spreadsheet"
 msgstr "Exporter en fichier XL"
 
@@ -4208,16 +4295,16 @@ msgstr "Aucun client relancé. Prenez une mesure sérieuse"
 msgid "%d people revived. See details"
 msgstr "%d personnes relancées. Voir les détails"
 
-#: revival/utils.py:68
+#: revival/utils.py:99
 #, python-format
 msgid "Invite your friends on %s and earn free coupons."
 msgstr "Invitez vos amis sur %s et gagnez des coupons gratuits."
 
-#: revival/utils.py:97
+#: revival/utils.py:128
 msgid "Secure your business by staying close to your customers"
 msgstr "Sécurisez votre business en vous rapprochant de vos clients"
 
-#: revival/utils.py:100
+#: revival/utils.py:131
 msgid "Decide on your turnover"
 msgstr "Décidez sur votre chiffre d'affaire"
 
