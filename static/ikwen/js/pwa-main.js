@@ -18,18 +18,18 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js').then((reg) => {
             console.log('Service worker registered.', reg);
             swRegistration = reg;
+            if ('PushManager' in window) {
+                initializePushUI();
+            } else {
+                $('.push-promotion').hide();
+            }
         });
-  });
-}
-
-if ('PushManager' in window) {
-    initializePushUI();
-} else {
-    $('.push-promotion').hide();
+    });
 }
 
 // Add click event to install
-$('body').on('click', '.install-pwa:not(.processing)', installPWA);
+$('body').on('click', '.install-pwa:not(.processing)', installPWA)
+    .on('click', '.install-promotion .close', revokeInstallAndRemember);
 
 // CODELAB: Add event listener for beforeinstallprompt event
 window.addEventListener('beforeinstallprompt', saveBeforeInstallPromptEvent);
@@ -44,7 +44,7 @@ function saveBeforeInstallPromptEvent(evt) {
   // CODELAB: Add code to save event & show the install button.
     deferredInstallPrompt = evt;
     console.log("Before install saved");
-    $('.install-pwa').show();
+    $('.install-pwa').removeClass('disabled').show();
     $('.install-promotion').fadeIn();
     evt.preventDefault();
 }
@@ -68,6 +68,13 @@ function installPWA(evt) {
         pwaOverlay.style.display = 'none';
     });
     evt.srcElement.setAttribute('hidden', true);
+}
+
+function revokeInstallAndRemember() {
+    $('.install-promotion').remove();
+    let expires = (new Date()).getTime() + 45 * 24 * 60 * 60 * 1000;  // Remember choice for 45 days
+    expires = new Date(expires);
+    ikwen.CookieUtil.set('install_revoked', 'yes', expires, null, null)
 }
 
 window.addEventListener('appinstalled', logAppInstalled);
@@ -102,7 +109,7 @@ function initializePushUI() {
     swRegistration.pushManager.getSubscription().then(function(subscription) {
         isSubscribed = !(subscription === null);
         let pushSubscription = localStorage.getItem('pushSubscription');
-        if (pushSubscription !== JSON.stringify(subscription)) updateSubscriptionOnServer(subscription);
+        if (subscription && (pushSubscription !== JSON.stringify(subscription))) updateSubscriptionOnServer(subscription);
         if (isSubscribed) {
             console.log('User IS subscribed.');
         } else {

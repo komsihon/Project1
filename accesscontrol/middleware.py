@@ -106,7 +106,7 @@ class PWAMiddleware(object):
     2 - Bind the PWAProfile if Member is authenticated
     """
     def process_response(self, request, response):
-        from ikwen.core.utils import get_device_type
+        from ikwen.core.utils import get_device_type, get_service_instance
         from ikwen.accesscontrol.models import PWAProfile
         if request.GET.get('__pwa'):
             pwa_profile_id = request.COOKIES.get('pwa_profile_id')
@@ -124,7 +124,7 @@ class PWAMiddleware(object):
             if request.user.is_authenticated():
                 member = request.user
                 if pwa_profile_id and not pwa_profile.member:
-                    PWAProfile.objects.filter(member=member, device_type=device_type).delete()
+                    PWAProfile.objects.filter(service=get_service_instance(), member=member, device_type=device_type).delete()
                 pwa_profile.member = member
             pwa_profile.save()
 

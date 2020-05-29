@@ -1,0 +1,24 @@
+{% load i18n static %}
+<div class="container-fluid alert alert-info install-promotion edge-menu" role="alert" style="display: none">
+    <div>
+        <div class="col-xs-3" style="padding: 0">
+            <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}" class="img-responsive" />
+        </div>
+        <div class="col-xs-9">
+        {% if user.is_authenticated %}
+            <strong>{% blocktrans %}Hey {{ user }} !{% endblocktrans %}</strong><br>
+        {% else %}
+            <strong>{{ service.project_name }}</strong><br>
+        {% endif %}
+            {% trans "Want easier and faster access? Get the app now." %}
+        </div>
+    </div>
+    <div>
+        <div class="pull-right action">
+            <span class="text-muted close" data-dismiss="alert" aria-label="Close">{% trans "Not now" %}</span>
+            <button type="button" class="btn install-pwa">{% trans "Install" %}</button>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+</div>
+

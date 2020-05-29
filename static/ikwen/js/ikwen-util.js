@@ -535,5 +535,22 @@
         }).disableSelection();
     };
 
+    window.addEventListener("beforeunload", (e) => {
+        $('#network-manager').show();
+    });
+    window.onload = function() {
+        $('#network-manager .progress-bar').animate({width: '100%'}, 100);
+        $('#network-manager').hide().find('.progress-bar').css({width: '30%'});
+    };
+
+    let standaloneiOS = (window.navigator.standalone === true);
+    let standaloneChrome = (window.matchMedia('(display-mode: standalone)').matches);
+    if (standaloneChrome || standaloneiOS) {
+        let val = c.CookieUtil.get('is_using_pwa');
+        if (!val) {
+            ikwen.CookieUtil.set('is_using_pwa', 'yes', null, null, null, 'secure');  // Mark that user is on the PWA during this session
+        }
+    }
+
     w.ikwen = c; /*Creating the namespace ikwen for all this*/
 })(window);

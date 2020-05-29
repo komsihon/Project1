@@ -1,0 +1,31 @@
+/**
+    Document    : pwa
+    Created on  : May 29, 2020, 13:17
+    Contributors: Kom Sihon
+                  Wilfried Futchea
+    Description :
+        Rules for PWA-related widgets
+*/
+
+.install-promotion.simple-button {margin-top: 55px; margin-bottom: 5vh}
+.install-promotion.simple-button .install-pwa {min-width: 100px; padding-top: 5px; padding-bottom: 5px}
+
+.install-promotion.edge-menu {border-radius: 0; margin-top: 3vh}
+.install-promotion.edge-menu .install-pwa {background: #2196F3; border-color: #2196F3; color: #fff; margin-left: 5vw;min-width: 100px}
+.install-promotion.edge-menu .action {margin-top: 2vh}
+
+.install-promotion.banner {border-radius: 0;margin-top: 3vh;padding: 15px 10px;}
+.install-promotion.banner .install-pwa {background: #2196F3; border-color: #2196F3; color: #fff; margin-top: 1vh}
+
+#pwa-overlay {background: rgba(0, 0, 0, .8);color: #fff;font-weight: 600;display: none;height: 100%;overflow: hidden;padding-top: 30px;position: fixed;top: 0;width: 100%;z-index: 1000;}
+
+#network-manager {height: 0; width: 0;position: fixed}
+
+@media all and (display-mode: standalone) {
+    #network-manager {height: 2px;left: 0;position: fixed;top: 0;width: 100%;z-index: 1000000;}
+    #network-manager .progress-bar {background: #3498db}
+}
+
+@media (min-width: 992px) {
+    .install-promotion {display: none !important;}
+}

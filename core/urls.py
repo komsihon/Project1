@@ -15,7 +15,8 @@ from ikwen.accesscontrol.views import SignIn, SignInMinimal, AccountSetup, updat
     join, set_collaborator_permissions, move_member_to_group, toggle_member, \
     list_collaborators, MemberList, deny_access, Register, StaffWithoutPermission, \
     staff_router, SetNewPasswordSMSRecovery, upload_contacts_file
-from ikwen.accesscontrol.utils import EmailConfirmationPrompt, ConfirmEmail, PhoneConfirmation, is_staff
+from ikwen.accesscontrol.utils import EmailConfirmationPrompt, ConfirmEmail, PhoneConfirmation, is_staff, \
+    update_push_subscription
 from ikwen.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, \
     ServiceExpired, reset_notices_counter, get_queued_sms, LegalMentions, TermsAndConditions, Configuration, \
     upload_customization_image, list_projects, upload_image, load_event_content, SentEmailLog, SentEmailDetail
@@ -46,9 +47,9 @@ urlpatterns = patterns(
     '',
     url(r'^logout$', 'django.contrib.auth.views.logout', {'next_page': logout_redirect_url}, name=LOGOUT),
     url(r'^signOut$', 'django.contrib.auth.views.logout', {'next_page': logout_redirect_url}),
-    url(r'^signIn/$', SignInMinimal.as_view(), name=SIGN_IN),
-    url(r'^doSignIn/$', SignIn.as_view(), name=DO_SIGN_IN),
-    url(r'^register/$', Register.as_view(), name=REGISTER),
+    url(r'^signIn$', SignInMinimal.as_view(), name=SIGN_IN),
+    url(r'^doSignIn$', SignIn.as_view(), name=DO_SIGN_IN),
+    url(r'^register$', Register.as_view(), name=REGISTER),
     url(r'^phoneConfirmation/$', login_required(PhoneConfirmation.as_view()), name=PHONE_CONFIRMATION),
     url(r'^emailConfirmation/$', login_required(EmailConfirmationPrompt.as_view()), name=EMAIL_CONFIRMATION),
     url(r'^confirmEmail/(?P<uidb64>[-\w]+)/(?P<token>[-\w]+)/$', ConfirmEmail.as_view(), name=CONFIRM_EMAIL),
@@ -104,6 +105,7 @@ urlpatterns = patterns(
 
     url(r'^PWAConfig$', permission_required('accesscontrol.sudo')(PWAConfig.as_view()), name='pwa_config'),
     url(r'^analytics$', analytics, name='analytics'),
+    url(r'^update_push_subscription$', update_push_subscription),
 
     url(r'^(?P<project_name_slug>[-\w]+)/$', CompanyProfile.as_view(), name='company_profile'),
 )

@@ -198,6 +198,9 @@ class SignIn(TemplateView):
     template_name = 'accesscontrol/sign_in.html'
 
     def get(self, request, *args, **kwargs):
+        if kwargs.get('template_name'):
+            self.template_name = kwargs.get('template_name')
+
         if request.user.is_authenticated():
             next_url = request.REQUEST.get('next')
             if next_url:

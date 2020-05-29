@@ -14,7 +14,7 @@ if (workbox) {
 
 workbox.core.setCacheNameDetails({
   prefix: 'ikwen',
-  suffix: 'v1',
+  suffix: 'v2',
   precache: 'install-time',
   runtime: 'run-time',
   googleAnalytics: 'ga',
@@ -70,7 +70,7 @@ workbox.routing.registerRoute(
 );
 
 const CACHE_NAME = 'offline-html';
-const FALLBACK_HTML_URL = '/ikwen/offline.html';
+const FALLBACK_HTML_URL = '/offline.html';
 
 self.addEventListener('install', async (event) => {
   event.waitUntil(

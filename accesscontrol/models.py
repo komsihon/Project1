@@ -315,6 +315,7 @@ class Member(AbstractUser):
 
 
 class PWAProfile(Model):
+    service = models.ForeignKey(Service, default=get_service_instance)
     member = models.ForeignKey(Member, blank=True, null=True)
     device_type = models.CharField(max_length=100, choices=DEVICE_FAMILY_CHOICES, db_index=True)
     installed_on = models.DateTimeField(blank=True, null=True, db_index=True)

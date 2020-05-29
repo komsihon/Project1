@@ -1,0 +1,19 @@
+{% load i18n static %}
+<div class="alert alert-info alert-dismissible install-promotion banner" role="alert" style="display: none">
+    <div class="col-xs-1" style="padding: 0">
+        <button type="button" class="pull-left close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    </div>
+    <div class="col-xs-8" style="padding: 0 10px 0 0">
+        {% if user.is_authenticated %}
+            <strong>{% blocktrans %}Hey {{ user }} !{% endblocktrans %}</strong><br>
+        {% else %}
+            <strong>{{ service.project_name }}</strong><br>
+        {% endif %}
+        {% trans "Want easier and faster access? Get the app now." %}
+    </div>
+    <div class="col-xs-3" style="padding: 0">
+        <button type="button" class="btn btn-success install-pwa btn-block">{% trans "Install" %}</button>
+    </div>
+    <div class="clearfix"></div>
+</div>
+

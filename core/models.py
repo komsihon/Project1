@@ -785,6 +785,7 @@ class Config(AbstractConfig):
                 obj_mirror.is_standalone = self.is_standalone
                 obj_mirror.can_manage_currencies = self.can_manage_currencies
                 obj_mirror.sms_api_script_url = self.sms_api_script_url
+                obj_mirror.is_pwa_ready = self.is_pwa_ready
                 super(Config, obj_mirror).save(using=db)
             except Config.DoesNotExist:
                 pass

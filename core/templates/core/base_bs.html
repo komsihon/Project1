@@ -12,7 +12,7 @@
 		{% block head_style %}
             <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
             <link rel='stylesheet' href="{% static 'ikwen/css/flatly.bootstrap.min.css' %}" />
-            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}?v=20.5.21" />
+            <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}?v=20.5.29" />
 		{% endblock %}
         {% block head_js %}
             <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -265,7 +265,7 @@
         </div>
         {% block js %}
             <script src="{% static 'ikwen/js/bootstrap.min.js' %}"></script>
-            <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=20.4.22.19"></script>
+            <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=20.5.29"></script>
             <script src="{% static 'ikwen/hammerjs/hammer.min.js' %}"></script>
             <script src="{% static 'ikwen/hammerjs/jquery.hammer.js' %}"></script>
             <script>
@@ -318,13 +318,6 @@
                     }];
                     $('form#search input').focusout(function() {$('#navbar-results').fadeOut()});
                     ikwen.setupSearch('#search input', '#navbar-results', searchDescriptor);
-                    window.addEventListener("beforeunload", (e) => {
-                        $('#network-manager').show();
-                    });
-                    window.onload = function() {
-                        $('#network-manager .progress-bar').animate({width: '100%'}, 100);
-                        $('#network-manager').hide().find('.progress-bar').css({width: '30%'});
-                    };
                 })()
             </script>
         {% endblock %}
