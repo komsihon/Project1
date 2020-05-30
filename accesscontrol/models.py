@@ -322,6 +322,10 @@ class PWAProfile(Model):
     subscribed_to_push_on = models.DateTimeField(blank=True, null=True, db_index=True)
     push_subscription = models.TextField(blank=True, null=True)
 
+    class Meta:
+        db_table = 'ikwen_pwa_profile'
+        unique_together = ('service', 'member', 'device_type')
+
 
 class OfficialIdentityDocument(Model):
     member = models.ForeignKey(Member, db_index=True)

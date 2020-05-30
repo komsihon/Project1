@@ -44,7 +44,7 @@ def analytics(request, *args, **kwargs):
             PWAProfile.objects.filter(service=get_service_instance(), member=member, device_type=device_type).delete()
         pwa_profile.member = member
     if action == 'log_pwa_install':
-        pwa_profile.installed_pwa_on = now
+        pwa_profile.installed_on = now
         notify_pwa_install(pwa_profile.member)
     pwa_profile.save()
 
@@ -94,7 +94,7 @@ def notify_pwa_install(member):
         }
 
         try:
-            pwa_profile = PWAProfile.objects.using(UMBRELLA).get(member=staff)
+            pwa_profile = PWAProfile.objects.using(UMBRELLA).filter(member=staff).order_by('device_type')[0]
             webpush(json.loads(pwa_profile.push_subscription), json.dumps(notification),
                     vapid_private_key=ikwen_settings.PUSH_PRIVATE_KEY,
                     vapid_claims={"sub": "mailto:ikwen.cm@gmail.com"})

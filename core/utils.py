@@ -5,10 +5,12 @@ import random
 import re
 import logging
 import string
+import time
 import traceback
 from copy import deepcopy
 from datetime import datetime, timedelta, date
 
+import pymongo
 import requests
 from PIL import Image
 from ajaxuploader.backends.local import LocalUploadBackend
@@ -24,6 +26,7 @@ from django.template import Context
 from django.template.defaultfilters import urlencode, slugify
 from django.template.loader import get_template
 from django.utils import timezone
+from pymongo import MongoClient
 from pywebpush import webpush
 
 from ikwen.conf import settings as ikwen_settings
@@ -256,7 +259,7 @@ def send_sms(recipient, text, label=None, script_url=None, fail_silently=True):
             logger.debug('SMS submitted to %s through %s' % (recipient, base_url))
 
 
-def send_push(subscription_or_member, title, body, target_page=None, image_url=None, fail_silently=False):
+def send_push(subscription_or_member, title, body, target_page=None, image_url=None):
     """
     Submits a push notification
 
@@ -265,46 +268,41 @@ def send_push(subscription_or_member, title, body, target_page=None, image_url=N
     :param body: Body text of the notification
     :param target_page: URI of the target page, not an absolute URL
     :param image_url: Absolute URL of the image
-    :param fail_silently: If True, failure to submit does not raise any exception
-    :return: 1 if successfully submitted, 0 otherwise
+    :return: number of push successfully submitted, 0 if none was submitted
     """
     from ikwen.accesscontrol.models import Member, PWAProfile
     service = get_service_instance()
     config = service.config
     if type(subscription_or_member) == Member:
-        try:
-            pwa_profile = PWAProfile.objects.get(member=subscription_or_member)
-            push_subscription = pwa_profile.push_subscription
-        except:
-            return 0
+        push_subscription_list = [pwa_profile.push_subscription
+                                  for pwa_profile in PWAProfile.objects.filter(member=subscription_or_member)]
     else:
-        push_subscription = subscription_or_member
+        push_subscription_list = [subscription_or_member]
 
     notification = {
         'title': title,
         'body': body,
         'target': target_page,
-        'badge': getattr(settings, 'MEDIA_URL') + config.badge.name,
-        'icon': getattr(settings, 'MEDIA_URL') + 'icons/android-icon-512x512.png'
+        'icon': getattr(settings, 'MEDIA_URL') + 'icons/android-icon-512x512.png',
+        'timestamp': int(time.time()) * 1000
     }
+    if config.badge.name:
+        notification['badge'] = getattr(settings, 'MEDIA_URL') + config.badge.name
     if image_url:
         notification['image'] = image_url
-    if fail_silently:
+    submitted = 0
+    for push_subscription in push_subscription_list:
         try:
             webpush(json.loads(push_subscription), json.dumps(notification),
                     vapid_private_key=ikwen_settings.PUSH_PRIVATE_KEY,
                     vapid_claims={"sub": "mailto: support@ikwen.com"})
+            submitted += 1
         except:
             if type(subscription_or_member) == Member:
                 logger.error("%s - Failed to send push %s to %s" % (service.project_name, title, subscription_or_member.username), exc_info=True)
             else:
                 logger.error("%s - Failed to send push %s" % (service.project_name, title), exc_info=True)
-            return 0
-    else:
-        webpush(json.loads(push_subscription), json.dumps(notification),
-                vapid_private_key=ikwen_settings.PUSH_PRIVATE_KEY,
-                vapid_claims={"sub": "mailto: support@ikwen.com"})
-    return 1
+    return submitted
 
 
 class DefaultUploadBackend(LocalUploadBackend):
@@ -850,6 +848,19 @@ def get_device_type(request):
         return TABLET
     return PC
 
+
 def setup_pwa(service):
     service.activate_ssl()
     service.generate_pwa_manifest()
+
+    # Add index to ikwen_pwa_profile collection
+    host = getattr(settings, 'DATABASES')['default'].get('HOST', '127.0.0.1')
+    port = getattr(settings, 'DATABASES')['default'].get('PORT', 27017)
+
+    client = MongoClient(host, port)
+    dbh = client[service.database]
+    dbh.ikwen_pwa_profile.create_index([('service_id', pymongo.ASCENDING)])
+    dbh.ikwen_pwa_profile.create_index([('member_id', pymongo.ASCENDING)])
+    dbh.ikwen_pwa_profile.create_index([('device_type', pymongo.ASCENDING)])
+    dbh.ikwen_pwa_profile.create_index([('installed_on', pymongo.ASCENDING)])
+    dbh.ikwen_pwa_profile.create_index([('subscribed_to_push_on', pymongo.ASCENDING)])

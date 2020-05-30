@@ -24,6 +24,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode, base36_to_int
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from permission_backend_nonrel.models import UserPermissionList, GroupPermissionList
 
@@ -701,6 +702,7 @@ def import_contacts(filename, dry_run=True):
     return error
 
 
+@csrf_exempt
 def update_push_subscription(request, *args, **kwargs):
     """
     Saves the user push subscription to the Database

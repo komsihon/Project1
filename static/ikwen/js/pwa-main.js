@@ -121,11 +121,11 @@ function initializePushUI() {
 
 function updateWidget() {
     if (isSubscribed) {
-        $('.push-subscribe').hide();
+        $('.push-subscribe').remove();
         $('.push-unsubscribe').show();
     } else {
         $('.push-subscribe').show();
-        $('.push-unsubscribe').hide();
+        $('.push-unsubscribe').remove();
     }
 }
 
@@ -158,8 +158,8 @@ function updateSubscriptionOnServer(subscription) {
         url: '/update_push_subscription',
         method: 'POST',
         data: {value: JSON.stringify(subscription)},
-        success: function() {
-            localStorage.setItem('pushSubscription', JSON.stringify(subscription));
+        success: function(resp) {
+            if (resp.success) localStorage.setItem('pushSubscription', JSON.stringify(subscription));
         }
     });
 }
