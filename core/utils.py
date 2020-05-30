@@ -256,15 +256,27 @@ def send_sms(recipient, text, label=None, script_url=None, fail_silently=True):
             logger.debug('SMS submitted to %s through %s' % (recipient, base_url))
 
 
-def send_push(subscription_or_member, title, body, target_page=None, image_url=None):
+def send_push(subscription_or_member, title, body, target_page=None, image_url=None, fail_silently=False):
+    """
+    Submits a push notification
+
+    :param subscription_or_member: Either a value contained in accesscontrol.PWAProfile.push_subscription or a Member object
+    :param title: Title of the Notification
+    :param body: Body text of the notification
+    :param target_page: URI of the target page, not an absolute URL
+    :param image_url: Absolute URL of the image
+    :param fail_silently: If True, failure to submit does not raise any exception
+    :return: 1 if successfully submitted, 0 otherwise
+    """
     from ikwen.accesscontrol.models import Member, PWAProfile
-    config = get_service_instance().config
+    service = get_service_instance()
+    config = service.config
     if type(subscription_or_member) == Member:
         try:
             pwa_profile = PWAProfile.objects.get(member=subscription_or_member)
             push_subscription = pwa_profile.push_subscription
         except:
-            return
+            return 0
     else:
         push_subscription = subscription_or_member
 
@@ -277,12 +289,22 @@ def send_push(subscription_or_member, title, body, target_page=None, image_url=N
     }
     if image_url:
         notification['image'] = image_url
-    try:
+    if fail_silently:
+        try:
+            webpush(json.loads(push_subscription), json.dumps(notification),
+                    vapid_private_key=ikwen_settings.PUSH_PRIVATE_KEY,
+                    vapid_claims={"sub": "mailto: support@ikwen.com"})
+        except:
+            if type(subscription_or_member) == Member:
+                logger.error("%s - Failed to send push %s to %s" % (service.project_name, title, subscription_or_member.username), exc_info=True)
+            else:
+                logger.error("%s - Failed to send push %s" % (service.project_name, title), exc_info=True)
+            return 0
+    else:
         webpush(json.loads(push_subscription), json.dumps(notification),
                 vapid_private_key=ikwen_settings.PUSH_PRIVATE_KEY,
-                vapid_claims={"sub": "mailto:" + config.contact_email})
-    except:
-        pass
+                vapid_claims={"sub": "mailto: support@ikwen.com"})
+    return 1
 
 
 class DefaultUploadBackend(LocalUploadBackend):
@@ -827,3 +849,7 @@ def get_device_type(request):
     if request.user_agent.is_tablet:
         return TABLET
     return PC
+
+def setup_pwa(service):
+    service.activate_ssl()
+    service.generate_pwa_manifest()

@@ -58,7 +58,7 @@ def analytics(request, *args, **kwargs):
 
 def notify_pwa_install(member):
     service = get_service_instance()
-    install_count = PWAProfile.objects.filter(installed_pwa_on__isnull=False).count()
+    install_count = PWAProfile.objects.filter(service=service, installed_on__isnull=False).count()
     if member:
         member_detail_view = getattr(settings, 'MEMBER_DETAIL_VIEW', None)
         if member_detail_view:
@@ -76,12 +76,14 @@ def notify_pwa_install(member):
 
         if member:
             title = member.full_name
-            body = _("This customer just installed you app. You can call or text to say thank you. \n"
-                     "Now you have your app installed by %d people" % install_count)
+            body = _("This customer just installed you app %(app_name)s. You can call or text to say thank you. \n"
+                     "Now you have your app installed by %(install_count)d people" % {'app_name': service.project_name,
+                                                                                      'install_count': install_count})
         else:
             title = _("New app install")
-            body = _("An anonymous visitor just installed your app. \n"
-                     "Now you have it installed by %d people" % install_count)
+            body = _("An anonymous visitor just installed your app %(app_name)s. \n"
+                     "Now you have it installed by %(install_count)d people" % {'app_name': service.project_name,
+                                                                                'install_count': install_count})
 
         notification = {
             'title': title,
