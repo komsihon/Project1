@@ -67,7 +67,7 @@ class ServiceAdmin(admin.ModelAdmin):
     list_select_related = ('app', 'member', )
     raw_id_fields = ('member', )
     search_fields = ('project_name', )
-    list_filter = ('app', 'version', 'expiry', 'since', 'status', 'is_public', )
+    list_filter = ('app', 'version', 'expiry', 'since', 'status', 'is_public', 'is_pwa_ready',)
     ordering = ('-id', )
     readonly_fields = ('retailer', 'since',
                        'total_turnover', 'total_earnings', 'total_transaction_earnings', 'total_custom_service_earnings',
@@ -147,7 +147,7 @@ class ServiceAdmin(admin.ModelAdmin):
 if getattr(settings, 'IS_IKWEN', False):
     _list_display = ('service', 'company_name', 'short_description', 'contact_email', 'contact_phone')
     _general_fields = ('service', 'company_name', 'short_description', 'slogan', 'description',
-                       'currency_code', 'currency_symbol', 'is_pro_version', 'is_standalone', 'is_pwa_ready')
+                       'currency_code', 'currency_symbol', 'is_pro_version', 'is_standalone')
 else:
     _list_display = ('company_name', 'short_description', 'contact_email', 'contact_phone')
     _general_fields = ('company_name', 'short_description', 'slogan',

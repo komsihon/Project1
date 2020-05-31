@@ -203,6 +203,8 @@ class Service(models.Model):
                                  help_text=_("URL of the service's admin panel. WRITE IT WITHOUT A TRAILING SLASH"))
     has_ssl = models.BooleanField(default=False,
                                   help_text=_("If true, it means the service has its SSL Certificate installed."))
+    is_pwa_ready = models.BooleanField(default=False,
+                                       help_text=_("True when everything is set to get the PWA working"))
     api_signature = models.CharField(_("API Signature"), max_length=60, unique=True,
                                      help_text="Use it in your http API calls. More on "
                                                "<a href='http://support.ikwen.com/generic/APISignature'>"
@@ -350,9 +352,10 @@ class Service(models.Model):
         save(using=database).
         """
         using = kwargs.pop('using', 'default')
-        if getattr(settings, 'IS_IKWEN', False):
+        if getattr(settings, 'IS_IKWEN', False) and using != self.database:
             # If we are on Ikwen itself, replicate save or update on the current Service database
             add_database_to_settings(self.database)
+            super(Service, self).save(using=self.database, *args, **kwargs)
             if not self.id:
                 # Upon creation of a Service object. Add the member who owns it in the
                 # Service's database as a staff, then increment operators_count for the Service.app
@@ -431,13 +434,22 @@ class Service(models.Model):
 
     def activate_ssl(self, is_naked_domain=True):
         """
-        Creates and activate an SSL Certificate for the domain
+        Creates and activates an SSL Certificate for the domain
         """
         if "go.ikwen.com" in self.url:
             return
 
-        subprocess.call(['sudo', 'certbot', 'certonly', '--apache', '-d', self.domain])
+        from ikwen.core.log import ikwen_error_log_filename
+        eh = open(ikwen_error_log_filename)
+        if is_naked_domain:  # Generate certificate for the raw domain and www
+            val = subprocess.call(['sudo', 'certbot', 'certonly', '--apache',
+                                   '-d', self.domain, '-d', 'www.' + self.domain], stderr=eh)
+        else:
+            val = subprocess.call(['sudo', 'certbot', 'certonly', '--apache', '-d', self.domain], stderr=eh)
 
+        if val != 0:
+            eh.close()
+            raise OSError("Failed to generate and install SSL certificate for %s" % self.domain)
         web_server_config_template = '%s/cloud_setup/apache_ssl.conf.html' % self.app.slug
         apache_tpl = get_template(web_server_config_template)
         apache_context = Context({'is_naked_domain': is_naked_domain, 'domain': self.domain, 'ikwen_name': self.project_name_slug})
@@ -450,7 +462,7 @@ class Service(models.Model):
         self.has_ssl = True
         db = self.database
         add_database_to_settings(db)
-        self.save()
+        self.save(using='umbrella')
         self.save(using=db)
         from ikwen.core.tools import reload_server
         Thread(target=reload_server).start()
@@ -684,8 +696,6 @@ class AbstractConfig(Model):
     register_with_dob = models.BooleanField(default=False,
                                             help_text=_("If checked, visitors will be asked for date of birth upon "
                                                         "registration."))
-    is_pwa_ready = models.BooleanField(default=False,
-                                       help_text=_("True when everything is set to get the PWA working"))
     decimal_precision = models.IntegerField(default=2)
     can_manage_currencies = models.BooleanField(default=False)
     last_currencies_rates_update = models.DateTimeField(editable=False, null=True)

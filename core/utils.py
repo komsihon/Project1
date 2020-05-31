@@ -849,8 +849,8 @@ def get_device_type(request):
     return PC
 
 
-def setup_pwa(service):
-    service.activate_ssl()
+def setup_pwa(service, is_naked_domain=True):
+    service.activate_ssl(is_naked_domain)
     service.generate_pwa_manifest()
 
     # Add index to ikwen_pwa_profile collection
@@ -864,3 +864,6 @@ def setup_pwa(service):
     dbh.ikwen_pwa_profile.create_index([('device_type', pymongo.ASCENDING)])
     dbh.ikwen_pwa_profile.create_index([('installed_on', pymongo.ASCENDING)])
     dbh.ikwen_pwa_profile.create_index([('subscribed_to_push_on', pymongo.ASCENDING)])
+
+    service.is_pwa_ready = True
+    service.save()

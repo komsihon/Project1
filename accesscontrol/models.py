@@ -324,7 +324,6 @@ class PWAProfile(Model):
 
     class Meta:
         db_table = 'ikwen_pwa_profile'
-        unique_together = ('service', 'member', 'device_type')
 
 
 class OfficialIdentityDocument(Model):
