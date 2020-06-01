@@ -440,7 +440,7 @@ class Service(models.Model):
             return
 
         from ikwen.core.log import ikwen_error_log_filename
-        eh = open(ikwen_error_log_filename)
+        eh = open(ikwen_error_log_filename, 'a')
         if is_naked_domain:  # Generate certificate for the raw domain and www
             val = subprocess.call(['sudo', 'certbot', 'certonly', '--apache',
                                    '-d', self.domain, '-d', 'www.' + self.domain], stderr=eh)
