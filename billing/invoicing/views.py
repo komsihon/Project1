@@ -91,6 +91,7 @@ class SubscriptionList(HybridListView):
     ordering = ('-id', )
     list_filter = ('product', 'status', ('since', _("Subs. Date")), 'expiry')
     context_object_name = 'subscription_list'
+    change_object_url_name = 'billing:change_subscription'
     template_name = 'billing/subscription_list.html'
     html_results_template_name = 'billing/snippets/subscription_list_results.html'
     show_import = True

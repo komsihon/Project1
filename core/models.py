@@ -276,8 +276,8 @@ class Service(models.Model):
     ikwen_name = property(_get_ikwen_name, _set_ikwen_name)
 
     def _get_go_url(self):
-        if self.project_name_slug == 'ikwen':
-            return self.url
+        if self.project_name_slug in ['ikwen', 'foulassi', 'daraja']:
+            return 'https://' + self.domain
         return 'https://go.ikwen.com/' + self.project_name_slug
     go_url = property(_get_go_url)
 
@@ -439,6 +439,8 @@ class Service(models.Model):
         if "go.ikwen.com" in self.url:
             return
 
+        subprocess.call(['sudo', 'unlink', '/etc/apache2/sites-enabled/' + self.domain + '.conf'])
+
         from ikwen.core.log import ikwen_error_log_filename
         eh = open(ikwen_error_log_filename, 'a')
         if is_naked_domain:  # Generate certificate for the raw domain and www
@@ -457,7 +459,6 @@ class Service(models.Model):
         fh.write(apache_tpl.render(apache_context))
         fh.close()
 
-        subprocess.call(['sudo', 'unlink', '/etc/apache2/sites-enabled/' + self.domain + '.conf'])
         subprocess.call(['sudo', 'ln', '-sf', self.home_folder + '/apache.conf', '/etc/apache2/sites-enabled/' + self.domain + '.conf'])
         self.has_ssl = True
         db = self.database
@@ -577,8 +578,8 @@ class Service(models.Model):
         manifest_template = 'core/cloud_setup/manifest.json.html'
         manifest_tpl = get_template(manifest_template)
         config = self.config
-        apache_context = Context({'project_name': self.project_name, 'ikwen_name': self.project_name_slug,
-                                  'short_description': config.short_description})
+        app_name = ' '.join([token.capitalize() for token in self.project_name.split(' ')])
+        apache_context = Context({'app_name': app_name, 'short_description': config.short_description})
         fh = open(self.home_folder + '/conf/manifest.json', 'w')
         fh.write(manifest_tpl.render(apache_context))
         fh.close()

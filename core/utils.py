@@ -272,7 +272,6 @@ def send_push(subscription_or_member, title, body, target_page=None, image_url=N
     """
     from ikwen.accesscontrol.models import Member, PWAProfile
     service = get_service_instance()
-    config = service.config
     if type(subscription_or_member) == Member:
         push_subscription_list = [pwa_profile.push_subscription
                                   for pwa_profile in PWAProfile.objects.filter(member=subscription_or_member)]
@@ -283,11 +282,10 @@ def send_push(subscription_or_member, title, body, target_page=None, image_url=N
         'title': title,
         'body': body,
         'target': target_page,
+        'badge': getattr(settings, 'MEDIA_URL') + 'icons/android-icon-96x96.png',
         'icon': getattr(settings, 'MEDIA_URL') + 'icons/android-icon-512x512.png',
         'timestamp': int(time.time()) * 1000
     }
-    if config.badge.name:
-        notification['badge'] = getattr(settings, 'MEDIA_URL') + config.badge.name
     if image_url:
         notification['image'] = image_url
     submitted = 0
@@ -295,7 +293,8 @@ def send_push(subscription_or_member, title, body, target_page=None, image_url=N
         try:
             webpush(json.loads(push_subscription), json.dumps(notification),
                     vapid_private_key=ikwen_settings.PUSH_PRIVATE_KEY,
-                    vapid_claims={"sub": "mailto: support@ikwen.com"})
+                    vapid_claims={"sub": "mailto: support@ikwen.com"},
+                    ttl=86400, timeout=60)
             submitted += 1
         except:
             if type(subscription_or_member) == Member:
@@ -725,11 +724,28 @@ def add_event(service, codename, member=None, group_id=None, object_id=None, mod
             event_type = ConsoleEventType.objects.using(UMBRELLA).get(codename=codename)
         except ConsoleEventType.DoesNotExist:
             event_type = ConsoleEventType.objects.using(UMBRELLA).create(app=service.app, codename=codename,
-                                                                         renderer='ikwen.core.views.default_renderer')
+                                                                         renderer='ikwen.core.utils.render_event')
     event = ConsoleEvent.objects.using(UMBRELLA).\
         create(service=service, member=member, group_id=group_id,
                event_type=event_type, model=model, object_id=object_id, object_id_list=object_id_list)
     return event
+
+
+def render_event(event, request):
+    """
+    Default event renderer
+    """
+    try:
+        model = get_model(event.model)
+        db = event.service.database
+        add_database(db)
+        obj = model.objects.using(db).get(pk=event.object_id)
+    except :
+        return ''
+    html_template = get_template('%s/events/%s.html' % (event.service.app.slug, event.event_type.codename.lower()))
+    context = {'event': event, 'obj': obj}
+    c = Context(context)
+    return html_template.render(c)
 
 
 def get_model_admin_instance(model, model_admin):

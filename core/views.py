@@ -298,7 +298,7 @@ def load_event_content(request, *args, **kwargs):
     event_id = request.GET['event_id']
     callback = request.GET['callback']
     try:
-        event = ConsoleEvent.objects.using(UMBRELLA).select_related('service, member, event_type').get(pk=event_id)
+        event = ConsoleEvent.objects.using(UMBRELLA).select_related('service', 'member', 'event_type').get(pk=event_id)
         response = {'html': event.render(request)}
     except ConsoleEvent.DoesNotExist:
         response = {'html': ''}

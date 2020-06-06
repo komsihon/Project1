@@ -12,6 +12,7 @@ from django.utils.translation import ugettext as _, activate
 from pywebpush import webpush
 
 from ikwen.conf import settings as ikwen_settings
+from ikwen.core.models import Service
 from ikwen.core.utils import get_service_instance, get_mail_content, get_device_type
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.accesscontrol.models import PWAProfile, Member
@@ -89,16 +90,22 @@ def notify_pwa_install(member):
             'title': title,
             'body': body,
             'target': target_page,
-            'badge': ikwen_settings.MEDIA_URL + 'img/push-badge.png',
+            'badge': ikwen_settings.MEDIA_URL + 'icons/android-icon-96x96.png',
             'icon': ikwen_settings.MEDIA_URL + 'icons/android-icon-512x512.png'
         }
 
-        try:
-            pwa_profile = PWAProfile.objects.using(UMBRELLA).filter(member=staff).order_by('device_type')[0]
-            webpush(json.loads(pwa_profile.push_subscription), json.dumps(notification),
-                    vapid_private_key=ikwen_settings.PUSH_PRIVATE_KEY,
-                    vapid_claims={"sub": "mailto:ikwen.cm@gmail.com"})
-        except:
+        ikwen = Service.objects.using(UMBRELLA).get(pk=ikwen_settings.IKWEN_SERVICE_ID)
+        qs = PWAProfile.objects.using(UMBRELLA).filter(service=ikwen, member=staff)
+        if qs.count() > 0:
+            for pwa_profile in qs:
+                try:
+                    webpush(json.loads(pwa_profile.push_subscription), json.dumps(notification),
+                            vapid_private_key=ikwen_settings.PUSH_PRIVATE_KEY,
+                            vapid_claims={"sub": "mailto:ikwen.cm@gmail.com"},
+                            ttl=86400, timeout=60)
+                except:
+                    pass
+        else:
             try:
                 extra_context = {'member_name': staff.first_name, 'message': body}
                 if target_page:

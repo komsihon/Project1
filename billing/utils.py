@@ -563,7 +563,8 @@ def set_dara_stats(partner_original, service_partner, invoice, dara_earnings):
         html_content = get_mail_content(subject, template_name='daraja/mails/new_transaction.html',
                                         extra_context={'currency_symbol': config.currency_symbol, 'amount': invoice.amount,
                                                        'dara_earnings': dara_earnings,
-                                                       'transaction_time': invoice.updated_on.strftime('%Y-%m-%d %H:%M:%S'),
+                                                       'tx_date': invoice.updated_on.strftime('%Y-%m-%d'),
+                                                       'tx_time': invoice.updated_on.strftime('%H:%M:%S'),
                                                        'account_balance': partner_original.balance,
                                                        'dashboard_url': dashboard_url})
         sender = 'ikwen Daraja <no-reply@ikwen.com>'

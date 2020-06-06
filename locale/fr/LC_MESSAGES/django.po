@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-27 17:27+0100\n"
-"PO-Revision-Date: 2020-05-27 17:33+0100\n"
+"POT-Creation-Date: 2020-05-30 17:19+0100\n"
+"PO-Revision-Date: 2020-06-06 11:54+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -135,36 +135,36 @@ msgstr ""
 "Indique si ce numéro de téléphone a été vérifié en envoyant un code de "
 "confirmation par SMS."
 
-#: accesscontrol/models.py:365
+#: accesscontrol/models.py:366
 msgid "This person would like to have access and collaborate with you"
 msgstr "Cette personne aimerait  avoir accès et collaborer avec vous"
 
-#: accesscontrol/models.py:366
+#: accesscontrol/models.py:367
 msgid "This person would like to have access to your services"
 msgstr "Cette personne aimerait avoir accès à vos services"
 
-#: accesscontrol/tests_auth.py:425 accesscontrol/views.py:537
+#: accesscontrol/tests_auth.py:425 accesscontrol/views.py:540
 msgid "This e-mail already exists."
 msgstr "Cet email existe déjà."
 
-#: accesscontrol/tests_auth.py:435 accesscontrol/views.py:546
+#: accesscontrol/tests_auth.py:435 accesscontrol/views.py:549
 msgid "This phone already exists."
 msgstr "Ce numéro de téléphone existe déjà."
 
-#: accesscontrol/tests_auth.py:455 accesscontrol/views.py:563
+#: accesscontrol/tests_auth.py:455 accesscontrol/views.py:566
 msgid "Your information were successfully updated."
 msgstr "Vos informations ont été mises à jour avec succès."
 
-#: accesscontrol/tests_auth.py:477 accesscontrol/views.py:586
+#: accesscontrol/tests_auth.py:477 accesscontrol/views.py:589
 msgid "The current password is incorrect!"
 msgstr "Le mot de passe actuel est incorrect!"
 
-#: accesscontrol/tests_auth.py:487 accesscontrol/views.py:581
+#: accesscontrol/tests_auth.py:487 accesscontrol/views.py:584
 msgid "Passwords don't match."
 msgstr "Les mots de passe diffèrent."
 
-#: accesscontrol/tests_auth.py:493 accesscontrol/views.py:578
-#: accesscontrol/views.py:584
+#: accesscontrol/tests_auth.py:493 accesscontrol/views.py:581
+#: accesscontrol/views.py:587
 msgid "Your password was successfully updated."
 msgstr "Votre mot de passe a été mis à jour avec succès."
 
@@ -175,12 +175,12 @@ msgstr "Bienvenue chez %s"
 
 #: accesscontrol/utils.py:171 accesscontrol/utils.py:183
 #: accesscontrol/utils.py:266 accesscontrol/utils.py:284
-#: accesscontrol/views.py:470 accesscontrol/views.py:482
+#: accesscontrol/views.py:473 accesscontrol/views.py:485
 msgid "Could not send code. Please try again later"
 msgstr "Impossible d'envoyer le code. Réessayez plutard"
 
 #: accesscontrol/utils.py:193 accesscontrol/utils.py:292
-#: accesscontrol/views.py:496
+#: accesscontrol/views.py:499
 msgid "Invalid code. Please try again"
 msgstr "Code invalide. Réessayez SVP"
 
@@ -313,38 +313,38 @@ msgstr ""
 "Vous avez déjà un compte sur ikwen avec ce nom d'utilisateur. Il a été créé "
 "sur %s. Utilisez-le pour vous connecter."
 
-#: accesscontrol/views.py:259
+#: accesscontrol/views.py:262
 msgid "Invalid username/password or account inactive"
 msgstr "Nom d'utilisateur/mot de passe invalide ou compte inactif"
 
-#: accesscontrol/views.py:421 accesscontrol/views.py:513
+#: accesscontrol/views.py:424 accesscontrol/views.py:516
 msgid "Password successfully reset."
 msgstr "Mot de passe réinitialisé."
 
-#: accesscontrol/views.py:502
+#: accesscontrol/views.py:505
 msgid "Passwords mismatch. Please try again"
 msgstr "Les mots de passe diffèrent. Bien vouloir réessayer"
 
-#: accesscontrol/views.py:817
+#: accesscontrol/views.py:820
 msgid "This email already exists. The person was sent an invitation mail"
 msgstr "Cet email existe déjà. La personne a été invitée par mail"
 
-#: accesscontrol/views.py:829 accesscontrol/views.py:836
+#: accesscontrol/views.py:832 accesscontrol/views.py:839
 msgid "This phone already exists. The person was sent an invitation mail"
 msgstr "Ce numéro de téléphone existe déjà. La personne a été invitée par mail"
 
-#: accesscontrol/views.py:954 accesscontrol/views.py:1063
+#: accesscontrol/views.py:957 accesscontrol/views.py:1066
 msgid "You were added to our community. Thank you for joining us."
 msgstr ""
 "Vous avez été ajouté à notre communauté avec joie. Merci de nous avoir "
 "rejoint."
 
-#: accesscontrol/views.py:993
+#: accesscontrol/views.py:996
 #, python-format
 msgid "You just joined %s community"
 msgstr "Vous venez de rejoindre la communauté %s"
 
-#: accesscontrol/views.py:1034
+#: accesscontrol/views.py:1037
 #, python-format
 msgid ""
 "%(project_name)s is offering you %(count)d coupons for your referral to "
@@ -1124,7 +1124,7 @@ msgstr "Votre mot de passe a bien été réinitialisé, connectez-vous maintenan
 #: accesscontrol/templates/accesscontrol/sign_in.html:58
 #: accesscontrol/templates/accesscontrol/sign_in_minimal.html:41
 msgid "Login with <strong>ikwen</strong>"
-msgstr "Se connecter sur <strong> ikwen</strong>"
+msgstr "Se connecter avec <strong>ikwen</strong>"
 
 #: accesscontrol/templates/accesscontrol/sign_in.html:62
 #: accesscontrol/templates/accesscontrol/sign_in_minimal.html:134
@@ -1624,7 +1624,7 @@ msgstr "Hébergement"
 msgid "Project %s"
 msgstr "Projet %s"
 
-#: billing/crons.py:106 core/models.py:956
+#: billing/crons.py:106 core/models.py:957
 msgid "Continuous Rewarding"
 msgstr "Continuous Rewarding"
 
@@ -2880,26 +2880,26 @@ msgstr "Scripts externes"
 #: core/analytics.py:79
 #, python-format
 msgid ""
-"This customer just installed you app. You can call or text to say thank "
-"you. \n"
-"Now you have your app installed by %d people"
+"This customer just installed you app %(app_name)s. You can call or text to "
+"say thank you. \n"
+"Now you have your app installed by %(install_count)d people"
 msgstr ""
-"Ce client vient juste d'installer votre appli. Vous pourriez lui écrire ou "
-"l'appeler pour dire merci. \n"
-"À ce jour, vous comptez %d personnes qui l'ont installée"
+"Ce client vient juste d'installer votre appli %(app_name)s. Vous pourriez "
+"lui écrire ou l'appeler pour dire merci. \n"
+"À ce jour, vous comptez %(install_count)d personnes qui l'ont installée"
 
-#: core/analytics.py:82
+#: core/analytics.py:83
 msgid "New app install"
 msgstr "Nouvelle installation de votre appli"
 
-#: core/analytics.py:83
+#: core/analytics.py:84
 #, python-format
 msgid ""
-"An anonymous visitor just installed your app. \n"
-"Now you have it installed by %d people"
+"An anonymous visitor just installed your app %(app_name)s. \n"
+"Now you have it installed by %(install_count)d people"
 msgstr ""
-"Un visiteur non inscrit vient d'installer votre appli mobile. \n"
-"À ce jour, vous comptez %d personnes qui l'ont installée"
+"Un visiteur non inscrit vient d'installer votre appli mobile %(app_name)s. \n"
+"À ce jour, vous comptez %(install_count)d personnes qui l'ont installée"
 
 #: core/constants.py:8
 msgid "Confirmed"
@@ -2936,11 +2936,11 @@ msgstr "mis à jour avec succès"
 
 #: core/generic.py:719
 msgid "Invalid dimensions. Please upload a 512 x 512px image."
-msgstr ""
+msgstr "Dimensions incorrectes. Veuillez uploader une image de 512 x 512px."
 
 #: core/generic.py:734
 msgid "Invalid dimensions. Please upload a 1000 x 590px image."
-msgstr ""
+msgstr "Dimensions incorrectes. Veuillez uploader une image de 1000 x 590px."
 
 #: core/models.py:92
 msgid ""
@@ -3032,7 +3032,7 @@ msgstr "HTTP API"
 msgid "GSM Modem"
 msgstr "Modem GSM"
 
-#: core/models.py:588 core/models.py:799
+#: core/models.py:588 core/models.py:800
 msgid "balance"
 msgstr "solde"
 
@@ -3287,11 +3287,11 @@ msgstr ""
 msgid "Configurations of the platform"
 msgstr "Configurations de la plateforme"
 
-#: core/models.py:955
+#: core/models.py:956
 msgid "Transactional"
 msgstr "Transactionel"
 
-#: core/models.py:957
+#: core/models.py:958
 msgid "Revival"
 msgstr "Relance"
 
@@ -3600,7 +3600,7 @@ msgstr ""
 
 #: core/templates/core/pwa_config.html:5
 msgid "Android PWA"
-msgstr ""
+msgstr "Application Android"
 
 #: core/templates/core/pwa_config.html:9
 msgid "Android App"
@@ -4042,6 +4042,28 @@ msgstr "Supprimer l'image"
 #: core/templates/core/snippets/uploader_single.html:38
 msgid "Upload image"
 msgstr "Uploader une image"
+
+#: core/templates/core/snippets/pwa_promotion/banner.html:8
+#: core/templates/core/snippets/pwa_promotion/edge_menu.html:9
+#, python-format
+msgid "Hey %(user)s !"
+msgstr "Hey %(user)s,"
+
+#: core/templates/core/snippets/pwa_promotion/banner.html:12
+#: core/templates/core/snippets/pwa_promotion/edge_menu.html:13
+#: core/templates/core/snippets/pwa_promotion/simple_button.html:5
+msgid "Want easier and faster access? Get the app now."
+msgstr "Accéder plus facilement et plus rapidement ? Téléchargez l'appli"
+
+#: core/templates/core/snippets/pwa_promotion/banner.html:15
+#: core/templates/core/snippets/pwa_promotion/edge_menu.html:19
+#: core/templates/core/snippets/pwa_promotion/simple_button.html:7
+msgid "Install"
+msgstr "Installer"
+
+#: core/templates/core/snippets/pwa_promotion/edge_menu.html:18
+msgid "Not now"
+msgstr "Plus tard"
 
 #: core/templates/core/utils/momo_checkout.html:51
 msgid "Type your phone number and confirm"

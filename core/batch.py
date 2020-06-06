@@ -4,6 +4,7 @@
 import os
 import sys
 
+from daraja.models import Dara
 
 sys.path.append('/home/ikwen/Cloud/Kakocase/tchopetyamo')
 
@@ -450,3 +451,29 @@ def set_index_on_dob():
     dbh = client['ikwen_umbrella_prod']
     dbh.foulassi_student.create_index([('dob', pymongo.ASCENDING)])
     dbh.foulassi_student.create_index([('birthday', pymongo.ASCENDING)])
+
+
+def create_apache_vhost_symlinks():
+    for service in Service.objects.all():
+        if service.app == 'daraja' and service.project_name_slug != 'daraja':
+            continue
+        if os.path.exists(service.home_folder + '/go_apache.conf'):
+            fh = open(service.home_folder + '/go_apache.conf')
+            content = [line.replace('/home/yayatoo/virtualenv/local/lib/python2.7/site-packages', '/home/ikwen/Tools/venv/lib/python2.7/site-packages')
+                       for line in fh.readlines()]
+            fh.close()
+            fh = open(service.home_folder + '/go_apache.conf', 'w')
+            fh.writelines(content)
+            fh.close()
+            subprocess.call(['sudo', 'ln', '-sf', service.home_folder + '/go_apache.conf',
+                             '/etc/apache2/sites-enabled/go_apache/' + service.project_name_slug + '.conf'])
+        if os.path.exists(service.home_folder + '/apache.conf'):
+            fh = open(service.home_folder + '/apache.conf')
+            content = [line.replace('/home/yayatoo/virtualenv/local/lib/python2.7/site-packages', '/home/ikwen/Tools/venv/lib/python2.7/site-packages')
+                       for line in fh.readlines()]
+            fh.close()
+            fh = open(service.home_folder + '/apache.conf', 'w')
+            fh.writelines(content)
+            fh.close()
+            subprocess.call(['sudo', 'ln', '-sf', service.home_folder + '/apache.conf',
+                             '/etc/apache2/sites-enabled/' + service.domain + '.conf'])
