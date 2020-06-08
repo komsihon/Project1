@@ -650,18 +650,16 @@ class AbstractConfig(Model):
                                       help_text="Contact email of the company for customers to send inquiries.")
     contact_phone = models.CharField(max_length=60, blank=True, null=True,
                                      help_text=_("Main phone number for your customers to contact you."))
+    whatsapp_phone = models.IntegerField(blank=True, null=True,
+                                         help_text=_("Phone number to contact you on WhatsApp. Write without +."))
     facebook_link = models.URLField(blank=True,
                                     help_text=_("Facebook link. Eg: https://www.facebook.com/mywebsite"))
     twitter_link = models.URLField(blank=True,
                                    help_text=_("Twitter link. Eg: https://www.twitter.com/mywebsite"))
-    google_plus_link = models.URLField(blank=True,
-                                       help_text=_("Google+ link. Eg: https://www.googleplus.com/mywebsite"))
     youtube_link = models.URLField(blank=True,
                                    help_text=_("Youtube link. Eg: https://www.youtube.com/mywebsite"))
     instagram_link = models.URLField(blank=True,
                                      help_text=_("Instagram link. Eg: https://www.instagram.com/mywebsite"))
-    tumblr_link = models.URLField(blank=True,
-                                  help_text=_("Tumblr link. Eg: https://www.tumblr.com/mywebsite"))
     linkedin_link = models.URLField(blank=True,
                                     help_text=_("LinkedIn link. Eg: https://www.linkedin.com/mywebsite"))
     scripts = models.TextField(blank=True,

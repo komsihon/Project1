@@ -228,7 +228,9 @@
                 if ($resultsStage.length === 0) $resultsStage = $('#results');
                 $resultsStage.find('.spinner').fadeIn();
                 {% if is_sortable %}
-                    $resultsStage.load('', query, ikwen.initSortable);
+                    $resultsStage.load('', query, function() {
+                        ikwen.initSortable();
+                    });
                 {% else %}
                     $resultsStage.load('', query);
                 {% endif %}

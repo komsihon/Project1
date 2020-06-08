@@ -243,7 +243,8 @@ a.ik-app:hover, .dropdown-menu>li>a.ik-app:active {background: #f5f5ff;}
 #content form ul.errorlist li {color: #FF0808; list-style-type: none}
 
 .directions-overlay {background: rgba(0, 0, 0, .8);display: none; height: 100%;overflow: hidden;position: fixed;top: 0;width: 100%;z-index: 10;}
-.edge-swipe-overlay, #pwa-overlay {background: rgba(0, 0, 0, .8);color: #fff;font-weight: 600;display: none;height: 100%;overflow: hidden;padding-top: 30px;position: fixed;top: 0;width: 100%;z-index: 1000;}
+.edge-swipe-overlay, #pwa-overlay {background: rgba(0, 0, 0, .8);display: none;height: 100%;overflow: hidden;position: fixed;top: 0;width: 100%;z-index: 1000;}
+#pwa-overlay {color: #fff;font-weight: 600;padding-top: 30px}
 .edge-panel-left {
     background: #ffffff;
     display: none;
