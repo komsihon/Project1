@@ -90,6 +90,16 @@ def get_members_having_permission(model, codename):
     return [obj.user for obj in user_perm_list]
 
 
+def check_is_api(request):
+    is_api, response = False, None
+    if '/api/user' in request.META['PATH_INFO']:
+        api_signature = request.REQUEST['api_signature']
+        is_api = True
+        if get_service_instance().api_signature != api_signature:
+            response = HttpResponse(json.dumps({'error': 'Invalid API Signature'}), 'content-type: text/json')
+    return is_api, response
+
+
 def send_welcome_email(member, reward_pack_list=None):
     """
     Sends welcome email upon registration of a Member. The default message can

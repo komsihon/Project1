@@ -2,6 +2,8 @@ from django.conf import settings
 from django.conf.urls import patterns, url
 
 from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
+from django.views.decorators.csrf import csrf_exempt
+
 from ikwen.core.appmodule.views import ModuleList, ConfigureModule, ChangeModule
 
 from ikwen.flatpages.views import ChangeFlatPage
@@ -53,6 +55,13 @@ urlpatterns = patterns(
     url(r'^phoneConfirmation/$', login_required(PhoneConfirmation.as_view()), name=PHONE_CONFIRMATION),
     url(r'^emailConfirmation/$', login_required(EmailConfirmationPrompt.as_view()), name=EMAIL_CONFIRMATION),
     url(r'^confirmEmail/(?P<uidb64>[-\w]+)/(?P<token>[-\w]+)/$', ConfirmEmail.as_view(), name=CONFIRM_EMAIL),
+
+    url(r'^api/user/check$', SignInMinimal.as_view(), name='api_check_user'),
+    url(r'^api/user/register$', csrf_exempt(Register.as_view()), name='api_register'),
+    url(r'^api/user/login$', csrf_exempt(SignIn.as_view()), name='api_sign_in'),
+    url(r'^api/user/request_email_reset$', csrf_exempt(ForgottenPassword.as_view()), name='api_request_email_password_reset'),
+    url(r'^api/user/request_sms_reset_code$', SetNewPasswordSMSRecovery.as_view(), name='api_request_sms_reset_code'),
+    url(r'^api/user/sms_reset$', csrf_exempt(SetNewPasswordSMSRecovery.as_view()), name='api_sms_reset_password'),
 
     url(r'^accountSetup/$', login_required(AccountSetup.as_view()), name='account_setup'),
     url(r'^update_info$', update_info, name=UPDATE_INFO),

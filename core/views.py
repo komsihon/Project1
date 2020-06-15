@@ -460,6 +460,15 @@ class DashboardBase(TemplateView):
 
 class AdminHomeBase(TemplateView):
 
+    def get_context_data(self, **kwargs):
+        context = super(AdminHomeBase, self).get_context_data(**kwargs)
+        service = get_service_instance()
+        try:
+            context['pending_invoice'] = Invoice.objects.using(UMBRELLA).get(subscription=service)
+        except:
+            pass
+        return context
+
     def get(self, request, *args, **kwargs):
         action = request.GET.get('action')
         if action == 'update_domain':

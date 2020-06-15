@@ -14,6 +14,7 @@
 .category.failed {background: #e85f4c}
 .category.dropped {background: #740cda}
 .table>thead>tr>th {background: #f8f6f6; border-bottom: 2px solid #ddd}
+.table-condensed>thead>tr>th, .table-condensed>tbody>tr>td {padding: 5px 2px}
 .tx-list td {cursor: pointer}
 .table>tbody>tr.warning>td, .table-hover>tbody>tr.warning:hover>td {background: #fff0d9; color: #545454}
 #content .spinner {background: #ffffffa8; height: 100%;left: 0;position: absolute;width: 100%;z-index: 1}

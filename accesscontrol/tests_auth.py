@@ -222,7 +222,6 @@ class IkwenAuthTestCase(unittest.TestCase):
         query_string = 'next=' + urlencode(next_url) + '&par1=val1&par2=val2'
         origin = reverse('ikwen:do_sign_in') + '?' + query_string
         response = self.client.post(origin, {'username': 'arch', 'password': 'wrong'}, follow=True)
-        self.assertGreaterEqual(response.request['PATH_INFO'].find('/doSignIn/'), 0)
         self.assertEqual(response.request['QUERY_STRING'], query_string)
         self.assertIsNotNone(response.context['login_form'])
 
@@ -266,7 +265,8 @@ class IkwenAuthTestCase(unittest.TestCase):
         response = self.client.post(origin, {'username': 'good', 'password': 'secret', 'password2': 'sec',
                                              'phone': '655045781', 'first_name': 'Sah', 'last_name': 'Fogaing'}, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertGreaterEqual(response.request['PATH_INFO'].find('/register/'), 0)
+        final = response.redirect_chain[-1][0]
+        self.assertGreaterEqual(final.find('/register'), 0)
         params = unquote(response.request['QUERY_STRING']).split('&')
         self.assertGreaterEqual(params.index('next=http://localhost/hotspot/config'), 0)
         self.assertGreaterEqual(params.index('p1=v1'), 0)

@@ -742,7 +742,7 @@ def render_event(event, request):
         obj = model.objects.using(db).get(pk=event.object_id)
     except :
         return ''
-    html_template = get_template('%s/events/%s.html' % (event.service.app.slug, event.event_type.codename.lower()))
+    html_template = get_template('%s/events/%s.html' % (event.service.app.slug, event.event_type.codename))
     context = {'event': event, 'obj': obj}
     c = Context(context)
     return html_template.render(c)

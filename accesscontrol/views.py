@@ -36,7 +36,7 @@ from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.utils import send_welcome_email, shift_ghost_member, import_ghost_profile_to_member, \
-    invite_member, bind_referrer_to_member, DOBFilter, DateJoinedFilter, import_contacts
+    invite_member, bind_referrer_to_member, DOBFilter, DateJoinedFilter, import_contacts, check_is_api
 from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SMSPasswordResetForm, SetPasswordForm, \
     SetPasswordFormSMSRecovery, test_fake_email
 from ikwen.accesscontrol.models import Member, AccessRequest, \
@@ -85,6 +85,9 @@ class Register(TemplateView):
         return super(Register, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        is_api, response = check_is_api(request)
+        if response:
+            return response
         form = MemberForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username'].strip().lower()
@@ -161,6 +164,9 @@ class Register(TemplateView):
                 send_welcome_email(member, reward_pack_list)
                 if request.GET.get('join'):
                     return join(request, *args, **kwargs)
+                if is_api:
+                    response = {'success': True, 'session_cookie_name': getattr(settings, 'SESSION_COOKIE_NAME')}
+                    return HttpResponse(json.dumps(response), 'content-type: text/json')
                 next_url = request.REQUEST.get('next')
                 if next_url:
                     # Remove next_url from the original query_string
@@ -189,6 +195,9 @@ class Register(TemplateView):
                     sign_in_url += "?" + query_string
                 return HttpResponseRedirect(sign_in_url)
         else:
+            if is_api:
+                response = {'error': 'Missing or invalid data', 'detail': form.errors}
+                return HttpResponse(json.dumps(response), 'content-type: text/json')
             context = self.get_context_data(**kwargs)
             context['register_form'] = form
             return render(request, 'accesscontrol/register.html', context)
@@ -217,9 +226,11 @@ class SignIn(TemplateView):
         return super(SignIn, self).get(request, *args, **kwargs)
 
     @method_decorator(sensitive_post_parameters())
-    @method_decorator(csrf_protect)
     @method_decorator(never_cache)
     def post(self, request, *args, **kwargs):
+        is_api, response = check_is_api(request)
+        if response:
+            return response
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             member = form.get_user()
@@ -236,6 +247,9 @@ class SignIn(TemplateView):
                 PWAProfile.objects.filter(pk=pwa_profile_id).update(member=member)
             if request.GET.get('join'):
                 return join(request, *args, **kwargs)
+            if is_api:
+                response = {'success': True, 'session_cookie_name': getattr(settings, 'SESSION_COOKIE_NAME')}
+                return HttpResponse(json.dumps(response))
             query_string = request.META.get('QUERY_STRING')
             next_url = request.REQUEST.get('next')
             if next_url:
@@ -255,6 +269,9 @@ class SignIn(TemplateView):
                 next_url += '?' + query_string
             return HttpResponseRedirect(next_url)
         else:
+            if is_api:
+                response = {'error': _("Invalid username/password or account inactive")}
+                return HttpResponse(json.dumps(response), 'content-type: text/json')
             context = self.get_context_data(**kwargs)
             context['login_form'] = form
             if form.errors:
@@ -356,9 +373,12 @@ class ForgottenPassword(TemplateView):
         context['sms_recovery'] = sms_recovery
         return context
 
-    @method_decorator(csrf_protect)
     def post(self, request, *args, **kwargs):
         # TODO: Handle mail sending failure
+        is_api, response = check_is_api(request)
+        if response:
+            return response
+
         sms_recovery = getattr(settings, 'PASSWORD_RECOVERY_METHOD', 'mail').lower() == 'sms'
         if sms_recovery:
             form = SMSPasswordResetForm(request.POST)
@@ -377,8 +397,13 @@ class ForgottenPassword(TemplateView):
                     'request': request,
                 }
                 form.save(**opts)
+                if is_api:
+                    return HttpResponse(json.dumps({'success': True}), 'content-type: text/json')
                 return HttpResponseRedirect(reverse('ikwen:forgotten_password') + '?success=yes')
             else:
+                if is_api:
+                    response = {'error': _("Missing or invalid data"), 'detail': form.errors}
+                    return HttpResponse(json.dumps(response), 'content-type: text/json')
                 context = self.get_context_data(**kwargs)
                 context['form'] = form
                 return render(request, self.template_name, context)
@@ -435,7 +460,13 @@ class SetNewPassword(TemplateView):
 class SetNewPasswordSMSRecovery(TemplateView):
     template_name = 'accesscontrol/set_new_password_sms_recovery.html'
 
-    def send_code(self, request, new_code=False):
+    def send_code(self, request, new_code=False, is_api=False):
+        if is_api:
+            phone = slugify(request.GET['phone']).replace('-', '')
+        else:
+            phone = slugify(request.session['phone']).replace('-', '')
+        request.session['phone'] = phone
+        Member.objects.get(Q(phone__endswith=phone) | Q(username__endswith=phone))  # Let exception be handled by the caller block
         service = get_service_instance()
         reset_code = ''.join([random.SystemRandom().choice(string.digits) for _ in range(4)])
         do_send = False
@@ -449,7 +480,6 @@ class SetNewPasswordSMSRecovery(TemplateView):
             do_send = True
 
         if do_send:
-            phone = slugify(request.session['phone']).replace('-', '')
             if len(phone) == 9:
                 phone = '237' + phone  # This works only for Cameroon
             text = 'Your password reset code is %s' % reset_code
@@ -463,34 +493,57 @@ class SetNewPasswordSMSRecovery(TemplateView):
                 send_sms(phone, text, script_url=fallback_link)
 
     def get(self, request, *args, **kwargs):
+        is_api, response = check_is_api(self.request)
+        if response:
+            return response
         context = self.get_context_data(**kwargs)
         if getattr(settings, 'DEBUG', False):
-            self.send_code(request)
+            self.send_code(request, is_api=is_api)
         else:
             try:
-                self.send_code(request)
+                self.send_code(request, is_api=is_api)
+            except Member.DoesNotExist:
+                error = _('No Member found with this phone number')
+                if is_api:
+                    return HttpResponse(json.dumps({'error': error}), 'content-type: text/json')
+                context['error_message'] = error
             except:
-                context['error_message'] = _('Could not send code. Please try again later')
+                error = _('Could not send code. Please try again later')
+                if is_api:
+                    return HttpResponse(json.dumps({'error': error}), 'content-type: text/json')
+                context['error_message'] = error
         return super(SetNewPasswordSMSRecovery, self).get(request, *args, **kwargs)
 
     def render_to_response(self, context, **response_kwargs):
+        is_api, response = check_is_api(self.request)
+        if response:
+            return response
         response = {'success': True}
         if self.request.GET.get('action') == 'new_code':
             if getattr(settings, 'DEBUG', False):
-                self.send_code(self.request, new_code=True)
+                self.send_code(self.request, new_code=True, is_api=is_api)
             else:
                 try:
-                    self.send_code(self.request, new_code=True)
+                    self.send_code(self.request, new_code=True, is_api=is_api)
+                except Member.DoesNotExist:
+                    error = _('No Member found with this phone number')
+                    if is_api:
+                        response = {'error': error}
                 except:
                     response = {'error': _('Could not send code. Please try again later')}
+            return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
+        elif is_api:
+            response['session_cookie_name'] = getattr(settings, 'SESSION_COOKIE_NAME')
             return HttpResponse(json.dumps(response), 'content-type: text/json', **response_kwargs)
         else:
             return super(SetNewPasswordSMSRecovery, self).render_to_response(context, **response_kwargs)
 
     @method_decorator(sensitive_post_parameters())
     @method_decorator(never_cache)
-    @method_decorator(csrf_protect)
     def post(self, request, *args, **kwargs):
+        is_api, response = check_is_api(self.request)
+        if response:
+            return response
         form = SetPasswordFormSMSRecovery(request.POST)
         if form.is_valid():
             reset_code = request.session.get('reset_code')
@@ -505,8 +558,7 @@ class SetNewPasswordSMSRecovery(TemplateView):
                 context['error_message'] = _('Passwords mismatch. Please try again')
                 return render(request, self.template_name, context)
             phone = request.session['phone']
-            active_users = Member.objects.filter(Q(phone=phone) | Q(username=phone),
-                                                 is_active=True)
+            active_users = Member.objects.filter(Q(phone=phone) | Q(username=phone))
             for member in active_users:
                 # Make sure that no SMS is sent to a user that actually has
                 # a password marked as unusable
@@ -514,10 +566,16 @@ class SetNewPasswordSMSRecovery(TemplateView):
                     continue
                 member.propagate_password_change(new_pwd1)
             msg = _("Password successfully reset.")
+            if is_api:
+                response = {'success': True, 'message': msg}
+                return HttpResponse(json.dumps(response))
             messages.success(request, msg)
             next_url = reverse('ikwen:sign_in') + '?phone=' + phone
             return HttpResponseRedirect(next_url)
         else:
+            if is_api:
+                response = {'error': _("Missing or invalid data"), 'detail': form.errors}
+                return HttpResponse(json.dumps(response), 'content-type: text/json')
             context = self.get_context_data(**kwargs)
             context['form'] = form
             return render(request, self.template_name, context)

@@ -5,7 +5,7 @@
     </div>
     <div class="col-xs-8" style="padding: 0 10px 0 0">
         {% if user.is_authenticated %}
-            <strong>{% blocktrans %}Hey {{ user }} !{% endblocktrans %}</strong><br>
+            <strong>{% blocktrans %}Hey {{ user.first_name }} !{% endblocktrans %}</strong><br>
         {% else %}
             <strong>{{ service.project_name }}</strong><br>
         {% endif %}

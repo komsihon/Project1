@@ -13,6 +13,7 @@
 .install-promotion.edge-menu {border-radius: 0; margin-top: 3vh}
 .install-promotion.edge-menu .install-pwa {background: #2196F3; border-color: #2196F3; color: #fff; margin-left: 5vw;min-width: 100px}
 .install-promotion.edge-menu .action {margin-top: 2vh}
+.install-promotion.edge-menu .close {float: left; line-height: 34px; font-size: 14px}
 
 .install-promotion.banner {border-radius: 0;margin-top: 3vh;padding: 15px 10px;}
 .install-promotion.banner .install-pwa {background: #2196F3; border-color: #2196F3; color: #fff; margin-top: 1vh}

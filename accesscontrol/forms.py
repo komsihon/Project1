@@ -26,12 +26,9 @@ def test_fake_email(value):
         return
     provider = value.split('@')[1]
     blacklist_file = STATIC_ROOT + 'fake_mails.txt'
-    try:
-        blacklist = [fake.strip().replace('@', '') for fake in open(blacklist_file).read().split(',')]
-        if provider in blacklist:
-            raise ValidationError(_('Fake email services are not allowed. Please, use a valid email provider'))
-    except:
-        pass
+    blacklist = [fake.strip().replace('@', '') for fake in open(blacklist_file).read().split(',')]
+    if provider in blacklist:
+        raise ValidationError(_('Fake email services are not allowed. Please, use a valid email provider'))
 
 
 class MemberForm(forms.Form):

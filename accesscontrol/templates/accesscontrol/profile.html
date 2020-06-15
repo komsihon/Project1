@@ -237,9 +237,35 @@
                         </div>
                         {% if is_member %}
                         <div>
-                            <p class="text-muted" style="margin: 15px 0 25px; text-align: center">{% blocktrans %}
+                            <p class="text-muted text-center" style="margin: 15px 0 25px">{% blocktrans %}
                                 Refer {{ profile_name }} to a friend by sharing and earn {{ referral_coupon_count }} more free coupons.
                             {% endblocktrans %}</p>
+                            <div class="dropup social-sharing" style="width: 280px; margin: auto">
+                                <button class="btn btn-green btn-block dropdown-toggle" type="button" id="refer-menu"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    {% blocktrans with display_name=profile_name|truncatechars:"18" %}Refer {{ display_name }}{% endblocktrans %}
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="refer-menu">
+                                    <li class="visible-xs visible-sm">
+                                        <a href="javascript:;" data-toggle="modal" data-target="#whatsapp-share">
+                                            <i class="fab fa-whatsapp"></i>
+                                            WhatsApp
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://facebook.com/sharer/sharer.php?u={{ url }}" target="_blank">
+                                            <i class="fab fa-facebook"></i>
+                                            Facebook
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://twitter.com/home?status={{ url }}" target="_blank">
+                                            <i class="fab fa-twitter"></i>
+                                            Twitter
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                         {% endif %}
                     </div>
