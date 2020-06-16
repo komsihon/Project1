@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import os
+import logging
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import get_current_site
@@ -18,6 +20,7 @@ from django.utils.translation import gettext_lazy as _
 from ikwen.conf.settings import STATIC_ROOT
 
 
+logger = logging.getLogger('ikwen')
 name_required = getattr(settings, 'NAME_REQUIRED', True)
 
 
@@ -26,6 +29,9 @@ def test_fake_email(value):
         return
     provider = value.split('@')[1]
     blacklist_file = STATIC_ROOT + 'fake_mails.txt'
+    if not os.path.exists(blacklist_file):
+        logger.error('Could not find fake mail file %s' % blacklist_file)
+        return
     blacklist = [fake.strip().replace('@', '') for fake in open(blacklist_file).read().split(',')]
     if provider in blacklist:
         raise ValidationError(_('Fake email services are not allowed. Please, use a valid email provider'))
