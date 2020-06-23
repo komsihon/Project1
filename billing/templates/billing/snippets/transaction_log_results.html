@@ -92,25 +92,28 @@
         <table class="table table-condensed table-hover table-stripped tx-list">
             <thead>
                 <tr>
-                    <th>Operator</th>
-                    <th>Phone</th>
-                    <th>Amount</th>
+                    <th style="width: 70px">Operator</th>
+                    <th style="width: 120px">Amount</th>
+                    <th style="width: 90px">Fees ({{ config.ikwen_share_rate }}%)</th>
+                    <th style="width: 90px">Dara</th>
                     <th>User ID</th>
-                    <th>Operator TX ID</th>
-                    <th>Date</th>
-                    <th>Status</th>
+                    <th style="width: 180px">Operator TX ID</th>
+                    <th style="width: 110px">Date</th>
+                    <th style="width: 76px">Status</th>
                 </tr>
             </thead>
             <tbody>
                 {% for tx in transaction_list %}
                     <tr{% if tx.status == 'Success' and tx.message != 'OK' %} class="warning"{% endif %}
-                        data-message="{{ tx.message }}" data-operator-tx-id="{{ tx.processor_tx_id }}" data-object-id="{{ tx.object_id }}">
-                        <td class="operator">{{ tx.wallet }}</td>
-                        <td class="phone">{% if tx.phone == '<Unknown>' %}{{ tx.phone }}{% else %}{{ tx.phone|floatformat:"0" }}{% endif %}</td>
+                        data-message="{{ tx.message }}" data-object-id="{{ tx.object_id }}"
+                        data-phone="{% if tx.phone == '<Unknown>' %}{{ tx.phone }}{% else %}{{ tx.phone|floatformat:"0" }}{% endif %}">
+                        <td class="operator">{{ tx.wallet_name }}</td>
                         <td class="amount">{{ tx.amount|floatformat:"0"|intcomma }}</td>
+                        <td class="fees">{{ tx.fees }}</td>
+                        <td class="dara">{{ tx.dara_fees }}</td>
                         <td class="user-id">{{ tx.username }}</td>
                         <td class="tx-id">{{ tx.processor_tx_id }}</td>
-                        <td class="date">{{ tx.created_on }}</td>
+                        <td class="date">{{ tx.created_on|date:"y-m-d H:i" }}</td>
                         <td class="status">{{ tx.status }}</td>
                     </tr>
                 {% endfor %}

@@ -175,7 +175,7 @@
                 altField: "#end-alt",
                 altFormat: "yy-mm-dd"
             });
-            var period = 'today';  // Initial period is today
+            let period = 'today';  // Initial period is today
             $('#period').change(function() {
                 var val = $(this).val();
                 if (val === 'other') {
@@ -192,7 +192,7 @@
                 $('#status').val('');
                 loadResults();
             }).on('click', '.category', function() {
-                var status = $(this).data('status');
+                let status = $(this).data('status');
                 if (status === 'Running') {
                     $('#is-running').val('yes');
                     $('#status').val('');
@@ -209,7 +209,7 @@
                 $('#period').val(period);
             });
             $('.confirm-period').click(function() {
-                var start = $('#start-date').val(),
+                let start = $('#start-date').val(),
                     end = $('#end-date').val();
                 if (start && end) {
                     $('.custom-period .start').text(start);
@@ -219,7 +219,7 @@
                 }
             });
             $('#search-tx-id').keyup(function() {
-                var txId = $(this).val(),
+                let txId = $(this).val(),
                     params = 'q=' + txId + '&format=html_results';
                 if (txId.length === 0 || txId.length >= 3) {
                     $('div#results .spinner').show();
@@ -227,14 +227,14 @@
                 }
             });
             $('#results').on('click', '.tx-list tr', function() {
-                var operator = $(this).find('.operator').text(),
+                let operator = $(this).find('.operator').text(),
                     app = $(this).find('.app').text(),
-                    phone = $(this).find('.phone').text(),
                     amount = $(this).find('.amount').text(),
                     userId = $(this).find('.user-id').text(),
+                    operatorTxId = $(this).find('.tx-id').text(),
                     date = $(this).find('.date').text(),
                     status = $(this).find('.status').text(),
-                    operatorTxId = $(this).data('operator-tx-id'),
+                    phone = $(this).data('phone'),
                     objectId = $(this).data('object-id'),
                     message = $(this).data('message');
                 $('div#tx-details .operator').text(operator);
@@ -251,7 +251,7 @@
             });
             function loadResults() {
                 $('div#results .spinner').show();
-                var params = $('form#criteria').serialize() + '&format=html_results';
+                let params = $('form#criteria').serialize() + '&format=html_results';
                 $('#results').load('', params)
             }
         })()

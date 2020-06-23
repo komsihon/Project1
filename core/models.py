@@ -352,7 +352,7 @@ class Service(models.Model):
         save(using=database).
         """
         using = kwargs.pop('using', 'default')
-        if getattr(settings, 'IS_IKWEN', False) and using != self.database:
+        if getattr(settings, 'IS_IKWEN', False) and using != self.database and self.id:
             # If we are on Ikwen itself, replicate save or update on the current Service database
             add_database_to_settings(self.database)
             super(Service, self).save(using=self.database, *args, **kwargs)

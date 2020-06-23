@@ -179,8 +179,10 @@ class TransactionLog(HybridListView):
         if criteria.get('status') is None and criteria.get('is_running') is None:
             count_successful = queryset.filter(status=MoMoTransaction.SUCCESS).count()
             aggr = queryset.filter(status=MoMoTransaction.SUCCESS).aggregate(Sum('amount'))
+            aggr_fees = queryset.filter(status=MoMoTransaction.SUCCESS).aggregate(Sum('fees'))
+            aggr_dara_fees = queryset.filter(status=MoMoTransaction.SUCCESS).aggregate(Sum('dara_fees'))
             if aggr['amount__sum']:
-                amount_successful = aggr['amount__sum']
+                amount_successful = aggr['amount__sum'] - aggr_fees['fees__sum'] - aggr_dara_fees['dara_fees__sum']
             count_running = queryset.filter(is_running=True).count()
             aggr = queryset.filter(is_running=True).aggregate(Sum('amount'))
             if aggr['amount__sum']:

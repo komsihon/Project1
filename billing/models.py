@@ -31,6 +31,11 @@ PAYMENT_CONFIRMATION = 'PaymentConfirmation'
 
 JUMBOPAY_MOMO = 'jumbopay-momo'
 
+MTN_MOMO = 'mtn-momo'
+ORANGE_MONEY = 'orange-money'
+YUP = 'yup'
+UBA = 'uba'
+
 
 class OperatorProfile(AbstractConfig):
     ikwen_share_rate = models.FloatField(_("ikwen share rate"), default=0,
@@ -506,7 +511,9 @@ class MoMoTransaction(Model):
                               help_text="Wallet Provider Solution. Eg: MTN MoMo, Orange Money, etc.")
     username = models.CharField(max_length=100, blank=True, null=True)
     phone = models.CharField(max_length=24)
-    amount = models.FloatField()
+    amount = models.FloatField(default=0)
+    fees = models.FloatField(default=0)  # Transaction fees
+    dara_fees = models.FloatField(default=0)  # Dara fees
     model = models.CharField(max_length=150)
     object_id = models.CharField(unique=True, max_length=60)
     processor_tx_id = models.CharField(max_length=100, blank=True,
@@ -526,6 +533,19 @@ class MoMoTransaction(Model):
     def _get_service(self):
         return Service.objects.using(UMBRELLA).get(pk=self.service_id)
     service = property(_get_service)
+
+    def _get_wallet_name(self):
+        if self.wallet == MTN_MOMO:
+            return 'MoMo'
+        elif self.wallet == ORANGE_MONEY:
+            return 'OM'
+        elif self.wallet == YUP:
+            return 'Yup'
+        elif self.wallet == UBA:
+            return 'UBA'
+        else:
+            return self.wallet.capitalize()
+    wallet_name = property(_get_wallet_name)
 
 
 class CloudBillingPlan(Model):
