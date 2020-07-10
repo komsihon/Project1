@@ -8,6 +8,7 @@
 {% block head_style %}
     {{ block.super }}
     <link href="{% static 'ikwen/css/uploader-single.css' %}" media="screen" rel="stylesheet" type="text/css" />
+{#    <script src="{% static 'ikwen/css/jquery.datetimepicker.css' %}"></script>#}
 {% endblock %}
 
 {% block head_js %}
@@ -32,10 +33,10 @@
             {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
             <form class="admin-form" method="post">{% csrf_token %}
                 {% include 'core/snippets/model_admin_form.html' %}
-                {% for img_obj in img_field_list %}
+                {% for media_obj in media_field_list %}
                 <div class="col-sm-4 col-lg-3" style="padding-left: 0">
-                    {% with model_name=model image=img_obj.image image_field_name=img_obj.field label_field_name=label_field img_help_text=img_obj.help_text img_counter=img_obj.counter %}
-                        {% include 'core/snippets/uploader_single.html' %}
+                    {% with model_name=model media=media_obj label_field_name=label_field media_help_text=media_obj.help_text %}
+                        {% include 'core/snippets/media_uploader_single.html' %}
                     {% endwith %}
                 </div>
                 {% endfor %}
@@ -49,6 +50,7 @@
 
 {% block js %}
     {{ block.super }}
+    <script src="{% static 'ikwen/js/jquery.datetimepicker.full.js' %}"></script>
     <script type="text/javascript">
         (function() {
             $('div#admin-nav .{{ verbose_name_plural|slugify }}').addClass('active');
@@ -72,6 +74,19 @@
                     if (!$(time).val()) $(time).val('00:00:00')
                 });
             });
+            /*$('.datetime-field').each(function() {
+                {#let altSelector = $(this).data('alt'),#}
+                {#    timeSelector = $(this).data('time'),#}
+                {#    time = $(timeSelector).val();#}
+                {#if (!time) time = '00:00';#}
+                $(this).datetimepicker({
+                    format:	'Y-m-d H:i',
+                    formatTime:	'H:i',
+                    formatDate:	'Y-m-d',
+                    defaultTime: '00:00',
+                    timepickerScrollbar: false
+                });
+            });*/
         })()
     </script>
 {% endblock %}

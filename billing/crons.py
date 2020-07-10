@@ -15,7 +15,7 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.module_loading import import_by_path
 from django.utils.log import AdminEmailHandler
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as _, activate
 from ikwen.accesscontrol.models import SUDO
 
 from ikwen.core.models import Config, QueuedSMS, Service
@@ -27,7 +27,7 @@ from ikwen.billing.models import Invoice, InvoicingConfig, INVOICES_SENT_EVENT, 
 from ikwen.billing.utils import get_invoice_generated_message, get_invoice_reminder_message, \
     get_invoice_overdue_message, \
     get_service_suspension_message, get_next_invoice_number, get_subscription_model, get_billing_cycle_months_count, \
-    pay_with_wallet_balance
+    pay_with_wallet_balance, generate_pdf_invoice
 from ikwen.partnership.models import ApplicationRetailConfig
 from ikwen.rewarding.models import CROperatorProfile
 
@@ -111,8 +111,9 @@ def send_invoices():
                     entries.append(entry)
             except CROperatorProfile.DoesNotExist:
                 pass
-        invoice = Invoice.objects.create(subscription=subscription, member=subscription.member, amount=amount, number=number,
-                                         due_date=subscription.expiry, months_count=months_count, entries=entries)
+        invoice = Invoice.objects.create(subscription=subscription, member=subscription.member, amount=amount,
+                                         number=number, due_date=subscription.expiry, months_count=months_count,
+                                         entries=entries, last_reminder=now)
         count += 1
         total_amount += amount
         add_event(vendor, NEW_INVOICE_EVENT, member=member, object_id=invoice.id)
@@ -126,6 +127,7 @@ def send_invoices():
         subject, message, sms_text = get_invoice_generated_message(invoice)
 
         if member.email:
+            activate(member.language)
             invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
             if paid_by_wallet_debit:
                 subject = _("Thanks for your payment")
@@ -145,6 +147,11 @@ def send_invoices():
             # to be delivered to Spams because of origin check.
             sender = '%s <no-reply@%s>' % (config.company_name, vendor.domain)
             msg = EmailMessage(subject, html_content, sender, [member.email])
+            try:
+                invoice_pdf_file = generate_pdf_invoice(invoicing_config, invoice)
+                msg.attach_file(invoice_pdf_file)
+            except:
+                pass
             if paid_by_wallet_debit:
                 msg.bcc = ['k.sihon@ikwen.com']
             msg.content_subtype = "html"
@@ -211,10 +218,11 @@ def send_invoice_reminders():
             print ("Processing invoice for Service %s" % str(invoice.subscription))
             count += 1
             total_amount += invoice.amount
-            member = invoice.subscription.member
+            member = invoice.member
             add_event(vendor, INVOICE_REMINDER_EVENT, member=member, object_id=invoice.id)
             subject, message, sms_text = get_invoice_reminder_message(invoice)
             if member.email:
+                activate(member.language)
                 invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'member_name': member.first_name, 'invoice': invoice,
@@ -275,7 +283,7 @@ def send_invoice_overdue_notices():
     print ("%d invoice(s) candidate for overdue notice." % invoice_qs.count())
     for invoice in invoice_qs:
         subscription = invoice.subscription
-        if getattr(settings, 'IS_IKWEN', False):
+        if subscription and getattr(settings, 'IS_IKWEN', False):
             if subscription.version == Service.FREE:
                 continue
             if subscription.retailer:
@@ -294,6 +302,7 @@ def send_invoice_overdue_notices():
             add_event(vendor, OVERDUE_NOTICE_EVENT, member=member, object_id=invoice.id)
             subject, message, sms_text = get_invoice_overdue_message(invoice)
             if member.email:
+                activate(member.language)
                 invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'member_name': member.first_name, 'invoice': invoice,
@@ -355,6 +364,8 @@ def suspend_customers_services():
     print ("%d invoice(s) candidate for service suspension." % invoice_qs.count())
     for invoice in invoice_qs:
         subscription = invoice.subscription
+        if not subscription:
+            continue
         if getattr(settings, 'IS_IKWEN', False):
             if subscription.version == Service.FREE:
                 continue
@@ -377,6 +388,7 @@ def suspend_customers_services():
             add_event(vendor, SERVICE_SUSPENDED_EVENT, member=member, object_id=invoice.id)
             subject, message, sms_text = get_service_suspension_message(invoice)
             if member.email:
+                activate(member.language)
                 invoice_url = 'http://ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
                 html_content = get_mail_content(subject, message, template_name='billing/mails/notice.html',
                                                 extra_context={'member_name': member.first_name, 'invoice': invoice,

@@ -698,6 +698,8 @@ class AbstractConfig(Model):
     decimal_precision = models.IntegerField(default=2)
     can_manage_currencies = models.BooleanField(default=False)
     last_currencies_rates_update = models.DateTimeField(editable=False, null=True)
+    registration_number = models.CharField(_("Company registration number"), max_length=60, blank=True, null=True)
+    taxpayer_number = models.CharField(_("Taxpayer number"), max_length=60, blank=True, null=True)
 
     class Meta:
         verbose_name_plural = _("Configurations of the platform")
@@ -794,7 +796,6 @@ class Config(AbstractConfig):
                 obj_mirror.is_standalone = self.is_standalone
                 obj_mirror.can_manage_currencies = self.can_manage_currencies
                 obj_mirror.sms_api_script_url = self.sms_api_script_url
-                obj_mirror.is_pwa_ready = self.is_pwa_ready
                 super(Config, obj_mirror).save(using=db)
             except Config.DoesNotExist:
                 pass

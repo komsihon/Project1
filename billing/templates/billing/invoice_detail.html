@@ -65,8 +65,8 @@
                     <div class="detail col-sm-4">
                         <h4>{% trans "Invoice" %} #<strong>{{ invoice.number }}</strong></h4>
                         <div>
-                            <p>{% trans "Date issued" %}: {{ invoice.date_issued|date }}</p>
-                            <p>{% trans "Due date" %}: {{ invoice.due_date }}</p>
+                            <p>{% trans "Date issued" %}: {{ invoice.date_issued|date:"Y, M d" }}</p>
+                            <p>{% trans "Due date" %}: {{ invoice.due_date|date:"Y, M d" }}</p>
                         </div>
                     </div>
                     <div class="detail col-sm-4">
@@ -90,6 +90,18 @@
                         <h4>{% trans "Pay To" %}</h4>
                         <div>
                             {% if vendor.company_name %}<strong>{{ vendor.company_name }}</strong>{% endif %}
+                            {% if vendor.registration_number %}
+                                <p>
+                                    <strong>{% trans "Registration" context "Company registration No" %} N&deg; :</strong>
+                                    {{ vendor.registration_number }}
+                                </p>
+                            {% endif %}
+                            {% if vendor.taxpayer_number %}
+                                <p>
+                                    <strong>{% trans "Taxpayer" %} N&deg; :</strong>
+                                    {{ vendor.taxpayer_number }}
+                                </p>
+                            {% endif %}
                             {% if vendor.address %}<p>{{ vendor.address }}</p>{% endif %}
                             {% if vendor.city %}<p>{{ vendor.city }}</p>{% endif %}
                             {% if vendor.country %}<p>{{ vendor.country }}</p>{% endif %}
@@ -256,8 +268,9 @@
         </div>
         <div id="actions" class="col-xs-12">
             <a href="{% url 'billing:invoice_list' %}" class="pull-right text-right">{% trans "Back to Client Area" %}</a>
-{#            <a href="#" class="button default">{% trans "Download" %}</a>#}
-            {# TODO: Downloadable version of the Invoice #}
+            {% if pdf_url %}
+                <a href="{{ pdf_url }}" class="pull-left">{% trans "Download" %}</a>
+            {% endif %}
         </div>
     </div>
     {% with payment_conf='invoice_payment' %}

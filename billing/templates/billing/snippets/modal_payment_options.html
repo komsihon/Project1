@@ -39,8 +39,8 @@
                         {% endif %}
                         {% if config.is_pro_version and paypal %}
                             <li class="col-sm-4 payment-method" data-action-url="{% url paypal.action_url_name %}?mean=paypal">
-                                <a class="logo" href="#" style="border: 1px solid #eee">
-                                    <img src="{% static 'ikwen/img/payment-logo.jpg' %}" height="90" style="width: 100%"/>
+                                <a class="logo" href="javascript:;" style="border: 1px solid #eee">
+                                    <img src="{% static 'ikwen/img/paypal-logo.jpg' %}" height="90" style="width: 100%"/>
                                 </a>
                             </li>
                         {% endif %}

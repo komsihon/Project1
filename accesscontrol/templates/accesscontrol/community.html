@@ -201,6 +201,7 @@
                 </div>
                 <div class="modal-body">
                     <form onsubmit="return false">
+                        <input id="new-contact-member-id" type="hidden" value="" />
                         <div class="form-group">
                             <label for="new-contact-name">{% trans "Name" %}</label>
                             <input id="new-contact-name" type="text" class="form-control input-sm" />
@@ -227,7 +228,7 @@
                             {% for profile in profiletag_list %}
                                 <div class="checkbox tile col-sm-4 col-md-3">
                                     <label for="squaredThree">
-                                         <input type="checkbox" value="{{ profile.id }}"><span>{{ profile.name }}</span>
+                                         <input type="checkbox" id="{{ profile.id }}" value="{{ profile.id }}"><span>{{ profile.name }}</span>
                                     </label>
                                 </div>
                             {% endfor %}
@@ -240,7 +241,7 @@
                             {% for preference in preference_list %}
                                 <div class="checkbox tile col-sm-4 col-md-3">
                                     <label for="squaredThree">
-                                         <input type="checkbox" value="{{ preference.id }}"><span>{{ preference.name }}</span>
+                                         <input type="checkbox" id="{{ preference.id }}" value="{{ preference.id }}"><span>{{ preference.name }}</span>
                                     </label>
                                 </div>
                             {% endfor %}
@@ -403,11 +404,26 @@
                     }
                 });
             }).on('click', '#admin-tools .add', function() {
-                $('#modal-add-contact input[type=text], #modal-add-contact select').val('');
-                $('div#new-contact-profiles input[type=checkbox]').prop('checked', false);
-                $('div#new-contact-preferences input[type=checkbox]').prop('checked', false);
+                $('#modal-add-contact input[type=text], #modal-add-contact input[type=hidden], #modal-add-contact select').val('');
+                $('div#new-contact-profiles input[type=checkbox], div#new-contact-preferences input[type=checkbox]').prop('checked', false);
+            }).on('click', '.edit-member', function() {
+                let memberId = $(this).parents('li.member').data('id'),
+                    name = $(this).parents('li.member').find('.full_name').text(),
+                    gender = $(this).data('gender'),
+                    email = $(this).data('email'),
+                    phone = $(this).data('phone'),
+                    tagIds = $(this).data('profile-tags').substr(1).split(',');
+                $('#new-contact-member-id').val(memberId);
+                $('#new-contact-name').val(name);
+                $('#new-contact-gender').val(gender);
+                $('#new-contact-email').val(email);
+                $('#new-contact-phone').val(phone);
+                for (let i=0; i<tagIds.length; i++) {
+                    $(`#${tagIds[i]}`).prop('checked', true)
+                }
             }).on('click', '.add-contact', function() {
-                let name = $('#new-contact-name').val(),
+                let memberId = $('#new-contact-member-id').val(),
+                    name = $('#new-contact-name').val(),
                     gender = $('#new-contact-gender').val(),
                     email = $('#new-contact-email').val(),
                     phone = $('#new-contact-phone').val(),
@@ -418,21 +434,28 @@
                 $('div#new-contact-preferences input:checked').each(function() {
                     tagIds.push($(this).val())
                 });
-                let params = {action: 'add_ghost_member', name: name, gender: gender,
+                let params = {action: 'add_ghost_member', member_id: memberId, name: name, gender: gender,
                     email: email, phone: phone, tag_ids: tagIds.join(',')};
                 $.getJSON('', params, function(data) {
                     if (data.error) {
                         ikwen.showFloatingNotice(data.error, '', 6)
                     }
                     if (data.success) {
-                        $('.nav-tabs .tab').removeClass('active').hide();
-                        $('.nav-tabs .tab:first').addClass('active').show();
-                        $('.tab-pane').removeClass('active').hide();
-                        $('.tab-pane:first').addClass('active').show();
-                        let $member = $('.tab-pane:first .member.tpl').clone().removeClass('tpl');
-                        $member = applyMemberTemplate($member, data.member);
-                        $member.prependTo('.tab-pane:first .people').show();
-                        ikwen.showFloatingNotice("{% trans "Member added" %}", '', 6)
+                        if (memberId) {
+                            let $member = $(`#${memberId}`);
+                            $member.find('.full_name').text(name);
+                            $member.find('.about').text(phone + ', ' + email);
+                            ikwen.showFloatingNotice("{% trans "Member updated" %}", '', 6)
+                        } else {
+                            $('.nav-tabs .tab').removeClass('active').hide();
+                            $('.nav-tabs .tab:first').addClass('active').show();
+                            $('.tab-pane').removeClass('active').hide();
+                            $('.tab-pane:first').addClass('active').show();
+                            let $member = $('.tab-pane:first .member.tpl').clone().removeClass('tpl');
+                            $member = applyMemberTemplate($member, data.member);
+                            $member.prependTo('.tab-pane:first .people').show();
+                            ikwen.showFloatingNotice("{% trans "Member added" %}", '', 6)
+                        }
                     }
                 });
             }).on('click', '#modal-import .confirm-import', function() {

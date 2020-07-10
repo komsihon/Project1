@@ -137,9 +137,15 @@
                 <div class="modal-body">
                     <form>
                         <div class="form-group row">
-                            <label for="mtn-momo-merchant-email" class="col-sm-5 col-md-4">{% trans "Merchant Email" %}</label>
+                            <label for="mtn-momo-subscription-key" class="col-sm-5 col-md-4">Subscription key</label>
                             <div class="col-sm-7">
-                                <input type="text" id="mtn-momo-merchant-email" name="merchant_email" class="form-control input-sm" />
+                                <input type="text" id="mtn-momo-subscription-key" name="subscription_key" class="form-control input-sm" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="mtn-momo-auth-header" class="col-sm-5 col-md-4">Authorization header</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="mtn-momo-auth-header" name="auth_header" class="form-control input-sm" />
                             </div>
                         </div>
                     </form>
@@ -166,7 +172,7 @@
         (function() {
             $('div#admin-nav .payment-means').addClass('active');
             $('#admin-content').on('click', '.conf-paypal', function() {
-                var meanId = $(this).parents('.ik-li').data('id'),
+                let meanId = $(this).parents('.ik-li').data('id'),
                     username = $(this).parents('.ik-li').data('username'),
                     password = $(this).parents('.ik-li').data('password'),
                     signature = $(this).parents('.ik-li').data('signature'),
@@ -177,19 +183,21 @@
                 $('#pp-merchant-id').val(merchantId);
                 $('div#conf-paypal button.btn-success').data('mean-id', meanId);
             }).on('click', '.conf-orange-money', function() {
-                var meanId = $(this).parents('.ik-li').data('id'),
+                let meanId = $(this).parents('.ik-li').data('id'),
                     merchantKey = $(this).parents('.ik-li').data('merchant_key'),
                     authHeader = $(this).parents('.ik-li').data('auth_header');
                 $('#om-merchant-key').val(merchantKey);
                 $('#om-auth-header').val(authHeader);
                 $('div#conf-orange-money button.btn-success').data('mean-id', meanId);
             }).on('click', '.conf-mtn-momo', function() {
-                var meanId = $(this).parents('.ik-li').data('id'),
-                    merchantEmail = $(this).parents('.ik-li').data('merchant_email');
-                $('#mtn-momo-merchant-email').val(merchantEmail);
+                let meanId = $(this).parents('.ik-li').data('id'),
+                    subscriptionKey = $(this).parents('.ik-li').data('subscription_key'),
+                    authHeader = $(this).parents('.ik-li').data('auth_header');
+                $('#mtn-momo-subscription-key').val(subscriptionKey);
+                $('#mtn-momo-auth-header').val(authHeader);
                 $('div#conf-mtn-momo button.btn-success').data('mean-id', meanId);
             }).on('click', '.ik-li.mean .check', function() {
-                var meanId = $(this).parents('.ik-li').data('id'),
+                let meanId = $(this).parents('.ik-li').data('id'),
                     _$check = $(this);
                 $.getJSON('{% url 'billing:toggle_payment_mean' %}', {mean_id: meanId}, function(resp) {
                     if (resp.error) {
@@ -200,7 +208,7 @@
                 })
             });
             $('div#conf-paypal button.btn-success').click(function() {
-                var credentials = JSON.stringify({
+                let credentials = JSON.stringify({
                     username: $('#pp-username').val(),
                     password: $('#pp-password').val(),
                     signature: $('#pp-signature').val(),
@@ -216,7 +224,7 @@
                 })
             });
             $('div#conf-orange-money button.btn-success').click(function() {
-                var credentials = JSON.stringify({
+                let credentials = JSON.stringify({
                     merchant_key: $('#om-merchant-key').val(),
                     auth_header: $('#om-auth-header').val()
                 }),
@@ -230,8 +238,9 @@
                 })
             });
             $('div#conf-mtn-momo button.btn-success').click(function() {
-                var credentials = JSON.stringify({
-                    merchant_email: $('#mtn-momo-merchant-email').val()
+                let credentials = JSON.stringify({
+                    subscription_key: $('#mtn-momo-subscription-key').val(),
+                    auth_header: $('#mtn-momo-auth-header').val()
                 }),
                 meanId = $(this).data('mean-id');
                 $.getJSON('{% url 'billing:set_credentials' %}', {mean_id: meanId, credentials: credentials}, function(resp) {

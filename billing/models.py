@@ -51,6 +51,8 @@ class InvoicingConfig(models.Model):
     processing_fees_on_customer = models.BooleanField(default=False)
     # This is the default number of days preceding expiry on which invoice must be sent to client.
     # this number can later be overriden per subscription of clients
+    logo = models.ImageField(verbose_name=_("Logo"),
+                             help_text=_("Logo to display on PDF Invoices. Landscape version is better."))
     gap = models.IntegerField(default=14, verbose_name=_("Gap"),
                               help_text=_("Number of days preceding expiry on which invoice must be sent to client."))
     tolerance = models.IntegerField(default=7, verbose_name=_("Tolerance"),
@@ -268,7 +270,8 @@ class AbstractInvoice(Model):
 
 
 class Invoice(AbstractInvoice):
-    subscription = models.ForeignKey(getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', Subscription), related_name='+')
+    subscription = models.ForeignKey(getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', Subscription),
+                                     blank=True, null=True, related_name='+')
 
     def _get_service(self):
         return self.subscription
@@ -434,8 +437,11 @@ class AbstractPayment(Model):
 class Payment(AbstractPayment):
     invoice = models.ForeignKey(Invoice)
 
+    def __unicode__(self):
+        return self.invoice.member.full_name
+
     def get_member(self):
-        return str(self.invoice.member)
+        return self.invoice.member.full_name
     get_member.short_description = _('Member')
 
     def save(self, *args, **kwargs):

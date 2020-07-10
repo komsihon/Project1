@@ -1,0 +1,264 @@
+{% load i18n static humanize %}
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<!DOCTYPE document SYSTEM "rml.dtd">
+<document filename="IKWEN_Invoice.pdf">
+    <template author="Wilfried Futchea" creator="w.futchea@ikwen.com" pageSize="(210mm, 297mm)" leftMargin="72" showBoundary="0">
+        <pageTemplate id="main">
+            <pageGraphics>
+                <setFont name="Helvetica-Bold" size="18"/>
+                <!-- This set font-size for major elements in header -->
+                <drawString x="15" y="680">{% trans "Invoiced to" %}</drawString>
+                <drawString x="355" y="680">{% trans "Invoice" %} #{{ invoice.number }}</drawString>
+                {% if weblet_logo %}
+                    <image file="{{ weblet_logo }}" preserveAspectRatio="1" x="15" y="790" height="35"></image>
+                {% endif %}
+
+                <setFont name="Helvetica" size="10"/>
+                <drawString x="15" y="755">{% trans "RN" context 'Cie Reg. number' %}: {{ vendor.registration_number }}</drawString>
+                <drawString x="15" y="740">{% trans "UIN" %} : {{ vendor.taxpayer_number }}</drawString>
+                <drawString x="15" y="725">{% trans "Address" %} : {{ vendor.address }}</drawString>
+
+                <setFont name="Helvetica" size="12"/>
+                <!-- This set font-size for minor elements in header -->
+                {% if customer_config %}
+                    <drawString x="15" y="770">{{ customer_config.company_name }}</drawString>
+                    <drawString x="15" y="665">{{ customer_config.address }}</drawString>
+                    <drawString x="15" y="650">{% if customer_config.city %}{{ customer_config.city }},{% endif %}{% if customer_config.country %}{{ customer_config.country.name }}{% endif %}</drawString>
+                {% else %}
+                    {% with customer=invoice.member %}
+                        <drawString x="15" y="770">{{ customer.get_full_name }}</drawString>
+                        <drawString x="15" y="665">{{ customer.email }}</drawString>
+                        <drawString x="15" y="650">{{ customer.phone }}</drawString>
+                    {% endwith %}
+                {% endif %}
+
+                <drawString x="355" y="665">{% trans "Date issued" %} : {{ invoice.date_issued|date:"Y, M d" }}</drawString>
+                <drawString x="355" y="650">{% trans "Due date" %} : {{ invoice.due_date|date:"Y, M d" }}</drawString>
+
+                <setFont name="Helvetica-Bold" size="40"/>
+                <!-- This set font-size for status in header -->
+                {% if invoice.status == 'Paid' %}
+                    <fill color="red" /><drawString x="420" y="730">{{ status }}</drawString>
+                {% endif %}
+
+                <setFont name="Helvetica-Bold" size="9"/>
+                <!-- This set font-size for footer -->
+                <fill color="#C3C3C3" /><drawString x="420" y="14">Powered by ikwen - www.ikwen.com</drawString>
+            </pageGraphics>
+        <frame id="first" x1="22" y1="-15" width="550" height="698"/>
+        </pageTemplate>
+    </template>
+
+    <stylesheet>
+        <blockTableStyle id="table_header">
+            <blockAlignment value="LEFT"/>
+			<blockValign value="MIDDLE"/>
+            <blockBackground colorName="#F6F6F6" start="0,0" stop="-1,-1"/>
+            <blockTextColor colorName="#C3C3C3" start="0,0" stop="-1,-1"/>
+            <lineStyle kind="LINEABOVE" colorName="#EEEEEE" />
+            <lineStyle kind="INNERGRID" colorName="#EEEEEE" />
+            <lineStyle kind="LINEBELOW" colorName="#EEEEEE" />
+        </blockTableStyle>
+
+        <blockTableStyle id="entry">
+            <blockAlignment value="CENTER"/>
+            <blockValign value="MIDDLE"/>
+            <lineStyle kind="LINEBELOW" colorName="#EEEEEE" />
+        </blockTableStyle>
+
+        <blockTableStyle id="total">
+            <blockAlignment value="LEFT"/>
+			<blockValign value="MIDDLE"/>
+            <blockBackground colorName="#EFF8FF"/>
+            <blockTextColor colorName="#464646"/>
+        </blockTableStyle>
+
+        <blockTableStyle id="payment_section">
+            <blockAlignment value="CENTER"/>
+            <blockValign value="MIDDLE"/>
+            <lineStyle kind="LINEABOVE" colorName="#000000"/>
+        </blockTableStyle>
+
+        <blockTableStyle id="payment_label">
+            <blockAlignment value="CENTER"/>
+            <blockValign value="MIDDLE"/>
+            <lineStyle kind="LINEBELOW" colorName="#EEEEEE"/>
+        </blockTableStyle>
+
+        <blockTableStyle id="stamp">
+            <blockAlignment value="RIGHT"/>
+            <blockValign value="MIDDLE"/>
+        </blockTableStyle>
+
+        <paraStyle name="title_left" fontSize="15" textColor="#464646"/>
+        <paraStyle name="title_right" fontSize="15" textColor="#464646" alignment="RIGHT"/>
+        <paraStyle name="text_right" alignment="RIGHT"/>
+        <paraStyle name="entry_label" fontSize="12"/>
+        <paraStyle name="title" fontSize="13" textColor="#464646"/>
+        <paraStyle name="entry_description" fontSize="10" textColor="#888888"/>
+        <paraStyle name="amount" fontSize="10" alignment="RIGHT"/>
+        <paraStyle name="stamp" alignment="RIGHT"/>
+    </stylesheet>
+
+    <story>
+        {% if stamp %}
+        <illustration>
+            <image file="{{ stamp }}" x="400" y="-645" width="125" height="125"/>
+        </illustration>
+        {% endif %}
+        <spacer length="1.8cm"/>
+        <blockTable style="table_header" rowHeights="1.3cm" colWidths="10cm,3.8cm,6cm">
+            <tr>
+                <td>
+                    <para style="title_left">
+                        <b>{% trans "Description" %}</b>
+                    </para>
+                </td>
+                <td>
+                    <para style="title_left">
+                        <b>{% trans "Quantity" %}</b>
+                    </para>
+                </td>
+                <td>
+                    <para style="title_right">
+                        <b>{% trans "Amount" %}</b>
+                    </para>
+                </td>
+            </tr>
+        </blockTable>
+
+        {% for entry in invoice.entries %}
+        <blockTable style="entry" rowHeights="1.2cm" colWidths="10cm, 3.8cm, 6cm">
+            <tr>
+                <td>
+                    <para style="entry_label">
+                        <b>{{ entry.item.label }}</b>
+                    </para>
+                    {% if entry.short_description %}
+                    <para style="entry_description">
+                        {{ entry.short_description }}
+                    </para>
+                    {% endif %}
+                </td>
+                <td>
+                    <para style="text_right">
+                    {% if entry.quantity %}
+                        x {{ entry.quantity|floatformat:"0" }} {% if entry.quantity_unit %}{{ entry.quantity_unit }}{% endif %}
+                    {% else %}
+                        ---
+                    {% endif %}
+                    </para>
+                </td>
+                <td>
+                    <para style="amount">
+                    {{ currency_symbol }} {{ entry.total|intcomma }}
+                    </para>
+                </td>
+            </tr>
+        </blockTable>
+        {% empty %}
+        <blockTable style="entry" rowHeights="1.2cm" colWidths="10cm, 3.8cm, 6cm">
+            <tr>
+                <td>
+                    <para style="entry_label">
+                        <b>{{ details|safe }}</b>
+                    </para>
+                </td>
+                <td>
+                    <para style="text_right"> --- </para>
+                </td>
+                <td>
+                    <para style="amount">
+                    {{ currency_symbol }} {{ invoice.amount|intcomma }}
+                    </para>
+                </td>
+            </tr>
+        </blockTable>
+        {% endfor %}
+
+        <spacer length="0.5cm"/>
+
+        <blockTable style="total" rowHeights="1.5cm" colWidths="13.8cm, 6cm">
+            <tr>
+                <td>
+                    <para style="title_left">
+                        <b>{% trans "Total" %}</b>
+                    </para>
+                </td>
+                <td>
+                    <para style="title_right">
+                        <b>{{ vendor.currency_symbol }} {{ invoice.amount|intcomma }}</b>
+                    </para>
+                </td>
+            </tr>
+        </blockTable>
+
+        <spacer length="0.25cm"/>
+
+        {% if invoice.paymentset.all|length > 0 %}
+        <blockTable style="payment_section" rowHeights="1.5cm" colWidths="19.8cm">
+            <tr>
+                <td>
+                    <para style="title_left">
+                        <b>{% trans "Payment(s)" %}</b>
+                    </para>
+                </td>
+            </tr>
+        </blockTable>
+        <blockTable style="table_header" rowHeights="1.3cm" colWidths="5cm, 4.5cm, 4.3cm, 6cm">
+            <tr>
+                <td>
+                    <para style="title">
+                        <b>{% trans "Transaction date" %}</b>
+                    </para>
+                </td>
+                <td>
+                    <para style="title">
+                        <b>{% trans "Method" %}</b>
+                    </para>
+                </td>
+                <td>
+                    <para style="title">
+                        <b>{% trans "Transaction ID" %}</b>
+                    </para>
+                </td>
+                <td>
+                    <para style="title_right">
+                        <b>{% trans "Amount" %}</b>
+                    </para>
+                </td>
+            </tr>
+        </blockTable>
+        {% for payment in invoice.payment_set.all %}
+        <blockTable style="payment_label" rowHeights="1.2cm" colWidths="5cm, 4.5cm, 4.3cm, 6cm">
+            <tr>
+                <td>
+                    <para>
+                        {{ payment.created_on|date:"Y, M d H:i" }}
+                    </para>
+                </td>
+                <td>
+                    <para>
+                        {{ payment.method }}
+                    </para>
+                </td>
+                <td>
+                    <para>
+                        {% if payment.processor_tx_id %}
+                            {{ payment.processor_tx_id }}
+                        {% else %}
+                            {{ payment.id }}
+                        {% endif %}
+                    </para>
+                </td>
+                <td>
+                    <para style="text_right">
+                        {{ vendor.currency_symbol }} {{ payment.amount|intcomma }}
+                    </para>
+                </td>
+            </tr>
+        </blockTable>
+        {% endfor %}
+        {% endif %}
+    </story>
+</document>

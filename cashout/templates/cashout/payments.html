@@ -79,8 +79,10 @@
                                             {% if tx.status == 'Pending' %}
                                                 {{ tx.created_on|date }}
                                                 <span class="label label-warning">{% trans "Pending" %}</span>
-                                            {% else %}
+                                            {% elif tx.paid_on %}
                                                 {{ tx.paid_on|date }}
+                                            {% else %}
+                                                {{ tx.created_on|date }}
                                             {% endif %}
                                         </span>
                                         <span class="pull-right text-muted">{{ config.currency_symbol }} {{ tx.amount|floatformat:config.decimal_precision|intcomma }}</span>

@@ -28,7 +28,7 @@ from ikwen.billing.models import Invoice, Payment, PAYMENT_CONFIRMATION, Invoice
 from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.utils import get_invoicing_config_instance, get_days_count, get_payment_confirmation_message, \
     share_payment_and_set_stats, get_next_invoice_number, refill_tsunami_messaging_bundle, get_subscription_model, \
-    notify_event
+    notify_event, generate_pdf_invoice
 from ikwen.core.models import Service
 from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content, XEmailMessage
 
@@ -173,8 +173,8 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
     service = invoice.service
     total_months = invoice.months_count + extra_months
     days = get_days_count(total_months)
+    invoicing_config = get_invoicing_config_instance()
     if service.status == Service.SUSPENDED:
-        invoicing_config = get_invoicing_config_instance()
         days -= invoicing_config.tolerance  # Catch-up days that were offered before service suspension
         expiry = now + timedelta(days=days)
         expiry = expiry.date()
@@ -216,6 +216,11 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
     add_event(vendor, PAYMENT_CONFIRMATION, member=member, object_id=invoice.id)
     add_event(vendor, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
 
+    try:
+        invoice_pdf_file = generate_pdf_invoice(invoicing_config, invoice)
+    except:
+        invoice_pdf_file = None
+
     if member.email:
         activate(member.language)
         invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
@@ -228,6 +233,8 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
         msg = XEmailMessage(subject, html_content, sender, [member.email])
         if vendor != ikwen_service and not vendor_is_dara:
             msg.service = vendor
+        if invoice_pdf_file:
+            msg.attach_file(invoice_pdf_file)
         msg.content_subtype = "html"
         if getattr(settings, 'UNIT_TESTING', False):
             msg.send()
@@ -289,8 +296,13 @@ def confirm_invoice_payment(request, *args, **kwargs):
 
     if invoicing_config.return_url:
         params = {'reference_id': subscription.reference_id, 'invoice_number': invoice.number,
-                  'amount_paid': amount, 'extra_months': extra_months}
+                  'amount_paid': amount, 'processor_tx_id': tx.processor_tx_id, 'extra_months': extra_months}
         Thread(target=notify_event, args=(service, invoicing_config.return_url, params)).start()
+
+    try:
+        invoice_pdf_file = generate_pdf_invoice(invoicing_config, invoice)
+    except:
+        invoice_pdf_file = None
 
     balance, update = Balance.objects.using(WALLETS_DB_ALIAS).get_or_create(service_id=service.id)
     if member.email:
@@ -312,6 +324,8 @@ def confirm_invoice_payment(request, *args, **kwargs):
             sender = '%s <no-reply@%s>' % (config.company_name, service.domain)
             msg = XEmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
+            if invoice_pdf_file:
+                msg.attach_file(invoice_pdf_file)
             balance.mail_count -= 1
             balance.save()
             Thread(target=lambda m: m.send(), args=(msg,)).start()

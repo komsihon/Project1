@@ -40,10 +40,10 @@
 </div>
 <ul class="object-list list-group">
     {% for payment in objects_page.object_list %}
-        {% with subscription=payment.invoice.subscription %}
-            {% url 'billing:change_subscription' subscription.id as obj_url %}
+        {% with invoice=payment.invoice %}
+            {% url 'billing:invoice_detail' invoice.id as obj_url %}
             <li class="ik-li list-group-item" id="{{ payment.id }}" data-id="{{ payment.id }}">
-                <a href="{{ obj_url }}">{{ subscription }}</a>
+                <a href="{{ obj_url }}">{{ invoice.member }}</a>
                 <div>
                     <span class="pull-left text-muted hidden-xs">{{ payment.invoice }} - {{ payment.created_on|date:"Y-m-d H:i" }}</span>
                     <span class="pull-left text-muted visible-xs">{{ payment.invoice.number }}</span>

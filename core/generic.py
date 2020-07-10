@@ -15,7 +15,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import get_model
-from django.db.models.fields.files import ImageFieldFile
+from django.db.models.fields.files import ImageFieldFile, FieldFile
 from django.forms.models import modelform_factory
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -30,8 +30,10 @@ from import_export.formats.base_formats import XLS, CSV
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
+from ikwen.core.fields import MultiImageFieldFile
 from ikwen.core.models import Service, AbstractConfig
-from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_icons, get_model_admin_instance
+from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_icons, get_model_admin_instance, \
+    get_preview_from_extension
 from ikwen.revival.models import ProfileTag, Revival
 
 logger = logging.getLogger('ikwen')
@@ -500,20 +502,28 @@ class ChangeObjectBase(TemplateView):
         model_obj = obj if obj else model()
         date_field_list = []
         datetime_field_list = []
-        img_field_list = []
+        media_field_list = []
         i = 0
         for key in model_obj.__dict__.keys():
             field = model_obj.__getattribute__(key)
-            if isinstance(field, ImageFieldFile):
+            if isinstance(field, FieldFile):
                 if not field.field.editable:
                     continue
-                img_obj = {
+                if isinstance(field, ImageFieldFile):
+                    preview = field.name
+                elif isinstance(field, MultiImageFieldFile):
+                    preview = field.small_name
+                else:
+                    preview = get_preview_from_extension(field.name)
+                media_obj = {
                     'image': field,
+                    'media': field,
+                    'preview': preview,
                     'field': key,
                     'help_text': field.field.help_text,
                     'counter': i
                 }
-                img_field_list.append(img_obj)
+                media_field_list.append(media_obj)
                 i += 1
             field = form.base_fields.get(key)
             if isinstance(field, DateField):
@@ -531,26 +541,28 @@ class ChangeObjectBase(TemplateView):
         context['label_field'] = self.label_field if self.label_field else 'name'
         context['date_field_list'] = date_field_list
         context['datetime_field_list'] = datetime_field_list
-        context['img_field_list'] = img_field_list
+        context['media_field_list'] = media_field_list
         context['embed_doc_template_name'] = self.get_embed_doc_template_name()
         return context
 
     def get(self, request, *args, **kwargs):
         action = request.GET.get('action')
-        if action == 'delete_image':
+        if action == 'delete_image' or action == 'delete_media':
             model = self.get_model()
             object_id = kwargs.get('object_id')
             obj = get_object_or_404(model, pk=object_id)
-            image_field_name = request.POST.get('image_field_name', 'image')
-            image_field = obj.__getattribute__(image_field_name)
-            if image_field.name:
-                os.unlink(image_field.path)
+            media_field_name = request.POST.get('media_field_name')
+            if not media_field_name:
+                media_field_name = request.POST.get('image_field_name', 'image')
+            media_field = obj.__getattribute__(media_field_name)
+            if media_field.name:
+                os.unlink(media_field.path)
                 try:
-                    os.unlink(image_field.small_path)
-                    os.unlink(image_field.thumb_path)
+                    os.unlink(media_field.small_path)
+                    os.unlink(media_field.thumb_path)
                 except:
                     pass
-                obj.__setattr__(image_field_name, None)
+                obj.__setattr__(media_field_name, None)
                 obj.save()
             return HttpResponse(
                 json.dumps({'success': True}),
@@ -600,26 +612,25 @@ class ChangeObjectBase(TemplateView):
                 except:
                     pass
 
-            image_url = request.POST.get('image_url')
-            if image_url:
-                s = get_service_instance()
-                image_field_name = request.POST.get('image_field_name', 'image')
-                image_field = obj.__getattribute__(image_field_name)
-                if not image_field.name or image_url != image_field.url:
-                    filename = image_url.split('/')[-1]
+            s = get_service_instance()
+            for key in obj.__dict__.keys():
+                media_field = obj.__getattribute__(key)
+                if not (isinstance(media_field, FieldFile) and media_field.field.editable):
+                    continue
+                media_url = request.POST.get(key)
+                if not media_field.name or media_url != media_field.url:
+                    filename = media_url.split('/')[-1]
                     media_root = getattr(settings, 'MEDIA_ROOT')
                     media_url = getattr(settings, 'MEDIA_URL')
-                    path = image_url.replace(media_url, '')
+                    path = media_url.replace(media_url, '')
                     try:
                         with open(media_root + path, 'r') as f:
                             content = File(f)
                             destination = media_root + obj.UPLOAD_TO + "/" + s.project_name_slug + '_' + filename
-                            image_field.save(destination, content)
+                            media_field.save(destination, content)
                         os.unlink(media_root + path)
-                    except IOError as e:
-                        if getattr(settings, 'DEBUG', False):
-                            raise e
-                        return {'error': 'File failed to upload. May be invalid or corrupted image file'}
+                    except:
+                        continue
             self.save_object_profile_tags(request, obj, *args, **kwargs)
             self.after_save(request, obj, *args, **kwargs)
             if request.POST.get('keep_editing'):

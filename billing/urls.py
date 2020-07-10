@@ -51,6 +51,7 @@ urlpatterns = patterns(
     url(r'^MoMo/checkTransaction/$', check_momo_transaction_status, name='check_momo_transaction_status'),
 
     url(r'^mtnmomo/notify$', process_notification, name='process_notification'),
+    url(r'^mtnmomo/notify/(?P<tx_id>[-\w]+)$', process_notification, name='process_notification'),
     url(r'^yup/notify$', yup_process_notification, name='yup_notify'),
     url(r'^uba/notify_success$', uba_process_approved, name='uba_process_approved'),
     url(r'^uba/notify_declined$', uba_process_declined_or_cancelled, name='uba_process_declined'),

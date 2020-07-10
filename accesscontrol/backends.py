@@ -5,10 +5,13 @@ import requests
 from datetime import datetime
 from django.conf import settings
 from django.contrib.auth.models import Group
+from django.db.models import Q
+
 from ikwen.core.utils import add_event, get_service_instance
 from permission_backend_nonrel.models import UserPermissionList
 
 from ikwen.accesscontrol.models import Member, COMMUNITY, MEMBER_JOINED_IN, SUDO
+from ikwen.revival.models import MemberProfile
 from permission_backend_nonrel.backends import NonrelPermissionBackend
 
 __author__ = 'Kom Sihon'
@@ -56,8 +59,14 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                     except Member.DoesNotExist:
                         return None
         try:
-            user = Member.objects.using('default').get(username=username)
+            user = Member.objects.using('default').get(username=username, is_ghost=False)
         except Member.DoesNotExist:
+            try:
+                ghost = Member.objects.using('default').get(Q(email=user.email) | Q(phone=user.phone), is_ghost=True)
+                MemberProfile.objects.filter(member=ghost).update(member=user)
+                ghost.delete()
+            except Member.DoesNotExist:
+                return
             community = Group.objects.get(name=COMMUNITY)
             if user.email != ARCH_EMAIL:
                 user.is_iao = False

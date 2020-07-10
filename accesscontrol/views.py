@@ -805,8 +805,8 @@ class Community(HybridListView):
             return self.set_member_profiles(context)
         elif action == 'import_contacts_file':
             return self.import_contacts_file(context)
-        elif action == 'add_ghost_member':
-            return self.add_ghost_member()
+        elif action == 'add_ghost_member' or action == 'edit_ghost_member':
+            return self.change_ghost_member()
         elif action == 'delete_ghost_member':
             return self.delete_ghost_member()
         return super(Community, self).render_to_response(context, **response_kwargs)
@@ -865,18 +865,23 @@ class Community(HybridListView):
         set_profile_tag_member_count(member, previous_tag_fk_list)
         return HttpResponse(json.dumps({'success': True}), content_type='application/json')
 
-    def add_ghost_member(self, *args, **kwargs):
-        service = get_service_instance()
+    def change_ghost_member(self, *args, **kwargs):
+        member_id = self.request.GET.get('member_id')
         name = self.request.GET.get('name', '')
         gender = self.request.GET.get('gender', '')
         email = self.request.GET.get('email', '')
         phone = self.request.GET.get('phone', '')
+        password = self.request.GET.get('password', DEFAULT_GHOST_PWD)
         tag_ids = self.request.GET.get('tag_ids')
+
+        queryset = Member.objects
+        if member_id:
+            queryset = queryset.exclude(pk=member_id)
+
         if email:
             try:
-                member = Member.objects.using(UMBRELLA).filter(email=email)[0]
-                response = {'error': _("This email already exists. The person was sent an invitation mail")}
-                invite_member(service, member)
+                member = queryset.filter(email=email)[0]
+                response = {'error': _("This email already exists.")}
                 return HttpResponse(json.dumps(response), content_type='application/json')
             except:
                 pass
@@ -885,16 +890,14 @@ class Community(HybridListView):
             if phone.startswith('237') and len(phone) == 12:
                 phone = phone[3:]
             try:
-                member = Member.objects.using(UMBRELLA).filter(phone=phone)[0]
-                invite_member(service, member)
-                response = {'error': _("This phone already exists. The person was sent an invitation mail")}
+                member = queryset.filter(phone=phone)[0]
+                response = {'error': _("This phone already exists.")}
                 return HttpResponse(json.dumps(response), content_type='application/json')
             except:
                 pass
             try:
-                member = Member.objects.filter(phone='237' + phone)[0]
-                invite_member(service, member)
-                response = {'error': _("This phone already exists. The person was sent an invitation mail")}
+                member = queryset.filter(phone='237' + phone)[0]
+                response = {'error': _("This phone already exists.")}
                 return HttpResponse(json.dumps(response), content_type='application/json')
             except:
                 pass
@@ -918,21 +921,30 @@ class Community(HybridListView):
             # If there is no phone provided, set phone to the same value as email
             # to avoid duplicate error due to multiple empty phones
             phone = email
-        member = Member.objects.create_user(username, DEFAULT_GHOST_PWD, first_name=first_name, last_name=last_name,
-                                            email=email, phone=phone, gender=gender, is_ghost=True)
-        tag = JOIN
-        join_tag, update = ProfileTag.objects.get_or_create(name=tag, slug=tag, is_auto=True)
-        tag_fk_list.append(join_tag.id)
-        member_profile = MemberProfile.objects.get(member=member)
-        member_profile.tag_fk_list.extend(tag_fk_list)
-        member_profile.save()
+        if member_id:
+            full_name = first_name + ' ' + last_name
+            Member.objects.filter(pk=member_id).update(first_name=first_name, last_name=last_name, full_name=full_name,
+                                                       email=email, phone=phone, gender=gender)
+            member = Member.objects.get(pk=member_id)
+            member_profile = MemberProfile.objects.get(member=member)
+            previous_tag_fk_list = member_profile.tag_fk_list
+        else:
+            member = Member.objects.create_user(username, password, first_name=first_name, last_name=last_name,
+                                                email=email, phone=phone, gender=gender, is_ghost=True)
+            previous_tag_fk_list = []
+            tag = JOIN
+            join_tag, update = ProfileTag.objects.get_or_create(name=tag, slug=tag, is_auto=True)
+            tag_fk_list.append(join_tag.id)
+            member_profile = MemberProfile.objects.get(member=member)
+            member_profile.tag_fk_list.extend(tag_fk_list)
+            member_profile.save()
 
-        service = Service.objects.using(UMBRELLA).get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
-        Revival.objects.using(UMBRELLA).get_or_create(service=service, model_name='core.Service', object_id=service.id,
-                                                      mail_renderer='ikwen.revival.utils.render_suggest_create_account_mail',
-                                                      profile_tag_id=join_tag.id, get_kwargs='ikwen.rewarding.utils.get_join_reward_pack_list')
+            service = Service.objects.using(UMBRELLA).get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
+            Revival.objects.using(UMBRELLA).get_or_create(service=service, model_name='core.Service', object_id=service.id,
+                                                          mail_renderer='ikwen.revival.utils.render_suggest_create_account_mail',
+                                                          profile_tag_id=join_tag.id, get_kwargs='ikwen.rewarding.utils.get_join_reward_pack_list')
 
-        set_profile_tag_member_count(member)
+        set_profile_tag_member_count(member, previous_tag_fk_list)
         response = {'success': True, 'member': member.to_dict()}
         return HttpResponse(json.dumps(response), content_type='application/json')
 

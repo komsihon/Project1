@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import csv
 import json
 import logging
@@ -342,16 +343,22 @@ class InvoiceDetail(TemplateView):
             context['details'] = details
         context['payment_mean_list'] = list(PaymentMean.objects.filter(is_active=True).order_by('-is_main'))
         context['invoicing_config'] = get_invoicing_config_instance()
+        weblet = get_service_instance()
         if getattr(settings, 'IS_IKWEN', False):
             try:
                 invoice_service = invoice.service
                 retailer = invoice_service.retailer
+                if retailer:
+                    weblet = retailer
                 context['customer_config'] = invoice_service.config
-                context['vendor'] = retailer.config if retailer else get_service_instance().config
             except:
                 pass
-        else:
-            context['vendor'] = get_service_instance().config
+        context['vendor'] = weblet.config
+        filename = '%s_Invoice_%s_%s.pdf' % (weblet.project_name_slug.upper(), invoice.number,
+                                             invoice.date_issued.strftime("%Y-%m-%d"))
+        media_root = getattr(settings, 'MEDIA_ROOT')
+        if os.path.exists(media_root + filename):
+            context['pdf_url'] = getattr(settings, 'MEDIA_URL') + filename
 
         # User may want to extend the payment above the default duration
         # Below are a list of possible extension dates on a year

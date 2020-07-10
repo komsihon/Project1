@@ -146,19 +146,18 @@ class ServiceAdmin(admin.ModelAdmin):
 
 if getattr(settings, 'IS_IKWEN', False):
     _list_display = ('service', 'company_name', 'short_description', 'contact_email', 'contact_phone')
-    _general_fields = ('service', 'company_name', 'short_description', 'slogan', 'description',
+    _general_fields = ('service', 'company_name', 'registration_number', 'taxpayer_number',
                        'currency_code', 'currency_symbol', 'is_pro_version', 'is_standalone')
 else:
     _list_display = ('company_name', 'short_description', 'contact_email', 'contact_phone')
-    _general_fields = ('company_name', 'short_description', 'slogan',
-                       'description', 'currency_code', 'currency_symbol')
+    _general_fields = ('company_name', 'registration_number', 'taxpayer_number', 'currency_code', 'currency_symbol')
 
 
 class ConfigAdmin(admin.ModelAdmin):
     list_display = _list_display
     fieldsets = (
         (_('General'), {'fields': _general_fields}),
-        (_('Branding'), {'fields': ('brand_color',)}),
+        (_('Branding'), {'fields': ('slogan', 'short_description', 'description', 'brand_color',)}),
         (_('Address & Contact'), {'fields': ('contact_email', 'contact_phone', 'whatsapp_phone', 'address', 'country', 'city')}),
         (_('Social'), {'fields': ('facebook_link', 'twitter_link', 'instagram_link', 'linkedin_link', )}),
         (_('Mailing'), {'fields': ('welcome_message', 'signature', )}),

@@ -357,11 +357,11 @@ def get_location_by_ip(request, *args, **kwargs):
             ip = '154.72.166.181'  # My Local IP by the time I was writing this code
         else:
             ip = request.META['REMOTE_ADDR']
-        r = requests.get('http://geo.groupkt.com/ip/%s/json' % ip)
+        from ikwen.conf import settings as ikwen_settings
+        r = requests.get('http://api.ipstack.com/%s?access_key=%s' % (ip, ikwen_settings.IP_STACK_API_KEY))
         result = json.loads(r.content.decode('utf-8'))
-        location = result['RestResponse']['result']
-        country = Country.objects.get(iso2=location['countryIso2'])
-        city = location['city']
+        country = Country.objects.get(iso2=result['country_code'])
+        city = result['city']
         response = {
             'country': country.to_dict(),
             'city': city

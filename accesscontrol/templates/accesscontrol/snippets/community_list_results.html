@@ -24,8 +24,11 @@
                 <p class="about">{{ user.phone }}, {{ user.email }}</p>
             </div>
             {% if user.is_ghost %}
-            <div class="actions">
-                <i class="action glyphicon glyphicon-edit" title="{% trans "Edit" %}"></i>
+            <div class="actions"
+                 data-toggle="modal" data-target="#modal-add-contact">
+                <i class="action glyphicon glyphicon-edit edit-member" title="{% trans "Edit" %}"
+                   data-email="{{ user.email }}" data-phone="{{ user.phone }}" data-gender="{{ user.gender }}"
+                   data-profile-tags="{% for tag_fk in user.memberprofile_set.all.0.tag_fk_list %},{{ tag_fk }}{% endfor %}"></i>
             </div>
             {% endif %}
         </li>

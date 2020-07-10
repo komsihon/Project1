@@ -259,10 +259,11 @@ def send_sms(recipient, text, label=None, script_url=None, fail_silently=True):
             logger.debug('SMS submitted to %s through %s' % (recipient, base_url))
 
 
-def send_push(subscription_or_member, title, body, target_page=None, image_url=None):
+def send_push(sender_weblet, subscription_or_member, title, body, target_page=None, image_url=None):
     """
     Submits a push notification
 
+    :param sender_weblet: Weblet sending the push. If none the current weblet is picked
     :param subscription_or_member: Either a value contained in accesscontrol.PWAProfile.push_subscription or a Member object
     :param title: Title of the Notification
     :param body: Body text of the notification
@@ -271,10 +272,11 @@ def send_push(subscription_or_member, title, body, target_page=None, image_url=N
     :return: number of push successfully submitted, 0 if none was submitted
     """
     from ikwen.accesscontrol.models import Member, PWAProfile
-    service = get_service_instance()
+    db = sender_weblet.database
+    add_database(db)
     if type(subscription_or_member) == Member:
-        push_subscription_list = [pwa_profile.push_subscription
-                                  for pwa_profile in PWAProfile.objects.filter(member=subscription_or_member)]
+        push_subscription_list = [pwa_profile.push_subscription for pwa_profile in PWAProfile.objects
+                                  .using(db).filter(service=sender_weblet, member=subscription_or_member)]
     else:
         push_subscription_list = [subscription_or_member]
 
@@ -282,8 +284,8 @@ def send_push(subscription_or_member, title, body, target_page=None, image_url=N
         'title': title,
         'body': body,
         'target': target_page,
-        'badge': getattr(settings, 'MEDIA_URL') + 'icons/android-icon-96x96.png',
-        'icon': getattr(settings, 'MEDIA_URL') + 'icons/android-icon-512x512.png',
+        'badge': '%s/%s/icons/android-icon-96x96.png' % (ikwen_settings.CLUSTER_MEDIA_URL, sender_weblet.project_name_slug),
+        'icon': '%s/%s/icons/android-icon-512x512.png' % (ikwen_settings.CLUSTER_MEDIA_URL, sender_weblet.project_name_slug),
         'timestamp': int(time.time()) * 1000
     }
     if image_url:
@@ -294,13 +296,13 @@ def send_push(subscription_or_member, title, body, target_page=None, image_url=N
             webpush(json.loads(push_subscription), json.dumps(notification),
                     vapid_private_key=ikwen_settings.PUSH_PRIVATE_KEY,
                     vapid_claims={"sub": "mailto: support@ikwen.com"},
-                    ttl=86400, timeout=60)
+                    ttl=86400*2, timeout=60)
             submitted += 1
         except:
             if type(subscription_or_member) == Member:
-                logger.error("%s - Failed to send push %s to %s" % (service.project_name, title, subscription_or_member.username), exc_info=True)
+                logger.error("%s - Failed to send push %s to %s" % (sender_weblet.project_name, title, subscription_or_member.username), exc_info=True)
             else:
-                logger.error("%s - Failed to send push %s" % (service.project_name, title), exc_info=True)
+                logger.error("%s - Failed to send push %s" % (sender_weblet.project_name, title), exc_info=True)
     return submitted
 
 
@@ -322,16 +324,18 @@ class DefaultUploadBackend(LocalUploadBackend):
         rand = ''.join([random.SystemRandom().choice(string.ascii_letters) for i in range(6)])
         if model_name and object_id:
             s = get_service_instance()
-            image_field_name = request.GET.get('image_field_name', 'image')
+            media_field_name = request.GET.get('media_field_name')
+            if not media_field_name:
+                media_field_name = request.GET.get('image_field_name', 'image')
             label_field_name = request.GET.get('label_field_name', 'name')
             tokens = model_name.split('.')
             model = get_model(tokens[0], tokens[1])
             obj = model._default_manager.get(pk=object_id)
-            image_field = obj.__getattribute__(image_field_name)
+            media_field = obj.__getattribute__(media_field_name)
             try:
                 with open(media_root + path, 'r') as f:
                     content = File(f)
-                    current_image_path = image_field.path if image_field.name else None
+                    current_media_path = media_field.path if media_field.name else None
                     dir = media_root + obj.UPLOAD_TO
                     unique_filename = False
                     filename_suffix = 0
@@ -358,38 +362,44 @@ class DefaultUploadBackend(LocalUploadBackend):
                     destination = os.path.join(dir, seo_filename)
                     if not os.path.exists(dir):
                         os.makedirs(dir)
-                    image_field.save(destination, content)
+                    media_field.save(destination, content)
                     if request.GET.get('upload_to_ikwen') == 'yes':  # Upload to ikwen media folder for access platform wide.
                         destination2_folder = ikwen_settings.MEDIA_ROOT + obj.UPLOAD_TO
                         if not os.path.exists(destination2_folder):
                             os.makedirs(destination2_folder)
                         destination2 = destination.replace(media_root, ikwen_settings.MEDIA_ROOT)
                         os.rename(destination, destination2)
-                        if isinstance(image_field, MultiImageFieldFile):
-                            destination2_small = ikwen_settings.MEDIA_ROOT + image_field.small_name
-                            destination2_thumb = ikwen_settings.MEDIA_ROOT + image_field.thumb_name
-                            os.rename(image_field.small_path, destination2_small)
-                            os.rename(image_field.thumb_path, destination2_thumb)
+                        if isinstance(media_field, MultiImageFieldFile):
+                            destination2_small = ikwen_settings.MEDIA_ROOT + media_field.small_name
+                            destination2_thumb = ikwen_settings.MEDIA_ROOT + media_field.thumb_name
+                            os.rename(media_field.small_path, destination2_small)
+                            os.rename(media_field.thumb_path, destination2_thumb)
                         media_url = ikwen_settings.MEDIA_URL
-                    if isinstance(image_field, MultiImageFieldFile):
-                        url = media_url + image_field.small_name
+                    if isinstance(media_field, MultiImageFieldFile):
+                        url = media_url + media_field.small_name
+                        preview_url = url
+                    elif isinstance(media_field, ImageFieldFile):
+                        url = media_url + media_field.name
+                        preview_url = url
                     else:
-                        url = media_url + image_field.name
+                        url = media_url + media_field.name
+                        preview_url = get_preview_from_extension(media_field.name)
                 try:
-                    if image_field and os.path.exists(media_root + path):
+                    if media_field and os.path.exists(media_root + path):
                         os.unlink(media_root + path)  # Remove file from upload tmp folder
                 except Exception as e:
                     if getattr(settings, 'DEBUG', False):
                         raise e
-                if current_image_path:
+                if current_media_path:
                     try:
-                        if destination != current_image_path and os.path.exists(current_image_path):
-                            os.unlink(current_image_path)
+                        if destination != current_media_path and os.path.exists(current_media_path):
+                            os.unlink(current_media_path)
                     except OSError as e:
                         if getattr(settings, 'DEBUG', False):
                             raise e
                 return {
-                    'path': url + '?rand=' + rand
+                    'path': url,
+                    'preview': preview_url + '?rand=' + rand
                 }
             except IOError as e:
                 logger.error("File failed to upload. May be invalid or corrupted image file", exc_info=True)
@@ -830,6 +840,16 @@ def generate_icons(logo_path, output_folder=None):
         img.thumbnail((d, d), Image.ANTIALIAS)
         output = folder + 'ms-icon-%dx%d.png' % (d, d)
         img.save(output, format="PNG", quality=100)
+
+
+def get_preview_from_extension(filename):
+    raw_filename, extension = os.path.splitext(filename)
+    if extension in ['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf', '.mp3', '.mp4', '.zip', '.xz', '.gz',
+                     '.7z', '.rar', '.ods']:
+        extension = extension[1:]
+    else:
+        extension = 'unknown'
+    return ikwen_settings.STATIC_URL + 'ikwen/img/ext/%s.png' % extension
 
 
 def to_snake_case(s):
