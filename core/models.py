@@ -566,12 +566,12 @@ class Service(models.Model):
             base_config = config.get_base_config()
             base_config.delete()
             if retailer:
-                config_model.objects.using(retailer.database).get(service=self).delete()
+                config_model.objects.using(retailer.database).filter(service=self).delete()
             config.delete()
         except:
             pass
         if retailer:
-            Service.objects.using(retailer.database).get(project_name_slug=self.project_name_slug).delete()
+            Service.objects.using(retailer.database).filter(project_name_slug=self.project_name_slug).delete()
         self.delete()
 
     def generate_pwa_manifest(self):
@@ -632,9 +632,6 @@ class AbstractConfig(Model):
     logo = models.ImageField(upload_to=LOGO_UPLOAD_TO, verbose_name=_("Your logo"), blank=True, null=True, editable=False,
                              help_text=_("Image in <strong>PNG with transparent background</strong> is advised. "
                                          "(Maximum 400 x 400px)"))
-    badge = models.ImageField(upload_to=LOGO_UPLOAD_TO, verbose_name=_("Your badge"), blank=True, null=True,
-                              help_text=_("Image that appear in Android status bar when your notification arrives. "
-                                          "Use a white and transparent background image. (PNG format, 128 x 128px)"))
     cover_image = models.ImageField(upload_to=COVER_UPLOAD_TO, blank=True, null=True, editable=False,
                                     help_text=_("Cover image used as decoration of company's profile page "
                                                 "and also to use on top of the mails. (Max. 800px width)"))
