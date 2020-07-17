@@ -111,8 +111,18 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
+                        <strong class="col-xs-4">Email :</strong>
+                        <span class="col-xs-8 text-muted email"></span>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="row">
                         <strong class="col-xs-4">Phone :</strong>
                         <span class="col-xs-8 text-muted phone"></span>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="row">
+                        <strong class="col-xs-4">TX Phone :</strong>
+                        <span class="col-xs-8 text-muted tx-phone"></span>
                         <div class="clearfix"></div>
                     </div>
                     <div class="row">
@@ -234,12 +244,16 @@
                     operatorTxId = $(this).find('.tx-id').text(),
                     date = $(this).find('.date').text(),
                     status = $(this).find('.status').text(),
+                    txPhone = $(this).data('tx-phone'),
+                    email = $(this).data('email'),
                     phone = $(this).data('phone'),
                     objectId = $(this).data('object-id'),
                     message = $(this).data('message');
                 $('div#tx-details .operator').text(operator);
                 $('div#tx-details .app').text(app);
                 $('div#tx-details .phone').text(phone);
+                $('div#tx-details .email').text(email);
+                $('div#tx-details .tx-phone').text(txPhone);
                 $('div#tx-details .amount').text(amount);
                 $('div#tx-details .user-id').text(userId);
                 $('div#tx-details .date').text(date);

@@ -51,7 +51,7 @@ class InvoicingConfig(models.Model):
     processing_fees_on_customer = models.BooleanField(default=False)
     # This is the default number of days preceding expiry on which invoice must be sent to client.
     # this number can later be overriden per subscription of clients
-    logo = models.ImageField(verbose_name=_("Logo"),
+    logo = models.ImageField(upload_to='invoicing_config/logos', verbose_name=_("Logo"),
                              help_text=_("Logo to display on PDF Invoices. Landscape version is better."))
     gap = models.IntegerField(default=14, verbose_name=_("Gap"),
                               help_text=_("Number of days preceding expiry on which invoice must be sent to client."))
@@ -539,6 +539,10 @@ class MoMoTransaction(Model):
     def _get_service(self):
         return Service.objects.using(UMBRELLA).get(pk=self.service_id)
     service = property(_get_service)
+
+    def _get_member(self):
+        return Member.objects.using('default').get(username=self.username)
+    member = property(_get_member)
 
     def _get_wallet_name(self):
         if self.wallet == MTN_MOMO:

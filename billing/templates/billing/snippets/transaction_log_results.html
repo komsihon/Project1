@@ -104,9 +104,11 @@
             </thead>
             <tbody>
                 {% for tx in transaction_list %}
+                    {% with member=tx.member %}
                     <tr{% if tx.status == 'Success' and tx.message != 'OK' %} class="warning"{% endif %}
                         data-message="{{ tx.message }}" data-object-id="{{ tx.object_id }}"
-                        data-phone="{% if tx.phone == '<Unknown>' %}{{ tx.phone }}{% else %}{{ tx.phone|floatformat:"0" }}{% endif %}">
+                        data-tx-phone="{% if tx.phone == '<Unknown>' %}{{ tx.phone }}{% else %}{{ tx.phone|floatformat:"0" }}{% endif %}"
+                        data-email="{{ member.email }}" data-phone="{{ member.phone }}">
                         <td class="operator">{{ tx.wallet_name }}</td>
                         <td class="amount">{{ tx.amount|floatformat:"0"|intcomma }}</td>
                         <td class="fees">{{ tx.fees }}</td>
@@ -116,6 +118,7 @@
                         <td class="date">{{ tx.created_on|date:"y-m-d H:i" }}</td>
                         <td class="status">{{ tx.status }}</td>
                     </tr>
+                    {% endwith %}
                 {% endfor %}
             </tbody>
         </table>
