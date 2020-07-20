@@ -281,6 +281,7 @@ class AdminInvoiceList(HybridListView):
 
 
 class InvoiceList(HybridListView):
+    ordering = ('-due_date', '-number')
     if getattr(settings, 'IS_UMBRELLA', False):
         template_name = 'billing/iao_invoice_list.html'
     else:

@@ -36,7 +36,7 @@ urlpatterns = patterns(
     url(r'^change_billing_cycle$', change_billing_cycle, name='change_billing_cycle'),
     url(r'^list_members$', list_members, name='list_members'),
     url(r'^list_subscriptions$', list_subscriptions, name='list_subscriptions'),
-    url(r'^configuration/$', Configuration.as_view(), name='configuration'),
+    url(r'^configuration/$', permission_required('accesscontrol.sudo')(Configuration.as_view()), name='configuration'),
 
     url(r'^upload_subscription_file', upload_subscription_file, name='upload_subscription_file'),
     url(r'^api/pull_invoice', pull_invoice, name='pull_invoice'),
