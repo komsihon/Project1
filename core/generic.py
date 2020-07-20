@@ -514,7 +514,7 @@ class ChangeObjectBase(TemplateView):
                 elif isinstance(field, MultiImageFieldFile):
                     preview = field.small_name
                 else:
-                    preview = get_preview_from_extension(field.name)
+                    preview = get_preview_from_extension(field.name) if field.name else ''
                 media_obj = {
                     'image': field,
                     'media': field,
@@ -640,7 +640,7 @@ class ChangeObjectBase(TemplateView):
             if before:
                 messages.success(request, u'%s <strong>%s</strong> %s' % (obj._meta.verbose_name.capitalize(), unicode(obj), _('successfully updated')))
             else:
-                messages.success(request, u'%s <strong>%s</strong> %s' % (obj._meta.verbose_name.capitalize(), unicode(obj), _('successfully updated')))
+                messages.success(request, u'%s <strong>%s</strong> %s' % (obj._meta.verbose_name.capitalize(), unicode(obj), _('successfully changed')))
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)

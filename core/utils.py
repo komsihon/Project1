@@ -336,14 +336,17 @@ class DefaultUploadBackend(LocalUploadBackend):
                 with open(media_root + path, 'r') as f:
                     content = File(f)
                     current_media_path = media_field.path if media_field.name else None
-                    dir = media_root + obj.UPLOAD_TO
+                    dir = media_root + media_field.field.upload_to
                     unique_filename = False
                     filename_suffix = 0
                     filename_no_extension, extension = os.path.splitext(filename)
-                    label_field = obj.__getattribute__(label_field_name)
-                    if label_field:
-                        seo_filename_no_extension = slugify(label_field)
-                    else:
+                    try:
+                        label_field = obj.__getattribute__(label_field_name)
+                        if label_field:
+                            seo_filename_no_extension = slugify(label_field)
+                        else:
+                            seo_filename_no_extension = obj.__class__.__name__.lower()
+                    except:
                         seo_filename_no_extension = obj.__class__.__name__.lower()
                     seo_filename = s.project_name_slug + '_' + seo_filename_no_extension + extension
                     if os.path.isfile(os.path.join(dir, seo_filename)):
