@@ -626,7 +626,7 @@ class ChangeObjectBase(TemplateView):
                     try:
                         with open(media_root + path, 'r') as f:
                             content = File(f)
-                            destination = media_root + obj.UPLOAD_TO + "/" + s.project_name_slug + '_' + filename
+                            destination = media_root + media_field.field.upload_to + "/" + s.project_name_slug + '_' + filename
                             media_field.save(destination, content)
                         os.unlink(media_root + path)
                     except:

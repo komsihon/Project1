@@ -2,6 +2,7 @@
 
 <section class="photos" style="width: 100%">
     <label class="required upload-title" style="float: left; width: 100%">{% blocktrans %}Upload {{ image_field_name }}{% endblocktrans %}</label>
+    <input type="hidden" name="{{ image_field_name }}" value="{% if upload_to_ikwen %}{{ settings.IKWEN_MEDIA_URL }}{% else %}{% get_media_prefix %}{% endif %}{{ image.name }}" />
     <div id="upload-container{{ img_counter }}" class="upload-container">
         {% if image.name %}
         <div class="image" style="background-image: url('{% if upload_to_ikwen %}{{ settings.IKWEN_MEDIA_URL }}{% else %}{% get_media_prefix %}{% endif %}{{ image.name }}')">
