@@ -27,7 +27,10 @@ name_required = getattr(settings, 'NAME_REQUIRED', True)
 def test_fake_email(value):
     if getattr(settings, 'ACCEPT_FAKE_MAILS', False):
         return
-    provider = value.split('@')[1]
+    try:
+        provider = value.split('@')[1]
+    except:
+        raise ValidationError(_('Invalid email'))
     blacklist_file = STATIC_ROOT + 'fake_mails.txt'
     if not os.path.exists(blacklist_file):
         logger.error('Could not find fake mail file %s' % blacklist_file)

@@ -52,8 +52,11 @@ def wipe_test_data(db=None):
         aliases = [db]
     else:
         aliases = getattr(settings, 'DATABASES').keys()
+    databases = getattr(settings, 'DATABASES')
     for alias in aliases:
         if alias == 'wallets':
+            continue
+        if not databases[alias]['NAME'].startswith('test_'):
             continue
         Group.objects.using(alias).all().delete()
         for name in ('Application', 'Service', 'Config', 'ConsoleEventType',
