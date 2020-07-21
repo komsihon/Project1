@@ -7,7 +7,7 @@
 
 {% block head_style %}
     {{ block.super }}
-    <link href="{% static 'ikwen/css/uploader-single.css' %}" media="screen" rel="stylesheet" type="text/css" />
+    <link href="{% static 'ikwen/css/uploader-single.css' %}?v=20.7.21" media="screen" rel="stylesheet" type="text/css" />
 {#    <script src="{% static 'ikwen/css/jquery.datetimepicker.css' %}"></script>#}
 {% endblock %}
 
@@ -34,10 +34,12 @@
             <form class="admin-form" method="post">{% csrf_token %}
                 {% include 'core/snippets/model_admin_form.html' %}
                 {% for media_obj in media_field_list %}
-                <div class="col-sm-4 col-lg-3" style="padding-left: 0">
-                    {% with model_name=model media=media_obj label_field_name=label_field media_help_text=media_obj.help_text %}
+                <div class="col-sm-4 col-lg-3" style="padding-left: 0; margin-right: 15px">
+                    <div>
+                    {% with model_name=model media=media_obj label_field_name=label_field %}
                         {% include 'core/snippets/media_uploader_single.html' %}
                     {% endwith %}
+                    </div>
                 </div>
                 {% endfor %}
                 <div class="form-group col-xs-12 col-sm-4 col-md-3" style="clear: both; padding-top: 15px">
@@ -75,10 +77,10 @@
                 });
             });
             /*$('.datetime-field').each(function() {
-                {#let altSelector = $(this).data('alt'),#}
-                {#    timeSelector = $(this).data('time'),#}
-                {#    time = $(timeSelector).val();#}
-                {#if (!time) time = '00:00';#}
+                let altSelector = $(this).data('alt'),
+                    timeSelector = $(this).data('time'),
+                    time = $(timeSelector).val();
+                if (!time) time = '00:00';
                 $(this).datetimepicker({
                     format:	'Y-m-d H:i',
                     formatTime:	'H:i',

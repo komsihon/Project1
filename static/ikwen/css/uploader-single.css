@@ -7,7 +7,7 @@
         This means a larger image and the upload button is bigger and more visible
 */
 
-#upload-container, .upload-container {float: left;/* margin: 3px 0 5px 0; */width: 74%;}
+#upload-container, .upload-container {float: left;margin: 3px 0 5px 0;width: 74%;}
 #upload-container .image, .upload-container .image {background: url('../img/no_photo.png') no-repeat center;background-size: cover;border: solid 1px #DBE6FF;height: 225px;float: left;overflow: hidden;width: 280px;}
 #upload-container .image .progress, .upload-container .image .progress {float: left; background: #3C63FF; height: 10px; margin-top: 213px}
 #upload-container .image .spinner, .upload-container .image .spinner {margin-top: 90px}
