@@ -50,8 +50,8 @@
             },
             onComplete: function(id, fileName, responseJSON) {
                 if(responseJSON.success) {
-                    let previewUrl = responseJSON.preview,
-                        img = new Image();
+                    let previewUrl = responseJSON.preview ? responseJSON.preview : responseJSON.path;
+                    let img = new Image();
                     img.onload = function() {
                         $('div#upload-container{{ media.counter }} .image').css('background-color', "#fff")  // Causes the placeholder image to disappear
                                 .css('background-image', "url('" + previewUrl +"')")

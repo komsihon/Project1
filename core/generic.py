@@ -617,12 +617,11 @@ class ChangeObjectBase(TemplateView):
                 media_field = obj.__getattribute__(key)
                 if not (isinstance(media_field, FieldFile) and media_field.field.editable):
                     continue
-                media_url = request.POST.get(key)
-                if not media_field.name or media_url != media_field.url:
-                    filename = media_url.split('/')[-1]
+                uploaded_media_url = request.POST.get(key)
+                if not media_field.name or uploaded_media_url != media_field.url:
+                    filename = uploaded_media_url.split('/')[-1]
                     media_root = getattr(settings, 'MEDIA_ROOT')
-                    media_url = getattr(settings, 'MEDIA_URL')
-                    path = media_url.replace(media_url, '')
+                    path = uploaded_media_url.replace(getattr(settings, 'MEDIA_URL'), '')
                     try:
                         with open(media_root + path, 'r') as f:
                             content = File(f)

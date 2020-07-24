@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
+import logging
 import os
 import random
 import re
-import logging
 import string
 import time
 import traceback
@@ -30,8 +30,8 @@ from pymongo import MongoClient
 from pywebpush import webpush
 
 from ikwen.conf import settings as ikwen_settings
-from ikwen.core.fields import MultiImageFieldFile
 from ikwen.core.constants import PC, TABLET, MOBILE
+from ikwen.core.fields import MultiImageFieldFile
 
 logger = logging.getLogger('ikwen')
 
@@ -421,7 +421,13 @@ class DefaultUploadBackend(LocalUploadBackend):
                 'path': media_url + tiny_mce_upload_dir + '/' + filename + '?rand=' + rand
             }
         else:
-            return super(DefaultUploadBackend, self).upload_complete(request, filename, *args, **kwargs)
+            path = settings.MEDIA_URL + self.UPLOAD_DIR + "/" + filename
+            self._dest.close()
+            raw_filename, extension = os.path.splitext(filename)
+            resp = {"path": path}
+            if extension.lower() not in ['.gif', '.jpeg', '.jpg', '.png', '.svg']:
+                resp["preview"] = get_preview_from_extension(filename)
+            return resp
 
 
 def increment_history_field(watch_object, history_field, increment_value=1, index=None):
