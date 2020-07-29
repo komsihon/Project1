@@ -66,7 +66,7 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                 MemberProfile.objects.filter(member=ghost).update(member=user)
                 ghost.delete()
             except Member.DoesNotExist:
-                return
+                pass
             community = Group.objects.get(name=COMMUNITY)
             if user.email != ARCH_EMAIL:
                 user.is_iao = False
