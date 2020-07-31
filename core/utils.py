@@ -336,7 +336,8 @@ class DefaultUploadBackend(LocalUploadBackend):
                 with open(media_root + path, 'r') as f:
                     content = File(f)
                     current_media_path = media_field.path if media_field.name else None
-                    dir = media_root + media_field.field.upload_to
+                    upload_to = media_field.field.upload_to
+                    dir = media_root + upload_to
                     unique_filename = False
                     filename_suffix = 0
                     filename_no_extension, extension = os.path.splitext(filename)
@@ -367,7 +368,7 @@ class DefaultUploadBackend(LocalUploadBackend):
                         os.makedirs(dir)
                     media_field.save(destination, content)
                     if request.GET.get('upload_to_ikwen') == 'yes':  # Upload to ikwen media folder for access platform wide.
-                        destination2_folder = ikwen_settings.MEDIA_ROOT + obj.UPLOAD_TO
+                        destination2_folder = ikwen_settings.MEDIA_ROOT + upload_to
                         if not os.path.exists(destination2_folder):
                             os.makedirs(destination2_folder)
                         destination2 = destination.replace(media_root, ikwen_settings.MEDIA_ROOT)
