@@ -127,7 +127,7 @@ body.show-directions {overflow: hidden}
 .ik-li.clearfix {border-bottom: none}
 .member:hover, .ik-li:hover {background: #f8f8f8}
 .member.active, .ik-li.active {background: #f8f6f6;}
-.member .photo, .ik-li .image {background: no-repeat center;background-size: cover;float: left;height: 60px;width: 60px;}
+.member .photo, .ik-li .image {background: no-repeat center;background-size: cover;float: left;height: 60px;width: 60px;border-radius: 3px;}
 .member .photo, .ik-li .image.rounded {border-radius: 30px; overflow: hidden}
 .member .info, .ik-li .info {float: left;margin-left: 10px;max-width: 225px;width: auto;}
 .member .full_name, .ik-li .name, .ik-li .title {cursor: pointer;color: #333;font-size: 15px;padding: 5px 0 0;}
