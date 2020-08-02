@@ -68,15 +68,15 @@
                 'csrf_token': '{{ csrf_token }}',
                 'csrf_name': 'csrfmiddlewaretoken',
                 'csrf_xname': 'X-CSRFToken',
-                'model_name': '{{ model_name }}',
+                'model_name': '{{ model }}',
                 'object_id': '{{ obj.id }}',
-                'media_field_name': '{{ media.field }}',
-                'label_field_name': '{{ label_field_name }}',
+                'media_field': '{{ media.field }}',
+                'label_field': '{{ label_field }}',
                 'upload_to_ikwen': '{{ upload_to_ikwen }}'
             }
         });
         $('.delete-media{{ media.counter }}').click(function() {
-            $.getJSON('', {action: 'delete_media', media_field_name: '{{ media.field }}'});
+            $.getJSON('', {action: 'delete_media', media_field: '{{ media.field }}'});
             $('div#upload-container .image').css('background-image', "url('" + '{% static 'ikwen/img/no_photo.png' %}' +"')");
         });
     })()

@@ -1,13 +1,8 @@
 import json
 import traceback
-from datetime import datetime
-from threading import Thread
 
-import math
 import requests
-import time
 from django.conf import settings
-from django.contrib import messages
 from django.db import transaction
 from django.http import HttpResponse
 from django.http.response import HttpResponseRedirect
@@ -27,10 +22,8 @@ CURRENCY = "XAF"
 
 
 def init_yup_web_payment(request, *args, **kwargs):
-    api_url = getattr(settings, 'YUP_API_URL', None)
+    api_url = getattr(settings, 'YUP_API_URL', 'https://33026.tagpay.fr/online/online.php')
     yup = json.loads(PaymentMean.objects.get(slug=YUP).credentials)
-    session_id_request_url = '%s/online/online.php?merchantid=%s' % (api_url, yup['merchant_id'])
-    api_checkout_url = '%s/online/online.php' % api_url
     phone = UNKNOWN_PHONE
     service = get_service_instance()
     request.session['phone'] = phone
@@ -38,10 +31,17 @@ def init_yup_web_payment(request, *args, **kwargs):
 
     model_name = request.session['model_name']
     object_id = request.session['object_id']
-    username = request.user.username if request.user.is_authenticated() else None
+    if request.user.is_authenticated():
+        username = request.user.username
+        language = request.user.language
+    else:
+        username = None
+        language = 'en'
+
     # Request a session id
     try:
-        session_id_request = requests.get(session_id_request_url, verify=False)
+        params = {'merchantid': yup['merchant_id']}
+        session_id_request = requests.get(api_url, params=params, verify=False)
     except requests.exceptions.HTTPError as errh:
         logger.error("YUP: Http Error:", errh)
         return HttpResponseRedirect(request.session['cancel_url'])
@@ -87,7 +87,7 @@ def init_yup_web_payment(request, *args, **kwargs):
 
     logger.debug("YUP: Initiating paymentof %dF with %s as Merchand ID" % (amount, yup['merchant_id']))
     context = {
-        'api_url': api_checkout_url,
+        'api_url': api_url,
         'sessionid': session_id,
         'merchantid': yup['merchant_id'],
         'amount': amount,
@@ -100,7 +100,7 @@ def init_yup_web_payment(request, *args, **kwargs):
         'cancelurl': request.session['cancel_url'],
         'accepturl': accept_url,
         'text':  '',
-        'language': 'fr'
+        'language': language
     }
     return render(request, 'billing/yup/do_redirect.html', context)
 
@@ -138,7 +138,7 @@ def yup_process_notification(request, *args, **kwargs):
                     MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
                         .update(message=traceback.format_exc())
                     logger.error("YUP: Error while running callback. User: %s, Amt: %d" % (tx.username, tx.amount), exc_info=True)
-    else:
+    elif error_text != 'AUTHENTICATION':
         with transaction.atomic(using='wallets'):
             try:
                 if "CANCEL" in error_text:
@@ -146,7 +146,7 @@ def yup_process_notification(request, *args, **kwargs):
                     MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
                         .update(message=error_text, is_running=False, status=MoMoTransaction.DROPPED)
                 else:
-                    logger.debug( "YUP: transaction failed. User: %s, Amt: %d " % (request.user.username, int(amount)))
+                    logger.debug("YUP: transaction failed. User: %s, Amt: %d " % (request.user.username, int(amount)))
                     MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
                         .update(message=error_text, is_running=False, status=MoMoTransaction.FAILURE)
             except:

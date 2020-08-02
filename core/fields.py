@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+from django.core.files.images import ImageFile
 
 __author__ = 'Kom Sihon'
 
-from django.db.models.fields.files import ImageField, ImageFieldFile
+from django.db.models.fields.files import FieldFile, FileField
 from PIL import Image
 import os
 
@@ -19,7 +20,48 @@ def _add_suffix(suffix, s):
     return ".".join(parts)
 
 
-class MultiImageFieldFile(ImageFieldFile):
+class EventFieldFile(FieldFile):
+
+    def save(self, name, content, save=True):
+        super(EventFieldFile, self).save(name, content, save)
+        if self.field.callback:
+            self.field.callback(name)
+
+
+class EventFileField(FileField):
+    """
+    An extension of the django FileField that accepts a callback option in field declaration.
+    The callback is run when the associated FieldFile is saved.
+    """
+    attr_class = EventFieldFile
+
+    def __init__(self, callback=None, *args, **kwargs):
+        self.callback = callback
+        super(EventFileField, self).__init__(*args, **kwargs)
+
+
+class EventImageFieldFile(ImageFile, EventFieldFile):
+
+    def delete(self, save=True):
+        # Clear the image dimensions cache
+        if hasattr(self, '_dimensions_cache'):
+            del self._dimensions_cache
+        super(EventImageFieldFile, self).delete(save)
+
+
+class EventImageField(FileField):
+    """
+    An extension of the django FileField that accepts a callback option in field declaration.
+    The callback is run when the associated FieldFile is saved.
+    """
+    attr_class = EventImageFieldFile
+
+    def __init__(self, callback=None, *args, **kwargs):
+        self.callback = callback
+        super(EventImageField, self).__init__(*args, **kwargs)
+
+
+class MultiImageFieldFile(EventImageFieldFile):
 
     def _get_lowqual_name(self):
         return _add_suffix('lowqual', self.name)
@@ -104,7 +146,7 @@ class MultiImageFieldFile(ImageFieldFile):
         super(MultiImageFieldFile, self).delete(save)
 
 
-class MultiImageField(ImageField):
+class MultiImageField(EventImageField):
     """
     Behaves like a regular ImageField, but stores extra (JPEG) img providing get_FIELD_lowqual_url(), get_FIELD_small_url(),
     get_FIELD_thumb_url(), get_FIELD_small_filename(), get_FIELD_lowqual_filename() and get_FIELD_thumb_filename().

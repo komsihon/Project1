@@ -26,12 +26,13 @@ from django.template import Context
 from django.template.defaultfilters import urlencode, slugify
 from django.template.loader import get_template
 from django.utils import timezone
+from django.utils.module_loading import import_by_path
 from pymongo import MongoClient
 from pywebpush import webpush
 
 from ikwen.conf import settings as ikwen_settings
 from ikwen.core.constants import PC, TABLET, MOBILE
-from ikwen.core.fields import MultiImageFieldFile
+from ikwen.core.fields import MultiImageFieldFile, EventImageFieldFile
 
 logger = logging.getLogger('ikwen')
 
@@ -97,7 +98,7 @@ def to_dict(var):
                 dict_var[key] = [item.to_dict() for item in dict_var[key]]
             except AttributeError:
                 dict_var[key] = [to_dict(item) for item in dict_var[key]]
-        elif isinstance(var.__getattribute__(key), ImageFieldFile):
+        elif isinstance(var.__getattribute__(key), ImageFieldFile) or isinstance(var.__getattribute__(key), EventImageFieldFile):
             if var.__getattribute__(key).name:
                 dict_var[key + '_url'] = var.__getattribute__(key).url
             else:
@@ -324,32 +325,34 @@ class DefaultUploadBackend(LocalUploadBackend):
         rand = ''.join([random.SystemRandom().choice(string.ascii_letters) for i in range(6)])
         if model_name and object_id:
             s = get_service_instance()
-            media_field_name = request.GET.get('media_field_name')
-            if not media_field_name:
-                media_field_name = request.GET.get('image_field_name', 'image')
-            label_field_name = request.GET.get('label_field_name', 'name')
+            media_field = request.GET.get('media_field')
+            if not media_field:
+                media_field = request.GET.get('image_field', 'image')
+            label_field = request.GET.get('label_field', 'name')
             tokens = model_name.split('.')
             model = get_model(tokens[0], tokens[1])
             obj = model._default_manager.get(pk=object_id)
-            media_field = obj.__getattribute__(media_field_name)
+            media = obj.__getattribute__(media_field)
             try:
                 with open(media_root + path, 'r') as f:
                     content = File(f)
-                    current_media_path = media_field.path if media_field.name else None
-                    upload_to = media_field.field.upload_to
+                    current_media_path = media.path if media.name else None
+                    upload_to = media.field.upload_to
+                    if callable(upload_to):
+                        upload_to = upload_to(obj, filename)
                     dir = media_root + upload_to
                     unique_filename = False
                     filename_suffix = 0
                     filename_no_extension, extension = os.path.splitext(filename)
                     try:
-                        label_field = obj.__getattribute__(label_field_name)
-                        if label_field:
-                            seo_filename_no_extension = slugify(label_field)
+                        label = obj.__getattribute__(label_field)
+                        if label:
+                            seo_filename_no_extension = slugify(label)
                         else:
                             seo_filename_no_extension = obj.__class__.__name__.lower()
                     except:
                         seo_filename_no_extension = obj.__class__.__name__.lower()
-                    seo_filename = s.project_name_slug + '_' + seo_filename_no_extension + extension
+                    seo_filename = seo_filename_no_extension + extension
                     if os.path.isfile(os.path.join(dir, seo_filename)):
                         while not unique_filename:
                             try:
@@ -363,33 +366,38 @@ class DefaultUploadBackend(LocalUploadBackend):
                     if filename_suffix > 0:
                         seo_filename = seo_filename_no_extension + str(filename_suffix) + extension
 
+                    if isinstance(media, ImageFieldFile) or isinstance(media, EventImageFieldFile):
+                        seo_filename = s.project_name_slug + '_' + seo_filename
+                    else:
+                        seo_filename = seo_filename.capitalize()
+
                     destination = os.path.join(dir, seo_filename)
                     if not os.path.exists(dir):
                         os.makedirs(dir)
-                    media_field.save(destination, content)
+                    media.save(destination, content)
                     if request.GET.get('upload_to_ikwen') == 'yes':  # Upload to ikwen media folder for access platform wide.
                         destination2_folder = ikwen_settings.MEDIA_ROOT + upload_to
                         if not os.path.exists(destination2_folder):
                             os.makedirs(destination2_folder)
                         destination2 = destination.replace(media_root, ikwen_settings.MEDIA_ROOT)
                         os.rename(destination, destination2)
-                        if isinstance(media_field, MultiImageFieldFile):
-                            destination2_small = ikwen_settings.MEDIA_ROOT + media_field.small_name
-                            destination2_thumb = ikwen_settings.MEDIA_ROOT + media_field.thumb_name
-                            os.rename(media_field.small_path, destination2_small)
-                            os.rename(media_field.thumb_path, destination2_thumb)
+                        if isinstance(media, MultiImageFieldFile):
+                            destination2_small = ikwen_settings.MEDIA_ROOT + media.small_name
+                            destination2_thumb = ikwen_settings.MEDIA_ROOT + media.thumb_name
+                            os.rename(media.small_path, destination2_small)
+                            os.rename(media.thumb_path, destination2_thumb)
                         media_url = ikwen_settings.MEDIA_URL
-                    if isinstance(media_field, MultiImageFieldFile):
-                        url = media_url + media_field.small_name
+                    if isinstance(media, MultiImageFieldFile):
+                        url = media_url + media.small_name
                         preview_url = url
-                    elif isinstance(media_field, ImageFieldFile):
-                        url = media_url + media_field.name
+                    elif isinstance(media, ImageFieldFile) or isinstance(media, EventImageFieldFile):
+                        url = media_url + media.name
                         preview_url = url
                     else:
-                        url = media_url + media_field.name
-                        preview_url = get_preview_from_extension(media_field.name)
+                        url = media_url + media.name
+                        preview_url = get_preview_from_extension(media.name)
                 try:
-                    if media_field and os.path.exists(media_root + path):
+                    if media and os.path.exists(media_root + path):
                         os.unlink(media_root + path)  # Remove file from upload tmp folder
                 except Exception as e:
                     if getattr(settings, 'DEBUG', False):

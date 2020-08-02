@@ -20,8 +20,7 @@ logger = logging.getLogger('ikwen')
 UBA = 'uba'
 UNKNOWN_PHONE = '<Unknown>'
 CURRENCY = "950"
-API_URL = getattr(settings, 'UBA_API_URL', None)
-UBA_PAYMENT_PORTAL_URL = getattr(settings, 'UBA_PAYMENT_PORTAL_URL', None)
+API_URL = getattr(settings, 'UBA_API_URL', 'https://ucollect.ubagroup.com/cipg-payportal')
 
 
 def init_uba_web_payment(request, *args, **kwargs):
@@ -44,7 +43,7 @@ def init_uba_web_payment(request, *args, **kwargs):
         except MoMoTransaction.MultipleObjectsReturned:
             momo_tx = MoMoTransaction.objects.using('wallets').filter(object_id=object_id)[0]
     uba = json.loads(PaymentMean.objects.get(slug=UBA).credentials)
-    data = {'merchantId': uba['merchantId'],'serviceKey': uba['serviceKey'], 'countryCurrencyCode': 950}
+    data = {'merchantId': uba['merchantId'], 'serviceKey': uba['serviceKey'], 'countryCurrencyCode': 950}
     data.update({
         'description': request.session['description'],
         'customerFirstName': first_name,
@@ -57,7 +56,8 @@ def init_uba_web_payment(request, *args, **kwargs):
         'total': amount
     })
     try:
-        resp = requests.post(API_URL, data, verify = False, timeout = 130)
+        endpoint = API_URL + '/regptran'
+        resp = requests.post(endpoint, data, verify=False, timeout=130)
     except SSLError:
         momo_tx.status = MoMoTransaction.SSL_ERROR
         messages.error(request, 'SSL Error.')
@@ -86,7 +86,7 @@ def init_uba_web_payment(request, *args, **kwargs):
         return HttpResponseRedirect(request.session['cancel_url'])
 
     if resp.status_code == 200:
-        payment_url = "%s%s" % (UBA_PAYMENT_PORTAL_URL, resp.text)
+        payment_url = API_URL + "/paytran?id=" + resp.text
         return HttpResponseRedirect(payment_url)
     else:
         momo_tx.status = MoMoTransaction.API_ERROR
@@ -130,9 +130,8 @@ def uba_process_approved(request, *args, **kwargs):
 
 def uba_process_declined_or_cancelled(request, *args, **kwargs):
     object_id = request.POST['refNo']
-    status = MoMoTransaction.FAILURE
     message = 'Transaction failed.'
     tx = MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
-        .update(message=message, status=status, is_running=False)
+        .update(message=message, status=MoMoTransaction.FAILURE, is_running=False)
     logger.debug("UBA: payment failed of %dF from %s" % (tx[0].amount, tx[0].username))
     return HttpResponseRedirect(request.session['cancel_url'])

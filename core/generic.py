@@ -30,7 +30,7 @@ from import_export.formats.base_formats import XLS, CSV
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
-from ikwen.core.fields import MultiImageFieldFile
+from ikwen.core.fields import MultiImageFieldFile, EventImageFieldFile
 from ikwen.core.models import Service, AbstractConfig
 from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_icons, get_model_admin_instance, \
     get_preview_from_extension
@@ -238,7 +238,7 @@ class HybridListView(ListView):
                     field = model_obj.__getattribute__(key)
                 except:
                     continue
-                if isinstance(field, ImageFieldFile):
+                if isinstance(field, ImageFieldFile) or isinstance(field, EventImageFieldFile):
                     return True
         except:
             return False
@@ -440,6 +440,7 @@ class ChangeObjectBase(TemplateView):
     auto_profile = False  # If true, this object generates a secret ProfileTag matching the actual object upon save
     revival_mail_renderer = None
     label_field = None
+    slug_field = None
 
     def get_model(self):
         if isinstance(self.model, basestring):
@@ -509,7 +510,7 @@ class ChangeObjectBase(TemplateView):
             if isinstance(field, FieldFile):
                 if not field.field.editable:
                     continue
-                if isinstance(field, ImageFieldFile):
+                if isinstance(field, ImageFieldFile) or isinstance(field, EventImageFieldFile):
                     preview = field.name
                 elif isinstance(field, MultiImageFieldFile):
                     preview = field.small_name
@@ -539,6 +540,7 @@ class ChangeObjectBase(TemplateView):
         context['object_list_url'] = self.get_object_list_url(self.request, obj, **kwargs)
         context['model_admin_form'] = obj_form
         context['label_field'] = self.label_field if self.label_field else 'name'
+        context['slug_field'] = self.slug_field if self.slug_field else 'slug'
         context['date_field_list'] = date_field_list
         context['datetime_field_list'] = datetime_field_list
         context['media_field_list'] = media_field_list
@@ -551,18 +553,18 @@ class ChangeObjectBase(TemplateView):
             model = self.get_model()
             object_id = kwargs.get('object_id')
             obj = get_object_or_404(model, pk=object_id)
-            media_field_name = request.POST.get('media_field_name')
-            if not media_field_name:
-                media_field_name = request.POST.get('image_field_name', 'image')
-            media_field = obj.__getattribute__(media_field_name)
-            if media_field.name:
-                os.unlink(media_field.path)
+            media_field = request.POST.get('media_field')
+            if not media_field:
+                media_field = request.POST.get('image_field', 'image')
+            media = obj.__getattribute__(media_field)
+            if media.name:
+                os.unlink(media.path)
                 try:
-                    os.unlink(media_field.small_path)
-                    os.unlink(media_field.thumb_path)
+                    os.unlink(media.small_path)
+                    os.unlink(media.thumb_path)
                 except:
                     pass
-                obj.__setattr__(media_field_name, None)
+                obj.__setattr__(media_field, None)
                 obj.save()
             return HttpResponse(
                 json.dumps({'success': True}),
@@ -584,13 +586,13 @@ class ChangeObjectBase(TemplateView):
         form = model_form(request.POST, request.FILES, instance=obj)
         if form.is_valid():
             obj = form.save()
-            slug_field_name = request.POST.get('slug_field_name', 'slug')
+            slug_field = request.POST.get('slug_field', 'slug')
             try:
-                obj.__getattribute__(slug_field_name)
-                name_field_name = request.POST.get('name_field_name', 'name')
+                obj.__getattribute__(slug_field)
+                label_field = request.POST.get('label_field', 'name')
                 try:
-                    name_field = obj.__getattribute__(name_field_name)
-                    obj.__setattr__(slug_field_name, slugify(name_field))
+                    label = obj.__getattribute__(label_field)
+                    obj.__setattr__(slug_field, slugify(label))
                     obj.save()
                 except:
                     pass
@@ -598,35 +600,35 @@ class ChangeObjectBase(TemplateView):
                 pass
 
             if self.auto_profile:
-                name_field_name = request.POST.get('name_field_name', 'name')
+                label_field = request.POST.get('label_field', 'name')
                 try:
-                    name_field = obj.__getattribute__(name_field_name)
-                    slug = '__' + slugify(name_field)
+                    label = obj.__getattribute__(label_field)
+                    slug = '__' + slugify(label)
                     if before:
-                        before_name = before.__getattribute__(name_field_name)
+                        before_name = before.__getattribute__(label_field)
                         before_slug = '__' + slugify(before_name)
-                        if before_name != name_field:
-                            ProfileTag.objects.filter(slug=before_slug).update(name=name_field, slug=slug)
+                        if before_name != label:
+                            ProfileTag.objects.filter(slug=before_slug).update(name=label, slug=slug)
                     else:
-                        ProfileTag.objects.get_or_create(name=name_field, slug=slug, is_auto=True)
+                        ProfileTag.objects.get_or_create(name=label, slug=slug, is_auto=True)
                 except:
                     pass
 
             s = get_service_instance()
             for key in obj.__dict__.keys():
-                media_field = obj.__getattribute__(key)
-                if not (isinstance(media_field, FieldFile) and media_field.field.editable):
+                media = obj.__getattribute__(key)
+                if not (isinstance(media, FieldFile) and media.field.editable):
                     continue
                 uploaded_media_url = request.POST.get(key)
-                if not media_field.name or uploaded_media_url != media_field.url:
+                if not media.name or uploaded_media_url != media.url:
                     filename = uploaded_media_url.split('/')[-1]
                     media_root = getattr(settings, 'MEDIA_ROOT')
                     path = uploaded_media_url.replace(getattr(settings, 'MEDIA_URL'), '')
                     try:
                         with open(media_root + path, 'r') as f:
                             content = File(f)
-                            destination = media_root + media_field.field.upload_to + "/" + s.project_name_slug + '_' + filename
-                            media_field.save(destination, content)
+                            destination = media_root + media.field.upload_to + "/" + s.project_name_slug + '_' + filename
+                            media.save(destination, content)
                         os.unlink(media_root + path)
                     except:
                         continue

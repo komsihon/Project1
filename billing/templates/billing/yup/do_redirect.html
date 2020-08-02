@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+     <head>
+        <title></title>
+    </head>
+    <body onload="document.redirect.submit()">
+        <form method="post" id='redirect' name="redirect" action="{{ api_url }}">
+            <input type="hidden" name="sessionid" value="{{ sessionid }}">
+            <input type="hidden" name="merchantid" value="{{ merchantid }}">
+            <input type="hidden" name="amount" value="{{ amount }}">
+            <input type="hidden" name="currency" value="950">
+            <input type="hidden" name="purchaseref" value="{{ purchaseref }}">
+            <input type="hidden" name="phone" value="{{ phone }}">
+            <input type="hidden" name="brand" value="{{ brand }}">
+            <input type="hidden" name="description" value="{{ description }}">
+            <input type="hidden" name="declineurl" value="{{ declineurl }}">
+            <input type="hidden" name="cancelurl" value="{{ cancelurl }}">
+            <input type="hidden" name="accepturl" value="{{ accepturl }}">
+            <input type="hidden" name="text" value="{{ text }}">
+            <input type="hidden" name="language" value="{{ language }}">
+        </form>
+    </body>
+</html>

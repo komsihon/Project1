@@ -32,11 +32,13 @@
         <div class="container-fluid">
             {% if errors %}<p class="alert alert-danger">{{ errors }}</p>{% endif %}
             <form class="admin-form" method="post">{% csrf_token %}
+                <input type="hidden" name="label_field" value="{{ label_field }}" />
+                <input type="hidden" name="slug_field" value="{{ slug_field }}" />
                 {% include 'core/snippets/model_admin_form.html' %}
                 {% for media_obj in media_field_list %}
                 <div class="col-sm-4 col-lg-3" style="padding-left: 0; margin-right: 15px">
                     <div>
-                    {% with model_name=model media=media_obj label_field_name=label_field %}
+                    {% with media=media_obj %}
                         {% include 'core/snippets/media_uploader_single.html' %}
                     {% endwith %}
                     </div>
@@ -52,7 +54,7 @@
 
 {% block js %}
     {{ block.super }}
-    <script src="{% static 'ikwen/js/jquery.datetimepicker.full.js' %}"></script>
+{#    <script src="{% static 'ikwen/js/jquery.datetimepicker.full.js' %}"></script>#}
     <script type="text/javascript">
         (function() {
             $('div#admin-nav .{{ verbose_name_plural|slugify }}').addClass('active');
@@ -60,14 +62,14 @@
             $('.form-row input, .form-row select, .form-row textarea').addClass('form-control input-sm');
             $('.form-row textarea').addClass('form-control input-sm');
             $('.date-field').each(function() {
-                var alt = $(this).data('alt');
+                let alt = $(this).data('alt');
                 $(this).datepicker({
                     altField: alt,
                     altFormat: "yy-mm-dd"
                 });
             });
             $('.datetime-field').each(function() {
-                var alt = $(this).data('alt'),
+                let alt = $(this).data('alt'),
                     time = $(this).data('time');
                 $(this).datepicker({
                     altField: alt,

@@ -65,13 +65,13 @@
                 'csrf_xname': 'X-CSRFToken',
                 'model_name': '{{ model_name }}',
                 'object_id': '{{ obj.id }}',
-                'image_field_name': '{{ image_field_name }}',
-                'label_field_name': '{{ label_field_name }}',
+                'image_field': '{{ image_field_name }}',
+                'label_field': '{{ label_field_name }}',
                 'upload_to_ikwen': '{{ upload_to_ikwen }}'
             }
         });
         $('#delete-image').click(function() {
-            $.getJSON('', {action: 'delete_image', image_field_name: '{{ image_field_name }}'});
+            $.getJSON('', {action: 'delete_image', image_field: '{{ image_field_name }}'});
             $('div#upload-container .image').css('background-image', "url('" + '{% static 'ikwen/img/no_photo.png' %}' +"')");
         });
     })()

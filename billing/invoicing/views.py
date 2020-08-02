@@ -172,7 +172,6 @@ class ChangeSubscription(ChangeObjectBase):
         object_id = kwargs.get('object_id')
         if object_id:
             return
-        # It's a student under creation, so set a new Invoice for him
         number = get_next_invoice_number()
         months_count = get_billing_cycle_months_count(obj.billing_cycle)
         try:

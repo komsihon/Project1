@@ -125,9 +125,9 @@ class InvoicingConfig(models.Model):
             return 1
 
 
-class Product(Model):
+class AbstractProduct(Model):
     """
-    Any product a customer may subscribe to
+    Abstract definition of product a customer may subscribe to
     """
     IMAGE_UPLOAD_TO = 'billing/product_images'
     name = models.CharField(max_length=100, unique=True, db_index=True,
@@ -147,9 +147,12 @@ class Product(Model):
                                     help_text=_("Check to make the product active."))
     is_main = models.BooleanField(default=False,
                                   help_text=_("Check to make the product active."))
-    # is_one_off = models.BooleanField(default=True,
-    #                                  help_text=_("One off product generates a one off subscription."))
+    is_one_off = models.BooleanField(default=False,
+                                     help_text=_("One off product generates a one off subscription."))
     order_of_appearance = models.IntegerField(default=1)
+
+    class Meta:
+        abstract = True
 
     def __unicode__(self):
         from ikwen.core.utils import get_service_instance
@@ -160,6 +163,12 @@ class Product(Model):
         if not self.details:
             return 'N/A'
         return self.details
+
+
+class Product(AbstractProduct):
+    """
+    Any product a customer may subscribe to
+    """
 
 
 class AbstractSubscription(Model):
