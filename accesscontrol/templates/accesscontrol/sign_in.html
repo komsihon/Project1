@@ -4,13 +4,18 @@
 {% block page_title %}<title>{{ service.project_name }} - {% trans "Sign in" %} </title>{% endblock %}
 {% block head_style %}
     {{ block.super }}
+    <link rel='stylesheet' href="{% static 'ikwen/css/pwa.css' %}?v=20.8.6" />
     <style  type="text/css">
+        #navbar {background: #fff}
         #navbar .search, #navbar .navbar-right {display: none}
         label span {font-weight: normal}
         #lg-username {text-transform: lowercase}
         #terms-warning {color: #999; font-size: 11px}
         .login-with-ikwen {font-size: 1em; letter-spacing: .5px}
         .login-with-ikwen strong {color: #7ea6ca}
+        @media (max-width: 767px) {
+            #login-form {border: none!important;}
+        }
     </style>
 {% endblock %}
 
@@ -36,7 +41,7 @@
                 </div>
                 {% trans "Login" %}
             </h3>
-            <form action="{% url 'ikwen:sign_in' %}?{{ request.META.QUERY_STRING }}" method="post">{% csrf_token %}
+            <form id="login-form" action="{% url 'ikwen:sign_in' %}?{{ request.META.QUERY_STRING }}" method="post">{% csrf_token %}
                 <div class="form-group" style="margin-top: .4em">
                     <label for="lg-username">{% trans "Username or email" %}</label>
                     <input id="lg-username" class="form-control input-md username" type="text" name="username" autofocus
@@ -73,6 +78,9 @@
 {% endblock %}
 {% block js %}
     {{ block.super }}
+    {% if service.is_pwa_ready %}
+        <script src="{% static 'ikwen/js/pwa-main.js' %}?v=20.5.31"></script>
+    {% endif %}
     <script type="text/javascript">
         {% get_current_language as LANGUAGE_CODE %}
         (function() {

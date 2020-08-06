@@ -633,7 +633,9 @@ class ChangeObjectBase(TemplateView):
                     except:
                         continue
             self.save_object_profile_tags(request, obj, *args, **kwargs)
-            self.after_save(request, obj, *args, **kwargs)
+            response = self.after_save(request, obj, *args, **kwargs)
+            if response:
+                return response
             if request.POST.get('keep_editing'):
                 next_url = self.get_change_object_url(request, obj, *args, **kwargs)
             else:
@@ -702,6 +704,7 @@ class ChangeObjectBase(TemplateView):
         Run after the form is successfully saved
         in the post() function
         """
+        return None
 
 
 class CustomizationImageUploadBackend(DefaultUploadBackend):

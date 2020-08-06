@@ -5,6 +5,7 @@
 {% block head_style %}
     {{ block.super }}
     <link rel='stylesheet' href="{% static 'ikwen/css/sign-in.css' %}?v=20.1.11" />
+    <link rel='stylesheet' href="{% static 'ikwen/css/pwa.css' %}?v=20.8.6" />
 {% endblock %}
 
 {% block content %}
@@ -141,6 +142,9 @@
 {% endblock %}
 {% block js %}
     {{ block.super }}
+    {% if service.is_pwa_ready %}
+        <script src="{% static 'ikwen/js/pwa-main.js' %}?v=20.5.31"></script>
+    {% endif %}
     <script type="text/javascript">
         {% get_current_language as LANGUAGE_CODE %}
         (function() {

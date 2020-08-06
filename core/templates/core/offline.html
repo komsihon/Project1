@@ -7,6 +7,7 @@
 {% block head_style %}
     {{ block.super }}
     <style type="text/css">
+        #navbar {background: #fff}
         #top {height: 0}
         footer {display: none}
     </style>
@@ -15,7 +16,7 @@
     <div id="content" class="container">
         <div style="margin-top: 9%; text-align: center">
             {% if config.logo.name %}
-            <img src="{{ config.logo.url }}" height="250"/>
+            <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}" height="150"/>
             {% endif %}
             <div style="padding-top: 30px; text-align: center">
                 <h2>{{ service.project_name }}</h2>
