@@ -1,11 +1,11 @@
-{% load i18n staticfiles auth_tokens %}
+{% load i18n static staticfiles auth_tokens %}
 <!DOCTYPE html>
 <html lang="{{ lang }}">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Error 404 - Page not found - ikwen</title>
+		<title>{% trans "Looks like you can't access the page - Page not found - ikwen" %}</title>
         <link rel='stylesheet' href="{% static 'ikwen/font-awesome/css/font-awesome.min.css' %}" />
         <link rel='stylesheet' href="{% static 'ikwen/css/flatly.bootstrap.min.css' %}" />
         <link rel='stylesheet' href="{% static 'ikwen/css/base.css' %}" />
@@ -15,14 +15,24 @@
           <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
           <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
+        <style>
+            .error-page {background: url({% static 'ikwen/img/background-404.jpg' %}) center fixed; background-size: cover; color: #fff; padding-top: 10%}
+            .error-page #content {padding-left: 15px; padding-right: 15px}
+            .error-page h1 {font-size: 4em;}
+            .error-page footer, .error-page footer a {color: #fff}
+            .error-page footer a strong {color: #af4848}
+            footer {font-size: 12px; margin-top: 45px; text-align: center}
+        </style>
     </head>
     <body class="error-page">
-        <div id="content" class="container">
-            <h1>Error 404</h1>
-            <p>Sorry the requested URL was not found on this website.</p>
-            <p>The page might have been moved or deleted.</p>
-        </div>
-        <footer style="font-size: 12px; margin-top: 45px; text-align: center">
+        {% blocktrans %}
+            <div id="content" class="container">
+                <h1 class="text-has-shade">Looks like you can't access the page !</h1>
+                <p>Sorry the requested URL was not found on this website.</p>
+                <p>The page might have been moved or deleted.</p>
+            </div>
+        {% endblocktrans %}
+        <footer>
             &copy; {{ year }} <a class="company-name" href="{{ settings.IKWEN_BASE_URL }}"><strong>ikwen</strong></a>.
             {% trans "All rights reserved." %}
         </footer>
