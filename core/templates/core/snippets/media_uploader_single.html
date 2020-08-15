@@ -61,7 +61,7 @@
                     $('div#upload-container{{ media.counter }} .full-view').prop('href', responseJSON.path);
                     $('input[name={{ media.field }}]').val(responseJSON.path);
                 } else if (responseJSON.wrong_size) {
-                    ikwen.showNoticeDialog('error', {% trans "Incorrect image size" %}, responseJSON.error)
+                    ikwen.showNoticeDialog('error', "{% trans "Incorrect image size" %}", responseJSON.error)
                 } else {
                     alert("Upload failed ! " + responseJSON.error);
                 }
