@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.http.response import HttpResponseForbidden
 from djangotoolbox.admin import admin
-from ikwen.core.utils import generate_icons, get_mail_content, get_service_instance
+from ikwen.core.utils import generate_icons, get_mail_content, get_service_instance, setup_pwa
 
 from ikwen.core.models import RETAIL_APP_SLUG, Module
 
@@ -73,7 +73,7 @@ class ServiceAdmin(admin.ModelAdmin):
                        'total_turnover', 'total_earnings', 'total_transaction_earnings', 'total_custom_service_earnings',
                        'total_invoice_earnings', 'total_transaction_count', 'total_cash_out',
                        'total_invoice_count', 'total_custom_service_count', 'total_cash_out_count')
-    actions = ['reload_projects', 'reload_settings']
+    actions = ['reload_projects', 'reload_settings', 'activate_pwa']
 
     def save_model(self, request, obj, form, change):
         if obj.app.slug == RETAIL_APP_SLUG and not change:
@@ -142,6 +142,27 @@ class ServiceAdmin(admin.ModelAdmin):
             else:
                 msg = "%s and %d other project settings failed to reload. Check error log" % (failed[0], len(failed) - 1)
                 messages.error(request, msg)
+
+    def activate_pwa(self, request, queryset):
+        failed = []
+        for service in queryset:
+            try:
+                is_naked_domain = service.domain_type == Service.MAIN
+                setup_pwa(service, is_naked_domain)
+            except:
+                failed.append(service.project_name_slug)
+                msg = "Failed to setup PWA for %s" % service.project_name_slug
+                logger.error(msg, exc_info=True)
+        if len(failed) == 0:
+            messages.success(request, "PWA successfully set up.")
+        else:
+            if len(failed) == 1:
+                messages.error(request, "PWA failed to setup for project %s. Check error log" % failed[0])
+            else:
+                msg = "%s and %d other project failed to setup PWA. Check error log" % (failed[0], len(failed) - 1)
+                messages.error(request, msg)
+        from ikwen.core.tools import reload_server
+        Thread(target=reload_server).start()
 
 
 if getattr(settings, 'IS_IKWEN', False):

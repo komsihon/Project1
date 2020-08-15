@@ -432,7 +432,7 @@ class Service(models.Model):
         from ikwen.core.tools import reload_server
         Thread(target=reload_server).start()
 
-    def activate_ssl(self, is_naked_domain=True):
+    def activate_ssl(self, is_naked_domain=True, reload_web_server=False):
         """
         Creates and activates an SSL Certificate for the domain
         """
@@ -465,8 +465,9 @@ class Service(models.Model):
         add_database_to_settings(db)
         self.save(using='umbrella')
         self.save(using=db)
-        from ikwen.core.tools import reload_server
-        Thread(target=reload_server).start()
+        if reload_web_server:
+            from ikwen.core.tools import reload_server
+            Thread(target=reload_server).start()
 
     def reload_settings(self, settings_template=None, **kwargs):
         """
@@ -578,6 +579,11 @@ class Service(models.Model):
         manifest_template = 'core/cloud_setup/manifest.json.html'
         manifest_tpl = get_template(manifest_template)
         config = self.config
+        from ikwen.conf.settings import MEDIA_ROOT
+        logo_path = MEDIA_ROOT + config.logo.name
+        if not os.path.exists(logo_path):
+            # TODO: Set a reminder to ask user to upload a 512x512 logo
+            pass
         app_name = ' '.join([token.capitalize() for token in self.project_name.split(' ')])
         apache_context = Context({'app_name': app_name, 'short_description': config.short_description})
         fh = open(self.home_folder + '/conf/manifest.json', 'w')

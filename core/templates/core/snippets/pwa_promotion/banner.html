@@ -4,11 +4,7 @@
         <button type="button" class="pull-left close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
     </div>
     <div class="col-xs-8" style="padding: 0 10px 0 0">
-        {% if user.is_authenticated %}
-            <strong>{% blocktrans %}Hey {{ user.first_name }} !{% endblocktrans %}</strong><br>
-        {% else %}
-            <strong>{{ service.project_name }}</strong><br>
-        {% endif %}
+        <strong>{% trans "Download the App" %}</strong><br>
         {% trans "Want easier and faster access? Get the app now." %}
     </div>
     <div class="col-xs-3" style="padding: 0">

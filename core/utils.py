@@ -26,7 +26,7 @@ from django.template import Context
 from django.template.defaultfilters import urlencode, slugify
 from django.template.loader import get_template
 from django.utils import timezone
-from django.utils.module_loading import import_by_path
+from django.utils.translation import ugettext as _
 from pymongo import MongoClient
 from pywebpush import webpush
 
@@ -322,7 +322,14 @@ class DefaultUploadBackend(LocalUploadBackend):
         media_url = getattr(settings, 'MEDIA_URL')
         model_name = request.GET.get('model_name')
         object_id = request.GET.get('object_id')
+        required_width = request.GET.get('required_width')
+        required_height = request.GET.get('required_height')
         rand = ''.join([random.SystemRandom().choice(string.ascii_letters) for i in range(6)])
+        full_path = media_root + path
+        img = Image.open(full_path)
+        if required_width and required_height and img.size != (required_width, required_height):
+            return {'error': _('Expected size is %(width)d x %(height)d px.' % {'width': required_width, 'height': required_height}),
+                    'wrong_size': True}
         if model_name and object_id:
             s = get_service_instance()
             media_field = request.GET.get('media_field')
@@ -903,8 +910,8 @@ def get_device_type(request):
     return PC
 
 
-def setup_pwa(service, is_naked_domain=True):
-    service.activate_ssl(is_naked_domain)
+def setup_pwa(service, is_naked_domain=True, reload_web_server=False):
+    service.activate_ssl(is_naked_domain, reload_web_server)
     service.generate_pwa_manifest()
 
     # Add index to ikwen_pwa_profile collection

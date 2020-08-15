@@ -155,9 +155,12 @@ class MultiImageField(EventImageField):
     """
     attr_class = MultiImageFieldFile
 
-    def __init__(self, small_size=480, thumb_size=150, max_size=0, lowqual=0, *args, **kwargs):
+    def __init__(self, small_size=480, thumb_size=150, max_size=0, lowqual=0,
+                 required_width=0, required_height=0, *args, **kwargs):
         self.small_size = small_size
         self.thumb_size = thumb_size
         self.max_size = max_size
         self.lowqual = lowqual
+        self.required_width = required_width
+        self.required_height = required_height
         super(MultiImageField, self).__init__(*args, **kwargs)

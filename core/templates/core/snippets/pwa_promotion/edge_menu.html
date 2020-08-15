@@ -5,11 +5,7 @@
             <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}" class="img-responsive" />
         </div>
         <div class="col-xs-9">
-        {% if user.is_authenticated %}
-            <strong>{% blocktrans %}Hey {{ user.first_name }} !{% endblocktrans %}</strong><br>
-        {% else %}
-            <strong>{{ service.project_name }}</strong><br>
-        {% endif %}
+            <strong>{% trans "Download the App" %}</strong><br>
             {% trans "Want easier and faster access? Get the app now." %}
         </div>
     </div>

@@ -60,8 +60,10 @@
                     img.src = previewUrl;
                     $('div#upload-container{{ media.counter }} .full-view').prop('href', responseJSON.path);
                     $('input[name={{ media.field }}]').val(responseJSON.path);
+                } else if (responseJSON.wrong_size) {
+                    ikwen.showNoticeDialog('error', {% trans "Incorrect image size" %}, responseJSON.error)
                 } else {
-                    alert("upload failed!");
+                    alert("Upload failed ! " + responseJSON.error);
                 }
             },
             params: {
@@ -72,6 +74,8 @@
                 'object_id': '{{ obj.id }}',
                 'media_field': '{{ media.field }}',
                 'label_field': '{{ label_field }}',
+                'required_width': '{{ media.media.field.required_width }}',
+                'required_height': '{{ media.media.field.required_height }}',
                 'upload_to_ikwen': '{{ upload_to_ikwen }}'
             }
         });
