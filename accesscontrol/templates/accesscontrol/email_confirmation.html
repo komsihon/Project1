@@ -70,7 +70,7 @@
                     {% url 'ikwen:account_setup' as account_setup_url %}
                     {% include 'core/snippets/spinner.html' %}
                     <p class="text-muted" style="font-size: 12px">{% trans "Please be patient ! Email can sometimes take about 1-2 mn to get to you." %}</p>
-                    <a class="get-new-code" href="#">{% trans "Resend confirmation link" %}</a>
+                    <a class="get-new-code" href="javascript:;">{% trans "Resend confirmation link" %}</a>
                     <div class="code-sent" style="display: none">
                         <i style="font-size: 2em; color: #039B03" class="glyphicon glyphicon-ok"></i>
                         <p class="text-success">{% trans "A new code was sent to you." %}</p>

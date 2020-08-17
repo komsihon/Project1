@@ -46,12 +46,12 @@
                 var ratio = loaded / total,
                     percent = ratio * 100;
                 $('div#upload-container{{ media.counter }} .image .progress').animate({width: percent + '%'});
-                if (ratio === 1) $('div#upload-container{{ media.counter }} .image .spinner').show()
             },
             onComplete: function(id, fileName, responseJSON) {
                 if(responseJSON.success) {
                     let previewUrl = responseJSON.preview ? responseJSON.preview : responseJSON.path;
                     let img = new Image();
+                    $('div#upload-container{{ media.counter }} .image .spinner').show();
                     img.onload = function() {
                         $('div#upload-container{{ media.counter }} .image').css('background-color', "#fff")  // Causes the placeholder image to disappear
                                 .css('background-image', "url('" + previewUrl +"')")

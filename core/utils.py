@@ -327,8 +327,8 @@ class DefaultUploadBackend(LocalUploadBackend):
         rand = ''.join([random.SystemRandom().choice(string.ascii_letters) for i in range(6)])
         full_path = media_root + path
         img = Image.open(full_path)
-        if required_width and required_height and img.size != (required_width, required_height):
-            return {'error': _('Expected size is %(width)d x %(height)d px.' % {'width': required_width, 'height': required_height}),
+        if required_width and required_height and img.size != (int(required_width), int(required_height)):
+            return {'error': _('Expected size is %(width)s x %(height)s px.' % {'width': required_width, 'height': required_height}),
                     'wrong_size': True}
         if model_name and object_id:
             s = get_service_instance()
