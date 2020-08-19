@@ -16,20 +16,19 @@
                 <setFont name="Helvetica" size="10"/>
                 <drawString x="15" y="755">{% trans "RN" context 'Cie Reg. number' %}: {{ vendor.registration_number }}</drawString>
                 <drawString x="15" y="740">{% trans "UIN" %} : {{ vendor.taxpayer_number }}</drawString>
-                <drawString x="15" y="725">{% trans "Address" %} : {{ vendor.address }}</drawString>
+                <drawString x="15" y="725">{% trans "Address" %} : {{ vendor_address|safe }}</drawString>
 
                 <setFont name="Helvetica" size="12"/>
                 <!-- This set font-size for minor elements in header -->
-                {% if customer_config %}
-                    <drawString x="15" y="770">{{ customer_config.company_name }}</drawString>
-                    <drawString x="15" y="665">{{ customer_config.address }}</drawString>
-                    <drawString x="15" y="650">{% if customer_config.city %}{{ customer_config.city }},{% endif %}{% if customer_config.country %}{{ customer_config.country.name }}{% endif %}</drawString>
+                <drawString x="15" y="770">{{ vendor_name|safe }}</drawString>
+                {% if company_name %}
+                    <drawString x="15" y="665">{{ company_name|safe }}</drawString>
+                    <drawString x="15" y="650">{{ company_address|safe }}</drawString>
+                    <drawString x="15" y="635">{% if company_city %}{{ company_city|safe }}{% endif %}{% if company_country %}, {{ company_country|safe }}{% endif %}</drawString>
                 {% else %}
-                    {% with customer=invoice.member %}
-                        <drawString x="15" y="770">{{ customer.get_full_name }}</drawString>
-                        <drawString x="15" y="665">{{ customer.email }}</drawString>
-                        <drawString x="15" y="650">{{ customer.phone }}</drawString>
-                    {% endwith %}
+                    <drawString x="15" y="665">{{ customer_name|safe }}</drawString>
+                    <drawString x="15" y="650">{{ customer.email }}</drawString>
+                    <drawString x="15" y="635">{{ customer.phone }}</drawString>
                 {% endif %}
 
                 <drawString x="355" y="665">{% trans "Date issued" %} : {{ invoice.date_issued|date:"Y, M d" }}</drawString>
@@ -132,11 +131,11 @@
             <tr>
                 <td>
                     <para style="entry_label">
-                        <b>{{ entry.item.label }}</b>
+                        <b>{{ entry.label|safe }}</b>
                     </para>
                     {% if entry.short_description %}
                     <para style="entry_description">
-                        {{ entry.short_description }}
+                        {{ entry.short_description|safe }}
                     </para>
                     {% endif %}
                 </td>
@@ -195,7 +194,7 @@
 
         <spacer length="0.25cm"/>
 
-        {% if invoice.paymentset.all|length > 0 %}
+        {% if invoice.payment_set.all|length > 0 %}
         <blockTable style="payment_section" rowHeights="1.5cm" colWidths="19.8cm">
             <tr>
                 <td>
