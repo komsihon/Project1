@@ -179,23 +179,36 @@ class SubscriptionResource(resources.ModelResource):
 
 
 class PaymentResource(resources.ModelResource):
-    client = fields.Field(column_name=_('Client'))
+    client = fields.Field(column_name=_('Client Name'))
+    client_id = fields.Field(column_name=_('Client ID'))
     invoice_number = fields.Field(column_name=_('Invoice No'))
     amount = fields.Field(column_name=_('Amount'))
     method = fields.Field(column_name=_('Method'))
+    processor_tx_id = fields.Field(column_name=_('Transaction ID'))
     cashier = fields.Field(column_name=_('Cashier'))
     created_on = fields.Field(column_name='Date')
 
     class Meta:
         model = Payment
-        fields = ('client', 'invoice_number', 'amount', 'method', 'cashier', 'created_on', )
-        export_order = ('client', 'invoice_number', 'amount', 'method', 'cashier', 'created_on', )
+        fields = ('client', 'client_id', 'invoice_number', 'amount',
+                  'method', 'processor_tx_id', 'cashier', 'created_on', )
+        export_order = ('client', 'client_id', 'invoice_number', 'amount',
+                        'method', 'processor_tx_id', 'cashier', 'created_on', )
 
     def dehydrate_client(self, payment):
         try:
             member = payment.invoice.member
             if member:
                 return member.full_name
+        except:
+            pass
+        return '<Anonymous>'
+
+    def dehydrate_client_id(self, payment):
+        try:
+            subscription = payment.invoice.subscription
+            if subscription:
+                return subscription.reference_id
         except:
             pass
         return '<Anonymous>'
@@ -214,6 +227,9 @@ class PaymentResource(resources.ModelResource):
 
     def dehydrate_method(self, payment):
         return payment.method
+
+    def dehydrate_processor_tx_id(self, payment):
+        return payment.processor_tx_id
 
     def dehydrate_cashier(self, payment):
         try:
