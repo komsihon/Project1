@@ -132,6 +132,7 @@ class AbstractProduct(Model):
     IMAGE_UPLOAD_TO = 'billing/product_images'
     name = models.CharField(max_length=100, unique=True, db_index=True,
                             help_text="Name of the product as advertised to the customer.")
+    slug = models.SlugField(unique=True, db_index=True)
     short_description = models.TextField(blank=True,
                                          help_text=_("Short description understandable by the customer."))
     duration = models.IntegerField(default=30,

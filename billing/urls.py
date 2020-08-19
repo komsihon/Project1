@@ -11,7 +11,7 @@ from ikwen.billing.invoicing.views import InvoiceList, InvoiceDetail, change_bil
     list_subscriptions, ProductList, ChangeProduct, SubscriptionList, ChangeSubscription, AdminInvoiceList, \
     Configuration, upload_subscription_file, PaymentList
 from ikwen.billing.public.views import Pricing, Donate
-from ikwen.billing.mtnmomo.views import init_momo_transaction, check_momo_transaction_status, process_notification
+from ikwen.billing.mtnmomo.open_api import init_momo_transaction, check_momo_transaction_status, process_notification
 from ikwen.billing.yup.views import yup_process_notification
 from ikwen.billing.uba.views import uba_process_approved, uba_process_declined_or_cancelled
 from ikwen.billing.collect import confirm_service_invoice_payment

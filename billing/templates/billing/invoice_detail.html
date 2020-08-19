@@ -1,5 +1,5 @@
 {% extends "core/base_bs.html" %}
-{% load i18n humanize staticfiles %}
+{% load i18n humanize static %}
 {% block page_title %}
     <title>{{ config.company_name }} - {% trans "Invoice" %} #{{ invoice.number }}</title>
 {% endblock %}
@@ -40,7 +40,7 @@
             <header id="main" class="row" data-amount="{{ invoice.amount }}" data-monthly-cost="{{ monthly_cost }}">
                 <div class="col-sm-4">
                     {% if vendor.logo.name %}
-                        <img src="{{ settings.IKWEN_MEDIA_URL }}{{ vendor.logo.name }}" height="50"/>
+                        <img src="{{ settings.IKWEN_MEDIA_URL }}{{ vendor.logo.name }}" height="100"/>
                     {% endif %}
                     <h2 class="pull-left">{{ vendor.company_name }}</h2>
                 </div>
@@ -268,8 +268,9 @@
         </div>
         <div id="actions" class="col-xs-12">
             <a href="{% url 'billing:invoice_list' %}" class="pull-right text-right">{% trans "Back to Client Area" %}</a>
-            {% if pdf_url %}
-                <a href="{{ pdf_url }}" class="pull-left">{% trans "Download" %}</a>
+            {% if pdf_filename %}
+                <a href="{% get_media_prefix %}{{ pdf_filename }}" class="pull-left" target="_blank"
+                   download="{{ pdf_filename }}">{% trans "Download" %}</a>
             {% endif %}
         </div>
     </div>

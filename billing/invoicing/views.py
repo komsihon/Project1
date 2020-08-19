@@ -358,7 +358,7 @@ class InvoiceDetail(TemplateView):
                                              invoice.date_issued.strftime("%Y-%m-%d"))
         media_root = getattr(settings, 'MEDIA_ROOT')
         if os.path.exists(media_root + filename):
-            context['pdf_url'] = getattr(settings, 'MEDIA_URL') + filename
+            context['pdf_filename'] = filename
 
         # User may want to extend the payment above the default duration
         # Below are a list of possible extension dates on a year
@@ -698,21 +698,16 @@ class Configuration(ChangeObjectBase):
     def get_object_list_url(self, request, obj, *args, **kwargs):
         return reverse('billing:configuration')
 
-    def post(self, request, *args, **kwargs):
-        object_admin = get_model_admin_instance(self.model, self.model_admin)
-        obj = self.get_object(**kwargs)
-        model_form = object_admin.get_form(request)
-        form = model_form(request.POST, instance=obj)
-        if form.is_valid():
-            obj = form.save()
-            obj.save(using='default')
-            next_url = self.get_object_list_url(request, obj, *args, **kwargs)
-            messages.success(request, _('Configuration successfully updated'))
-            return HttpResponseRedirect(next_url)
-        else:
-            context = self.get_context_data(**kwargs)
-            context['errors'] = form.errors
-            return render(request, self.template_name, context)
+    def get_context_data(self, **kwargs):
+        context = super(Configuration, self).get_context_data(**kwargs)
+        context['allowed_extensions'] = json.dumps(['jpg', 'jpeg'])  # Allowed extensions for the image
+        return context
+
+    def after_save(self, request, obj, *args, **kwargs):
+        obj.save(using='default')
+        messages.success(request, _('Configuration successfully updated.'))
+        next_url = self.get_object_list_url(request, obj, *args, **kwargs)
+        return HttpResponseRedirect(next_url)
 
 
 def import_subscriptions(filename, dry_run=True):

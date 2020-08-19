@@ -3,6 +3,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 from threading import Thread
+from xml.sax.saxutils import escape
 
 import requests
 from django.core.urlresolvers import reverse
@@ -160,8 +161,11 @@ def get_subscription_registered_message(subscription):
     try:
         details = subscription.product.get_details()
     except:
-        subscription = get_subscription_model().objects.get(pk=subscription.id)
-        details = subscription.details
+        try:
+            subscription = get_subscription_model().objects.get(pk=subscription.id)
+            details = subscription.details
+        except:
+            details = ''
     if new_invoice_message:
         message = new_invoice_message.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
@@ -212,8 +216,11 @@ def get_invoice_generated_message(invoice):
     try:
         details = invoice.subscription.product.get_details()
     except:
-        subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
-        details = subscription.details
+        try:
+            subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
+            details = subscription.details
+        except:
+            details = ''
     if new_invoice_message:
         message = new_invoice_message.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
@@ -251,8 +258,11 @@ def get_invoice_reminder_message(invoice):
     try:
         details = invoice.subscription.product.get_details()
     except:
-        subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
-        details = subscription.details
+        try:
+            subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
+            details = subscription.details
+        except:
+            details = ''
     if reminder_message:
         message = reminder_message.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
@@ -293,8 +303,11 @@ def get_invoice_overdue_message(invoice):
     try:
         details = invoice.subscription.product.get_details()
     except:
-        subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
-        details = subscription.details
+        try:
+            subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
+            details = subscription.details
+        except:
+            details = ''
 
     subject = _("First %s" % overdue_subject) if overdue_subject else _('First notice of Invoice Overdue')
     if invoice.overdue_notices_sent == 1:
@@ -342,8 +355,11 @@ def get_service_suspension_message(invoice):
     try:
         details = invoice.subscription.product.get_details()
     except:
-        subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
-        details = subscription.details
+        try:
+            subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
+            details = subscription.details
+        except:
+            details = ''
     if service_suspension_message:
         message = service_suspension_message.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
@@ -385,8 +401,11 @@ def get_payment_confirmation_message(payment, member):
     try:
         details = invoice.subscription.product.get_details()
     except:
-        subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
-        details = subscription.details
+        try:
+            subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
+            details = subscription.details
+        except:
+            details = ''
     if payment_confirmation_message:
         message = payment_confirmation_message.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
@@ -428,16 +447,27 @@ def generate_pdf_invoice(invoicing_config, invoice, template_name='billing/invoi
             retailer = invoice_service.retailer
             if retailer:
                 weblet = retailer
-            context['customer_config'] = invoice_service.config
+            iw_config = invoice_service.config  # iw stands for invoice weblet
+            context['customer_config'] = iw_config
+            context['company_name'] = escape(iw_config.company_name).encode('ascii', 'xmlcharrefreplace')
+            context['company_address'] = escape(iw_config.address).encode('ascii', 'xmlcharrefreplace')
+            context['company_city'] = escape(iw_config.city).encode('ascii', 'xmlcharrefreplace')
+            if iw_config.country:
+                context['company_country'] = escape(iw_config.country.name).encode('ascii', 'xmlcharrefreplace')
         except:
             pass
-
+    member = invoice.member
+    context['customer'] = member
+    context['customer_name'] = escape(member.get_full_name()).encode('ascii', 'xmlcharrefreplace')
     config = weblet.config
     context['vendor'] = config
+    context['vendor_address'] = escape(config.address).encode('ascii', 'xmlcharrefreplace')
+    context['vendor_name'] = escape(config.company_name).encode('ascii', 'xmlcharrefreplace')
+    for entry in invoice.entries:
+        entry.label = escape(entry.item.label).encode('ascii', 'xmlcharrefreplace')
+        entry.short_description = escape(entry.short_description).encode('ascii', 'xmlcharrefreplace')
     if invoicing_config.logo.name and os.path.exists(MEDIA_ROOT + invoicing_config.logo.name):
         context['weblet_logo'] = MEDIA_ROOT + invoicing_config.logo.name
-    elif config.logo.name and os.path.exists(MEDIA_ROOT + config.logo.name):
-        context['weblet_logo'] = MEDIA_ROOT + config.logo.name
     if os.path.exists(weblet.home_folder + '/stamp.png'):
         context['stamp'] = weblet.home_folder + '/stamp.png'
     media_root = CLUSTER_MEDIA_ROOT + weblet.project_name_slug

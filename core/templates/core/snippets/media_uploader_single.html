@@ -40,6 +40,7 @@
         let uploader = new qq.FileUploader({
             action: "{% url 'ikwen:upload_image' %}",
             element: $('div#upload-container{{ media.counter }} .uploader')[0],
+            {% if allowed_extensions %}allowedExtensions: {{ allowed_extensions|safe }}{% endif %},
             buttonText: "{% trans "Upload media" %}",
             multiple: false,
             onProgress: function(id, fileName, loaded, total) {
