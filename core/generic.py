@@ -620,7 +620,7 @@ class ChangeObjectBase(TemplateView):
                 if not (isinstance(media, FieldFile) and media.field.editable):
                     continue
                 uploaded_media_url = request.POST.get(key)
-                if uploaded_media_url and uploaded_media_url != media.url:
+                if uploaded_media_url and (not media.name or uploaded_media_url != media.url):
                     filename = uploaded_media_url.split('/')[-1]
                     media_root = getattr(settings, 'MEDIA_ROOT')
                     path = uploaded_media_url.replace(getattr(settings, 'MEDIA_URL'), '')
