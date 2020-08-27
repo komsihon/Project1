@@ -24,9 +24,9 @@
     <p class="help clear">
         {% if media.media.name and not media.media.field.read_only %}
         <i class="glyphicon glyphicon-trash delete-media delete-media{{ media.counter }}" title="{% trans "Delete media" %}"></i>
-        <span>{{ media.media.field.help_text }}</span>
+        <span>{{ media.media.field.help_text|safe }}</span>
         {% else %}
-        <span>{{ media.media.field.help_text }}</span>
+        <span>{{ media.media.field.help_text|safe }}</span>
         {% endif %}
     </p>
 </section>
