@@ -18,7 +18,9 @@
 .install-promotion.banner {border-radius: 0;margin-top: 3vh;padding: 15px 10px;}
 .install-promotion.banner .install-pwa {background: #2196F3; border-color: #2196F3; color: #fff; margin-top: 1vh}
 
-#pwa-overlay {background: rgba(0, 0, 0, .8);color: #fff;font-weight: 600;display: none;height: 100%;overflow: hidden;padding-top: 30px;position: fixed;top: 0;width: 100%;z-index: 1000;}
+#pwa-overlay {background: rgba(0, 0, 0, .8);color: #fff;font-size: 16px;display: none;height: 100%;overflow: hidden;padding: 30px 10px 0;position: fixed;top: 0;width: 100%;z-index: 1000;}
+#pwa-overlay p {color: #fff; margin: 5vh 0}
+#pwa-overlay strong {color: #FF9800}
 
 #network-manager {height: 0; width: 0;position: fixed}
 
