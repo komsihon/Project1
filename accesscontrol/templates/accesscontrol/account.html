@@ -83,7 +83,7 @@
                     </div>
                     <div class="row edit phone hidden">
                         <div class="col-sm-7 col-md-7">
-                            <div class="input-ctnr"> <input type="text" class="form-control input-sm phone" value="" placeholder="{% trans "Phone" %}"> </div>
+                            <div class="input-ctnr"> <input type="text" class="form-control input-sm phone" autocomplete="off" placeholder="{% trans "Phone" %}"> </div>
                         </div>
                         <div class="col-sm-5 col-md-5 row">
                             <div class="col-sm-5 col-md-5 col-sm-offset-2 col-md-offset-2">
@@ -105,7 +105,7 @@
                     </div>
                     <div class="row edit email hidden">
                         <div class="col-sm-7 col-md-7">
-                            <div class="input-ctnr"> <input type="text" class="form-control input-sm email" placeholder="Email"> </div>
+                            <div class="input-ctnr"> <input type="text" class="form-control input-sm email" autocomplete="off" placeholder="Email"> </div>
                         </div>
                         <div class="col-sm-5 col-md-5 row">
                             <div class="col-sm-5 col-md-5 col-sm-offset-2 col-md-offset-2">
@@ -193,7 +193,7 @@
                     field = $(this).data('field'),
                     inputType = $(this).data('input-type'),
                     value;
-                if (inputType == 'select')
+                if (inputType === 'select')
                     value = $('.identity select.' + field).val();
                 else
                     value = $('.identity input.' + field).val();

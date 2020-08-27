@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from django.core.files.images import ImageFile
+from django.core.files.images import ImageFile as DjangoImageFile
 
 __author__ = 'Kom Sihon'
 
-from django.db.models.fields.files import FieldFile, FileField
+from django.db.models.fields.files import FieldFile as DjangoFieldFile, FileField as DjangoFileField
 from PIL import Image
 import os
 
@@ -15,53 +15,53 @@ def _add_suffix(suffix, s):
     """
     parts = s.split(".")
     parts.insert(-1, suffix)
-    # if parts[-1].lower() not in ['jpeg', 'jpg']:
-    #     parts[-1] = 'jpg'
     return ".".join(parts)
 
 
-class EventFieldFile(FieldFile):
+class FieldFile(DjangoFieldFile):
 
     def save(self, name, content, save=True):
-        super(EventFieldFile, self).save(name, content, save)
+        super(FieldFile, self).save(name, content, save)
         if self.field.callback:
             self.field.callback(name)
 
 
-class EventFileField(FileField):
+class FileField(DjangoFileField):
     """
     An extension of the django FileField that accepts a callback option in field declaration.
     The callback is run when the associated FieldFile is saved.
     """
-    attr_class = EventFieldFile
+    attr_class = FieldFile
 
-    def __init__(self, callback=None, *args, **kwargs):
+    def __init__(self, callback=None, allowed_extensions=None, *args, **kwargs):
         self.callback = callback
-        super(EventFileField, self).__init__(*args, **kwargs)
+        self.allowed_extensions = allowed_extensions  # List of allowed extensions. Eg: ['csv', 'pdf', 'doc']
+        super(FileField, self).__init__(*args, **kwargs)
 
 
-class EventImageFieldFile(ImageFile, EventFieldFile):
+class ImageFieldFile(DjangoImageFile, FieldFile):
 
     def delete(self, save=True):
         # Clear the image dimensions cache
         if hasattr(self, '_dimensions_cache'):
             del self._dimensions_cache
-        super(EventImageFieldFile, self).delete(save)
+        super(ImageFieldFile, self).delete(save)
 
 
-class EventImageField(FileField):
+class ImageField(DjangoFileField):
     """
     An extension of the django FileField that accepts a callback option in field declaration.
     The callback is run when the associated FieldFile is saved.
     """
-    attr_class = EventImageFieldFile
+    attr_class = ImageFieldFile
 
-    def __init__(self, callback=None, *args, **kwargs):
+    def __init__(self, callback=None, allowed_extensions=None, *args, **kwargs):
         self.callback = callback
-        super(EventImageField, self).__init__(*args, **kwargs)
+        self.allowed_extensions = allowed_extensions  # List of allowed extensions. Eg: ['csv', 'pdf', 'doc']
+        super(ImageField, self).__init__(*args, **kwargs)
 
 
-class MultiImageFieldFile(EventImageFieldFile):
+class MultiImageFieldFile(ImageFieldFile):
 
     def _get_lowqual_name(self):
         return _add_suffix('lowqual', self.name)
@@ -146,7 +146,7 @@ class MultiImageFieldFile(EventImageFieldFile):
         super(MultiImageFieldFile, self).delete(save)
 
 
-class MultiImageField(EventImageField):
+class MultiImageField(ImageField):
     """
     Behaves like a regular ImageField, but stores extra (JPEG) img providing get_FIELD_lowqual_url(), get_FIELD_small_url(),
     get_FIELD_thumb_url(), get_FIELD_small_filename(), get_FIELD_lowqual_filename() and get_FIELD_thumb_filename().

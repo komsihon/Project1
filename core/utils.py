@@ -20,7 +20,7 @@ from django.core.files import File
 from django.core.mail import EmailMessage
 from django.db import router
 from django.db.models import F, Model
-from django.db.models.fields.files import ImageFieldFile
+from django.db.models.fields.files import ImageFieldFile as DjangoImageFieldFile
 from django.db.models.loading import get_model
 from django.template import Context
 from django.template.defaultfilters import urlencode, slugify
@@ -32,7 +32,7 @@ from pywebpush import webpush
 
 from ikwen.conf import settings as ikwen_settings
 from ikwen.core.constants import PC, TABLET, MOBILE
-from ikwen.core.fields import MultiImageFieldFile, EventImageFieldFile
+from ikwen.core.fields import ImageFieldFile, MultiImageFieldFile
 
 logger = logging.getLogger('ikwen')
 
@@ -98,7 +98,7 @@ def to_dict(var):
                 dict_var[key] = [item.to_dict() for item in dict_var[key]]
             except AttributeError:
                 dict_var[key] = [to_dict(item) for item in dict_var[key]]
-        elif isinstance(var.__getattribute__(key), ImageFieldFile) or isinstance(var.__getattribute__(key), EventImageFieldFile):
+        elif isinstance(var.__getattribute__(key), DjangoImageFieldFile) or isinstance(var.__getattribute__(key), ImageFieldFile):
             if var.__getattribute__(key).name:
                 dict_var[key + '_url'] = var.__getattribute__(key).url
             else:
@@ -326,10 +326,11 @@ class DefaultUploadBackend(LocalUploadBackend):
         required_height = request.GET.get('required_height')
         rand = ''.join([random.SystemRandom().choice(string.ascii_letters) for i in range(6)])
         full_path = media_root + path
-        img = Image.open(full_path)
-        if required_width and required_height and img.size != (int(required_width), int(required_height)):
-            return {'error': _('Expected size is %(width)s x %(height)s px.' % {'width': required_width, 'height': required_height}),
-                    'wrong_size': True}
+        if required_width and required_height:
+            img = Image.open(full_path)
+            if img.size != (int(required_width), int(required_height)):
+                return {'error': _('Expected size is %(width)s x %(height)s px.' % {'width': required_width, 'height': required_height}),
+                        'wrong_size': True}
         if model_name and object_id:
             s = get_service_instance()
             media_field = request.GET.get('media_field')
@@ -373,7 +374,7 @@ class DefaultUploadBackend(LocalUploadBackend):
                     if filename_suffix > 0:
                         seo_filename = seo_filename_no_extension + str(filename_suffix) + extension
 
-                    if isinstance(media, ImageFieldFile) or isinstance(media, EventImageFieldFile):
+                    if isinstance(media, DjangoImageFieldFile) or isinstance(media, ImageFieldFile):
                         seo_filename = s.project_name_slug + '_' + seo_filename
                     else:
                         seo_filename = seo_filename.capitalize()
@@ -397,7 +398,7 @@ class DefaultUploadBackend(LocalUploadBackend):
                     if isinstance(media, MultiImageFieldFile):
                         url = media_url + media.small_name
                         preview_url = url
-                    elif isinstance(media, ImageFieldFile) or isinstance(media, EventImageFieldFile):
+                    elif isinstance(media, DjangoImageFieldFile) or isinstance(media, ImageFieldFile):
                         url = media_url + media.name
                         preview_url = url
                     else:

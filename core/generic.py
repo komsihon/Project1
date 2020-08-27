@@ -15,7 +15,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import get_model
-from django.db.models.fields.files import ImageFieldFile, FieldFile
+from django.db.models.fields.files import ImageFieldFile as DjangoImageFieldFile, FieldFile
 from django.forms.models import modelform_factory
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -30,7 +30,7 @@ from import_export.formats.base_formats import XLS, CSV
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
-from ikwen.core.fields import MultiImageFieldFile, EventImageFieldFile
+from ikwen.core.fields import MultiImageFieldFile, ImageFieldFile
 from ikwen.core.models import Service, AbstractConfig
 from ikwen.core.utils import get_service_instance, DefaultUploadBackend, generate_icons, get_model_admin_instance, \
     get_preview_from_extension
@@ -238,7 +238,7 @@ class HybridListView(ListView):
                     field = model_obj.__getattribute__(key)
                 except:
                     continue
-                if isinstance(field, ImageFieldFile) or isinstance(field, EventImageFieldFile):
+                if isinstance(field, DjangoImageFieldFile) or isinstance(field, ImageFieldFile):
                     return True
         except:
             return False
@@ -510,7 +510,7 @@ class ChangeObjectBase(TemplateView):
             if isinstance(field, FieldFile):
                 if not field.field.editable:
                     continue
-                if isinstance(field, ImageFieldFile) or isinstance(field, EventImageFieldFile):
+                if isinstance(field, DjangoImageFieldFile) or isinstance(field, ImageFieldFile):
                     preview = field.name
                 elif isinstance(field, MultiImageFieldFile):
                     preview = field.small_name
@@ -624,10 +624,14 @@ class ChangeObjectBase(TemplateView):
                     filename = uploaded_media_url.split('/')[-1]
                     media_root = getattr(settings, 'MEDIA_ROOT')
                     path = uploaded_media_url.replace(getattr(settings, 'MEDIA_URL'), '')
+                    if isinstance(media, DjangoImageFieldFile) or isinstance(media, ImageFieldFile):
+                        seo_filename = s.project_name_slug + '_' + filename
+                    else:
+                        seo_filename = filename.capitalize()
                     try:
                         with open(media_root + path, 'r') as f:
                             content = File(f)
-                            destination = media_root + media.field.upload_to + "/" + s.project_name_slug + '_' + filename
+                            destination = media_root + media.field.upload_to + "/" + seo_filename
                             media.save(destination, content)
                         os.unlink(media_root + path)
                     except:
