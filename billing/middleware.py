@@ -2,6 +2,8 @@
 
 from datetime import datetime
 
+from django.conf import settings
+
 from ikwen.billing.utils import refresh_currencies_exchange_rates
 
 from ikwen.core.utils import get_service_instance
@@ -16,6 +18,6 @@ class CurrenciesRatesMiddleware(object):
         now = datetime.now()
         if config.last_currencies_rates_update:
             diff = now - config.last_currencies_rates_update
-            if diff.seconds > 3600:
+            if diff.seconds > getattr(settings, 'CURRENCIES_REFRESH_TIMEOUT', 86400):
                 # Update currencies every hour
                 refresh_currencies_exchange_rates()
