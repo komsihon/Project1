@@ -273,6 +273,8 @@ def send_push(sender_weblet, subscription_or_member, title, body, target_page=No
     :return: number of push successfully submitted, 0 if none was submitted
     """
     from ikwen.accesscontrol.models import Member, PWAProfile
+    if not sender_weblet:
+        sender_weblet = get_service_instance()
     db = sender_weblet.database
     add_database(db)
     if type(subscription_or_member) == Member:

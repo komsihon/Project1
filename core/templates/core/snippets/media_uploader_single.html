@@ -73,7 +73,7 @@
                 'csrf_name': 'csrfmiddlewaretoken',
                 'csrf_xname': 'X-CSRFToken',
                 'model_name': '{{ model }}',
-                'object_id': '{{ obj.id }}',
+                'object_id': '{% if obj.id %}{{ obj.id }}{% endif %}',
                 'media_field': '{{ media.field }}',
                 'label_field': '{{ label_field }}',
                 {% if required_width %}'required_width': {{ required_width }},{% endif %}
