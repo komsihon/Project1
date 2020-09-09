@@ -136,6 +136,7 @@
         else if (typeOrImageURL.toLowerCase() === 'error')$('#modal-generic-notice .error').show();
         else $('#modal-generic-notice .cover').css('background-image', `url(${typeOrImageURL})`).show();
         $('#modal-generic-notice').modal({backdrop: 'static', keyboard: false});
+        location.hash = 'modal-notice-opened';
     };
 
     window.closeNoticeDialog = function() {
@@ -342,9 +343,10 @@
     $(window).on('hashchange', processHash);
     function processHash() {
         if (location.hash.length < 1) {
-            hideEdgePanelLeft();
             if ($(window).width() < 768 || $('.edge-panel-right').hasClass('always-docked')) {
+                hideEdgePanelLeft();
                 hideEdgePanelRight();
+                closeNoticeDialog();
             }
         }
     }
