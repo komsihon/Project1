@@ -653,12 +653,16 @@ def render_billing_event(event, request):
     currency_symbol = service.config.currency_symbol
     try:
         invoice = Invoice.objects.using(database).get(pk=event.object_id)
-        member = invoice.subscription.member
+        member = invoice.member
         try:
             details = invoice.subscription.product.get_details()
         except:
-            subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
-            details = subscription.details
+            try:
+                subscription = get_subscription_model().objects.get(pk=invoice.subscription.id)
+                details = subscription.details
+            except:
+                details = ', '.join([entry.item.label for entry in invoice.entries])
+
         from ikwen.conf import settings as ikwen_settings
         data = {'title': _(event.event_type.title),
                 'details': details,
@@ -669,7 +673,7 @@ def render_billing_event(event, request):
                 'details_url': service.url + reverse('billing:invoice_detail', args=(invoice.id,)),
                 'show_pay_now': invoice.status != Invoice.PAID,
                 'MEMBER_AVATAR': ikwen_settings.MEMBER_AVATAR, 'IKWEN_MEDIA_URL': ikwen_settings.MEDIA_URL}
-        if member.id != request.GET['member_id']:
+        if member and member.id != request.GET['member_id']:
             data['member'] = member
         c = Context(data)
     except Invoice.DoesNotExist:

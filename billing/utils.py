@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import logging
 import os
 from datetime import datetime, timedelta
@@ -768,6 +769,36 @@ def refresh_currencies_exchange_rates():
             config.save()
         except:
             logger.error("Failure while querying Exchange Rates API", exc_info=True)
+
+
+def detect_and_set_currency_by_ip(request):
+    from currencies.conf import SESSION_KEY
+    from currencies.models import Currency
+    if request.session.get(SESSION_KEY):
+        return Currency.objects.get(code=request.session.get(SESSION_KEY))
+    try:
+        if getattr(settings, 'LOCAL_DEV', False):
+            ip = '154.72.166.181'  # My Local IP by the time I was writing this code
+        else:
+            ip = request.META['REMOTE_ADDR']
+        from ikwen.conf import settings as ikwen_settings
+        r = requests.get('http://api.ipstack.com/%s?access_key=%s' % (ip, ikwen_settings.IP_STACK_API_KEY))
+        result = json.loads(r.content.decode('utf-8'))
+        country_code = result['country_code']
+        r = requests.get('http://country.io/currency.json')
+        result = json.loads(r.content)
+        currency_code = result[country_code]
+        try:
+            Currency.active.get(code=currency_code)
+        except:
+            currency_code = 'USD'
+    except:
+        currency_code = 'USD'
+
+    if currency_code and Currency.active.filter(code=currency_code).exists():
+        if hasattr(request, 'session'):
+            request.session[SESSION_KEY] = currency_code
+    return Currency.objects.get(code=currency_code)
 
 
 def refill_tsunami_messaging_bundle(service, is_early_payment):
