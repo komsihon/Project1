@@ -735,7 +735,9 @@ def update_push_subscription(request, *args, **kwargs):
         if pwa_profile_id and not pwa_profile.member:
             PWAProfile.objects.filter(service=get_service_instance(), member=member, device_type=device_type).delete()
         pwa_profile.member = member
-    push_subscription = request.POST['value']
+    push_subscription = request.POST.get('value')
+    if not push_subscription:
+        push_subscription = request.GET['value']
     pwa_profile.subscribed_to_push_on = now
     pwa_profile.push_subscription = push_subscription
     pwa_profile.save()

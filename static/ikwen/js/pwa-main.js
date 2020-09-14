@@ -57,6 +57,8 @@ function saveBeforeInstallPromptEvent(evt) {
  */
 function installPWA(evt) {
     pwaOverlay.style.display = 'block';
+    $('#pwa-overlay .app').show();
+    $('#pwa-overlay .push').hide();
     deferredInstallPrompt.prompt();
     deferredInstallPrompt.userChoice.then((choice) => {
         if (choice.outcome === 'accepted') {
@@ -131,6 +133,8 @@ function updateWidget() {
 
 function subscribeUser() {
     $('.push-subscribe-btn').addClass('disabled');
+    $('#pwa-overlay .app').hide();
+    $('#pwa-overlay .push').show();
     pwaOverlay.style.display = 'block';
     const applicationServerKey = urlB64ToUint8Array(applicationServerPublicKey);
     swRegistration.pushManager.subscribe({
@@ -159,6 +163,7 @@ function updateSubscriptionOnServer(subscription) {
         method: 'POST',
         data: {value: JSON.stringify(subscription)},
         success: function(resp) {
+            resp = JSON.parse(resp);
             if (resp.success) localStorage.setItem('pushSubscription', JSON.stringify(subscription));
         }
     });

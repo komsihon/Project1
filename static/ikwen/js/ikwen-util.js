@@ -287,9 +287,9 @@
                 content = value,
                 $fieldElt = $tpl.find('.' + field);
             if (searchTerm) content = value.replace(searchTerm, '<strong>' + searchTerm + '</strong>');
-            if (typeof value == 'number') content = content.formatMoney();
+            if (typeof value === 'number') content = content.formatMoney();
             if ($fieldElt.hasClass('bg-img')) $fieldElt.css('background-image', 'url(' + value + ')');
-            else if ($fieldElt.prop('tagName') == 'IMG') $fieldElt.attr('src', value);
+            else if ($fieldElt.prop('tagName') === 'IMG') $fieldElt.attr('src', value);
             else {
                 if ($fieldElt.hasClass('hide') && content) $fieldElt.removeClass('hide');
                 if ($fieldElt.find('.value').length > 0) {
@@ -306,18 +306,12 @@
                     }
                 }
             }
-            if (field == 'url') {
-                if (ikwen.URL_KEY && ikwen.URL_RAND) {
-                    if (value.indexOf('?') == -1 ) value += '?key=' + ikwen.URL_KEY + '&rand=' + ikwen.URL_RAND;
-                    else value += '&key=' + ikwen.URL_KEY + '&rand=' + ikwen.URL_RAND;
-                }
-                $tpl.find('.target_url').attr('href', value);
-            }
-            if (field == 'id') $tpl.attr('id', value);
-            if (typeof value == 'string' || typeof value == 'number') $tpl.data(field, value);
+            if (field === 'url') $tpl.find('.target_url').attr('href', value);
+            if (field === 'id') $tpl.attr('id', value);
+            if (typeof value === 'string' || typeof value === 'number') $tpl.data(field, value);
 
             /* Some common boolean fields */
-            if (field == 'status') $tpl.addClass(value)
+            if (field === 'status') $tpl.addClass(value)
         }
         return $tpl
     };

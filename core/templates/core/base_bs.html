@@ -225,7 +225,10 @@
         {% endblock %}
         <div id="pwa-overlay">
             <div class="text-has-shade text-center visible-xs visible-sm">
-                <h3 style="font-weight: 600">{% trans "Click the button below" %}</h3>
+                <p class="app">
+                    {% blocktrans %}Please, <strong>Add</strong> application to your home.{% endblocktrans %}</p>
+                <p class="push">
+                    {% blocktrans %}Please, click <strong>Authorize</strong> to receive order alerts and bonuses.{% endblocktrans %}</p>
                 <div>
                     <i class="fa fa-arrow-down" style="font-size: 27px"></i>
                 </div>
