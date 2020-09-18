@@ -2,6 +2,7 @@
 import json
 import logging
 from datetime import datetime, timedelta
+from threading import Thread
 from time import strptime
 
 import requests
@@ -10,6 +11,7 @@ from currencies.models import Currency
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import Http404
@@ -33,7 +35,7 @@ from ikwen.core.generic import HybridListView, ChangeObjectBase, CustomizationIm
 from ikwen.core.models import Service, QueuedSMS, ConsoleEventType, ConsoleEvent, Country, \
     OperatorWallet, XEmailObject
 from ikwen.core.utils import get_service_instance, DefaultUploadBackend, add_database_to_settings, \
-    add_database, calculate_watch_info, set_counters
+    add_database, calculate_watch_info, set_counters, get_mail_content
 from ikwen.rewarding.models import CROperatorProfile
 
 try:
@@ -112,15 +114,29 @@ class ServiceDetail(TemplateView):
                 logger.error("Failed to update domain to %s" % new_domain)
                 response = {'error': _("Unknown error occured.")}
                 return HttpResponse(json.dumps(response), 'content-type: text/json')
-        elif action == 'transfer_ownership':
+        elif action == 'invite_to_transfer_ownership':
+            if not request.user.is_bao:
+                response = {'error': _("You are not allowed here.")}
+                return HttpResponse(json.dumps(response), 'content-type: text/json')
             email = request.GET['email']
             try:
-                member = Member.objects.using(UMBRELLA).filter(email=email)[0]
+                member = Member.objects.using(UMBRELLA).get(email=email)
                 service = get_service_instance(using=UMBRELLA)
-                transfer = OwnershipTransfer.objects.create(sender=request.user, target=member, service=service)
-                # Send email here
-            except IndexError:
+                transfer = OwnershipTransfer.objects.create(sender=request.user, target_id=member.id)
+                subject = _("Ownership transfer invitation")
+                transfer_url = service.url + reverse('ikwen:transfer_ownership', args=(transfer.id, ))
+                html_content = get_mail_content(subject, template_name='core/mails/ownership_transfer.html',
+                                                extra_context={'owner_name': request.user.full_name,
+                                                               'transfer_url': transfer_url})
+                sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
+                msg = EmailMessage(subject, html_content, sender, [member.email])
+                msg.content_subtype = "html"
+                Thread(target=lambda m: m.send(), args=(msg,)).start()
+                response = {'success': True, 'transfer_id': transfer.id}
+                return HttpResponse(json.dumps(response), 'content-type: text/json')
+            except Member.DoesNotExist:
                 response = {'error': _("%s does not have an account on ikwen." % email)}
+                return HttpResponse(json.dumps(response), 'content-type: text/json')
         return super(ServiceDetail, self).get(request, *args, **kwargs)
 
 

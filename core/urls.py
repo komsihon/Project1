@@ -16,7 +16,7 @@ from ikwen.accesscontrol.views import SignIn, SignInMinimal, AccountSetup, updat
     update_password, ForgottenPassword, SetNewPassword, Profile, Community, CompanyProfile, \
     join, set_collaborator_permissions, move_member_to_group, toggle_member, \
     list_collaborators, MemberList, deny_access, Register, StaffWithoutPermission, \
-    staff_router, SetNewPasswordSMSRecovery, upload_contacts_file
+    staff_router, SetNewPasswordSMSRecovery, upload_contacts_file, transfer_ownership
 from ikwen.accesscontrol.utils import EmailConfirmationPrompt, ConfirmEmail, PhoneConfirmation, is_staff, \
     update_push_subscription
 from ikwen.core.views import Console, ServiceDetail, WelcomeMail, BaseExtMail, \
@@ -77,6 +77,7 @@ urlpatterns = patterns(
     url(r'^move_member_to_group$', move_member_to_group, name='move_member_to_group'),
     url(r'^deny_access$', deny_access, name='deny_access'),
     url(r'^toggle_member$', toggle_member, name='toggle_member'),
+    url(r'^transfer_ownership/(?P<transfer_id>[-\w]+)$', transfer_ownership, name='transfer_ownership'),
     url(r'^community/$', permission_required('accesscontrol.ik_manage_community')(Community.as_view()), name='community'),
     url(r'^upload_contacts_file/$', permission_required('accesscontrol.ik_manage_community')(upload_contacts_file), name='upload_contacts_file'),
     url(r'^flatPages/$', permission_required('accesscontrol.sudo')(FlatPageList.as_view()), name='flatpage_list'),

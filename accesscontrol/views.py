@@ -1153,6 +1153,9 @@ def deny_access(request, *args, **kwargs):
 def transfer_ownership(request, *args, **kwargs):
     transfer_id = kwargs['transfer_id']
     transfer = OwnershipTransfer.objects.get(pk=transfer_id)
+    service = get_service_instance()
+    db = service.database
+    add_database_to_settings(db)
     diff = datetime.now() - transfer.created_on
     if diff.total_seconds() > OwnershipTransfer.MAX_DELAY * 3600:  # Too late !
         raise Http404("Page not found.")
@@ -1160,38 +1163,33 @@ def transfer_ownership(request, *args, **kwargs):
     target = transfer.target
     if request.user != target:  # Fraudulent attempt to acquire ownership. Raise error
         raise Http404("Page not found.")
-    service = transfer.service
-    db = service.database
-    add_database_to_settings(db)
-    Member.objects.using(db).filter(pk=sender.id).update(is_iao=False, is_bao=False, is_staff=False, is_superuser=False)
-    Member.objects.using(db).filter(pk=target.id).update(is_iao=True, is_bao=True, is_staff=True, is_superuser=True)
+    Member.objects.filter(pk=sender.id).update(is_iao=False, is_bao=False, is_staff=False, is_superuser=False)
 
-    community_group = Group.objects.using(db).get(name=COMMUNITY)
-    sudo_group = Group.objects.using(db).get(name=SUDO)
+    community_group = Group.objects.get(name=COMMUNITY)
+    sudo_group = Group.objects.get(name=SUDO)
 
-    obj1, change = UserPermissionList.objects.using(db).get_or_create(user=sender)
+    obj1, change = UserPermissionList.objects.get_or_create(user=sender)
     obj1.permission_list = []
     obj1.permission_fk_list = []
     obj1.group_fk_list = [community_group.id]
     obj1.save()
-    if service.id in sender.collaborates_on_fk_list:
-        sender.collaborates_on_fk_list.remove(service.id)
-    sender.group_fk_list.append(community_group.id)
+
+    sender_umbrella = Member.objects.using(UMBRELLA).get(pk=sender.id)
+    if service.id in sender_umbrella.collaborates_on_fk_list:
+        sender_umbrella.collaborates_on_fk_list.remove(service.id)
+    sender_umbrella.group_fk_list.append(community_group.id)
     try:
-        sender.group_fk_list.remove(sudo_group.id)
+        sender_umbrella.group_fk_list.remove(sudo_group.id)
     except ValueError:
         pass
-    sender.group_fk_list = list(set(sender.group_fk_list))
-    sender.group_fk_list.sort()
-    sender.save()
-    Member.objects.using(db).filter(pk=sender.id)\
-        .update(collaborates_on_fk_list=sender.collaborates_on_fk_list, group_fk_list=sender.group_fk_list)
+    sender_umbrella.group_fk_list = list(set(sender_umbrella.group_fk_list))
+    sender_umbrella.group_fk_list.sort()
+    sender_umbrella.save()
 
-    obj2, change = UserPermissionList.objects.using(db).get_or_create(user=target)
-    obj2.permission_list = []
-    obj2.permission_fk_list = []
-    obj2.group_fk_list = [sudo_group.id]
-    obj2.save()
+    Member.objects.using(UMBRELLA).filter(pk=sender.id)\
+        .update(collaborates_on_fk_list=sender_umbrella.collaborates_on_fk_list,
+                group_fk_list=sender_umbrella.group_fk_list)
+
     if service.id not in target.collaborates_on_fk_list:
         target.collaborates_on_fk_list.append(service.id)
     if service.id not in target.customer_on_fk_list:
@@ -1202,13 +1200,27 @@ def transfer_ownership(request, *args, **kwargs):
         target.group_fk_list.append(sudo_group.id)
     target.group_fk_list = list(set(target.group_fk_list))
     target.group_fk_list.sort()
+    target.is_iao = True
     target.save()
-    Member.objects.using(db).filter(pk=target.id)\
+    target.is_staff = True
+    target.is_superuser = True
+    target.is_bao = True
+    target.save(using='default')
+
+    obj2, change = UserPermissionList.objects.using('default').get_or_create(user=target)
+    obj2.permission_list = []
+    obj2.permission_fk_list = []
+    obj2.group_fk_list = [sudo_group.id]
+    obj2.save()
+
+    Member.objects.using(UMBRELLA).filter(pk=target.id)\
         .update(collaborates_on_fk_list=target.collaborates_on_fk_list,
                 customer_on_fk_list=target.customer_on_fk_list, group_fk_list=target.group_fk_list)
 
     service.member = target
     service.save()
+    service.save(using=UMBRELLA)
+    return HttpResponseRedirect(service.admin_url)
 
 
 @permission_required('accesscontrol.sudo')

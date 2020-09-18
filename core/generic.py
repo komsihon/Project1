@@ -587,17 +587,21 @@ class ChangeObjectBase(TemplateView):
         if form.is_valid():
             obj = form.save()
             slug_field = request.POST.get('slug_field', 'slug')
-            try:
-                obj.__getattribute__(slug_field)
-                label_field = request.POST.get('label_field', 'name')
+            slug = request.POST.get(slug_field)
+            if slug:
+                obj.__setattr__(slug_field, slug)
+            else:
                 try:
-                    label = obj.__getattribute__(label_field)
-                    obj.__setattr__(slug_field, slugify(label))
-                    obj.save()
+                    obj.__getattribute__(slug_field)
+                    label_field = request.POST.get('label_field', 'name')
+                    try:
+                        label = obj.__getattribute__(label_field)
+                        obj.__setattr__(slug_field, slugify(label))
+                        obj.save()
+                    except:
+                        pass
                 except:
                     pass
-            except:
-                pass
 
             if self.auto_profile:
                 label_field = request.POST.get('label_field', 'name')

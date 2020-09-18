@@ -63,7 +63,7 @@ def wipe_test_data(db=None):
                      'ConsoleEvent', 'Country', ):
             model = getattr(ikwen.core.models, name)
             model.objects.using(alias).all().delete()
-        for name in ('Member', 'AccessRequest', ):
+        for name in ('Member', 'AccessRequest', 'OwnershipTransfer', ):
             model = getattr(ikwen.accesscontrol.models, name)
             model.objects.using(alias).all().delete()
         for name in ('UserPermissionList', 'GroupPermissionList',):

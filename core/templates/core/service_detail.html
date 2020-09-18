@@ -97,7 +97,7 @@
                     <div class="detail billing-cycle row">
                         <label class="col-sm-3">{% trans "Billing cycle" %}</label>
                         <span>
-                            {% trans service.billing_cycle %}
+                            {% if service.billing_cycle %}{% trans service.billing_cycle %}{% endif %}
                             - <a class="action-edit" href="#"> {% trans "Change" %} </a>
                         </span>
                     </div>
@@ -146,14 +146,14 @@
                         <h3 style="float: left"> {% trans "Credits" %} </h3>
                         <div class="clear"></div>
                     </header>
-                    <div class="detail billing-cycle row">
+                    <div class="detail row">
                         <label class="col-sm-3">{% trans "Mail Credit" %}</label>
                         <span>
                             {{ echo_balance.mail_count|intcomma }}
                             - <a href="{% url 'echo:mail_bundle' %}"> {% trans "Top up" %} </a>
                         </span>
                     </div>
-                    <div class="detail billing-cycle row">
+                    <div class="detail row">
                         <label class="col-sm-3">{% trans "SMS Credit" %}</label>
                         <span>
                             {{ echo_balance.sms_count|intcomma }}
@@ -161,9 +161,59 @@
                         </span>
                     </div>
                 </section>
+                {% if user.is_bao %}
+                <section class="subtle-shade">
+                    <header>
+                        <h3 style="float: left"> {% trans "Ownership" %} </h3>
+                        <div class="clear"></div>
+                    </header>
+                    <p>{% blocktrans %}
+                        You can transfer the ownership of the platform to another person. Simply enter
+                        the person's email down here and he will receive an invitation for that. Once you
+                        transfer ownership to another, he has full control over the platform and you cannot
+                        access admin functionnalities anymore. So BE VERY CAREFUL.
+                    {% endblocktrans %}</p>
+                    <div class="row col-sm-10 col-sm-offset-1" style="height: auto; margin-top: 5vh">
+                        <div class="form-group col-sm-8">
+                            <label for="bao-email">{% trans "New owner email" %}</label>
+                            <input id="bao-email" type="email" class="form-control input-sm" />
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="hidden-xs">&nbsp;</label>
+                            <button class="btn btn-sm btn-block btn-danger show-confirm-transfer-modal"
+                                    data-toggle="modal" data-target="#modal-confirm-transfer">{% trans "Transfer" %}</button>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                </section>
+                {% endif %}
             </div>
         </div>
         <div class="clearfix"></div>
+    </div>
+    <div class="modal fade" id="modal-confirm-transfer" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-info">
+                <div class="modal-header" style="border-bottom: none">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <h3 class="col-xs-12">Ownership transfer confirmation,</h3>
+                    <p class="col-xs-12 notice"></p>
+                    <div class="actions">
+                        <div class="col-xs-12 col-sm-4">
+                            <button class="btn btn-default btn-sm btn-block"
+                                    data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                        </div>
+                        <div class="col-xs-12 col-sm-4">
+                            <button id="do-transfer" class="btn btn-warning btn-sm btn-block"
+                                    data-dismiss="modal" aria-label="Close">{% trans "Yes, transfer" %}</button>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}
 {% block js %}
@@ -194,9 +244,26 @@
                     }
                     $('.detail.billing-cycle span').text(value);
                     $('.detail.billing-cycle, .edit.billing-cycle').toggleClass('hidden');
-                    ikwen.showFloatingNotice('{% trans "Billing cycle successfully updated." %}', '', 6);
+                    ikwen.showFloatingNotice('{% trans "Billing cycle successfully updated." %}');
                 })
             });
+            $('.show-confirm-transfer-modal').click(function() {
+                let email = $('#bao-email').val(),
+                    notice = "{% trans "You are about to transfer ownership to " %}" + "<strong>" + email + "</strong>";
+                $('#modal-confirm-transfer .notice').html(notice);
+            });
+            $('#do-transfer').click(function() {
+                let email = $('#bao-email').val();
+                $.getJSON('', {action: 'invite_to_transfer_ownership', email: email}, function(data) {
+                    if (data.error) {
+                        ikwen.showFloatingNotice('{% trans "Ooops! Something wrong happened." %}');
+                        return
+                    }
+                    if (data.success) {
+
+                    }
+                })
+            })
         })()
     </script>
 {% endblock %}

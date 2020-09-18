@@ -18,7 +18,7 @@ from django.utils.http import urlsafe_base64_encode
 from permission_backend_nonrel.models import UserPermissionList
 from permission_backend_nonrel.utils import add_permission_to_user
 
-from ikwen.core.utils import add_database_to_settings
+from ikwen.core.utils import add_database_to_settings, get_service_instance
 
 from ikwen.accesscontrol.tests_auth import wipe_test_data
 from ikwen.accesscontrol.models import Member, COMMUNITY
@@ -317,3 +317,25 @@ class IkwenAccessControlTestCase(unittest.TestCase):
         ghost = Member.objects.get(username='ngnieng@ikwen.com', phone='666000006', is_ghost=True)
         ghost_profile = MemberProfile.objects.get(member=ghost)
         self.assertEqual(set(ghost_profile.tag_fk_list), {'58088fc0c253e5ddf0563954', '58088fc0c253e5ddf0563952'})
+
+    @override_settings(IKWEN_SERVICE_ID='56eb6d04b37b3379b531b102',
+                       EMAIL_BACKEND='django.core.mail.backends.filebased.EmailBackend',
+                       EMAIL_FILE_PATH='test_emails/accesscontrol/transfer_ownership/')
+    def test_transfer_ownership(self):
+        """
+        Transfer ownership changes the owner of the platform from sender to target
+        """
+        self.client.login(username='member2', password='admin')
+        response = self.client.get(reverse('ikwen:service_detail'), {'action': 'invite_to_transfer_ownership',
+                                                                     'email': 'member3@ikwen.com'})
+        json_response = json.loads(response.content)
+        self.assertTrue(json_response['success'])
+        transfer_id = json_response['transfer_id']
+
+        self.client.get(reverse('ikwen:logout'))
+        self.client.login(username='member3', password='admin')
+        response = self.client.get(reverse('ikwen:transfer_ownership', args=(transfer_id, )), follow=True)
+        self.assertEqual(response.status_code, 302)
+        weblet = get_service_instance()
+        target = Member.objects.get(email='member3@ikwen.com')
+        self.assertEqual(weblet.member, target)

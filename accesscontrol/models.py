@@ -374,11 +374,14 @@ class OwnershipTransfer(Model):
     MAX_DELAY = 48
 
     sender = models.ForeignKey(Member)
-    target = models.ForeignKey(Member, related_name='+')
-    service = models.ForeignKey(Service, related_name='+')
+    target_id = models.CharField(max_length=24)  # ID of the target Member
 
     class Meta:
         db_table = 'ikwen_ownership_transfer'
+
+    def _get_target(self):
+        return Member.objects.using('umbrella').get(pk=self.target_id)
+    target = property(_get_target)
 
 
 def delete_member_profile(sender, **kwargs):
