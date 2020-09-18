@@ -257,10 +257,8 @@
                 $.getJSON('', {action: 'invite_to_transfer_ownership', email: email}, function(data) {
                     if (data.error) {
                         ikwen.showFloatingNotice('{% trans "Ooops! Something wrong happened." %}');
-                        return
-                    }
-                    if (data.success) {
-
+                    } else if (data.success) {
+                        ikwen.showFloatingNotice("{% trans "Ownership transfer invitation sent." %}");
                     }
                 })
             })

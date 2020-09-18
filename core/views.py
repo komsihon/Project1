@@ -25,6 +25,7 @@ from django.views.decorators.cache import cache_page
 from django.views.generic.base import TemplateView
 
 import ikwen.conf.settings
+from ikwen.core.templatetags.url_utils import strip_base_alias
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member, ACCESS_REQUEST_EVENT, OwnershipTransfer
 from ikwen.billing.models import Invoice, SupportCode
@@ -124,10 +125,11 @@ class ServiceDetail(TemplateView):
                 service = get_service_instance(using=UMBRELLA)
                 transfer = OwnershipTransfer.objects.create(sender=request.user, target_id=member.id)
                 subject = _("Ownership transfer invitation")
-                transfer_url = service.url + reverse('ikwen:transfer_ownership', args=(transfer.id, ))
+                transfer_url = reverse('ikwen:transfer_ownership', args=(transfer.id, ))
+                transfer_url = service.url + strip_base_alias(transfer_url)
                 html_content = get_mail_content(subject, template_name='core/mails/ownership_transfer.html',
                                                 extra_context={'owner_name': request.user.full_name,
-                                                               'transfer_url': transfer_url})
+                                                               'transfer_url': transfer_url, 'member': member})
                 sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
                 msg = EmailMessage(subject, html_content, sender, [member.email])
                 msg.content_subtype = "html"
