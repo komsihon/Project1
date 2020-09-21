@@ -309,7 +309,7 @@ class InvoiceDetail(TemplateView):
         context = super(InvoiceDetail, self).get_context_data(**kwargs)
         invoice_id = self.kwargs['invoice_id']
         try:
-            invoice = Invoice.objects.select_related('subscription').get(pk=invoice_id)
+            invoice = Invoice.objects.select_related('subscription', 'member').get(pk=invoice_id)
         except Invoice.DoesNotExist:
             raise Http404("Invoice not found")
         try:

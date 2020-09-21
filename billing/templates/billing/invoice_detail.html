@@ -6,7 +6,6 @@
 {% block head_style %}
     {{ block.super }}
     <link href="{% static 'ikwen/css/console.css' %}" media="screen" rel="stylesheet" type="text/css" />
-    <link href="{% static 'ikwen/css/grids.css' %}" rel='stylesheet' />
     <style>
         body {background: #f6f6f6}
         #navbar {display: none}
@@ -30,6 +29,17 @@
             .stage {padding: 0 10px 15px}
             .payment .val {color: #888; float: right; text-align: right}
             .payment > div {padding-bottom: 9px}
+        }
+        @media print {
+            .stage .col-sm-4 {float: left; width: 33.33%}
+            .stage .col-sm-3 {float: left; width: 25%}
+            .stage .col-sm-8 {float: left; width: 66.67%}
+            .details-header {display: block !important;}
+            .payment.entry > div > div {width: 100%}
+            .payment.entry .val {text-align: left}
+            .payment.entry .text-right {text-align: right}
+            .payment.entry .visible-xs {display: none !important}
+            #actions, footer, .footer {display: none}
         }
     </style>
 {% endblock %}
@@ -77,12 +87,14 @@
                                 {% if customer_config.address %}<p>{{ customer_config.address }}</p>{% endif %}
                                 <p>{% if customer_config.city %}{{ customer_config.city }},{% endif %}
                                     {% if customer_config.country %}{{ customer_config.country.name }}{% endif %}</p>
-                            {% else %}
+                            {% elif invoice.member %}
                                 {% with customer=invoice.member %}
                                     {% if customer.get_full_name %}<p>{{ customer.get_full_name }}</p>{% endif %}
                                     {% if customer.email %}<p>{{ customer.email }}</p>{% endif %}
                                     {% if customer.phone %}<p>{{ customer.phone }}</p>{% endif %}
                                 {% endwith %}
+                            {% else %}
+                                <p>{{ invoice.get_invoiced_to }}</p>
                             {% endif %}
                         </div>
                     </div>

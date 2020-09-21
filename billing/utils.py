@@ -460,6 +460,7 @@ def generate_pdf_invoice(invoicing_config, invoice, template_name='billing/invoi
     member = invoice.member
     context['customer'] = member
     context['customer_name'] = escape(member.get_full_name()).encode('ascii', 'xmlcharrefreplace')
+    context['invoiced_to'] = escape(invoice.get_invoiced_to()).encode('ascii', 'xmlcharrefreplace')
     config = weblet.config
     context['vendor'] = config
     context['vendor_address'] = escape(config.address).encode('ascii', 'xmlcharrefreplace')

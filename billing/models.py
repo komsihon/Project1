@@ -278,6 +278,9 @@ class AbstractInvoice(Model):
     def get_to_be_paid(self):
         return self.amount - self.paid
 
+    def get_invoiced_to(self):
+        return ''
+
 
 class Invoice(AbstractInvoice):
     subscription = models.ForeignKey(getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', Subscription),

@@ -194,9 +194,10 @@
                     $('div#selection-control .select-count .value').text(count);
                 }
                 else $('#selection-control').removeClass('visible');
-            }).on('click', 'li .trash', function() {
-                let selection = $(this).parents('li').data('id'),
-                    modelName = $(this).parents('li').data('model-name'),
+            }).on('click', '.ik-li .trash', function() {
+                if (!confirm("{% trans "Confirm deletion ?" %}")) return;
+                let selection = $(this).parents('.ik-li').data('id'),
+                    modelName = $(this).parents('.ik-li').data('model-name'),
                     deleteEndpoint = $(this).parents('ul').data('delete-endpoint');
                 deleteSelection(selection, modelName, deleteEndpoint);
             }).on('click', 'li .icon-action', function() {

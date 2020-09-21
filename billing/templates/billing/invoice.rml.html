@@ -25,10 +25,12 @@
                     <drawString x="15" y="665">{{ company_name|safe }}</drawString>
                     <drawString x="15" y="650">{{ company_address|safe }}</drawString>
                     <drawString x="15" y="635">{% if company_city %}{{ company_city|safe }}{% endif %}{% if company_country %}, {{ company_country|safe }}{% endif %}</drawString>
-                {% else %}
+                {% elif customer_name %}
                     <drawString x="15" y="665">{{ customer_name|safe }}</drawString>
                     <drawString x="15" y="650">{{ customer.email }}</drawString>
                     <drawString x="15" y="635">{{ customer.phone }}</drawString>
+                {% else %}
+                    <drawString x="15" y="665">{{ invoiced_to|safe }}</drawString>
                 {% endif %}
 
                 <drawString x="355" y="665">{% trans "Date issued" %} : {{ invoice.date_issued|date:"Y, M d" }}</drawString>
