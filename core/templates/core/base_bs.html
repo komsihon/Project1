@@ -95,19 +95,21 @@
                                                     {% endif %}
                                                 </a>
                                             </li>
-                                            <li class="dropdown">
-                                                <a id="user-menu-xs" class="dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    <i class="glyphicon glyphicon-user"></i>
-                                                </a>
-                                                <ul class="dropdown-menu" aria-labelledby="user-menu-xs">
-                                                    <li style="padding: 3px 20px"> {{ user.get_short_name }} </li>
-                                                    <li role="separator" class="divider"></li>
-                                                    <li>
-                                                        <a href="{{ account_setup_url|ikwenize }}">{% trans "Account setup" %}</a>
-                                                    </li>
-                                                    <li><a href="{% url "ikwen:logout" %}">{% trans "Logout" %}</a> </li>
-                                                </ul>
-                                            </li>
+                                            {% block dropdown_user_menu_xs %}
+                                                <li class="dropdown">
+                                                    <a id="user-menu-xs" class="dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                        <i class="glyphicon glyphicon-user"></i>
+                                                    </a>
+                                                    <ul class="dropdown-menu" aria-labelledby="user-menu-xs">
+                                                        <li style="padding: 3px 20px"> {{ user.get_short_name }} </li>
+                                                        <li role="separator" class="divider"></li>
+                                                        <li>
+                                                            <a href="{{ account_setup_url|ikwenize }}">{% trans "Account setup" %}</a>
+                                                        </li>
+                                                        <li><a href="{% url "ikwen:logout" %}">{% trans "Logout" %}</a> </li>
+                                                    </ul>
+                                                </li>
+                                            {% endblock %}
                                         {% else %}
                                             <li>
                                                 <a href="{% url 'ikwen:sign_in' %}" style="float: left">{% trans "Login" %}</a>
@@ -186,19 +188,21 @@
                                                 {% endif %}
                                             </a>
                                         </li>
-                                        <li id="user-menu" class="dropdown">
-                                            <a class="icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                <i class="glyphicon glyphicon-user"></i>
-                                            </a>
-                                            <ul class="dropdown-menu" aria-labelledby="user-menu">
-                                                <li style="padding: 3px 20px"> {{ user.get_short_name }} </li>
-                                                <li role="separator" class="divider"></li>
-                                                <li>
-                                                    <a href="{{ account_setup_url|ikwenize }}">{% trans "Account setup" %}</a>
-                                                </li>
-                                                <li><a href="{% url "ikwen:logout" %}">{% trans "Logout" %}</a> </li>
-                                            </ul>
-                                        </li>
+                                        {% block dropdown_user_menu %}
+                                            <li id="user-menu" class="dropdown">
+                                                <a class="icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="glyphicon glyphicon-user"></i>
+                                                </a>
+                                                <ul class="dropdown-menu" aria-labelledby="user-menu">
+                                                    <li style="padding: 3px 20px"> {{ user.get_short_name }} </li>
+                                                    <li role="separator" class="divider"></li>
+                                                    <li>
+                                                        <a href="{{ account_setup_url|ikwenize }}">{% trans "Account setup" %}</a>
+                                                    </li>
+                                                    <li><a href="{% url "ikwen:logout" %}">{% trans "Logout" %}</a> </li>
+                                                </ul>
+                                            </li>
+                                        {% endblock %}
                                     {% else %}
                                         <li class="hidden-xs">
                                             <a href="{% url 'ikwen:sign_in' %}" class="cta">{% trans "Login" %}</a>
@@ -268,7 +272,7 @@
         </div>
         {% block js %}
             <script src="{% static 'ikwen/js/bootstrap.min.js' %}"></script>
-            <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=20.9.9"></script>
+            <script src="{% static 'ikwen/js/ikwen-util.js' %}?v=20.9.24"></script>
             <script src="{% static 'ikwen/hammerjs/hammer.min.js' %}"></script>
             <script src="{% static 'ikwen/hammerjs/jquery.hammer.js' %}"></script>
             <script>

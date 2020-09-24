@@ -83,10 +83,9 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                 add_event(service, MEMBER_JOINED_IN, member=user, object_id=user.id)
             user.save(using='default')  # Saves the user to the default application database if not exists there
 
-            if user.email != ARCH_EMAIL:
-                perm_list, created = UserPermissionList.objects.get_or_create(user=user)
-                perm_list.group_fk_list.append(community.id)
-                perm_list.save()
+            perm_list, created = UserPermissionList.objects.get_or_create(user=user)
+            perm_list.group_fk_list.append(community.id)
+            perm_list.save()
 
         if getattr(settings, 'AUTH_WITHOUT_PASSWORD', False) and not user.is_staff:
             return user

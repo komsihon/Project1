@@ -471,6 +471,7 @@ class DashboardBase(TemplateView):
         context['transactions_avg_revenue_title'] = self.transactions_avg_revenue_title
         context['last_cash_out'] = last_cash_out
         context['earnings_history'] = service.earnings_history[-30:]
+        context['earnings_history_previous_month'] = service.earnings_history[-60:-30]
         context['transaction_count_history'] = service.transaction_count_history[-30:]
         context['CRNCY'] = Currency.active.base()
         return context

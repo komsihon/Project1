@@ -7,7 +7,99 @@
 
 {% block head_style %}
     {{ block.super }}
-    <link rel='stylesheet' href="{% static 'ikwen/css/dashboard.css' %}?v=19.11.15.19" />
+    <link rel='stylesheet' href="{% static 'ikwen/css/dashboard.css' %}?v=20.9.24" />
+{% endblock %}
+
+{% block head_js %}
+    {{ block.super }}
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages': ['line', 'corechart']});
+        $(document).on('ready', () => {
+            google.charts.setOnLoadCallback(drawEarningsChart);
+            google.charts.setOnLoadCallback(drawTransactionsCountChart);
+            google.charts.setOnLoadCallback(drawARPTChart);  // AEPT: Average Revenue Per Transaction
+        });
+        $(window).resize('resize', () => {
+            google.charts.setOnLoadCallback(drawEarningsChart);
+            google.charts.setOnLoadCallback(drawTransactionsCountChart);
+            google.charts.setOnLoadCallback(drawARPTChart);  // AEPT: Average Revenue Per Transaction
+        });
+
+        let earningsHistoryCurrentMonth = {{ earnings_history|safe }},
+            earningsHistoryPreviousMonth = {{ earnings_history_previous_month|safe }},
+            transactionCountHistory = {{ transaction_count_history|safe }};
+
+
+        function drawEarningsChart() {
+            let data = new google.visualization.DataTable(),
+            values = [];
+            data.addColumn('number', "{% trans 'Day' %}");
+            data.addColumn('number', "{% trans 'This month' %}");
+            data.addColumn('number', "{% trans 'Previous Month' %}");
+
+            for (let i=0; i<earningsHistoryCurrentMonth.length; i ++) {
+                values.push([i, earningsHistoryCurrentMonth[i], earningsHistoryPreviousMonth[i]]);
+            }
+            data.addRows(values);
+            let options = {
+                title: "{% blocktrans with crncy_code=CRNCY.code %}Earnings ({{ crncy_code }}){% endblocktrans %}",
+                hAxis: {title: ""},
+                vAxis: {minValue: 0},
+            };
+            if ($(window).width() < 1200){
+                options.legend = {position: 'none'};
+            }
+            if ($(window).width() < 768){
+                options.explorer = {axis: 'horizontal'};
+            }
+            let chart = new google.charts.Line(document.getElementById('earnings-chart'));
+            chart.draw(data, google.charts.Line.convertOptions(options));
+        }
+
+        function drawTransactionsCountChart() {
+            let data = new google.visualization.DataTable(),
+            values = [];
+            data.addColumn('number', "{% trans 'Day' %}");
+            data.addColumn('number', "{% trans 'Transactions' %}");
+
+            for (let i=0; i<transactionCountHistory.length; i ++) {
+                values.push([i, transactionCountHistory[i]]);
+            }
+            data.addRows(values);
+            let options = {
+                hAxis: {title: ""},
+                vAxis: {minValue: 0},
+                colors : ['rgb(255, 153, 0)'],
+                legend: {position: 'none'},
+                explorer: {axis: 'horizontal'}
+            };
+            let chart = new google.charts.Line(document.getElementById('transactions-count-chart'));
+            chart.draw(data, google.charts.Line.convertOptions(options));
+        }
+
+        function drawARPTChart(){
+            let data = new google.visualization.DataTable(),
+            values = [];
+            data.addColumn('number', "{% trans 'Day' %}");
+            data.addColumn('number', "{% trans 'AEPT' %}");
+
+            for (let i=0; i<earningsHistoryCurrentMonth.length; i ++) {
+                let avg = earningsHistoryCurrentMonth[i]/transactionCountHistory[i];
+                values.push([i, Number(avg.toFixed(2))]);
+            }
+            data.addRows(values);
+            let options = {
+                hAxis: {title: ""},
+                vAxis: {minValue: 0},
+                colors : ['rgb(153, 0, 153)'],
+                legend: {position: 'none'},
+                explorer: {axis: 'horizontal'}
+            };
+            let chart = new google.charts.Line(document.getElementById('arpt-chart'));
+            chart.draw(data, google.charts.Line.convertOptions(options));
+        }
+    </script>
 {% endblock %}
 
 {% block breadcrumb_location %}
@@ -16,8 +108,8 @@
 
 {% block admin_content %}
     <div id="admin-content">
-        <div id="trend-chart" class="container"></div>
-        <div class="container-fluid business-trend">
+        <div id="earnings-chart" class="container"></div>
+        <div class="container-fluid earnings-trend">
             <h5 style="margin-top: 0">
                 <span>{% trans "Earnings" %} <span class="text-muted">({{ CRNCY.code }})</span> </span>
                 <a href="{% url 'billing:transaction_log' %}" class="show-details">{% trans "Details" %}</a>
@@ -146,11 +238,14 @@
                             <h5>{{ transactions_count_title|safe }}</h5>
                             <div class="clear"></div>
                         </header>
-                        <div>
-                            <em class="report today">{{ transactions_report.today.count|intcomma }}</em>
-                            <em class="report yesterday tpl">{{ transactions_report.yesterday.count|intcomma }}</em>
-                            <em class="report last_week tpl">{{ transactions_report.last_week.count|intcomma }}</em>
-                            <em class="report last_28_days tpl">{{ transactions_report.last_28_days.count|intcomma }}</em>
+                        <div style="margin:3vh 0">
+                            <div style="margin-bottom: 20px;">
+                                <em class="report today">{{ transactions_report.today.count|intcomma }}</em>
+                                <em class="report yesterday tpl">{{ transactions_report.yesterday.count|intcomma }}</em>
+                                <em class="report last_week tpl">{{ transactions_report.last_week.count|intcomma }}</em>
+                                <em class="report last_28_days tpl">{{ transactions_report.last_28_days.count|intcomma }}</em>
+                            </div>
+                            <div id="transactions-count-chart" class="line-chart"></div>
                         </div>
                     </div>
                 </div>
@@ -160,11 +255,14 @@
                             <h5>{{ transactions_avg_revenue_title|safe }}</h5>
                             <div class="clear"></div>
                         </header>
-                        <div>
-                            <em class="report today">{{ CRNCY.symbol }} {{ transactions_report.today.aepo|floatformat:CRNCY.precision|intcomma }}</em>
-                            <em class="report yesterday tpl">{{ CRNCY.symbol }} {{ transactions_report.yesterday.aepo|floatformat:CRNCY.precision|intcomma }}</em>
-                            <em class="report last_week tpl">{{ CRNCY.symbol }} {{ transactions_report.last_week.aepo|floatformat:CRNCY.precision|intcomma }}</em>
-                            <em class="report last_28_days tpl">{{ CRNCY.symbol }} {{ transactions_report.last_28_days.aepo|floatformat:CRNCY.precision|intcomma }}</em>
+                        <div style="margin:3vh 0">
+                            <div style="margin-bottom: 20px;">
+                                <em class="report today">{{ CRNCY.symbol }} {{ transactions_report.today.aepo|floatformat:CRNCY.precision|intcomma }}</em>
+                                <em class="report yesterday tpl">{{ CRNCY.symbol }} {{ transactions_report.yesterday.aepo|floatformat:CRNCY.precision|intcomma }}</em>
+                                <em class="report last_week tpl">{{ CRNCY.symbol }} {{ transactions_report.last_week.aepo|floatformat:CRNCY.precision|intcomma }}</em>
+                                <em class="report last_28_days tpl">{{ CRNCY.symbol }} {{ transactions_report.last_28_days.aepo|floatformat:CRNCY.precision|intcomma }}</em>
+                            </div>
+                            <div id="arpt-chart" class="line-chart"></div>
                         </div>
                     </div>
                 </div>

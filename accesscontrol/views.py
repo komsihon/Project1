@@ -777,7 +777,14 @@ class Community(HybridListView):
             group_id = Group.objects.get(name=group_name).id
         else:
             group_id = Group.objects.get(name=COMMUNITY).id
-        return UserPermissionList.objects.raw_query({'group_fk_list': {'$elemMatch': {'$eq': group_id}}})
+        queryset = UserPermissionList.objects.raw_query({'group_fk_list': {'$elemMatch': {'$eq': group_id}}})
+        try:
+            from ikwen.accesscontrol.backends import ARCH_EMAIL
+            arch = Member.objects.get(email=ARCH_EMAIL)
+            queryset.exclude(user=arch)
+        except:
+            pass
+        return queryset
 
     def get_list_filter(self):
         list_filter = [DateJoinedFilter]
@@ -1008,7 +1015,6 @@ def list_collaborators(request, *args, **kwargs):
 @login_required   # The user must be logged in to ikwen and not his own service, this view runs on ikwen
 def join(request, *args, **kwargs):
     host_service = get_service_instance()
-    host_config = host_service.config
     service_id = request.GET.get('service_id')
     slug = request.GET.get('join')
     referrer_id = request.GET.get('referrer')
@@ -1079,7 +1085,7 @@ def join(request, *args, **kwargs):
                                     extra_context={'reward_pack_list': reward_pack_list,
                                                    'joined_service': service, 'joined_project_name': service.project_name,
                                                    'joined_logo': service.config.logo})
-    sender = '%s <no-reply@%s>' % (host_config.company_name, host_service.domain)
+    sender = '%s <no-reply@%s>' % (host_service.project_name, host_service.domain)
     msg = XEmailMessage(subject, html_content, sender, [member.email])
     msg.content_subtype = "html"
     Thread(target=lambda m: m.send(), args=(msg, )).start()

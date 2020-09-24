@@ -140,7 +140,8 @@
     };
 
     window.closeNoticeDialog = function() {
-        $('#modal-generic-notice').modal('hide')
+        $('#modal-generic-notice').modal('hide');
+        location.hash = '';
     };
 
     let call = [];

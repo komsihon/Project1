@@ -10,7 +10,7 @@ from ikwen.flatpages.views import ChangeFlatPage
 
 from ikwen.flatpages.views import FlatPageList
 
-from ikwen.core.views import get_location_by_ip, PWAConfig
+from ikwen.core.views import get_location_by_ip, PWAConfig, DashboardBase
 
 from ikwen.accesscontrol.views import SignIn, SignInMinimal, AccountSetup, update_info, \
     update_password, ForgottenPassword, SetNewPassword, Profile, Community, CompanyProfile, \
@@ -88,6 +88,7 @@ urlpatterns = patterns(
     url(r'^staffWithoutPermission/$', StaffWithoutPermission.as_view(), name='staff_without_permission'),
 
     url(r'^customers/$', MemberList.as_view(), name='member_list'),
+    url(r'^dashboard/$', DashboardBase.as_view(), name='dashboard'),
 
     url(r'^console/$', login_required(Console.as_view()), name='console'),
     url(r'^load_event_content/$', load_event_content, name='load_event_content'),
