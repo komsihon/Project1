@@ -107,7 +107,7 @@ class PWAMiddleware(object):
     """
     def process_response(self, request, response):
         from ikwen.core.utils import get_device_type, get_service_instance
-        from ikwen.accesscontrol.models import PWAProfile
+        from ikwen.accesscontrol.models import Member, PWAProfile
         if request.GET.get('__pwa'):
             pwa_profile_id = request.COOKIES.get('pwa_profile_id')
             now = datetime.now()
@@ -125,7 +125,7 @@ class PWAMiddleware(object):
                 member = request.user
                 if pwa_profile_id and not pwa_profile.member:
                     PWAProfile.objects.filter(service=get_service_instance(), member=member, device_type=device_type).delete()
-                pwa_profile.member = member
+                pwa_profile.member = Member.objects.get(pk=member.id)
             pwa_profile.save()
 
             new_response = response
