@@ -174,16 +174,13 @@ class Register(TemplateView):
                     query_string = urlunquote(query_string).replace('next=%s' % next_url, '').strip('?').strip('&')
                     next_url += "?" + query_string
                 else:
-                    if getattr(settings, 'IS_IKWEN', False):
-                        next_url = reverse('ikwen:console')
+                    next_url_view = getattr(settings, 'REGISTER_REDIRECT_URL', None)
+                    if not next_url_view:
+                        next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', None)
+                    if next_url_view:
+                        next_url = reverse(next_url_view)
                     else:
-                        next_url_view = getattr(settings, 'REGISTER_REDIRECT_URL', None)
-                        if not next_url_view:
-                            next_url_view = getattr(settings, 'LOGIN_REDIRECT_URL', None)
-                        if next_url_view:
-                            next_url = reverse(next_url_view)
-                        else:
-                            next_url = ikwenize(reverse('ikwen:console'))
+                        next_url = ikwenize(reverse('ikwen:console'))
 
                 set_profile_tag_member_count(member)
                 return HttpResponseRedirect(next_url)
