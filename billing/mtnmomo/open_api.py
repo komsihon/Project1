@@ -30,7 +30,7 @@ MTN_MOMO = 'mtn-momo'
 if getattr(settings, 'DEBUG', False):
     _OPEN_API_URL = 'https://sandbox.momodeveloper.mtn.com'
 else:
-    _OPEN_API_URL = 'https://momodeveloper.mtn.com'
+    _OPEN_API_URL = 'https://proxy.momoapi.mtn.com'
 
 
 def init_momo_transaction(request, *args, **kwargs):
@@ -104,8 +104,7 @@ def request_payment(request, weblet, payment_mean, tx):
         'Authorization': 'Bearer ' + payment_mean['access_token'],
         'X-Callback-Url': callback_url,
         'X-Reference-Id': tx.task_id,
-        # 'X-Target-Environment': 'sandbox' if getattr(settings, 'DEBUG', False) else 'production',
-        'X-Target-Environment': 'sandbox',
+        'X-Target-Environment': 'sandbox' if getattr(settings, 'DEBUG', False) else 'mtncameroon',
         'Content-Type': 'application/json',
         'Ocp-Apim-Subscription-Key': payment_mean['subscription_key']
     }

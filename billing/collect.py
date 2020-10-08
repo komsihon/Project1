@@ -266,27 +266,37 @@ def confirm_invoice_payment(request, *args, **kwargs):
     payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY,
                                      amount=amount, processor_tx_id=tx.processor_tx_id)
     subscription = invoice.subscription
-    if invoicing_config.separate_billing_cycle:
-        extra_months = request.session['extra_months']
-        total_months = invoice.months_count + extra_months
-        days = get_days_count(total_months)
+    from ikwen_foulassi.foulassi.models import SchoolConfig
+    from ikwen_foulassi.foulassi.views import SCHOOL_WEBSITE_MONTH_COUNT
+    if subscription.app.slug == 'foulassi' and invoice.months_count == SCHOOL_WEBSITE_MONTH_COUNT:
+        school_config = SchoolConfig.objects.get(service=subscription)
+        school_config.website_is_active = True
+        school_config.save()
+        subscription.monthly_cost += int(invoice.amount / 12)
+        subscription.save()
+        extra_months, total_months = 0, None
     else:
-        extra_months = 0
-        days = invoice.subscription.product.duration
-        total_months = None
-    if subscription.status == Service.SUSPENDED:
-        invoicing_config = get_invoicing_config_instance()
-        days -= invoicing_config.tolerance  # Catch-up days that were offered before service suspension
-        expiry = now + timedelta(days=days)
-        expiry = expiry.date()
-    elif subscription.expiry:
-        expiry = subscription.expiry + timedelta(days=days)
-    else:
-        expiry = now + timedelta(days=days)
-        expiry = expiry.date()
-    subscription.expiry = expiry
-    subscription.status = Service.ACTIVE
-    subscription.save()
+        if invoicing_config.separate_billing_cycle:
+            extra_months = request.session['extra_months']
+            total_months = invoice.months_count + extra_months
+            days = get_days_count(total_months)
+        else:
+            extra_months = 0
+            days = invoice.subscription.product.duration
+            total_months = None
+        if subscription.status == Service.SUSPENDED:
+            invoicing_config = get_invoicing_config_instance()
+            days -= invoicing_config.tolerance  # Catch-up days that were offered before service suspension
+            expiry = now + timedelta(days=days)
+            expiry = expiry.date()
+        elif subscription.expiry:
+            expiry = subscription.expiry + timedelta(days=days)
+        else:
+            expiry = now + timedelta(days=days)
+            expiry = expiry.date()
+        subscription.expiry = expiry
+        subscription.status = Service.ACTIVE
+        subscription.save()
     mean = request.session['mean']
     share_payment_and_set_stats(invoice, total_months, mean)
     member = request.user
