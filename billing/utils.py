@@ -7,6 +7,7 @@ from threading import Thread
 from xml.sax.saxutils import escape
 
 import requests
+from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.urlresolvers import reverse
 from django.template import Context
 from django.template.loader import get_template
@@ -411,16 +412,16 @@ def get_payment_confirmation_message(payment, member):
         message = payment_confirmation_message.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
             .replace('$invoice_number', invoice.number)\
-            .replace('$amount', invoice.amount + ' ' + config.currency_symbol)\
+            .replace('$amount', config.currency_symbol) + ' ' + intcomma(invoice.amount)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', details)
     else:
-        message = _("This is a payment receipt of %(currency)s %(amount).2f "
+        message = _("This is a payment receipt of %(currency)s %(amount)s "
                     "for Invoice <strong>No. %(invoice_number)s</strong> generated on %(date_issued)s "
                     "towards the services provided by us. Below is a summary "
                     "of the invoice." % {'invoice_number': invoice.number,
-                                         'amount': invoice.amount,
+                                         'amount': intcomma(invoice.amount),
                                          'currency': config.currency_symbol,
                                          'date_issued': invoice.date_issued.strftime('%B %d, %Y')})
     sms = None
@@ -428,7 +429,7 @@ def get_payment_confirmation_message(payment, member):
         sms = invoicing_config.payment_confirmation_sms.replace('$member_name', member.first_name)\
             .replace('$company_name', config.company_name)\
             .replace('$invoice_number', invoice.number)\
-            .replace('$amount', invoice.amount + ' ' + config.currency_symbol)\
+            .replace('$amount', config.currency_symbol) + ' ' + intcomma(invoice.amount)\
             .replace('$date_issued', invoice.date_issued)\
             .replace('$due_date', invoice.due_date)\
             .replace('$invoice_description', details)

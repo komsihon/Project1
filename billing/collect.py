@@ -44,14 +44,6 @@ def set_invoice_checkout(request, *args, **kwargs):
     """
     invoice_id = request.POST['product_id']
     invoice = Invoice.objects.select_related('subscription').get(pk=invoice_id)
-    member = invoice.subscription.member
-    if member and not member.is_ghost:
-        if request.user != member:
-            next_url = reverse('ikwen:sign_in')
-            referrer = request.META.get('HTTP_REFERER')
-            if referrer:
-                next_url += '?' + urlquote(referrer)
-            return HttpResponseRedirect(next_url)
     service = get_service_instance()
     config = service.config
     invoicing_config = get_invoicing_config_instance()
@@ -80,10 +72,11 @@ def set_invoice_checkout(request, *args, **kwargs):
 
     model_name = 'billing.Invoice'
     mean = request.GET.get('mean', MTN_MOMO)
+    user_id = request.user.username if request.user.is_authenticated() else '<Anonymous>'
     MoMoTransaction.objects.using(WALLETS_DB_ALIAS).filter(object_id=invoice_id).delete()
     tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS)\
         .create(service_id=service.id, type=MoMoTransaction.CASH_OUT, amount=amount, phone='N/A', model=model_name,
-                object_id=invoice_id, task_id=signature, wallet=mean, username=request.user.username, is_running=True)
+                object_id=invoice_id, task_id=signature, wallet=mean, username=user_id, is_running=True)
     notification_url = reverse('billing:confirm_service_invoice_payment', args=(tx.id, signature, extra_months))
     cancel_url = reverse('billing:invoice_detail', args=(invoice_id, ))
     return_url = reverse('billing:invoice_detail', args=(invoice_id, ))
@@ -103,7 +96,7 @@ def set_invoice_checkout(request, *args, **kwargs):
         'notification_url': service.url + notification_url,
         'return_url': service.url + return_url,
         'cancel_url': service.url + cancel_url,
-        'user_id': request.user.username
+        'user_id': user_id
     }
     try:
         r = requests.get(endpoint, params)
@@ -223,7 +216,7 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
 
     if member.email:
         activate(member.language)
-        invoice_url = service.url + reverse('billing:invoice_detail', args=(invoice.id,))
+        invoice_url = ikwen_service.url + reverse('billing:invoice_detail', args=(invoice.id,))
         subject, message, sms_text = get_payment_confirmation_message(payment, member)
         html_content = get_mail_content(subject, message, service=vendor, template_name='billing/mails/notice.html',
                                         extra_context={'member_name': member.first_name, 'invoice': invoice,

@@ -19,7 +19,6 @@ from django.db.models import Q, Sum
 from django.db.models.loading import get_model
 from django.http import HttpResponse, Http404
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
 from django.template import Context
 from django.template.defaultfilters import slugify
 from django.template.loader import get_template
@@ -40,8 +39,9 @@ from ikwen.billing.utils import get_invoicing_config_instance, get_subscription_
     get_next_invoice_number, get_billing_cycle_months_count, get_payment_confirmation_message, get_days_count, \
     get_months_count_billing_cycle, notify_event, get_payment_model, get_invoice_model
 from ikwen.core.utils import add_database_to_settings, get_service_instance, get_mail_content, XEmailMessage, \
-    DefaultUploadBackend, set_counters, increment_history_field, get_model_admin_instance
+    DefaultUploadBackend, set_counters, increment_history_field
 from ikwen.core.views import HybridListView, ChangeObjectBase
+from daraja.models import DARAJA
 
 logger = logging.getLogger('ikwen')
 
@@ -348,7 +348,7 @@ class InvoiceDetail(TemplateView):
             try:
                 invoice_service = invoice.service
                 retailer = invoice_service.retailer
-                if retailer:
+                if retailer and retailer.app.slug != DARAJA:
                     weblet = retailer
                 context['customer_config'] = invoice_service.config
             except:
