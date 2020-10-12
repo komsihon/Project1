@@ -9,7 +9,7 @@
             <div class="modal-body">
                 <form id="payment-start-flow" method="post">{% csrf_token %}
                     <input type="hidden" id="payment-product-id" name="product_id" />
-                    <input type="hidden" id="amount" name="amount" />
+                    <input type="hidden" id="payment-amount" name="amount" />
                     <input type="hidden" name="payment_conf" value="{% if payment_conf %}{{ payment_conf }}{% else %}default{% endif %}" />
                     <ul class="row" style="padding-left: 0">
                         {% if payment_mean_list %}

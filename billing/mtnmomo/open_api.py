@@ -1,5 +1,6 @@
 import json
 import traceback
+import time
 from datetime import datetime
 from threading import Thread
 
@@ -77,7 +78,9 @@ def init_request_payment(request, *args, **kwargs):
     if getattr(settings, 'DEBUG', False):
         request_payment(request, weblet, mtn_momo, tx)
     else:
-        Thread(target=request_payment, args=(request, weblet, mtn_momo, tx, )).start()
+        payment_handler = Thread(target=request_payment, args=(request, weblet, mtn_momo, tx, ))
+        payment_handler.setDaemon(True)
+        payment_handler.start()
     return HttpResponse(json.dumps({'success': True, 'tx_id': tx.id}), 'content-type: text/json')
 
 
@@ -94,7 +97,7 @@ def request_payment(request, weblet, payment_mean, tx):
     phone = slugify(tx.phone).replace('-', '')
     if len(phone) == 9:
         phone = '237' + phone
-    data = {'amount': amount, 'currency': 'EUR', 'externalId': tx.object_id,
+    data = {'amount': amount, 'externalId': tx.object_id,
             'payer': {'partyIdType': 'MSISDN', 'partyId': phone},
             'payerMessage': _('Payment of %(amount)s on %(vendor)s' % {'amount': amount, 'vendor': weblet.project_name}),
             'payeeNote': 'Payment on %s: %s from %s' % (weblet.project_name, amount, phone)}
@@ -102,13 +105,11 @@ def request_payment(request, weblet, payment_mean, tx):
     logger.debug("MoMo Callback URL: " + callback_url)
     headers = {
         'Authorization': 'Bearer ' + payment_mean['access_token'],
-        'X-Callback-Url': callback_url,
+        # 'X-Callback-Url': callback_url,   Callback tend not to work at times, so check transaction status rather
         'X-Reference-Id': tx.task_id,
-        'X-Target-Environment': 'sandbox' if getattr(settings, 'DEBUG', False) else 'mtncameroon',
         'Content-Type': 'application/json',
         'Ocp-Apim-Subscription-Key': payment_mean['subscription_key']
     }
-    momo_after_checkout = import_by_path(tx.callback)
     endpoint = _OPEN_API_URL + '/collection/v1_0/requesttopay'
     if getattr(settings, 'UNIT_TESTING', False):
         tx.processor_tx_id = 'tx_1'
@@ -117,12 +118,16 @@ def request_payment(request, weblet, payment_mean, tx):
         tx.is_running = False
         tx.status = MoMoTransaction.SUCCESS
         request.session['next_url'] = 'http://nextUrl'
+        momo_after_checkout = import_by_path(tx.callback)
         momo_after_checkout(request, transaction=tx, signature=request.session['signature'])
     elif getattr(settings, 'DEBUG', False):
+        headers.update({'X-Target-Environment': 'sandbox'})
+        data.update({'currency': 'EUR'})
         r = requests.post(endpoint, headers=headers, json=data, verify=False, timeout=300)
         if r.status_code == 202:
             logger.debug("%s - MTN MoMo: Request to pay submitted. "
                          "Amt: %s, Uname: %s, Phone: %s" % (weblet.project_name, amount, username, tx.phone))
+            Thread(target=query_transaction_status, args=(request, weblet, payment_mean, tx)).start()
         else:
             logger.error("%s - MTN MoMo: Transaction of %dF from %s: %s failed with Code %s" % (weblet.project_name, amount, username, tx.phone, r.status_code))
             tx.status = MoMoTransaction.API_ERROR
@@ -130,10 +135,13 @@ def request_payment(request, weblet, payment_mean, tx):
         try:
             username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
             logger.debug("MTN MoMo: Initiating payment of %dF from %s: %s" % (amount, username, tx.phone))
+            headers.update({'X-Target-Environment': 'mtncameroon'})
+            data.update({'currency': 'XAF'})
             r = requests.post(endpoint, headers=headers, json=data, verify=False, timeout=300)
             if r.status_code == 202:
                 logger.debug("%s - MTN MoMo: Request to pay submitted. "
                              "Amt: %s, Uname: %s, Phone: %s" % (weblet.project_name, amount, username, tx.phone))
+                query_transaction_status(request, weblet, payment_mean, tx)
             else:
                 logger.error("%s - MTN MoMo: Transaction of %dF from %s: %s failed with Code %s" % (weblet.project_name, amount, username, tx.phone, r.status_code))
                 tx.status = MoMoTransaction.API_ERROR
@@ -153,6 +161,62 @@ def request_payment(request, weblet, payment_mean, tx):
             logger.error("%s - MTN MoMo: Failed to init transaction of %dF from %s: %s" % (weblet.project_name, amount, username, tx.phone), exc_info=True)
 
     tx.save(using='wallets')
+
+
+def query_transaction_status(request, weblet, payment_mean, tx):
+    """
+    This function verifies the status of the transaction on MTN MoMo Server
+    When the transaction completes sucessfully the callback is run
+    """
+    username = request.user.username if request.user.is_authenticated() else '<Anonymous>'
+    query_url = _OPEN_API_URL + '/collection/v1_0/requesttopay/' + tx.task_id
+    t0 = datetime.now()
+    logger.debug("MTN MoMo: Started checking status for "
+                 "transaction %s of %sF from %s" % (tx.id, tx.amount, username))
+    while True:
+        time.sleep(2)
+        t1 = datetime.now()
+        diff = t1 - t0
+        if diff.seconds >= (10 * 60):
+            MoMoTransaction.objects.using('wallets').filter(pk=tx.id)\
+                .update(is_running=False, status=MoMoTransaction.DROPPED)
+            logger.debug("MTN MoMo: Transaction %s of %sF from %s timed out after waiting for 10mn" % (tx.id, tx.amount, username))
+            break
+        try:
+            headers = {
+                'Authorization': 'Bearer ' + payment_mean['access_token'],
+                'X-Reference-Id': tx.task_id,
+                'X-Target-Environment': 'sandbox' if getattr(settings, 'DEBUG', False) else 'mtncameroon',
+                'Content-Type': 'application/json',
+                'Ocp-Apim-Subscription-Key': payment_mean['subscription_key']
+            }
+            r = requests.get(query_url, headers=headers, verify=False, timeout=130)
+            resp = r.json()
+            if resp['status'] == 'PENDING':
+                continue
+            elif resp['status'] == 'SUCCESSFUL':
+                momo_after_checkout = import_by_path(tx.callback)
+                with transaction.atomic(using='wallets'):
+                    tx.is_running = False
+                    tx.processor_tx_id = resp['financialTransactionId']
+                    tx.status = MoMoTransaction.SUCCESS
+                    tx.save(using='wallets')
+                    try:
+                        momo_after_checkout(request, transaction=tx, signature=request.session['signature'])
+                        tx.message = 'OK'
+                    except:
+                        tx.message = traceback.format_exc()
+                        logger.error("%s - MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (
+                            weblet.project_name, tx.username, tx.amount), exc_info=True)
+            else:
+                tx.is_running = False
+                tx.status = MoMoTransaction.API_ERROR
+                tx.message = resp['reason']['message']
+            tx.save(using='wallets')
+            break
+        except:
+            logger.error("MTN MoMo: Failure while querying transaction status", exc_info=True)
+            continue
 
 
 @csrf_exempt
