@@ -247,9 +247,12 @@ def refresh_access_token(payment_mean):
 
 def propagate_access_token_refresh(payment_mean):
     for service in Service.objects.using(UMBRELLA).all():
-        config = service.basic_config
-        if config.is_pro_version:
-            continue
-        db = service.database
-        add_database(db)
-        PaymentMean.objects.using(db).filter(slug=ORANGE_MONEY).update(credentials=payment_mean.credentials)
+        try:
+            config = service.basic_config
+            if config.is_pro_version:
+                continue
+            db = service.database
+            add_database(db)
+            PaymentMean.objects.using(db).filter(slug=ORANGE_MONEY).update(credentials=payment_mean.credentials)
+        except:
+            pass

@@ -209,6 +209,7 @@ def query_transaction_status(request, weblet, payment_mean, tx):
                         logger.error("%s - MTN MoMo: Failure while running callback. User: %s, Amt: %d" % (
                             weblet.project_name, tx.username, tx.amount), exc_info=True)
             else:
+                logger.error("MTN MoMo: Query transaction status failed with status %s" % resp['status'], exc_info=True)
                 tx.is_running = False
                 tx.status = MoMoTransaction.API_ERROR
                 tx.message = resp['reason']['message']
@@ -315,12 +316,15 @@ def refresh_access_token(payment_mean):
 
 def propagate_access_token_refresh(payment_mean):
     for weblet in Service.objects.using(UMBRELLA).all():
-        config = weblet.basic_config
-        if config.is_pro_version:
-            continue
-        db = weblet.database
-        add_database(db)
-        PaymentMean.objects.using(db).filter(slug=MTN_MOMO).update(credentials=payment_mean.credentials)
+        try:
+            config = weblet.basic_config
+            if config.is_pro_version:
+                continue
+            db = weblet.database
+            add_database(db)
+            PaymentMean.objects.using(db).filter(slug=MTN_MOMO).update(credentials=payment_mean.credentials)
+        except:
+            pass
 
 
 def test_request_payment():
