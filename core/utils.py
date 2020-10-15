@@ -825,13 +825,15 @@ def as_matrix(object_list, col_length, strict=False):
     return matrix
 
 
-def generate_icons(logo_path, output_folder=None):
+def generate_icons(logo_path, output_folder=None, media_root=None):
     """
     Generate favicon based on a logo image
     :param logo_path: Path to the logo image
     :param output_folder: Folder where to deposit the generated favicons
+    :param media_root: The media root to be used
     """
-    media_root = getattr(settings, 'MEDIA_ROOT')
+    if not media_root:
+        media_root = getattr(settings, 'MEDIA_ROOT')
     if not output_folder:
         ICONS_FOLDER = 'icons/'
     else:

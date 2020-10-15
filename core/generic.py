@@ -745,7 +745,11 @@ class CustomizationImageUploadBackend(DefaultUploadBackend):
                         config.logo.save(destination, content)
                         url = ikwen_settings.MEDIA_URL + config.logo.name
                         src = config.logo.path
-                        generate_icons(src)
+                        if getattr(settings, 'IS_UMBRELLA', False):
+                            icons_media_root = '%s%s/' % (ikwen_settings.CLUSTER_MEDIA_ROOT, service.project_name_slug)
+                        else:
+                            icons_media_root = None
+                        generate_icons(src, media_root=icons_media_root)
                         destination2_folder = ikwen_settings.MEDIA_ROOT + AbstractConfig.LOGO_UPLOAD_TO
                         if not os.path.exists(destination2_folder):
                             os.makedirs(destination2_folder)
