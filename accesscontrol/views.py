@@ -28,7 +28,6 @@ from django.utils.http import urlsafe_base64_decode, urlunquote, urlquote
 from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache, cache_page
-from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import TemplateView
 from permission_backend_nonrel.models import UserPermissionList
@@ -111,6 +110,8 @@ class Register(TemplateView):
                 email = username
             except ValidationError:
                 pass
+            if not email:
+                email = '__%s__@ikwen.com' % username
             try:
                 member = Member.objects.using(UMBRELLA).get(username=username)
                 if member.is_ghost:

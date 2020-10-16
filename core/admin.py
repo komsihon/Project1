@@ -180,6 +180,7 @@ class ConfigAdmin(admin.ModelAdmin):
         (_('General'), {'fields': _general_fields}),
         (_('Branding'), {'fields': ('slogan', 'short_description', 'description', 'brand_color',)}),
         (_('Address & Contact'), {'fields': ('contact_email', 'contact_phone', 'whatsapp_phone', 'address', 'country', 'city')}),
+        (_('User accounts'), {'fields': ('register_with_email', 'register_with_dob', )}),
         (_('Social'), {'fields': ('facebook_link', 'twitter_link', 'instagram_link', 'linkedin_link', )}),
         (_('Mailing'), {'fields': ('welcome_message', 'signature', )}),
         (_('External scripts'), {'fields': ('scripts', )}),

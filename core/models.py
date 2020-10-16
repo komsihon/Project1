@@ -695,6 +695,9 @@ class AbstractConfig(Model):
                                         help_text=_("If checked, the service is considered to be running in total "
                                                     "isolation from ikwen platform and thus has his own umbrella "
                                                     "database and all links point internally; no link to ikwen.com"))
+    register_with_email = models.BooleanField(default=True,
+                                              help_text=_("If checked, visitors will be asked for email upon "
+                                                          "registration."))
     register_with_dob = models.BooleanField(default=False,
                                             help_text=_("If checked, visitors will be asked for date of birth upon "
                                                         "registration."))
