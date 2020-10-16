@@ -44,13 +44,13 @@ def init_momo_transaction(request, *args, **kwargs):
 
 def init_request_payment(request, *args, **kwargs):
     payment_mean = PaymentMean.objects.get(slug=MTN_MOMO)
+    refresh_access_token(payment_mean)  # Eventually refresh access token if near to expire
     weblet = get_service_instance()
     try:
-        mtn_momo = json.loads(PaymentMean.objects.get(slug=MTN_MOMO).credentials)
+        momo_credentials = json.loads(payment_mean.credentials)
     except:
         return HttpResponse("%s - Error, Could not parse MoMo API parameters." % weblet.project_name_slug)
 
-    refresh_access_token(payment_mean)  # Eventually refresh access token if near to expire
     service = get_service_instance(UMBRELLA)
     phone = request.GET['phone']
     model_name = request.session['model_name']
@@ -76,15 +76,15 @@ def init_request_payment(request, *args, **kwargs):
         except MoMoTransaction.MultipleObjectsReturned:
             tx = MoMoTransaction.objects.using('wallets').filter(object_id=object_id)[0]
     if getattr(settings, 'DEBUG', False):
-        request_payment(request, weblet, mtn_momo, tx)
+        request_payment(request, weblet, momo_credentials, tx)
     else:
-        payment_handler = Thread(target=request_payment, args=(request, weblet, mtn_momo, tx, ))
+        payment_handler = Thread(target=request_payment, args=(request, weblet, momo_credentials, tx, ))
         payment_handler.setDaemon(True)
         payment_handler.start()
     return HttpResponse(json.dumps({'success': True, 'tx_id': tx.id}), 'content-type: text/json')
 
 
-def request_payment(request, weblet, payment_mean, tx):
+def request_payment(request, weblet, momo_credentials, tx):
     """
     Calls the HTTP MTN Mobile Money API and updates the MoMoTransaction
     status in the database upon completion of the request.
@@ -104,11 +104,11 @@ def request_payment(request, weblet, payment_mean, tx):
     callback_url = weblet.url + reverse('billing:process_notification', args=(tx.id, ))
     logger.debug("MoMo Callback URL: " + callback_url)
     headers = {
-        'Authorization': 'Bearer ' + payment_mean['access_token'],
+        'Authorization': 'Bearer ' + momo_credentials['access_token'],
         # 'X-Callback-Url': callback_url,   Callback tend not to work at times, so check transaction status rather
         'X-Reference-Id': tx.task_id,
         'Content-Type': 'application/json',
-        'Ocp-Apim-Subscription-Key': payment_mean['subscription_key']
+        'Ocp-Apim-Subscription-Key': momo_credentials['subscription_key']
     }
     endpoint = _OPEN_API_URL + '/collection/v1_0/requesttopay'
     if getattr(settings, 'UNIT_TESTING', False):
@@ -127,7 +127,7 @@ def request_payment(request, weblet, payment_mean, tx):
         if r.status_code == 202:
             logger.debug("%s - MTN MoMo: Request to pay submitted. "
                          "Amt: %s, Uname: %s, Phone: %s" % (weblet.project_name, amount, username, tx.phone))
-            Thread(target=query_transaction_status, args=(request, weblet, payment_mean, tx)).start()
+            Thread(target=query_transaction_status, args=(request, weblet, momo_credentials, tx)).start()
         else:
             logger.error("%s - MTN MoMo: Transaction of %dF from %s: %s failed with Code %s" % (weblet.project_name, amount, username, tx.phone, r.status_code))
             tx.status = MoMoTransaction.API_ERROR
@@ -137,11 +137,11 @@ def request_payment(request, weblet, payment_mean, tx):
             logger.debug("MTN MoMo: Initiating payment of %dF from %s: %s" % (amount, username, tx.phone))
             headers.update({'X-Target-Environment': 'mtncameroon'})
             data.update({'currency': 'XAF'})
-            r = requests.post(endpoint, headers=headers, json=data, verify=False, timeout=300)
+            r = requests.post(endpoint, headers=headers, json=data, verify=False)
             if r.status_code == 202:
                 logger.debug("%s - MTN MoMo: Request to pay submitted. "
                              "Amt: %s, Uname: %s, Phone: %s" % (weblet.project_name, amount, username, tx.phone))
-                query_transaction_status(request, weblet, payment_mean, tx)
+                query_transaction_status(request, weblet, momo_credentials, tx)
             else:
                 logger.error("%s - MTN MoMo: Transaction of %dF from %s: %s failed with Code %s" % (weblet.project_name, amount, username, tx.phone, r.status_code))
                 tx.status = MoMoTransaction.API_ERROR
@@ -163,7 +163,7 @@ def request_payment(request, weblet, payment_mean, tx):
     tx.save(using='wallets')
 
 
-def query_transaction_status(request, weblet, payment_mean, tx):
+def query_transaction_status(request, weblet, momo_credentials, tx):
     """
     This function verifies the status of the transaction on MTN MoMo Server
     When the transaction completes sucessfully the callback is run
@@ -184,13 +184,13 @@ def query_transaction_status(request, weblet, payment_mean, tx):
             break
         try:
             headers = {
-                'Authorization': 'Bearer ' + payment_mean['access_token'],
+                'Authorization': 'Bearer ' + momo_credentials['access_token'],
                 'X-Reference-Id': tx.task_id,
                 'X-Target-Environment': 'sandbox' if getattr(settings, 'DEBUG', False) else 'mtncameroon',
                 'Content-Type': 'application/json',
-                'Ocp-Apim-Subscription-Key': payment_mean['subscription_key']
+                'Ocp-Apim-Subscription-Key': momo_credentials['subscription_key']
             }
-            r = requests.get(query_url, headers=headers, verify=False, timeout=130)
+            r = requests.get(query_url, headers=headers, verify=False)
             resp = r.json()
             if resp['status'] == 'PENDING':
                 continue
@@ -296,7 +296,7 @@ def refresh_access_token(payment_mean):
     endpoint = _OPEN_API_URL + "/collection/token/"
     logger.debug("MoMo: Updating Access Token")
     try:
-        r = requests.post(endpoint, headers=headers, verify=False, timeout=130)
+        r = requests.post(endpoint, headers=headers, verify=False)
         resp = r.json()
         access_token = resp['access_token']
         credentials['access_token'] = access_token
