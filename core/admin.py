@@ -204,11 +204,6 @@ class ConfigAdmin(admin.ModelAdmin):
             pass
         return super(ConfigAdmin, self).get_queryset(request)
 
-    def get_readonly_fields(self, request, obj=None):
-        if not request.user.is_superuser:
-            return ('service',)
-        return ()
-
 
 class ConsoleEventTypeAdmin(admin.ModelAdmin):
     list_display = ('app', 'codename', 'title', 'renderer', 'min_height',)

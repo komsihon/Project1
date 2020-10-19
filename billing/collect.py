@@ -72,11 +72,11 @@ def set_invoice_checkout(request, *args, **kwargs):
 
     model_name = 'billing.Invoice'
     mean = request.GET.get('mean', MTN_MOMO)
-    user_id = request.user.username if request.user.is_authenticated() else '<Anonymous>'
+    payer_id = request.user.username if request.user.is_authenticated() else '<Anonymous>'
     MoMoTransaction.objects.using(WALLETS_DB_ALIAS).filter(object_id=invoice_id).delete()
     tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS)\
         .create(service_id=service.id, type=MoMoTransaction.CASH_OUT, amount=amount, phone='N/A', model=model_name,
-                object_id=invoice_id, task_id=signature, wallet=mean, username=user_id, is_running=True)
+                object_id=invoice_id, task_id=signature, wallet=mean, username=payer_id, is_running=True)
     notification_url = reverse('billing:confirm_service_invoice_payment', args=(tx.id, signature, extra_months))
     cancel_url = reverse('billing:invoice_detail', args=(invoice_id, ))
     return_url = reverse('billing:invoice_detail', args=(invoice_id, ))
@@ -96,7 +96,7 @@ def set_invoice_checkout(request, *args, **kwargs):
         'notification_url': service.url + notification_url,
         'return_url': service.url + return_url,
         'cancel_url': service.url + cancel_url,
-        'user_id': user_id
+        'payer_id': payer_id
     }
     try:
         r = requests.get(endpoint, params)
