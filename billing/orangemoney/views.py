@@ -76,7 +76,7 @@ def init_web_payment(request, *args, **kwargs):
         om = json.loads(payment_mean.credentials)
         headers.update({'Authorization': 'Bearer ' + om['access_token']})
         data.update({'merchant_key': om['merchant_key'], 'currency': 'OUV'})
-        r = requests.post(api_url, headers=headers, data=json.dumps(data), verify=False, timeout=130)
+        r = requests.post(api_url, headers=headers, data=json.dumps(data), verify=False)
         resp = r.json()
         momo_tx.message = resp['message']
         if resp['status'] == 201:
@@ -98,7 +98,7 @@ def init_web_payment(request, *args, **kwargs):
             headers.update({'Authorization': 'Bearer ' + om['access_token']})
             data.update({'merchant_key': om['merchant_key'], 'currency': 'XAF'})
             logger.debug("OM: Initiating payment of %dF from %s" % (amount, username))
-            r = requests.post(api_url, headers=headers, data=json.dumps(data), verify=False, timeout=130)
+            r = requests.post(api_url, headers=headers, data=json.dumps(data), verify=False)
             resp = r.json()
             momo_tx.message = resp['message']
             if resp['status'] == 201:
@@ -172,7 +172,7 @@ def check_transaction_status(request):
             break
         try:
             headers.update({'Authorization': 'Bearer ' + om['access_token']})
-            r = requests.post(api_url, headers=headers, data=json.dumps(data), verify=False, timeout=130)
+            r = requests.post(api_url, headers=headers, data=json.dumps(data), verify=False)
             resp = r.json()
             status = resp['status']
             if status == 'FAILED':
@@ -227,7 +227,7 @@ def refresh_access_token(payment_mean):
     url = getattr(settings, 'OM_TOKEN_UPDATE_URL', "https://api.orange.com/oauth/v2/token")
     logger.debug("OM: Updating Access Token")
     try:
-        r = requests.post(url, headers=headers, data=data, verify=False, timeout=130)
+        r = requests.post(url, headers=headers, data=data, verify=False)
         resp = r.json()
         access_token = resp['access_token']
         credentials['access_token'] = access_token

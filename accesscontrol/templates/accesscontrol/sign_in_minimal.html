@@ -51,9 +51,12 @@
                         </div>
                     </div>
                     <div class="form-group row email">
-                        <label for="email" class="col-sm-5 col-md-4">{% trans "E-mail" %}</label>
+                        <label for="email" class="col-sm-5 col-md-4">
+                            {% trans "E-mail" %}
+                            {% if not config.register_with_email %}<span style="font-weight: 300">({% trans "Optional" %})</span>{% endif %}
+                        </label>
                         <div class="col-sm-7 col-md-8">
-                            <input id="email" class="form-control input-md required" type="email" name="email"/>
+                            <input id="email" class="form-control input-md{% if config.register_with_email %} required{% endif %}" type="email" name="email"/>
                         </div>
                     </div>
                     <div class="form-group row phone">
@@ -241,7 +244,6 @@
                     '<li>' + "{% trans "Please use at least 3 characters." %}" + '</li>' +
                     '<li>' + "{% trans "Start with a letter." %}" + '</li>' +
                     '</ul>').insertAfter('#username');
-                $username.focus();
                 return false;
             }
             function testEmail() {
@@ -250,9 +252,10 @@
                     email = $email.val().replace(/ /g, '').toLowerCase();
                 $email.val(email);
                 if (email.isValidEmail()) return true;
+                {% if config.register_with_email %}
                 $('<ul class="errorlist email"><li>' + "{% trans "Please, enter valid email" %}" + '</li></ul>')
                         .insertAfter('#email');
-                $email.focus();
+                {% endif %}
                 return false;
             }
             function testPhone() {
@@ -266,7 +269,6 @@
                     '<li>' + "{% trans "Prepend country code if you are not in Cameroon." %}" + '</li>' +
                     '<li>' + "{% trans "DO NOT prepend 00." %}" + '</li>' +
                     '</ul>').insertAfter('#phone');
-                $phone.focus();
                 return false;
             }
             function testPassword() {
@@ -278,7 +280,6 @@
                     $('<ul class="errorlist password">' +
                         '<li>' + "{% trans "Password too short. Use at least 6 characters." %}" + '</li>' +
                         '</ul>').insertAfter('#password');
-                    $pwd1.focus();
                     return false
                 }
                 if (pwd1 !== pwd2) {

@@ -48,9 +48,12 @@
                         </div>
                     </div>
                     <div class="form-group row email" style="height: 0; margin-bottom: 0; overflow: hidden">
-                        <label for="rg-email" class="col-sm-5 col-md-4">{% trans "E-mail" %}</label>
+                        <label for="rg-email" class="col-sm-5 col-md-4">
+                            {% trans "E-mail" %}
+                            {% if not config.register_with_email %}<span style="font-weight: 300">({% trans "Optional" %})</span>{% endif %}
+                        </label>
                         <div class="col-sm-6 col-md-6">
-                            <input id="rg-email" class="form-control input-md email" type="text" name="email"/>
+                            <input id="rg-email" class="form-control input-md email{% if config.register_with_email %} required{% endif %}" type="text" name="email"/>
                             {{ register_form.email.errors }}
                         </div>
                     </div>
@@ -161,7 +164,9 @@
                 var h = $('.form-group.username').height() + 5;
                 $formGroup.animate({height: h + 'px', marginBottom: '15px'}, 'normal', 'linear', function () {
                     $formGroup.css('overflow', 'unset');
-                    $email.addClass('required').val('').attr('type', 'text');
+                    {% if config.register_with_email %}
+                        $email.addClass('required').val('').attr('type', 'text');
+                    {% endif %}
                 })
             }).focus();
             $('#rg-email').blur(testEmail);
@@ -173,7 +178,7 @@
             });
             function testUsername(uname) {
                 $('.errorlist.username').remove();
-                var $username = $('#rg-username'),
+                let $username = $('#rg-username'),
                     username = $username.val();
                 if (uname) username = uname;
                 if (username.indexOf('@') > 0) {
@@ -187,23 +192,23 @@
                     '<li>' + "{% trans "Please use at least 3 characters." %}" + '</li>' +
                     '<li>' + "{% trans "Start with a letter." %}" + '</li>' +
                     '<ul>').insertAfter('#rg-username');
-                $username.focus();
                 return false;
             }
             function testEmail() {
                 $('.errorlist.email').remove();
-                var $email = $('#rg-email'),
+                let $email = $('#rg-email'),
                     email = $email.val().replace(/ /g, '').toLowerCase();
                 $email.val(email);
                 if (email.isValidEmail()) return true;
+                {% if config.register_with_email %}
                 $('<ul class="errorlist email"><li>' + "{% trans "Please, enter valid email" %}" + '</li><ul>')
                         .insertAfter('#rg-email');
-                $email.focus();
+                {% endif %}
                 return false;
             }
             function testPhone() {
                 $('.errorlist.phone').remove();
-                var $phone = $('#rg-phone'),
+                let $phone = $('#rg-phone'),
                     phone = $phone.val().replace(/ /g, '');
                 $phone.val(phone);
                 if (phone && phone.substr(0, 2) !== '00' && /\d{9,}/.test(phone)) return true;
@@ -212,7 +217,6 @@
                     '<li>' + "{% trans "Prepend country code if you are not in Cameroon." %}" + '</li>' +
                     '<li>' + "{% trans "DO NOT prepend 00." %}" + '</li>' +
                     '<ul>').insertAfter('#rg-phone');
-                $phone.focus();
                 return false;
             }
             function testPassword() {
