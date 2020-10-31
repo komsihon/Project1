@@ -300,7 +300,7 @@ class HybridListView(ListView):
                 choices = []
                 is_date_filter = False
                 try:
-                    sample = self.get_queryset().order_by('-id')[0]  # Take last created object as they tend to have more updated fields
+                    sample = self.get_queryset().order_by('-id')[0]  # Take last created object as they tend to have most updated fields
                     elt = sample.__getattribute__(item)
                 except IndexError:
                     pass

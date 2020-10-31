@@ -118,3 +118,23 @@ def notify_pwa_install(member):
                 msg.send()
             except:
                 logger.error("%s - Failed to send order confirmation email." % service, exc_info=True)
+
+
+def track_speed(F):
+    """
+    A decorator that measures how much time a function or method
+    took to run and writes the result to the info log file
+    """
+    def wrapper(*args):
+        weblet = get_service_instance()
+        t0 = datetime.now()
+        val = F(*args)
+        duration = datetime.now() - t0
+        arg0 = args[0]
+        class_path = ""
+        if isinstance(arg0, View) or isinstance(arg0, DjangoModel):
+            class_path = str(type(arg0)).replace("<class '", "").replace("'>", "")
+        path = class_path + '.' + F.__name__
+        logger.debug('%s - %s run in %ss' % (weblet.project_name, path, duration))
+        return val
+    return wrapper
