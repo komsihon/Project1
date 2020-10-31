@@ -39,7 +39,7 @@ def reload_settings(app_slug, **kwargs):
         try:
             s.reload_settings(settings_template, **kwargs)
         except:
-            print "Could not reload Project %s" % s.project_name
+            print("Could not reload Project %s" % s.project_name)
 
 
 def add_cashflex_payment_mean(app_slug, **kwargs):
@@ -68,7 +68,7 @@ def reload_projects(app_slug, cloud_folder_name, **kwargs):
         try:
             subprocess.call(['touch', '/home/ikwen/Cloud/%s/%s/conf/wsgi.py' % (cloud_folder_name, s.project_name_slug)])
         except Exception as e:
-            print e.message
+            print(e.message)
 
 
 def set_currency_to_xaf(app_slug, config_model, **kwargs):
@@ -104,7 +104,7 @@ def clear_wallets():
             if wallet.balance <= 0:
                 wallet.delete()
             else:
-                print "Service not found but wallet found with %d" % wallet.balance
+                print("Service not found but wallet found with %d" % wallet.balance)
 
 
 def add_themes_to_retailers_websites():
@@ -123,7 +123,7 @@ def set_member_tags():
         member.tags = slugify(member.first_name + ' ' + member.last_name).replace('-', ' ')
         member.save()
     duration = datetime.now() - t0
-    print "Script run in %ds" % duration.seconds
+    print("Script run in %ds" % duration.seconds)
 
 
 def update_image_names():
@@ -148,7 +148,7 @@ def update_image_names():
         db = service.database
         if not db:
             continue
-        print "Processing database %s" % db
+        print("Processing database %s" % db)
         add_database(db)
 
         for app in Application.objects.using(db).all():
@@ -157,7 +157,7 @@ def update_image_names():
                 new_logo_name = logo_name.replace('ikwen/', '')
                 app.logo = new_logo_name
                 if logo_name != new_logo_name:
-                    print "Renaming %s to %s" % (logo_name, new_logo_name)
+                    print("Renaming %s to %s" % (logo_name, new_logo_name))
                     app.save(using=db)
 
 
@@ -187,10 +187,10 @@ def send_bulk_sms():
                u"et fidéliser vos clients.Découvrez et obtenez-la gratuitement.\n" \
                u"656123522"
         send_sms("237" + recipient, text, label='ikwen')
-        print ("Sending to %s" % recipient)
+        print("Sending to %s" % recipient)
         n += 1
     diff = datetime.now() - t0
-    print "%d SMS sent in %d s" % (n, diff.seconds)
+    print("%d SMS sent in %d s" % (n, diff.seconds))
 
 
 def create_basic_profiles():
@@ -280,7 +280,7 @@ def create_index_on_revival():
     for service in Service.objects.all():
         if not service.database:
             continue
-        print "Creating index for %s" % service.database
+        print("Creating index for %s" % service.database)
         db = client[service.database]
         db.revival_revival.create_index([('service', pymongo.ASCENDING),
                                          ('profile_tag_id', pymongo.ASCENDING)], unique=True)
@@ -297,12 +297,12 @@ def correct_indexes_on_profiletag():
     for service in Service.objects.all():
         if not service.database:
             continue
-        print "Creating index for %s" % service.database
+        print("Creating index for %s" % service.database)
         db = client[service.database]
         try:
             db.revival_profiletag.drop_index('name_1')
         except:
-            print ("name_1 index not found on %s" % service.database)
+            print("name_1 index not found on %s" % service.database)
         db.revival_profiletag.create_index([('name', pymongo.ASCENDING), ('is_auto', pymongo.ASCENDING)], unique=True)
         add_database(service.database)
         ProfileTag.objects.using(service.database).filter(is_auto=True).delete()
@@ -333,7 +333,7 @@ def create_index_on_revival():
     for service in Service.objects.all():
         if not service.database:
             continue
-        print "Creating index for %s" % service.database
+        print("Creating index for %s" % service.database)
         db = client[service.database]
         db.revival_revival.create_index([('service', pymongo.ASCENDING),
                                          ('profile_tag_id', pymongo.ASCENDING)], unique=True)
@@ -348,7 +348,7 @@ def create_sent_mail_collection():
     for service in Service.objects.all():
         if not service.database:
             continue
-        print "Creating index for %s" % service.database
+        print("Creating index for %s" % service.database)
         db = client[service.database]
         db.ikwen_sent_mail.create_index([('to', pymongo.ASCENDING)])
         db.ikwen_sent_mail.create_index([('subject', pymongo.ASCENDING)])
@@ -385,7 +385,7 @@ def shift_favicons_to_icons():
             try:
                 os.rename(favicons_folder, icons_folder)
             except:
-                print "Failed to rename %s to %s" % (favicons_folder, icons_folder)
+                print("Failed to rename %s to %s" % (favicons_folder, icons_folder))
 
 
 def delete_duplicate_users_from_local_dbs():

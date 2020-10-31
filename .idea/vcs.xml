@@ -2,20 +2,34 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Afrobit" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../CR" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Cyberlink" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Daraja" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../EasyGame" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Ebonixe" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Echo" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../FKCouture" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Foulassi" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Gimipowa" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../IkwenBlog" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Kakocase" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Laakam" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Mails" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../MarketPlace" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../MoodsBox" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../MyJumboPay" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Olbizgo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Playground" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Shavida" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../SmartEvent" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Tchopetyamo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Zovizo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../eConnect" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../embed-doc" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../ikwenSupport" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../ikwenWebsite" vcs="Git" />
+    <mapping directory="$USER_HOME$/PycharmProjects/Dropbox/CloudCouncil" vcs="Git" />
+    <mapping directory="$USER_HOME$/PycharmProjects/push-notifications" vcs="Git" />
   </component>
 </project>

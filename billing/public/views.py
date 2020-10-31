@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from django.conf import settings
-from django.db.models.loading import get_model
 from django.views.generic import TemplateView
 
 from ikwen.billing.models import Product

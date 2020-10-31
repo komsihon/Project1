@@ -28,7 +28,7 @@ class CashOutMethod(Model):
     class Meta:
         db_table = 'ikwen_cash_out_method'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -36,17 +36,17 @@ class CashOutAddress(Model):
     """
     Details of Cash-out
     """
-    service = models.ForeignKey(Service, related_name='+')
+    service = models.ForeignKey(Service, related_name='+', on_delete=models.CASCADE)
     # country = models.ForeignKey(Country, blank=True, null=True)
     # city = models.CharField(max_length=60, blank=True, null=True)
-    method = models.ForeignKey(CashOutMethod)
+    method = models.ForeignKey(CashOutMethod, on_delete=models.CASCADE)
     account_number = models.CharField(max_length=100, blank=True)
     name = models.CharField(max_length=100)
 
     class Meta:
         db_table = 'ikwen_cash_out_address'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.method.name + ': ' + self.account_number
 
 

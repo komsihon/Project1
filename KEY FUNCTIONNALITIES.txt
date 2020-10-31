@@ -50,6 +50,27 @@ Collaborators.
 
 DJANGO HACKS
     add **kwargs in django.views.generic.list.BaseListView.get_context_data()
+    django/forms/models line 201:
+        REPLACE
+            formfield = f.formfield(**kwargs)
+        BY
+            try:
+                formfield = f.formfield(**kwargs)
+            except:
+                continue
+
+
+PERMISSION_BACKEND_NONREL HACKS
+    permission_backend_nonrel.models.UserPermissionList:
+    1 - REPLACE
+            user = models.ForeignKey(User)
+        BY
+            user = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL'))
+
+    2 - ADD THIS METHOD
+            def to_dict(self):
+                return self.user.to_dict()
+
 
 DJANGO_TRACKING HACKS
     1 - GEO_IP stuffs must be imported this way:
@@ -61,6 +82,7 @@ DJANGO_TRACKING HACKS
     2 - Replace django User import by this:
 
         from ikwen.accesscontrol.models import Member as User
+
 
 DJANGO_CURRENCIES HACKS
     1 - Create some currencies
@@ -81,3 +103,6 @@ DJANGO_CURRENCIES HACKS
                 currency = None
 
         from ikwen.accesscontrol.models import Member as User
+
+
+INSTALL UUID4 for MTN MoMo Payment

@@ -8,12 +8,11 @@ from threading import Thread
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.mail import EmailMessage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template import Context
 from django.template.defaultfilters import slugify
 from django.template.loader import get_template
 from django.utils.translation import gettext as _
-from permission_backend_nonrel.models import UserPermissionList, GroupPermissionList
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import SUDO
@@ -143,21 +142,12 @@ def deploy(app, member, project_name, billing_plan, setup_cost, monthly_cost,
     FlatPage.objects.using(database).create(url=FlatPage.AGREEMENT, title=FlatPage.AGREEMENT)
     FlatPage.objects.using(database).create(url=FlatPage.LEGAL_MENTIONS, title=FlatPage.LEGAL_MENTIONS)
     for group in Group.objects.using(database).all():
-        try:
-            gpl = GroupPermissionList.objects.get(group=group)
-            group.id = None
-            group.save(using=database)   # Recreate the group in the service DB with a new id.
-            gpl.group = group    # And update GroupPermissionList object with the newly re-created group
-            gpl.save(using=database)
-        except GroupPermissionList.DoesNotExist:
-            group.id = None
-            group.save(using=database)  # Re-create the group in the service DB with anyway.
+        group.id = None
+        group.save(using=database)  # Re-create the group in the service DB with anyway.
 
     # Add member to SUDO Group
     sudo_group = Group.objects.using(database).get(name=SUDO)
-    obj_list, created = UserPermissionList.objects.using(database).get_or_create(user=member)
-    obj_list.group_fk_list.append(sudo_group.id)
-    obj_list.save(using=database)
+    member.groups.add(sudo_group)
 
     mail_signature = "%s<br>" \
                      "<a href='%s'>%s</a>" % (project_name, 'http://' + domain, domain)

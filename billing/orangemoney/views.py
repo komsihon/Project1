@@ -12,7 +12,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.http.response import HttpResponseRedirect
 from django.template.defaultfilters import slugify
-from django.utils.module_loading import import_by_path
+from django.utils.module_loading import import_string as import_by_path
 from django.utils.translation import get_language
 from requests.exceptions import SSLError
 

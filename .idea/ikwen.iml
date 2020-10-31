@@ -14,23 +14,37 @@
   </component>
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Python 2.7 (virtualenv)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.6 (venv3)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="ikwenAppRetail" />
     <orderEntry type="module" module-name="Shavida" />
     <orderEntry type="module" module-name="Foulassi" />
-    <orderEntry type="module" module-name="Cyberlink" />
-    <orderEntry type="module" module-name="TestMongo" />
     <orderEntry type="module" module-name="WebNode" />
-    <orderEntry type="module" module-name="KakacaseGithub" />
     <orderEntry type="module" module-name="ikwenSupport" />
-    <orderEntry type="module" module-name="SIARC" />
     <orderEntry type="module" module-name="CR" />
-    <orderEntry type="module" module-name="YouPayer" />
     <orderEntry type="module" module-name="DoCash" />
     <orderEntry type="module" module-name="Mails" />
     <orderEntry type="module" module-name="Echo" />
-    <orderEntry type="module" module-name="embed-doc" />
+    <orderEntry type="module" module-name="Zovizo" />
+    <orderEntry type="module" module-name="ikwenWebsite" />
+    <orderEntry type="module" module-name="Gimipowa" />
+    <orderEntry type="module" module-name="Daraja" />
+    <orderEntry type="module" module-name="Tchopetyamo" />
+    <orderEntry type="module" module-name="SmartEvent" />
+    <orderEntry type="module" module-name="Lydano" />
+    <orderEntry type="module" module-name="Playground" />
+    <orderEntry type="module" module-name="Ebonixe" />
+    <orderEntry type="module" module-name="eConnect" />
+    <orderEntry type="module" module-name="Afrobit" />
+    <orderEntry type="module" module-name="MarketPlace" />
+    <orderEntry type="module" module-name="MoodsBox" />
+    <orderEntry type="module" module-name="AfrobitMusic" />
+    <orderEntry type="module" module-name="Cyberlink" />
+    <orderEntry type="module" module-name="CreolinkMaps" />
+    <orderEntry type="module" module-name="BafCouncil" />
+    <orderEntry type="module" module-name="CloudCouncil" />
+    <orderEntry type="module" module-name="ikwen3" />
+    <orderEntry type="module" module-name="Laakam" />
+    <orderEntry type="module" module-name="ESKA" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />

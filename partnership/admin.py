@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from ikwen.core.models import Application
 
-from ikwen.core.utils import get_service_instance, add_database_to_settings
+from ikwen.core.utils import add_database_to_settings
 
 from ikwen.partnership.models import PartnerProfile, ApplicationRetailConfig
 

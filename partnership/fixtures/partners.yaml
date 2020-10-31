@@ -37,3 +37,11 @@
     company_name: JumboPay
     company_name_slug: jumbopay
     city: Douala
+
+- model: core.config
+  pk: 56922d02fba3bb37b33da181
+  fields:
+    service: 56eb6d04b9b531b10537b331
+    company_name: JumboPay
+    company_name_slug: jumbopay
+    city: Douala

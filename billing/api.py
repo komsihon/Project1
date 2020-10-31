@@ -6,7 +6,7 @@ from threading import Thread
 
 from currencies.models import Currency
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponse
 from django.utils.translation import activate, gettext as _

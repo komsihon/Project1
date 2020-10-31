@@ -15,7 +15,7 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.urls import reverse, NoReverseMatch
 from django.core.validators import validate_email
 from django.db.models import Q, Sum
 from django.http.response import HttpResponseRedirect, HttpResponse, HttpResponseForbidden, Http404
@@ -25,17 +25,15 @@ from django.template.defaultfilters import slugify
 from django.template.loader import get_template
 from django.utils.decorators import method_decorator
 from django.utils.http import urlsafe_base64_decode, urlunquote, urlquote
-from django.utils.module_loading import import_by_path
+from django.utils.module_loading import import_string as import_by_path
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache, cache_page
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import TemplateView
-from permission_backend_nonrel.models import UserPermissionList
-from permission_backend_nonrel.utils import add_permission_to_user, add_user_to_group
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.utils import send_welcome_email, shift_ghost_member, import_ghost_profile_to_member, \
-    invite_member, bind_referrer_to_member, DOBFilter, DateJoinedFilter, import_contacts, check_is_api
+    bind_referrer_to_member, DOBFilter, DateJoinedFilter, import_contacts, check_is_api
 from ikwen.accesscontrol.forms import MemberForm, PasswordResetForm, SMSPasswordResetForm, SetPasswordForm, \
     SetPasswordFormSMSRecovery, test_fake_email
 from ikwen.accesscontrol.models import Member, AccessRequest, \
@@ -772,14 +770,13 @@ class Community(HybridListView):
     def get_queryset(self):
         group_name = self.request.GET.get('group_name')
         if group_name:
-            group_id = Group.objects.get(name=group_name).id
+            group = Group.objects.get(name=group_name)
         else:
-            group_id = Group.objects.get(name=COMMUNITY).id
-        queryset = UserPermissionList.objects.raw_query({'group_fk_list': {'$elemMatch': {'$eq': group_id}}})
+            group = Group.objects.get(name=COMMUNITY)
+        queryset = group.member_set.all()
         try:
             from ikwen.accesscontrol.backends import ARCH_EMAIL
-            arch = Member.objects.get(email=ARCH_EMAIL)
-            queryset.exclude(user=arch)
+            queryset.exclude(email__icontains=ARCH_EMAIL)
         except:
             pass
         return queryset
@@ -825,16 +822,15 @@ class Community(HybridListView):
     def load_member_detail(self, context):
         member_id = self.request.GET['member_id']
         member = Member.objects.get(pk=member_id)
-        obj = UserPermissionList.objects.get(user=member)
         try:
-            group = Group.objects.get(pk=obj.group_fk_list[0])
+            group = member.groups.all()[0]
         except:
             group = Group.objects.get(name=COMMUNITY)
 
         member.group = group
         permission_list = list(Permission.objects.filter(codename__startswith='ik_'))
         for perm in permission_list:
-            if perm.id in obj.permission_fk_list:
+            if perm in member.user_permissions.all():
                 perm.is_active = True
 
         member_profile, update = MemberProfile.objects.get_or_create(member=member)
@@ -1052,9 +1048,7 @@ def join(request, *args, **kwargs):
     member.save(using=db)
     import_ghost_profile_to_member(member, db=db)
     member = Member.objects.using(db).get(pk=member.id)  # Reload from local database to avoid database router error
-    obj_list, created = UserPermissionList.objects.using(db).get_or_create(user=member)
-    obj_list.group_fk_list.append(group.id)
-    obj_list.save(using=db)
+    member.groups.add(group)
     add_event(service, WELCOME_EVENT, member=member, object_id=rq.id)
     add_event(service, ACCESS_GRANTED_EVENT, member=service.member, object_id=rq.id)
     set_counters(service)
@@ -1172,11 +1166,8 @@ def transfer_ownership(request, *args, **kwargs):
     community_group = Group.objects.get(name=COMMUNITY)
     sudo_group = Group.objects.get(name=SUDO)
 
-    obj1, change = UserPermissionList.objects.get_or_create(user=sender)
-    obj1.permission_list = []
-    obj1.permission_fk_list = []
-    obj1.group_fk_list = [community_group.id]
-    obj1.save()
+    sender.groups.remove(sudo_group)
+    sender.groups.add(community_group)
 
     sender_umbrella = Member.objects.using(UMBRELLA).get(pk=sender.id)
     if service.id in sender_umbrella.collaborates_on_fk_list:
@@ -1211,11 +1202,8 @@ def transfer_ownership(request, *args, **kwargs):
     target.is_bao = True
     target.save(using='default')
 
-    obj2, change = UserPermissionList.objects.using('default').get_or_create(user=target)
-    obj2.permission_list = []
-    obj2.permission_fk_list = []
-    obj2.group_fk_list = [sudo_group.id]
-    obj2.save()
+    target.groups.remove(community_group)
+    target.groups.add(sudo_group)
 
     Member.objects.using(UMBRELLA).filter(pk=target.id)\
         .update(collaborates_on_fk_list=target.collaborates_on_fk_list,
@@ -1235,21 +1223,11 @@ def set_collaborator_permissions(request, *args, **kwargs):
         permission_id_list = permission_ids.split(',')
     member_id = request.GET['member_id']
     member = Member.objects.get(pk=member_id)
-    obj = UserPermissionList.objects.get(user=member)
-    obj.permission_list = []
-    obj.permission_fk_list = []
-    obj.save()
+    member.user_permissions.clear()
     if permission_id_list:
         for perm_id in permission_id_list:
             perm = Permission.objects.get(pk=perm_id)
-            add_permission_to_user(perm, member)
-            # Add Django original permissions of the content_type so that
-            # member can manipulate the object in the django admin app. This
-            # because ikwen admin can sometimes embed django admin in iframe.
-            ct = perm.content_type
-            django_perms = Permission.objects.filter(content_type=ct).exclude(codename__istartswith='ik_')
-            for perm in django_perms:
-                add_permission_to_user(perm, member)
+            member.user_permissions.add(perm)
         member.is_staff = True
     else:
         member.is_staff = False
@@ -1281,12 +1259,8 @@ def move_member_to_group(request, *args, **kwargs):
     else:
         member.is_superuser = False
     member.save()
-    obj = UserPermissionList.objects.get(user=member)
-    obj.permission_list = []
-    obj.permission_fk_list = []
-    obj.group_fk_list = []
-    obj.save()
-    add_user_to_group(member,  group)
+    member.groups.clear()
+    member.groups.add(group)
     member_umbrella = Member.objects.using(UMBRELLA).get(pk=member_id)
     
     service = get_service_instance()

@@ -22,6 +22,10 @@ from ikwen.partnership.cloud_setup import deploy, DeploymentForm
 from ikwen.partnership.forms import ChangeServiceForm
 
 
+class AdminHome(TemplateView):
+    template_name = 'partnership/admin_home.html'
+
+
 class ApplicationList(HybridListView):
     template_name = 'partnership/application_list.html'
     model = CloudBillingPlan

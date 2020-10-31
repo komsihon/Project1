@@ -18,7 +18,7 @@ def append_auth_tokens(url, request):
     token = request.GET.get(TOKEN)
     if not uidb64 or not token:
         return url
-    from urlparse import urlparse
+    from urllib.parse import urlparse
     o = urlparse(url)
     if o.query:
         return url + '&%s=%s&%s=%s' % (UID_B64, uidb64, TOKEN, token)

@@ -3,7 +3,7 @@ import os
 import logging
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.models import get_current_site
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.utils.encoding import force_bytes

@@ -2,10 +2,9 @@
 from threading import Thread
 
 from django.conf import settings
-from django.contrib import messages
+from django.contrib import messages, admin
 from django.core.mail import EmailMessage
 from django.db import transaction
-from djangotoolbox.admin import admin
 from django.utils.translation import gettext as _
 
 from ikwen.core.models import Service, Config, CASH_OUT_REQUEST_PAID

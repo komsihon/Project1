@@ -9,8 +9,8 @@ class PartnerProfile(AbstractConfig):
 
 
 class ApplicationRetailConfig(Model):
-    partner = models.ForeignKey(Service, related_name='+')
-    app = models.ForeignKey(Application)
+    partner = models.ForeignKey(Service, related_name='+', on_delete=models.CASCADE)
+    app = models.ForeignKey(Application, on_delete=models.CASCADE)
     ikwen_monthly_cost = models.IntegerField(help_text="Amount ikwen collects monthly for any Service deployed "
                                                        "with this application. Extra goes to the retailer. If this "
                                                        "application has <em>CloudBillingPlan</em>s, they will override "

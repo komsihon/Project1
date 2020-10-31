@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.core.cache import cache
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.urls import reverse, NoReverseMatch
 from django.utils import translation
 from django.utils.formats import get_format
 

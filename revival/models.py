@@ -5,7 +5,8 @@ from random import random
 
 from django.utils.translation import gettext_lazy as _
 from django.db import models
-from djangotoolbox.fields import ListField
+
+from djongo import models
 
 from ikwen.core.fields import MultiImageField
 from ikwen.core.constants import PENDING
@@ -20,9 +21,9 @@ class ProfileTag(AbstractWatchModel):
     is_active = models.BooleanField(default=True)
     is_reserved = models.BooleanField(default=False)
     is_auto = models.BooleanField(default=False)
-    smart_revival_history = ListField()
-    cyclic_revival_mail_history = ListField()
-    cyclic_revival_sms_history = ListField()
+    smart_revival_history = models.JSONField()
+    cyclic_revival_mail_history = models.JSONField()
+    cyclic_revival_sms_history = models.JSONField()
 
     smart_total_revival = models.IntegerField(default=0)
     total_cyclic_mail_revival = models.IntegerField(default=0)
@@ -31,27 +32,27 @@ class ProfileTag(AbstractWatchModel):
     class Meta:
         unique_together = ('name', 'is_auto')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
 class CyclicRevival(Model):
     UPLOAD_TO = 'revival/cyclic_mail_images'
 
-    service = models.ForeignKey(Service, related_name='+')
+    service = models.ForeignKey(Service, related_name='+', on_delete=models.CASCADE)
     profile_tag_id = models.CharField(max_length=24, db_index=True)
-    hour_of_sending =  models.IntegerField(default=9, db_index=True)
+    hour_of_sending = models.IntegerField(default=9, db_index=True)
     days_cycle = models.IntegerField(blank=True, null=True,
                                      help_text=_("Run revival every N days"))
-    day_of_week_list = ListField()
-    day_of_month_list = ListField()
+    day_of_week_list = models.JSONField()
+    day_of_month_list = models.JSONField()
     mail_subject = models.CharField(max_length=150, blank=True, null=True)
     mail_content = models.TextField(blank=True, null=True)
     mail_image = MultiImageField(upload_to=UPLOAD_TO, max_size=800, blank=True, null=True)
     sms_text = models.TextField(blank=True, null=True)
     next_run_on = models.DateField(default=datetime.now, db_index=True)
     end_on = models.DateField(db_index=True, blank=True, null=True)
-    items_fk_list = ListField()
+    items_fk_list = models.JSONField()
     is_active = models.BooleanField(default=False, db_index=True)
     is_running = models.BooleanField(default=False, db_index=True)
 
@@ -99,9 +100,9 @@ class CyclicRevival(Model):
 
 
 class MemberProfile(Model):
-    member = models.ForeignKey(Member, unique=True)
-    tag_list = ListField()
-    tag_fk_list = ListField()
+    member = models.ForeignKey(Member, unique=True, on_delete=models.CASCADE)
+    tag_list = models.JSONField()
+    tag_fk_list = models.JSONField()
 
 
 class ObjectProfile(Model):
@@ -113,7 +114,7 @@ class ObjectProfile(Model):
 
 
 class Revival(Model):
-    service = models.ForeignKey(Service, related_name='+')
+    service = models.ForeignKey(Service, related_name='+', on_delete=models.CASCADE)
     model_name = models.CharField(max_length=150, db_index=True)
     object_id = models.CharField(max_length=60, db_index=True)
     profile_tag_id = models.CharField(max_length=24, blank=True, null=True, db_index=True)  # Tag targeted by this revival
@@ -131,8 +132,8 @@ class Revival(Model):
 
 
 class Target(Model):
-    revival = models.ForeignKey(Revival)
-    member = models.ForeignKey(Member)
+    revival = models.ForeignKey(Revival, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
     revival_count = models.IntegerField(default=0)
     notified = models.BooleanField(default=False)
     revived_on = models.DateTimeField(blank=True, null=True, db_index=True)
@@ -140,8 +141,8 @@ class Target(Model):
 
 
 class CyclicTarget(Model):
-    revival = models.ForeignKey(CyclicRevival)
-    member = models.ForeignKey(Member)
+    revival = models.ForeignKey(CyclicRevival, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
     revival_count = models.IntegerField(default=1)
 
 
@@ -149,6 +150,6 @@ class CCMMonitoringMail(Model):
     JOINS = "Joins"
     REVIVALS = "Revivals"
 
-    service = models.ForeignKey(Service, related_name='+')
+    service = models.ForeignKey(Service, related_name='+', on_delete=models.CASCADE)
     type = models.CharField(max_length=30, default=JOINS)
     subject = models.CharField(max_length=30)

@@ -21,7 +21,7 @@ from django.core.mail import EmailMessage
 from django.db import router
 from django.db.models import F, Model
 from django.db.models.fields.files import ImageFieldFile as DjangoImageFieldFile
-from django.db.models.loading import get_model
+from django.apps import apps
 from django.template import Context
 from django.template.defaultfilters import urlencode, slugify
 from django.template.loader import get_template
@@ -129,7 +129,7 @@ def get_config_model():
     config_model_name = getattr(settings, 'IKWEN_CONFIG_MODEL', 'core.Config')
     app_label = config_model_name.split('.')[0]
     model = config_model_name.split('.')[1]
-    return get_model(app_label, model)
+    return apps.get_model(app_label, model)
 
 
 def get_service_instance(using='default', check_cache=True):
@@ -340,7 +340,7 @@ class DefaultUploadBackend(LocalUploadBackend):
                 media_field = request.GET.get('image_field', 'image')
             label_field = request.GET.get('label_field', 'name')
             tokens = model_name.split('.')
-            model = get_model(tokens[0], tokens[1])
+            model = apps.get_model(tokens[0], tokens[1])
             obj = model._default_manager.get(pk=object_id)
             media = obj.__getattribute__(media_field)
             try:
@@ -774,7 +774,7 @@ def render_event(event, request):
     Default event renderer
     """
     try:
-        model = get_model(event.model)
+        model = apps.get_model(event.model)
         db = event.service.database
         add_database(db)
         obj = model.objects.using(db).get(pk=event.object_id)
@@ -903,7 +903,7 @@ def parse_paypal_response(response_string):
 
 def get_item_list(model_name, item_fk_list):
     tk = model_name.split('.')
-    model = get_model(tk[0], tk[1])
+    model = apps.get_model(tk[0], tk[1])
     return list(model._default_manager.filter(pk__in=item_fk_list))
 
 

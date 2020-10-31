@@ -12,21 +12,21 @@ from django.contrib.admin import helpers
 from django.core.cache import cache
 from django.core.files import File
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import models
-from django.db.models import get_model
+from django.apps import apps
 from django.db.models.fields.files import ImageFieldFile as DjangoImageFieldFile, FieldFile
 from django.forms.models import modelform_factory
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.template.defaultfilters import slugify
 from django.template.loader import get_template
-from django.utils.module_loading import import_by_path
+from django.utils.module_loading import import_string as import_by_path
 from django.utils.translation import ugettext as _
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.forms.fields import DateField, DateTimeField
-from import_export.formats.base_formats import XLS, CSV
+from import_export.formats.base_formats import CSV
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
@@ -169,7 +169,7 @@ class HybridListView(ListView):
         action = request.GET.get('action')
         model_name = request.GET.get('model_name')
         if model_name:
-            model = get_model(*model_name.split('.'))
+            model = apps.get_model(*model_name.split('.'))
         elif self.model:
             model = self.model
         else:
@@ -444,7 +444,7 @@ class ChangeObjectBase(TemplateView):
 
     def get_model(self):
         if isinstance(self.model, basestring):
-            return get_model(*self.model.split('.'))
+            return apps.get_model(*self.model.split('.'))
         else:
             return self.model
 

@@ -4,7 +4,7 @@ This module groups utility middlewares that Ikwen uses.
 """
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http.response import HttpResponseRedirect
 
 from ikwen.core.urls import SERVICE_DETAIL, SIGN_IN, DO_SIGN_IN, SERVICE_EXPIRED, LOAD_EVENT, LOGOUT

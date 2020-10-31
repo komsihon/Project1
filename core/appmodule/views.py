@@ -4,7 +4,7 @@ from django.contrib.admin import helpers
 from django.forms.models import modelform_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from django.utils.module_loading import import_by_path
+from django.utils.module_loading import import_string as import_by_path
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 

@@ -12,11 +12,11 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.validators import validate_email
 from django.db import transaction
 from django.db.models import Q, Sum
-from django.db.models.loading import get_model
+from django.apps import apps
 from django.http import HttpResponse, Http404
 from django.http import HttpResponseRedirect
 from django.template import Context
@@ -619,7 +619,7 @@ def render_subscription_event(event, request):
     tk = event.model.split('.')
     app_label = tk[0]
     model = tk[1]
-    subscription_model = get_model(app_label, model)
+    subscription_model = apps.get_model(app_label, model)
     try:
         subscription = subscription_model.objects.using(database).get(pk=event.object_id)
         short_description = subscription.__dict__.get('short_description')

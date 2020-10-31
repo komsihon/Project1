@@ -11,9 +11,9 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core import mail
 from django.core.mail import EmailMessage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
-from django.utils.module_loading import import_by_path
+from django.utils.module_loading import import_string as import_by_path
 from django.utils.log import AdminEmailHandler
 from django.utils.translation import gettext as _, activate
 from ikwen.accesscontrol.models import SUDO

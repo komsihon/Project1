@@ -5,7 +5,7 @@ from ikwen.core.models import Model, Application
 
 
 class Template(Model):
-    app = models.ForeignKey(Application)
+    app = models.ForeignKey(Application, on_delete=models.CASCADE)
     name = models.CharField(max_length=100,
                             help_text="Name of this template")
     slug = models.SlugField()
@@ -15,7 +15,7 @@ class Template(Model):
     class Meta:
         db_table = 'ikwen_template'
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s" % (self.app.name, self.name)
 
 
@@ -29,7 +29,7 @@ class Theme(Model):
         (COZY, _('Cozy')),
         (COMFORTABLE, _('Comfortable'))
     )
-    template = models.ForeignKey(Template)
+    template = models.ForeignKey(Template, on_delete=models.CASCADE)
     name = models.CharField(max_length=100,
                             help_text="Name of this theme")
     slug = models.SlugField()
@@ -45,10 +45,10 @@ class Theme(Model):
     class Meta:
         db_table = 'ikwen_theme'
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (str(self.template), self.name)
 
 
 class ThemePreview(Model):
-    theme = models.ForeignKey(Theme)
+    theme = models.ForeignKey(Theme, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='ikwen/theme_previews')

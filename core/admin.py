@@ -4,10 +4,10 @@ import subprocess
 from threading import Thread
 
 from django.conf import settings
-from django.contrib import messages
+from django.contrib import messages, admin
 from django.core.mail import EmailMessage
 from django.http.response import HttpResponseForbidden
-from djangotoolbox.admin import admin
+
 from ikwen.core.utils import generate_icons, get_mail_content, get_service_instance, setup_pwa
 
 from ikwen.core.models import RETAIL_APP_SLUG, Module

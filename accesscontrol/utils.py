@@ -9,12 +9,12 @@ from threading import Thread
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, Group
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.validators import validate_email
 from django.db import transaction
 from django.http import HttpResponseRedirect, HttpResponse
@@ -22,11 +22,10 @@ from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode, base36_to_int
-from django.utils.module_loading import import_by_path
+from django.utils.module_loading import import_string as import_by_path
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
-from permission_backend_nonrel.models import UserPermissionList, GroupPermissionList
 
 from ikwen.conf.settings import IKWEN_SERVICE_ID, WALLETS_DB_ALIAS
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
@@ -81,13 +80,14 @@ def get_members_having_permission(model, codename):
     :return: list of Member
     """
     ct = ContentType.objects.get_for_model(model)
-    perm_pk = Permission.objects.get(content_type=ct, codename=codename).id
-    group_pk_list = [gp.group.pk for gp in
-                     GroupPermissionList.objects.raw_query({'permission_fk_list': {'$elemMatch': {'$eq': perm_pk}}})]
-    group_user_perm = UserPermissionList.objects.raw_query({'group_fk_list': {'$elemMatch': {'$in': group_pk_list}}})
-    user_perm = UserPermissionList.objects.raw_query({'permission_fk_list': {'$elemMatch': {'$eq': perm_pk}}})
-    user_perm_list = list(set(group_user_perm) | set(user_perm))
-    return [obj.user for obj in user_perm_list]
+    perm = Permission.objects.get(content_type=ct, codename=codename)
+    group_list = [group for group in Group.objects.all() if perm in group.permissions.all()]
+    member_list = []
+    for group in group_list:
+        member_list.extend(list(group.member_set.all()))
+    member_list.extend(list(perm.member_set.all()))
+    member_list = list(set(member_list))
+    return member_list
 
 
 def check_is_api(request):
@@ -445,13 +445,11 @@ def import_ghost_profile_to_member(member, db='default'):
     try:
         ghost = Member.objects.using(db).get(phone=shifted_phone, is_ghost=True)
         ghost_tag_fk_list = MemberProfile.objects.using(db).get(member=ghost).tag_fk_list
-        UserPermissionList.objects.using(db).filter(user=ghost).delete()
     except:
         pass
     try:
         ghost = Member.objects.using(db).get(email=shifted_email, is_ghost=True)
         ghost_tag_fk_list.extend(MemberProfile.objects.using(db).get(member=ghost).tag_fk_list)
-        UserPermissionList.objects.using(db).filter(user=ghost).delete()
     except:
         pass
 

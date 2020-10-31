@@ -70,7 +70,7 @@ workbox.routing.registerRoute(
 );
 
 const CACHE_NAME = 'offline-html';
-const FALLBACK_HTML_URL = '/offline.html';
+const FALLBACK_HTML_URL = '/ikwen/offline.html';
 
 self.addEventListener('install', async (event) => {
   event.waitUntil(

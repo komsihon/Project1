@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.admin import helpers
 from django.contrib.auth.decorators import permission_required
 from django.core.files import File
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.forms.models import modelform_factory
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render

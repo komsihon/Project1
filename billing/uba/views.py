@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
 from django.http.response import HttpResponseRedirect
-from django.utils.module_loading import import_by_path
+from django.utils.module_loading import import_string as import_by_path
 
 from ikwen.core.utils import get_service_instance
 from ikwen.billing.models import PaymentMean, MoMoTransaction

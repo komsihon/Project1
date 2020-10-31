@@ -4,15 +4,13 @@ import json
 import requests
 from datetime import datetime
 from django.conf import settings
+from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import Group
 from django.db.models import Q
 
 from ikwen.core.utils import add_event, get_service_instance
-from permission_backend_nonrel.models import UserPermissionList
-
 from ikwen.accesscontrol.models import Member, COMMUNITY, MEMBER_JOINED_IN, SUDO
 from ikwen.revival.models import MemberProfile
-from permission_backend_nonrel.backends import NonrelPermissionBackend
 
 __author__ = 'Kom Sihon'
 
@@ -20,7 +18,7 @@ UMBRELLA = 'umbrella'  # The alias for the top most database in ikwen platform
 ARCH_EMAIL = 'arch@ikwen.com'
 
 
-class LocalDataStoreBackend(NonrelPermissionBackend):
+class LocalDataStoreBackend(ModelBackend):
     def authenticate(self, username=None, password=None, **kwargs):
         uid = kwargs.get('uid')
         api_signature = kwargs.get('api_signature')
@@ -83,9 +81,7 @@ class LocalDataStoreBackend(NonrelPermissionBackend):
                 add_event(service, MEMBER_JOINED_IN, member=user, object_id=user.id)
             user.save(using='default')  # Saves the user to the default application database if not exists there
 
-            perm_list, created = UserPermissionList.objects.get_or_create(user=user)
-            perm_list.group_fk_list.append(community.id)
-            perm_list.save()
+            user.groups.add(community)
 
         if getattr(settings, 'AUTH_WITHOUT_PASSWORD', False) and not user.is_staff:
             return user

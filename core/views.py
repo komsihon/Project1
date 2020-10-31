@@ -12,9 +12,8 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.mail import EmailMessage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Q
-from django.http import Http404
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template import Context
@@ -264,7 +263,7 @@ class Console(TemplateView):
             limit = start + length
             type_access_request = ConsoleEventType.objects.get(codename=ACCESS_REQUEST_EVENT)
             member = self.request.user
-            queryset = ConsoleEvent.objects.select_related('service, member, event_type').exclude(event_type=type_access_request)\
+            queryset = ConsoleEvent.objects.select_related('service', 'member', 'event_type').exclude(event_type=type_access_request)\
                            .filter(Q(member=member) | Q(group_id__in=member.group_fk_list) |
                                    Q(group_id__isnull=True, member__isnull=True, service__in=member.get_services())).order_by('-id')[start:limit]
             response = []

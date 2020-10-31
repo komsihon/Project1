@@ -403,7 +403,7 @@ footer .company-name {color: #666; text-decoration: none}
 }
 @media (min-width: 768px) {
     .modal .actions {margin-top: 2em}
-    #content {padding-top: 75px; min-height: 450px}
+    #content {padding-top: 65px;min-height: 450px;}
     .form-wrapper {width: 360px}
     #navbar .navbar-header {float: left; height: auto}
     .menu-button {cursor: pointer;padding: 24px 15px 0 0; display: none}

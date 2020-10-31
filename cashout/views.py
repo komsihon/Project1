@@ -6,7 +6,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
-from django.utils.module_loading import import_by_path
+from django.utils.module_loading import import_string as import_by_path
 from django.views.generic import TemplateView
 
 from ikwen.core.constants import PENDING

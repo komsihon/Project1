@@ -7,11 +7,11 @@ from threading import Thread
 import requests
 import uuid
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponse
 from django.template.defaultfilters import slugify
-from django.utils.module_loading import import_by_path
+from django.utils.module_loading import import_string as import_by_path
 from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import csrf_exempt
 from requests.exceptions import SSLError

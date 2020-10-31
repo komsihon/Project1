@@ -7,14 +7,13 @@ import logging
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ikwen.conf.settings")
 
 from django.db import transaction
-from django.db.models import Q
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core import mail
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
-from django.utils.module_loading import import_by_path
+from django.utils.module_loading import import_string as import_by_path
 from django.utils.translation import gettext as _
 
 from ikwen.accesscontrol.models import SUDO
@@ -23,11 +22,9 @@ from ikwen.core.models import Service
 from ikwen.core.utils import get_service_instance, send_sms, add_event, add_database, XEmailMessage
 from ikwen.core.utils import get_mail_content
 from ikwen.billing.models import Invoice, InvoicingConfig, INVOICES_SENT_EVENT, \
-    INVOICE_REMINDER_EVENT, REMINDERS_SENT_EVENT, OVERDUE_NOTICE_EVENT, OVERDUE_NOTICES_SENT_EVENT, \
     SUSPENSION_NOTICES_SENT_EVENT, SERVICE_SUSPENDED_EVENT, SendingReport, InvoiceEntry, InvoiceItem
-from ikwen.billing.utils import get_invoice_generated_message, get_invoice_reminder_message, \
-    get_invoice_overdue_message, \
-    get_service_suspension_message, get_next_invoice_number, get_subscription_model, get_billing_cycle_months_count
+from ikwen.billing.utils import get_invoice_generated_message, get_service_suspension_message, \
+    get_next_invoice_number, get_subscription_model, get_billing_cycle_months_count
 
 from echo.models import Balance
 from echo.utils import LOW_MAIL_LIMIT, notify_for_low_messaging_credit, notify_for_empty_messaging_credit, LOW_SMS_LIMIT
@@ -213,7 +210,7 @@ def suspend_subscriptions():
                             else:
                                 logger.error(u"Notice of suspension for Invoice #%s not sent to %s" % (invoice.number, member.email), exc_info=True)
                     except:
-                        print "Sending mail to %s failed" % member.email
+                        print("Sending mail to %s failed" % member.email)
                         logger.error(u"Connexion error on Invoice #%s to %s" % (invoice.number, member.email), exc_info=True)
 
             if sms_text and member.phone:

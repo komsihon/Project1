@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from django.conf import settings
-from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from djangotoolbox.fields import ListField, EmbeddedModelField
+
+from djongo import models
+
 from ikwen.core.constants import PENDING
-
 from ikwen.accesscontrol.backends import UMBRELLA
-
 from ikwen.accesscontrol.models import Member
 from ikwen.core.constants import PENDING_FOR_PAYMENT
 from ikwen.core.fields import MultiImageField
@@ -37,6 +36,35 @@ YUP = 'yup'
 UBA = 'uba'
 
 
+class AbstractInvoiceItem(Model):
+    label = models.CharField(max_length=100, unique=True)
+    amount = models.FloatField(default=0)
+
+    class Meta:
+        abstract = True
+
+
+class InvoiceItem(AbstractInvoiceItem):
+    pass
+
+
+class IkwenInvoiceItem(AbstractInvoiceItem):
+    """
+    Represents an InvoiceItem that can be retailed by
+    a partner. In this case, price is the amount expected
+    by ikwen, while amount is what end user actually pays
+    """
+    price = models.FloatField(default=0)
+
+
+class InvoiceEntry(Model):
+    item = models.EmbeddedField(model_container=getattr(settings, 'BILLING_INVOICE_ITEM_MODEL', 'InvoiceItem'))
+    short_description = models.CharField(max_length=100, blank=True)
+    quantity = models.FloatField(default=1)
+    quantity_unit = models.CharField(max_length=30, blank=True, null=True, default=_("Month(s)"))
+    total = models.FloatField(default=0)
+
+
 class OperatorProfile(AbstractConfig):
     ikwen_share_rate = models.FloatField(_("ikwen share rate"), default=0,
                                          help_text=_("Percentage ikwen collects on the turnover made by this person."))
@@ -46,7 +74,7 @@ class OperatorProfile(AbstractConfig):
 
 
 class InvoicingConfig(models.Model):
-    service = models.ForeignKey(Service, blank=True, null=True, related_name='+')
+    service = models.ForeignKey(Service, blank=True, null=True, related_name='+', on_delete=models.CASCADE)
     separate_billing_cycle = models.BooleanField(default=True)
     processing_fees_on_customer = models.BooleanField(default=False)
     # This is the default number of days preceding expiry on which invoice must be sent to client.
@@ -112,7 +140,7 @@ class InvoicingConfig(models.Model):
     class Meta:
         verbose_name_plural = _("Configurations of the invoicing system")
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s' % self.service
 
     @staticmethod
@@ -155,7 +183,7 @@ class AbstractProduct(Model):
     class Meta:
         abstract = True
 
-    def __unicode__(self):
+    def __str__(self):
         from ikwen.core.utils import get_service_instance
         config = get_service_instance().config
         return u'%s: %s %.2f/%d days' % (self.name, config.currency_symbol, self.cost, self.duration)
@@ -187,11 +215,11 @@ class AbstractSubscription(Model):
         (CANCELED, _('Canceled')),
         (ACTIVE, _('Active'))
     )
-    member = models.ForeignKey(Member, blank=True, null=True, related_name='+',
+    member = models.ForeignKey(Member, blank=True, null=True, related_name='+', on_delete=models.SET_NULL,
                                help_text=_("Client who subscribes to the service."))
     reference_id = models.CharField(_("Reference ID"), max_length=60, blank=True, null=True, db_index=True,
                                     help_text=_("Unique ID of the client subscription in your external system."))
-    product = models.ForeignKey(getattr(settings, 'BILLING_PRODUCT_MODEL', 'billing.Product'),
+    product = models.ForeignKey(getattr(settings, 'BILLING_PRODUCT_MODEL', 'billing.Product'), on_delete=models.SET_NULL,
                                 blank=True, null=True, related_name='+', limit_choices_to={'is_active': True})
     monthly_cost = models.FloatField(blank=True, null=True,
                                      help_text=_("How much the client must pay per month for the service."))
@@ -226,7 +254,7 @@ class Subscription(AbstractSubscription):
     A client subscription to a service
     """
 
-    def __unicode__(self):
+    def __str__(self):
         # from ikwen.core.utils import get_service_instance
         # config = get_service_instance().config
         # return u'%s: %s %.2f/month' % (self.member.full_name, config.currency_symbol, self.monthly_cost)
@@ -247,7 +275,7 @@ class AbstractInvoice(Model):
         (EXCEEDED, _("Exceeded")),
         (PAID, _("Paid")),
     )
-    member = models.ForeignKey(Member, blank=True, null=True, related_name='+',
+    member = models.ForeignKey(Member, blank=True, null=True, related_name='+', on_delete=models.SET_NULL,
                                help_text=_("Member to whom invoice is addressed."))
     number = models.CharField(max_length=10)
     amount = models.PositiveIntegerField()
@@ -267,12 +295,12 @@ class AbstractInvoice(Model):
                                                help_text=_("Last time the overdue notice was sent to client."))
     status = models.CharField(choices=INVOICE_STATUS_CHOICES, max_length=30, default=PENDING)
     is_one_off = models.BooleanField(default=not getattr(settings, 'SEPARATE_BILLING_CYCLE', True))
-    entries = ListField(EmbeddedModelField('InvoiceEntry'))
+    entries = models.ArrayField(model_container=InvoiceEntry)
 
     class Meta:
         abstract = True
 
-    def __unicode__(self):
+    def __str__(self):
         return _("Invoice No. ") + self.number
 
     def get_to_be_paid(self):
@@ -284,7 +312,7 @@ class AbstractInvoice(Model):
 
 class Invoice(AbstractInvoice):
     subscription = models.ForeignKey(getattr(settings, 'BILLING_SUBSCRIPTION_MODEL', Subscription),
-                                     blank=True, null=True, related_name='+')
+                                     blank=True, null=True, related_name='+', on_delete=models.SET_NULL)
 
     def _get_service(self):
         return self.subscription
@@ -352,7 +380,7 @@ class SupportBundle(Model):
     cost = models.IntegerField()
     is_active = models.BooleanField(default=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s (%d): %d days' % (self.type, self.quantity, self.duration)
 
 
@@ -361,9 +389,9 @@ class SupportCode(Model):
     A customer support code. Actually an instance of a
     SupportBundle purchased by a customer
     """
-    service = models.OneToOneField(Service, related_name='+')
+    service = models.OneToOneField(Service, related_name='+', on_delete=models.CASCADE)
     token = models.CharField(max_length=60)
-    bundle = models.ForeignKey(SupportBundle, blank=True, null=True)
+    bundle = models.ForeignKey(SupportBundle, blank=True, null=True, on_delete=models.SET_NULL)
     balance = models.IntegerField(default=0)
     expiry = models.DateTimeField(db_index=True)
 
@@ -372,41 +400,12 @@ class Donation(Model):
     """
     A donation offered by a website visitor
     """
-    member = models.ForeignKey(Member, blank=True, null=True,
+    member = models.ForeignKey(Member, blank=True, null=True, on_delete=models.SET_NULL,
                                help_text="Member who gives if authenticated user.")
     amount = models.FloatField()
     message = models.TextField(blank=True, null=True,
                                help_text="Message from the person.")
     status = models.CharField(max_length=15, default=PENDING)
-
-
-class AbstractInvoiceItem(Model):
-    label = models.CharField(max_length=100, unique=True)
-    amount = models.FloatField(default=0)
-
-    class Meta:
-        abstract = True
-
-
-class InvoiceItem(AbstractInvoiceItem):
-    pass
-
-
-class IkwenInvoiceItem(AbstractInvoiceItem):
-    """
-    Represents an InvoiceItem that can be retailed by
-    a partner. In this case, price is the amount expected
-    by ikwen, while amount is what end user actually pays
-    """
-    price = models.FloatField(default=0)
-
-
-class InvoiceEntry(Model):
-    item = EmbeddedModelField(getattr(settings, 'BILLING_INVOICE_ITEM_MODEL', 'InvoiceItem'))
-    short_description = models.CharField(max_length=100, blank=True)
-    quantity = models.FloatField(default=1)
-    quantity_unit = models.CharField(max_length=30, blank=True, null=True, default=_("Month(s)"))
-    total = models.FloatField(default=0)
 
 
 class SendingReport(Model):
@@ -440,7 +439,7 @@ class AbstractPayment(Model):
     method = models.CharField(max_length=60, choices=METHODS_CHOICES)
     processor_tx_id = models.CharField(max_length=60, blank=True, null=True, db_index=True)
     amount = models.PositiveIntegerField()
-    cashier = models.ForeignKey(Member, blank=True, null=True, related_name='+',
+    cashier = models.ForeignKey(Member, blank=True, null=True, related_name='+', on_delete=models.SET_NULL,
                                 help_text=_("If the payment was in cash, this is who collected the money"))
 
     class Meta:
@@ -448,9 +447,9 @@ class AbstractPayment(Model):
 
 
 class Payment(AbstractPayment):
-    invoice = models.ForeignKey(Invoice)
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.invoice.member.full_name
 
     def get_member(self):
@@ -496,7 +495,7 @@ class PaymentMean(Model):
     class Meta:
         db_table = 'ikwen_payment_mean'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def _get_provider_logo(self):
@@ -572,8 +571,8 @@ class MoMoTransaction(Model):
 
 
 class CloudBillingPlan(Model):
-    app = models.ForeignKey(Application)
-    partner = models.ForeignKey(Service, related_name='+', blank=True, null=True,
+    app = models.ForeignKey(Application, on_delete=models.CASCADE)
+    partner = models.ForeignKey(Service, related_name='+', blank=True, null=True, on_delete=models.CASCADE,
                                 help_text="Retailer this billing plan applies to.")
     name = models.CharField(max_length=60)
     is_active = models.BooleanField(default=True)
@@ -590,13 +589,13 @@ class CloudBillingPlan(Model):
     monthly_cost = models.IntegerField(help_text="Monthly cost at which ikwen sells the service. "
                                                  "Retailer may charge additional fees.")
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %s (%d)' % (self.app.name, self.name, self.setup_cost)
 
 
 class BankAccount(Model):
-    member = models.ForeignKey(Member)
-    bank = models.ForeignKey(Service, related_name='+')
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    bank = models.ForeignKey(Service, related_name='+', on_delete=models.CASCADE)
     number = models.CharField(max_length=60)
     slug = models.CharField(max_length=60)
 
