@@ -131,10 +131,11 @@ def track_speed(F):
         val = F(*args)
         duration = datetime.now() - t0
         arg0 = args[0]
-        class_path = ""
         if isinstance(arg0, View) or isinstance(arg0, DjangoModel):
-            class_path = str(type(arg0)).replace("<class '", "").replace("'>", "")
-        path = class_path + '.' + F.__name__
-        logger.debug('%s - %s run in %ss' % (weblet.project_name, path, duration))
+            function_path = str(type(arg0)).replace("<class '", "").replace("'>", "")
+        else:
+            function_path = F.__module__
+        function_path += '.' + F.__name__
+        logger.debug('%s - %s run in %ss' % (weblet.project_name, function_path, duration))
         return val
     return wrapper
