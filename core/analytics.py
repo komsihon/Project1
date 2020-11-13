@@ -8,6 +8,8 @@ from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.utils.translation import ugettext as _, activate
+from django.db.models import Model as DjangoModel
+from django.views.generic import View
 
 from pywebpush import webpush
 
@@ -125,10 +127,10 @@ def track_speed(F):
     A decorator that measures how much time a function or method
     took to run and writes the result to the info log file
     """
-    def wrapper(*args):
+    def wrapper(*args, **kwargs):
         weblet = get_service_instance()
         t0 = datetime.now()
-        val = F(*args)
+        val = F(*args, **kwargs)
         duration = datetime.now() - t0
         arg0 = args[0]
         if isinstance(arg0, View) or isinstance(arg0, DjangoModel):

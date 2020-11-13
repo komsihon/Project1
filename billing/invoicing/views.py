@@ -364,7 +364,8 @@ class InvoiceDetail(TemplateView):
         # Below are a list of possible extension dates on a year
         # TODO: Manage extensions for case where Product is bound to a duration (billing cycle)
         if not invoice.is_one_off:
-            expiry = invoice.subscription.expiry
+            now = datetime.now()
+            expiry = max(invoice.subscription.expiry, now.date())
             exp_year = expiry.year
             exp_month = expiry.month
             exp_day = expiry.day

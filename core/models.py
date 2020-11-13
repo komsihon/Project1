@@ -34,6 +34,11 @@ RETAIL_APP_SLUG = 'ikwen-retail'  # Slug of the 'ikwen App retail' Application
 
 
 class Model(models.Model):
+    """
+    Helper base Model that defines two fields: created_on and updated_on.
+    Both are DateTimeField. updated_on automatically receives the current
+    datetime whenever the model is updated in the database
+    """
     created_on = models.DateTimeField(default=timezone.now, editable=False, db_index=True)
     updated_on = models.DateTimeField(default=timezone.now, auto_now=True, db_index=True)
 
@@ -143,7 +148,7 @@ class Application(AbstractWatchModel):
 
 class Service(models.Model):
     """
-    An instance of an Ikwen :class:`Application` that a :class:`Member` is operating.
+    An instance of an ikwen :class:`Application` deployed by a :class:`accesscontrol.models.Member`.
     """
     LOGO_PLACEHOLDER = settings.STATIC_URL + 'ikwen/img/logo-placeholder.jpg'
     PENDING = 'Pending'
@@ -779,8 +784,8 @@ class AbstractConfig(Model):
 
 class Config(AbstractConfig):
     """
-    Default Configurations options derived from :class:`ikwen.core.models.AbstractConfig`.
-    It Adds nothing to :class:`ikwen.core.models.AbstractConfig`. Its only purpose is to
+    Default Configurations options derived from :class:`AbstractConfig`.
+    It Adds nothing to :class:`AbstractConfig`. Its only purpose is to
     create a concrete class.
     """
 
@@ -963,7 +968,8 @@ class Photo(models.Model):
 
 class XEmailObject(models.Model):
     """
-    An outbound email issued by a Service
+    An outbound email issued by a Service. Useful to log
+    outgoing emails from the actual Service
     """
     TRANSACTIONAL = "Transactional"
     REWARDING = "Rewarding"

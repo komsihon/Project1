@@ -15,7 +15,6 @@ from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.db.models import Sum
 from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.utils.http import urlquote
 from django.utils.translation import gettext as _, activate
 
 from daraja.models import DARAJA
@@ -37,6 +36,52 @@ logger = logging.getLogger('ikwen')
 Subscription = get_subscription_model()
 
 
+def momo_gateway_callback(fn):
+    """
+    Decorator that does necessary checks upon the call of the
+    function that runs behind the URL hit by ikwen MoMo Gateway.
+    """
+    def wrapper(*args, **kwargs):
+        request = args[0]
+        status = request.GET['status']
+        message = request.GET['message']
+        operator_tx_id = request.GET['operator_tx_id']
+        phone = request.GET['phone']
+        tx_id = kwargs.pop('tx_id')
+        try:
+            tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS).get(pk=tx_id, is_running=True)
+            if not getattr(settings, 'DEBUG', False):
+                tx_timeout = getattr(settings, 'IKWEN_PAYMENT_GATEWAY_TIMEOUT', 15) * 60
+                expiry = tx.created_on + timedelta(seconds=tx_timeout)
+                if datetime.now() > expiry:
+                    return HttpResponse("Transaction %s timed out." % tx_id)
+
+            tx.status = status
+            tx.message = 'OK' if status == MoMoTransaction.SUCCESS else message
+            tx.processor_tx_id = operator_tx_id
+            tx.phone = phone
+            tx.is_running = False
+            tx.save()
+        except:
+            raise Http404("Transaction %s not found" % tx_id)
+        if status != MoMoTransaction.SUCCESS:
+            return HttpResponse("Notification for transaction %s received with status %s" % (tx_id, status))
+        signature = tx.task_id
+
+        callback_signature = kwargs['signature']
+        no_check_signature = request.GET.get('ncs')
+        if getattr(settings, 'DEBUG', False):
+            if not no_check_signature:
+                if callback_signature != signature:
+                    return HttpResponse('Invalid transaction signature')
+        else:
+            if callback_signature != signature:
+                return HttpResponse('Invalid transaction signature')
+        kwargs['tx'] = tx
+        return fn(*args, **kwargs)
+    return wrapper
+
+
 def set_invoice_checkout(request, *args, **kwargs):
     """
     This function has no URL associated with it.
@@ -54,7 +99,7 @@ def set_invoice_checkout(request, *args, **kwargs):
     try:
         aggr = Payment.objects.filter(invoice=invoice).aggregate(Sum('amount'))
         amount_paid = aggr['amount__sum']
-    except IndexError:
+    except:
         amount_paid = 0
     amount = invoice.amount - amount_paid
     if extra_months:
@@ -114,47 +159,15 @@ def set_invoice_checkout(request, *args, **kwargs):
     return HttpResponseRedirect(next_url)
 
 
+@momo_gateway_callback
 def confirm_service_invoice_payment(request, *args, **kwargs):
     """
     This view is run after successful user cashout "MOMO_AFTER_CHECKOUT"
     """
-    status = request.GET['status']
-    message = request.GET['message']
-    operator_tx_id = request.GET['operator_tx_id']
-    phone = request.GET['phone']
-    tx_id = kwargs['tx_id']
+    tx = kwargs['tx']  # Decoration with @momo_gateway_callback makes 'tx' available in kwargs
     extra_months = int(kwargs['extra_months'])
-    try:
-        tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS).get(pk=tx_id, is_running=True)
-        if not getattr(settings, 'DEBUG', False):
-            tx_timeout = getattr(settings, 'IKWEN_PAYMENT_GATEWAY_TIMEOUT', 15) * 60
-            expiry = tx.created_on + timedelta(seconds=tx_timeout)
-            if datetime.now() > expiry:
-                return HttpResponse("Transaction %s timed out." % tx_id)
-
-        tx.status = status
-        tx.message = 'OK' if status == MoMoTransaction.SUCCESS else message
-        tx.processor_tx_id = operator_tx_id
-        tx.phone = phone
-        tx.is_running = False
-        tx.save()
-    except:
-        raise Http404("Transaction %s not found" % tx_id)
-    if status != MoMoTransaction.SUCCESS:
-        return HttpResponse("Notification for transaction %s received with status %s" % (tx_id, status))
     invoice_id = tx.object_id
     amount = tx.amount
-    signature = tx.task_id
-
-    callback_signature = kwargs.get('signature')
-    no_check_signature = request.GET.get('ncs')
-    if getattr(settings, 'DEBUG', False):
-        if not no_check_signature:
-            if callback_signature != signature:
-                return HttpResponse('Invalid transaction signature')
-    else:
-        if callback_signature != signature:
-            return HttpResponse('Invalid transaction signature')
     now = datetime.now()
     ikwen_service = get_service_instance()
     invoice = Invoice.objects.get(pk=invoice_id)

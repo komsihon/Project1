@@ -12,8 +12,8 @@
 #upload-container .image .progress, .upload-container .image .progress {float: left; background: #3C63FF; height: 10px; margin-top: 213px}
 #upload-container .image .spinner, .upload-container .image .spinner {margin-top: 0;position: static; padding-top: 0}
 #upload-container .image .spinner > div, .upload-container .image .spinner > div {margin: 85px 0 0 115px !important;width: 52px;position: absolute;}
-#upload-container .uploader, .upload-container .uploader {display: none;height: 225px;position: absolute;text-align: center;width: 280px;}
-.upload-container .full-view {background: rgba(0, 0, 0, .7);border-radius: 3px;display: none;color: #ddd;font-size: 18px;height: 30px;margin: 190px 0 0 5px;padding: 2px 5px;position: absolute;}
+#upload-container .uploader, .upload-container .uploader {display: none;height: 225px;/* position: absolute; */text-align: center;width: 100%;}
+.upload-container .full-view {background: rgba(0, 0, 0, .7);border-radius: 3px;display: none;color: #ddd;font-size: 18px;height: 30px;margin: -35px 0 0 5px;padding: 2px 5px;width: 30px;}
 #upload-container .image:hover .uploader, .upload-container .image:hover .uploader, .upload-container .image:hover .full-view {display: block}
 .qq-uploader {background: rgba(0, 0, 0, .7); height: 40px; padding-top: 8px}
 .qq-upload-button {background: none; border: none; box-shadow: none; color: #fff; text-shadow: none; height: 100px; width: 100%}

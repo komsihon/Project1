@@ -22,7 +22,7 @@ CURRENCY = "XAF"
 
 
 def init_yup_web_payment(request, *args, **kwargs):
-    api_url = getattr(settings, 'YUP_API_URL', 'https://33026.tagpay.fr/online/online.php')
+    api_url = getattr(settings, 'YUP_API_URL', 'https://33027.tagpay.fr/online/online.php')
     yup = json.loads(PaymentMean.objects.get(slug=YUP).credentials)
     phone = UNKNOWN_PHONE
     service = get_service_instance()

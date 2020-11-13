@@ -11,7 +11,7 @@ from ikwen.accesscontrol.backends import UMBRELLA
 
 from ikwen.accesscontrol.models import Member
 from ikwen.core.constants import PENDING_FOR_PAYMENT
-from ikwen.core.fields import MultiImageField
+from ikwen.core.fields import ImageField, MultiImageField
 from ikwen.core.models import Model, Service, Application, AbstractConfig
 from ikwen.core.utils import add_database_to_settings
 
@@ -51,8 +51,8 @@ class InvoicingConfig(models.Model):
     processing_fees_on_customer = models.BooleanField(default=False)
     # This is the default number of days preceding expiry on which invoice must be sent to client.
     # this number can later be overriden per subscription of clients
-    logo = models.ImageField(upload_to='invoicing_config/logos', verbose_name=_("Logo"),
-                             help_text=_("Logo to display on PDF Invoices. Landscape version is better."))
+    logo = ImageField(_("Logo"), upload_to='invoicing_config/logos', allowed_extensions=['jpg', 'jpeg'],
+                      help_text=_("Logo to display on PDF Invoices. Landscape version is better."))
     gap = models.IntegerField(default=14, verbose_name=_("Gap"),
                               help_text=_("Number of days preceding expiry on which invoice must be sent to client."))
     tolerance = models.IntegerField(default=7, verbose_name=_("Tolerance"),

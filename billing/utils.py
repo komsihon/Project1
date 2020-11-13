@@ -462,6 +462,7 @@ def generate_pdf_invoice(invoicing_config, invoice, template_name='billing/invoi
     context['customer'] = member
     context['customer_name'] = escape(member.get_full_name()).encode('ascii', 'xmlcharrefreplace')
     context['invoiced_to'] = escape(invoice.get_invoiced_to()).encode('ascii', 'xmlcharrefreplace')
+    context['invoice_status'] = escape(_(invoice.status)).encode('ascii', 'xmlcharrefreplace')
     config = weblet.config
     context['vendor'] = config
     context['vendor_address'] = escape(config.address).encode('ascii', 'xmlcharrefreplace')
@@ -471,13 +472,13 @@ def generate_pdf_invoice(invoicing_config, invoice, template_name='billing/invoi
         entry.short_description = escape(entry.short_description).encode('ascii', 'xmlcharrefreplace')
     if invoicing_config.logo.name and os.path.exists(MEDIA_ROOT + invoicing_config.logo.name):
         context['weblet_logo'] = MEDIA_ROOT + invoicing_config.logo.name
-    if os.path.exists(weblet.home_folder + '/stamp.png'):
-        context['stamp'] = weblet.home_folder + '/stamp.png'
-    media_root = CLUSTER_MEDIA_ROOT + weblet.project_name_slug
+    if os.path.exists(weblet.home_folder + '/stamp.jpg'):
+        context['stamp'] = weblet.home_folder + '/stamp.jpg'
+    media_root = CLUSTER_MEDIA_ROOT + weblet.project_name_slug + '/'
 
     invoice_tpl = get_template(template_name)
-    invoice_pdf_file = media_root + '/%s_Invoice_%s_%s.pdf' % (weblet.project_name_slug.upper(), invoice.number,
-                                                               invoice.date_issued.strftime("%Y-%m-%d"))
+    invoice_pdf_file = media_root + '%s_Invoice_%s_%s.pdf' % (weblet.project_name_slug.upper(), invoice.number,
+                                                              invoice.date_issued.strftime("%Y-%m-%d"))
     d = Context(context)
     xmlstring = invoice_tpl.render(d)
     pdfstr = trml2pdf.parseString(xmlstring)

@@ -39,7 +39,7 @@
                 <setFont name="Helvetica-Bold" size="40"/>
                 <!-- This set font-size for status in header -->
                 {% if invoice.status == 'Paid' %}
-                    <fill color="red" /><drawString x="420" y="730">{{ status }}</drawString>
+                    <fill color="red" /><drawString x="420" y="730">{{ invoice_status }}</drawString>
                 {% endif %}
 
                 <setFont name="Helvetica-Bold" size="9"/>

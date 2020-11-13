@@ -11,6 +11,7 @@
         #navbar {display: none}
         header#main {background: #f9f9f9; border-bottom: 1px solid #ddd; min-height: 90px; padding: 6px 15px 15px}
         header#main img {float: left; margin: 12px 15px 0 0}
+        .ic-logo {display: none}
         header#main .badge {background: #039B03; border-radius: 4px; color: #fff; float: right;
             font: bold 11px Arial; margin-right: 15px; padding: 3px 10px}
         header#main form div {line-height: 24px}
@@ -39,6 +40,13 @@
             .payment.entry .text-right {text-align: right}
             .payment.entry .clearfix {height: 20px}
             .details-header, #actions, footer, .footer, .payment.entry .visible-xs, .show-modal-cash-in, .payment-start {display: none !important}
+            {% if invoicing_config.logo.name %}
+                .symbol-logo, .vendor-name {display: none}
+                .ic-logo {display: block}  {# .ic-logo: Invoicing Config Logo #}
+            {% else %}
+                .symbol-logo, .vendor-name {display: block}
+                .ic-logo {display: none}
+            {% endif %}
         }
     </style>
 {% endblock %}
@@ -49,9 +57,12 @@
             <header id="main" class="row" data-amount="{{ invoice.amount }}" data-monthly-cost="{{ monthly_cost }}">
                 <div class="col-sm-4">
                     {% if vendor.logo.name %}
-                        <img src="{{ settings.IKWEN_MEDIA_URL }}{{ vendor.logo.name }}" height="100"/>
+                        <img class="symbol-logo" src="{{ settings.IKWEN_MEDIA_URL }}{{ vendor.logo.name }}" height="100"/>
                     {% endif %}
-                    <h2 class="pull-left">{{ vendor.company_name }}</h2>
+                    {% if invoicing_config.logo.name %}
+                        <img class="ic-logo" src="{{ settings.IKWEN_MEDIA_URL }}{{ invoicing_config.logo.name }}" height="100"/>
+                    {% endif %}
+                    <h2 class="vendor-name pull-left">{{ vendor.company_name }}</h2>
                 </div>
                 <div class="col-sm-8">
                     {% if invoice.status == 'Paid' %}
@@ -322,6 +333,7 @@
     {{ block.super }}
     <script type="text/javascript">
         (function() {
+            $('<input type="hidden" id="extra-months" name="extra_months">').appendTo('#payment-start-flow');
             $('#extensions').change(function() {
                 var extraMonths = $(this).val(),
                     invoiceAmount = $('#main').data('amount'),
