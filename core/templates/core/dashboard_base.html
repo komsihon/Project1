@@ -14,91 +14,93 @@
     {{ block.super }}
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
-        google.charts.load('current', {'packages': ['line', 'corechart']});
-        $(document).on('ready', () => {
-            google.charts.setOnLoadCallback(drawEarningsChart);
-            google.charts.setOnLoadCallback(drawTransactionsCountChart);
-            google.charts.setOnLoadCallback(drawARPTChart);  // AEPT: Average Revenue Per Transaction
-        });
-        $(window).resize('resize', () => {
-            google.charts.setOnLoadCallback(drawEarningsChart);
-            google.charts.setOnLoadCallback(drawTransactionsCountChart);
-            google.charts.setOnLoadCallback(drawARPTChart);  // AEPT: Average Revenue Per Transaction
-        });
+        (function() {
+            google.charts.load('current', {'packages': ['line', 'corechart']});
+            $(document).on('ready', () => {
+                google.charts.setOnLoadCallback(drawEarningsChart);
+                google.charts.setOnLoadCallback(drawTransactionsCountChart);
+                google.charts.setOnLoadCallback(drawARPTChart);  // AEPT: Average Revenue Per Transaction
+            });
+            $(window).resize('resize', () => {
+                google.charts.setOnLoadCallback(drawEarningsChart);
+                google.charts.setOnLoadCallback(drawTransactionsCountChart);
+                google.charts.setOnLoadCallback(drawARPTChart);  // AEPT: Average Revenue Per Transaction
+            });
 
-        let earningsHistoryCurrentMonth = {{ earnings_history|safe }},
-            earningsHistoryPreviousMonth = {{ earnings_history_previous_month|safe }},
-            transactionCountHistory = {{ transaction_count_history|safe }};
+            let earningsHistoryCurrentMonth = {{ earnings_history|safe }},
+                earningsHistoryPreviousMonth = {{ earnings_history_previous_month|safe }},
+                transactionCountHistory = {{ transaction_count_history|safe }};
 
 
-        function drawEarningsChart() {
-            let data = new google.visualization.DataTable(),
-            values = [];
-            data.addColumn('number', "{% trans 'Day' %}");
-            data.addColumn('number', "{% trans 'This month' %}");
-            data.addColumn('number', "{% trans 'Previous Month' %}");
+            function drawEarningsChart() {
+                let data = new google.visualization.DataTable(),
+                values = [];
+                data.addColumn('number', "{% trans 'Day' %}");
+                data.addColumn('number', "{% trans 'This month' %}");
+                data.addColumn('number', "{% trans 'Previous Month' %}");
 
-            for (let i=0; i<earningsHistoryCurrentMonth.length; i ++) {
-                values.push([i, earningsHistoryCurrentMonth[i], earningsHistoryPreviousMonth[i]]);
+                for (let i=0; i<earningsHistoryCurrentMonth.length; i ++) {
+                    values.push([i, earningsHistoryCurrentMonth[i], earningsHistoryPreviousMonth[i]]);
+                }
+                data.addRows(values);
+                let options = {
+                    title: "{% blocktrans with crncy_code=CRNCY.code %}Earnings ({{ crncy_code }}){% endblocktrans %}",
+                    hAxis: {title: ""},
+                    vAxis: {minValue: 0},
+                };
+                if ($(window).width() < 1200){
+                    options.legend = {position: 'none'};
+                }
+                if ($(window).width() < 768){
+                    options.explorer = {axis: 'horizontal'};
+                }
+                let chart = new google.charts.Line(document.getElementById('earnings-chart'));
+                chart.draw(data, google.charts.Line.convertOptions(options));
             }
-            data.addRows(values);
-            let options = {
-                title: "{% blocktrans with crncy_code=CRNCY.code %}Earnings ({{ crncy_code }}){% endblocktrans %}",
-                hAxis: {title: ""},
-                vAxis: {minValue: 0},
-            };
-            if ($(window).width() < 1200){
-                options.legend = {position: 'none'};
-            }
-            if ($(window).width() < 768){
-                options.explorer = {axis: 'horizontal'};
-            }
-            let chart = new google.charts.Line(document.getElementById('earnings-chart'));
-            chart.draw(data, google.charts.Line.convertOptions(options));
-        }
 
-        function drawTransactionsCountChart() {
-            let data = new google.visualization.DataTable(),
-            values = [];
-            data.addColumn('number', "{% trans 'Day' %}");
-            data.addColumn('number', "{% trans 'Transactions' %}");
+            function drawTransactionsCountChart() {
+                let data = new google.visualization.DataTable(),
+                values = [];
+                data.addColumn('number', "{% trans 'Day' %}");
+                data.addColumn('number', "{% trans 'Transactions' %}");
 
-            for (let i=0; i<transactionCountHistory.length; i ++) {
-                values.push([i, transactionCountHistory[i]]);
+                for (let i=0; i<transactionCountHistory.length; i ++) {
+                    values.push([i, transactionCountHistory[i]]);
+                }
+                data.addRows(values);
+                let options = {
+                    hAxis: {title: ""},
+                    vAxis: {minValue: 0},
+                    colors : ['rgb(255, 153, 0)'],
+                    legend: {position: 'none'},
+                    explorer: {axis: 'horizontal'}
+                };
+                let chart = new google.charts.Line(document.getElementById('transactions-count-chart'));
+                chart.draw(data, google.charts.Line.convertOptions(options));
             }
-            data.addRows(values);
-            let options = {
-                hAxis: {title: ""},
-                vAxis: {minValue: 0},
-                colors : ['rgb(255, 153, 0)'],
-                legend: {position: 'none'},
-                explorer: {axis: 'horizontal'}
-            };
-            let chart = new google.charts.Line(document.getElementById('transactions-count-chart'));
-            chart.draw(data, google.charts.Line.convertOptions(options));
-        }
 
-        function drawARPTChart(){
-            let data = new google.visualization.DataTable(),
-            values = [];
-            data.addColumn('number', "{% trans 'Day' %}");
-            data.addColumn('number', "{% trans 'AEPT' %}");
+            function drawARPTChart(){
+                let data = new google.visualization.DataTable(),
+                values = [];
+                data.addColumn('number', "{% trans 'Day' %}");
+                data.addColumn('number', "{% trans 'ARPT' %}");
 
-            for (let i=0; i<earningsHistoryCurrentMonth.length; i ++) {
-                let avg = earningsHistoryCurrentMonth[i]/transactionCountHistory[i];
-                values.push([i, Number(avg.toFixed(2))]);
+                for (let i=0; i<earningsHistoryCurrentMonth.length; i ++) {
+                    let avg = earningsHistoryCurrentMonth[i]/transactionCountHistory[i];
+                    values.push([i, Number(avg.toFixed(2))]);
+                }
+                data.addRows(values);
+                let options = {
+                    hAxis: {title: ""},
+                    vAxis: {minValue: 0},
+                    colors : ['rgb(153, 0, 153)'],
+                    legend: {position: 'none'},
+                    explorer: {axis: 'horizontal'}
+                };
+                let chart = new google.charts.Line(document.getElementById('arpt-chart'));
+                chart.draw(data, google.charts.Line.convertOptions(options));
             }
-            data.addRows(values);
-            let options = {
-                hAxis: {title: ""},
-                vAxis: {minValue: 0},
-                colors : ['rgb(153, 0, 153)'],
-                legend: {position: 'none'},
-                explorer: {axis: 'horizontal'}
-            };
-            let chart = new google.charts.Line(document.getElementById('arpt-chart'));
-            chart.draw(data, google.charts.Line.convertOptions(options));
-        }
+        })()
     </script>
 {% endblock %}
 
