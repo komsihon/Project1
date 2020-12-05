@@ -477,6 +477,13 @@ class InvoiceDetail(TemplateView):
             raise Http404("Invoice not found")
         if action == 'cash_in':
             return self.cash_in(invoice, request)
+        if action == 'generate_pdf':
+            from ikwen.billing.utils import generate_pdf_invoice
+            invoicing_config = get_invoicing_config_instance()
+            invoice_pdf_file = generate_pdf_invoice(invoicing_config, invoice)
+            media_root = getattr(settings, 'MEDIA_ROOT')
+            media_url = getattr(settings, 'MEDIA_URL')
+            return HttpResponseRedirect(invoice_pdf_file.replace(media_root, media_url))
         member = invoice.member
         if member and not member.is_ghost:
             if request.user.is_authenticated() and not request.user.is_staff:

@@ -38,11 +38,23 @@ UBA = 'uba'
 
 
 class OperatorProfile(AbstractConfig):
-    ikwen_share_rate = models.FloatField(_("ikwen share rate"), default=0,
-                                         help_text=_("Percentage ikwen collects on the turnover made by this person."))
-    ikwen_share_fixed = models.FloatField(_("ikwen share fixed"), default=0,
-                                          help_text=_("Fixed amount ikwen collects on the turnover made by this person."))
     max_customers = models.IntegerField(default=300)
+
+    def save(self, *args, **kwargs):
+        using = kwargs.pop('using', 'default')
+        if getattr(settings, 'IS_IKWEN', False):
+            db = self.service.database
+            add_database_to_settings(db)
+            try:
+                obj_mirror.ikwen_share_rate = self.ikwen_share_rate
+                obj_mirror.ikwen_share_fixed = self.ikwen_share_fixed
+                obj_mirror.max_customers = self.max_customers
+                obj_mirror.cash_out_min = self.cash_out_min
+                obj_mirror.cash_out_rate = self.cash_out_rate
+                super(OperatorProfile, obj_mirror).save(using=db)
+            except OperatorProfile.DoesNotExist:
+                pass
+        super(OperatorProfile, self).save(using=using, *args, **kwargs)
 
 
 class InvoicingConfig(models.Model):
@@ -524,25 +536,26 @@ class MoMoTransaction(Model):
     CASH_IN = 'CashIn'
     CASH_OUT = 'CashOut'
 
-    service_id = models.CharField(max_length=24)
-    type = models.CharField(max_length=24)
-    wallet = models.CharField(max_length=60, blank=True, null=True,
+    service_id = models.CharField(max_length=24, db_index=True)
+    type = models.CharField(max_length=24, db_index=True)
+    wallet = models.CharField(max_length=60, blank=True, null=True, db_index=True,
                               help_text="Wallet Provider Solution. Eg: MTN MoMo, Orange Money, etc.")
-    username = models.CharField(max_length=100, blank=True, null=True)
-    phone = models.CharField(max_length=24)
+    username = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    phone = models.CharField(max_length=24, db_index=True)
     amount = models.FloatField(default=0)
     fees = models.FloatField(default=0)  # Transaction fees
     dara_fees = models.FloatField(default=0)  # Dara fees
-    model = models.CharField(max_length=150)
-    object_id = models.CharField(unique=True, max_length=60)
-    processor_tx_id = models.CharField(max_length=100, blank=True,
+    dara_id = models.CharField(max_length=24, blank=True, null=True, db_index=True)
+    model = models.CharField(max_length=150, blank=True, null=True, db_index=True)
+    object_id = models.CharField(max_length=60, blank=True, null=True)
+    processor_tx_id = models.CharField(max_length=100, blank=True, db_index=True,
                                        help_text="ID of the transaction in the Payment Processor system")
-    task_id = models.CharField(max_length=30, blank=True, null=True,
+    task_id = models.CharField(max_length=60, blank=True, null=True, db_index=True,
                                help_text="Task ID (Payment Processor API)")
     callback = models.CharField(max_length=255, blank=True, null=True)
     message = models.TextField(blank=True, null=True)
-    is_running = models.BooleanField(default=True)
-    status = models.CharField(max_length=30, blank=True, null=True)
+    is_running = models.BooleanField(default=True, db_index=True)
+    status = models.CharField(max_length=30, blank=True, null=True, db_index=True)
 
     class Meta:
         db_table = 'ikwen_momo_transaction'

@@ -11,7 +11,8 @@ from ikwen.billing.invoicing.views import InvoiceList, InvoiceDetail, change_bil
     list_subscriptions, ProductList, ChangeProduct, SubscriptionList, ChangeSubscription, AdminInvoiceList, \
     Configuration, upload_subscription_file, PaymentList
 from ikwen.billing.public.views import Pricing, Donate
-from ikwen.billing.mtnmomo.open_api import init_momo_transaction, check_momo_transaction_status, process_notification
+from ikwen.billing.mtnmomo.open_api import process_notification as momo_process_notification
+from ikwen.billing.orangemoney.wso2_api import process_notification as om_process_notification
 from ikwen.billing.yup.views import yup_process_notification
 from ikwen.billing.uba.views import uba_process_approved, uba_process_declined_or_cancelled
 from ikwen.billing.collect import confirm_service_invoice_payment
@@ -47,11 +48,10 @@ urlpatterns = patterns(
         confirm_service_invoice_payment, name='confirm_service_invoice_payment'),
 
     url(r'^MoMo/setCheckout/$', MoMoSetCheckout.as_view(), name='momo_set_checkout'),
-    url(r'^MoMo/initTransaction/$', init_momo_transaction, name='init_momo_transaction'),
-    url(r'^MoMo/checkTransaction/$', check_momo_transaction_status, name='check_momo_transaction_status'),
 
-    url(r'^mtnmomo/notify$', process_notification, name='process_notification'),
-    url(r'^mtnmomo/notify/(?P<tx_id>[-\w]+)$', process_notification, name='process_notification'),
+    url(r'^mtnmomo/notify$', momo_process_notification, name='momo_process_notification'),
+    url(r'^mtnmomo/notify/(?P<tx_id>[-\w]+)$', momo_process_notification, name='momo_process_notification'),
+    url(r'^om/notify/(?P<tx_id>[-\w]+)$', om_process_notification, name='om_process_notification'),
     url(r'^yup/notify$', yup_process_notification, name='yup_notify'),
     url(r'^uba/notify_success$', uba_process_approved, name='uba_process_approved'),
     url(r'^uba/notify_declined$', uba_process_declined_or_cancelled, name='uba_process_declined'),

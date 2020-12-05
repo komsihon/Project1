@@ -14,7 +14,6 @@ from django.core.cache import cache
 from django.core.mail import EmailMessage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.http import Http404
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template import Context
@@ -59,7 +58,7 @@ class DefaultHome(TemplateView):
     Can be used to set at default Home page for applications that do
     not have a public part. This merely shows the company name, logo
     and slogan. This view can be used to create the url with the
-    name 'home' that MUST ABSOLUTELY EXIST in all Ikwen applications.
+    name 'home' that MUST ABSOLUTELY EXIST in all ikwen applications.
     """
     template_name = 'core/default_home.html'
 
@@ -483,7 +482,7 @@ class AdminHomeBase(TemplateView):
         context = super(AdminHomeBase, self).get_context_data(**kwargs)
         service = get_service_instance()
         try:
-            context['pending_invoice'] = Invoice.objects.using(UMBRELLA).get(subscription=service)
+            context['pending_invoice'] = Invoice.objects.using(UMBRELLA).exclude(subscription=service, status=Invoice.PAID)[0]
         except:
             pass
         return context

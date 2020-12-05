@@ -209,11 +209,14 @@
                     </form>
                     <div class="actions">
                         <div class="col-xs-12 col-sm-4 col-md-3 pull-right action">
-                            <button class="btn btn-success btn-block btn-sm ok"
-                                    data-dismiss="modal" aria-label="OK">OK</button>
+                            <button class="btn btn-success btn-block btn-md ok"
+                                    data-dismiss="modal" aria-label="OK">
+                                {% include 'core/snippets/button_spinner.html' %}
+                                <span>OK</span>
+                            </button>
                         </div>
                         <div class="col-xs-12 col-sm-4 col-md-3 pull-right action">
-                            <button class="btn btn-default btn-block btn-sm"
+                            <button class="btn btn-default btn-block btn-md"
                                     data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
                         </div>
                     </div>
@@ -272,7 +275,7 @@
                 $('#account-number').val('');
                 $('#recipient-name').val('');
             }).on('click', '.update-address', function() {
-                var addressId = $(this).data('id'),
+                let addressId = $(this).data('id'),
                     methodId = $(this).data('method-id'),
                     accountNumber = $(this).data('account-number'),
                     name = $(this).data('name');
@@ -283,25 +286,27 @@
                 $('#recipient-name').val(name);
                 $('#update-payment-address').modal("show");
             }).on('click', '.delete-address', function() {
-                var addressId = $(this).data('id');
+                let addressId = $(this).data('id');
                 $.getJSON('{% url 'cashout:manage_payment_address' %}', {action: 'delete', address_id: addressId}, function(resp) {
                     if (resp.success) {
                         $('#' + addressId).remove();
                     }
                 })
             });
-            $('#update-payment-address').on('click', 'button.ok', function() {
-                var action = 'update',
+            $('#update-payment-address').on('click', 'button.ok:not(.processing)', function() {
+                let _$btn = $(this),
                     addressId = $('#address-id').val(),
                     methodId = $('#payment-method').val(),
                     accountNumber = $('#account-number').val(),
-                    name = $('#recipient-name').val();
-                var params = {action: action, address_id: addressId,
-                    method_id: methodId, account_number: accountNumber, name: name};
+                    name = $('#recipient-name').val(),
+                    params = {action: 'update', address_id: addressId,
+                        method_id: methodId, account_number: accountNumber, name: name};
+                _$btn.addClass('processing')
                 $.getJSON('{% url 'cashout:manage_payment_address' %}', params, function(resp) {
+                    _$btn.removeClass('processing')
                     if (resp.address_id) {
                         $('#addresses .empty').hide();
-                        var methodImg = $('#payment-method option:selected').data('img'),
+                        let methodImg = $('#payment-method option:selected').data('img'),
                             $tplAddress;
                         if (addressId) $tplAddress = $('#' + resp.address_id);
                         else $tplAddress = $('.payment-address.tpl').clone().removeClass('tpl');
@@ -319,10 +324,10 @@
                 });
             });
             $('#confirm-cash-out').on('click', 'button.ok', function() {
-                var provider = $('#wallet-provider').val();
+                let provider = $('#wallet-provider').val();
                 $(this).hide();
                 $('#confirm-cash-out .spinner').show();
-                $.getJSON('{% url 'cashout:request_cash_out' %}', {'provider': provider}, function(resp) {
+                $.getJSON('{% url 'cashout:request_cash_out' %}', {provider: provider}, function(resp) {
                     if (resp.success) {
                         $('#show-addresses, #confirm-cash-out .spinner').hide();
                         $('#confirm-cash-out').modal('hide');

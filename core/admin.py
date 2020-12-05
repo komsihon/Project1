@@ -8,6 +8,8 @@ from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.http.response import HttpResponseForbidden
 from djangotoolbox.admin import admin
+from ikwen.accesscontrol.backends import ARCH_EMAIL
+
 from ikwen.core.utils import generate_icons, get_mail_content, get_service_instance, setup_pwa
 
 from ikwen.core.models import RETAIL_APP_SLUG, Module
@@ -65,11 +67,11 @@ class ApplicationAdmin(admin.ModelAdmin):
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ('project_name', 'app', 'member', 'monthly_cost', 'expiry', 'since', 'version', 'status', )
     list_select_related = ('app', 'member', )
-    raw_id_fields = ('member', )
+    raw_id_fields = ('member', 'retailer', )
     search_fields = ('project_name', )
     list_filter = ('app', 'version', 'expiry', 'since', 'status', 'is_public', 'is_pwa_ready',)
     ordering = ('-id', )
-    readonly_fields = ('retailer', 'since',
+    readonly_fields = ('since',
                        'total_turnover', 'total_earnings', 'total_transaction_earnings', 'total_custom_service_earnings',
                        'total_invoice_earnings', 'total_transaction_count', 'total_cash_out',
                        'total_invoice_count', 'total_custom_service_count', 'total_cash_out_count')
@@ -90,9 +92,18 @@ class ServiceAdmin(admin.ModelAdmin):
                 before = Service.objects.get(pk=obj.id)
             except Service.DoesNotExist:
                 before = None
+
+            service = get_service_instance()
+            if before and before.retailer != obj.retailer:
+                if request.user.email != ARCH_EMAIL:
+                    notice = "Attempt to change retailer of %s to %s by %s" % (obj, obj.retailer, request.user)
+                    messages.error(request, "Illegal operation")
+                    sender = '%s <no-reply@%s>' % (service.project_name, service.domain)
+                    msg = EmailMessage("Illegal retailer set on a Weblet", notice, sender, ['rsihon@gmail.com'])
+                    Thread(target=lambda m: m.send(), args=(msg,)).start()
+                    return
             super(ServiceAdmin, self).save_model(request, obj, form, change)
             if before and before.domain != obj.domain:
-                service = get_service_instance()
                 new_domain = obj.domain
                 obj.domain = before.domain
                 is_naked_domain = True if request.POST['domain_type'] == Service.MAIN else False

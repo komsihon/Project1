@@ -17,6 +17,7 @@ from PIL import Image
 from ajaxuploader.backends.local import LocalUploadBackend
 from django.conf import settings
 from django.contrib.admin import AdminSite
+from django.core.cache import cache
 from django.core.files import File
 from django.core.mail import EmailMessage
 from django.db import router
@@ -142,7 +143,12 @@ def get_service_instance(using='default', check_cache=True):
     """
     from ikwen.core.models import Service
     service_id = getattr(settings, 'IKWEN_SERVICE_ID')
-    return Service.objects.using(using).select_related('member', 'app').get(pk=service_id)
+    key = 'service:' + using
+    service = cache.get(key)
+    if not (check_cache and service):
+        service = Service.objects.using(using).select_related('member', 'app').get(pk=service_id)
+        cache.set(key, service, 3600)  # Cache service for 1 hour
+    return service
 
 
 def add_database_to_settings(db_info, engine='django_mongodb_engine'):

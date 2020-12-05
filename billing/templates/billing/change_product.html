@@ -1,5 +1,5 @@
-{% extends 'core/app_base_admin.html' %}
-{% load i18n humanize staticfiles auth_tokens %}
+{% extends 'core/change_object_base.html' %}
+{% load i18n humanize static auth_tokens %}
 
 {% block page_title %}
 <title> {% if obj %}{{ obj.name }}{% else %}{% trans "New product" %}{% endif %} - {{ service.project_name }} </title>
@@ -10,26 +10,36 @@
     <script src="//cdn.tinymce.com/4/tinymce.min.js"></script>
     <script>
         (function () {
-            var properties = {
-                selector: '#id_short_description',
+            let properties = {
                 menubar: false,
                 statusbar: false,
-                height: 150,
-                toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist',
                 plugins: [
                     'advlist autolink lists link image charmap print preview anchor',
                     'searchreplace visualblocks code fullscreen',
                     'insertdatetime media table contextmenu paste code'
                 ],
+                paste_data_images: true,
                 content_css: [
                     '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
                     '//www.tinymce.com/css/codepen.min.css'
                 ]
             };
+            let summaryProperties = properties, descriptionProperties = JSON.parse(JSON.stringify(properties));
+
+            summaryProperties['selector'] = '#id_short_description';
+            summaryProperties['height'] = 150;
+            summaryProperties['toolbar'] = 'undo redo | bold italic underline | bullist numlist outdent indent';
+
+            descriptionProperties['selector'] = '#id_details';
+            descriptionProperties['height'] = 300;
+            descriptionProperties['toolbar'] = 'undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table link image media code';
+            descriptionProperties['insert_button_items'] = 'charmap anchor insertdatetime';
             if ($(window).width() >= 768) {
-                properties['width'] = 450;
+                summaryProperties['width'] = 450;
+                descriptionProperties['width'] = 740
             }
-            tinymce.init(properties);
+            tinymce.init(summaryProperties);
+            tinymce.init(descriptionProperties);
         })()
     </script>
 {% endblock %}
@@ -62,7 +72,6 @@
 
 {% block js %}
     {{ block.super }}
-    <script src="{% static 'ikwen/ajaxuploader/js/fileuploader.js' %}"></script>
     <script type="text/javascript">
         (function() {
             $('div#admin-nav .subscription-plans').addClass('active');

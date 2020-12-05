@@ -29,18 +29,22 @@
             </div>
             <h3 style="text-align: center"> {% trans "Pay with" %} {{ payment_mean.name }} </h3>
             <p class="text-muted" style="text-align: center"> {% trans "Type your phone number and submit" %} </p>
-            <p class="momo-warning">{% blocktrans %}
-                Your phone number must be registered to
-                <a href="https://www.mtncameroon.net/en/mtn-mobile-money/" target="_blank">MTN Mobile Money</a> service{% endblocktrans %}
-            </p>
+            {% if payment_mean.slug == 'mtn-momo' %}
+                <p class="momo-warning">{% blocktrans %}
+                    Your phone number must be registered to
+                    <a href="https://www.mtncameroon.net/en/mtn-mobile-money/" target="_blank">MTN Mobile Money</a> service{% endblocktrans %}
+                </p>
+            {% endif %}
             <form onsubmit="return false">{% csrf_token %}
                 <div class="form-group" style="margin-top: .4em">
                     <label for="phone" class="sr-only">{% trans "Phone number" %}</label>
-                    <input id="phone" class="form-control input-sm" type="text" name="phone" value="{{ phone }}" />
+                    <input id="phone" class="form-control input-md" type="text" name="phone" value="{{ phone }}" />
                 </div>
                 <div class="form-group">
-                    <button id="do-pay" class="btn btn-primary btn-block btn-sm"> {% trans "Submit" %} </button>
-                    {% include 'core/snippets/spinner.html' %}
+                    <button id="do-pay" class="btn btn-primary btn-block btn-md">
+                        {% include 'core/snippets/button_spinner.html' %}
+                        <span>{% trans "Submit" %}</span>
+                    </button>
                 </div>
                 <div id="transaction-result" class="text-info"></div>
             </form>
@@ -56,33 +60,37 @@
     {{ block.super }}
     <script type="text/javascript">
         (function() {
-            var txId, checkerId;
-            $('#do-pay').click(function () {
-                var phone = $('#phone').val();
+            let txId, checkerId;
+            $('#do-pay:not(.processing)').click(function () {
+                let _$btn = $(this),
+                    phone = $('#phone').val();
                 if (phone.length !== 9 && phone.length !== 12) {
                     alert('Invalid phone number');
                     return;
                 }
-                if (!$(this).hasClass('btn-primary')) return;
-                $(this).removeClass('btn-primary').addClass('btn-default');
+                _$btn.addClass('processing');
                 $('#checkout .spinner').show();
                 $.ajax({
-                    url: '{% url 'billing:init_momo_transaction' %}',
-                    data: {phone: phone},
+                    url: '',
+                    data: {action: 'init', mean: '{{ payment_mean.slug }}', phone: phone},
                     error: function(req, status, error) {
-                        $('#checkout .spinner').hide();
+                        _$btn.removeClass('processing');
                         $('#transaction-result').removeClass('text-info').addClass('text-danger')
                                 .text(status + ": " + error);
-                        $('#do-pay').removeClass('btn-default').addClass('btn-primary');
                     },
                     success: function(data) {
+                        if (data.error) {
+                            $('#transaction-result').removeClass('text-info').addClass('text-danger')
+                                    .text(data.error);
+                            return
+                        }
                         $('#transaction-result').removeClass('text-danger').addClass('text-info')
                                 .text("{% trans "Good! Please confirm transaction on your phone." %}");
                         txId = data.tx_id;
                         {# Keep the transaction locally so that we can keep on cheking it even if page reloads #}
                         {# This is particularly useful for smartphones. They tend to reload pages when we reopen #}
                         {# the browser. #}
-                        var expires = (new Date()).getTime() + 300000;
+                        let expires = (new Date()).getTime() + 300000;
                         expires = new Date(expires);
                         ikwen.CookieUtil.set('txId', txId, expires);
                         setTimeout(startTransactionStatusChecker, 5000)
@@ -92,8 +100,8 @@
             function startTransactionStatusChecker() {
                 checkerId = setInterval(function() {
                     $.ajax({
-                        url: '{% url 'billing:check_momo_transaction_status' %}',
-                        data: {tx_id: txId},
+                        url: '',
+                        data: {action: 'check_tx_status', tx_id: txId},
                         error: function() {
                             $('#checkout .spinner').hide();
                             ikwen.CookieUtil.unset('txId');
@@ -108,7 +116,7 @@
                             ikwen.CookieUtil.unset('txId');
                             clearInterval(checkerId);
                             if (data.error) {
-                                var notice = data.error;
+                                let notice = data.error;
                                 if (data.message) notice += ': ' + data.message;
                                 $('#transaction-result').removeClass('text-info').addClass('text-danger').text(notice);
                                 $('#do-pay').removeClass('btn-default').addClass('btn-primary');
@@ -140,7 +148,7 @@
             }
             window.addEventListener("beforeunload", function (e) {
                 if (!ikwen.CookieUtil.get('txId')) return undefined;
-                var confirmation = "{% trans "You have a running transaction. Leaving now may cause it to fail." %}";
+                let confirmation = "{% trans "You have a running transaction. Leaving now may cause it to fail." %}";
                 (e || window.event).returnValue = confirmation; //Gecko + IE
                 return confirmation; //Gecko + Webkit, Safari, Chrome etc.
             });

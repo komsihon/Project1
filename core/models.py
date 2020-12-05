@@ -6,6 +6,7 @@ from threading import Thread
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.humanize.templatetags.humanize import naturaltime
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.db import models, router
 from django.db import transaction
@@ -361,6 +362,7 @@ class Service(models.Model):
             # If we are on Ikwen itself, replicate save or update on the current Service database
             add_database_to_settings(self.database)
             super(Service, self).save(using=self.database, *args, **kwargs)
+            cache.delete('%s:service' % self.project_name_slug)  # Remove from cache if found to force reload
             if not self.id:
                 # Upon creation of a Service object. Add the member who owns it in the
                 # Service's database as a staff, then increment operators_count for the Service.app
@@ -633,6 +635,10 @@ class AbstractConfig(Model):
                                      help_text=_("Code of your currency. Eg: <strong>USD, GBP, EUR, XAF,</strong> ..."))
     currency_symbol = models.CharField(max_length=5, default='XAF',
                                        help_text=_("Symbol of your currency, Eg: <strong>$, £, €, XAF</strong>."))
+    ikwen_share_rate = models.FloatField(_("ikwen share rate"), default=0,
+                                         help_text=_("Percentage ikwen collects on each payment."))
+    ikwen_share_fixed = models.FloatField(_("ikwen share fixed"), default=0,
+                                          help_text=_("Fixed amount ikwen collects on each payment."))
     cash_out_min = models.IntegerField(_("cash-out minimum"), blank=True, null=True,
                                        default=getattr(settings, 'CASH_OUT_MIN', 0),
                                        help_text="Minimum balance that allows cash out.")
@@ -763,6 +769,8 @@ class AbstractConfig(Model):
         config.contact_email = self.contact_email
         config.contact_phone = self.contact_phone
         config.cash_out_min = self.cash_out_min
+        config.ikwen_share_rate = self.ikwen_share_rate
+        config.ikwen_share_fixed = self.ikwen_share_fixed
         config.cash_out_rate = self.cash_out_rate
         config.currency_code = self.currency_code
         config.currency_symbol = self.currency_symbol

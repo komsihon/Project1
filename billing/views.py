@@ -20,6 +20,9 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import TemplateView
 
+from ikwen.billing.mtnmomo.open_api import init_momo_payment
+from ikwen.billing.orangemoney.wso2_api import init_om_payment
+
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
 from ikwen.billing.cloud_setup import DeploymentForm, deploy
@@ -158,7 +161,7 @@ class TransactionLog(HybridListView):
 
     def get_queryset(self):
         criteria = self.get_filter_criteria()
-        queryset = MoMoTransaction.objects.using('wallets')
+        queryset = MoMoTransaction.objects.using('wallets').filter(type=MoMoTransaction.CASH_OUT)
         return self.grab_transactions(queryset, **criteria)
 
     def grab_transactions(self, queryset, **criteria):
@@ -348,6 +351,44 @@ class MoMoSetCheckout(TemplateView):
         if member.is_authenticated():
             context['phone'] = member.phone
         return context
+
+    def get(self, request, *args, **kwargs):
+        action = request.GET.get('action')
+        mean = request.GET.get('mean')
+        if action == 'init':
+            if mean == MTN_MOMO:
+                return init_momo_payment(request)
+            elif mean == ORANGE_MONEY:
+                return init_om_payment(request)
+        elif action == 'check_tx_status':
+            return self.check_tx_status(request)
+        return super(MoMoSetCheckout, self).get(request, *args, **kwargs)
+
+    def check_tx_status(self, request, *args, **kwargs):
+        tx_id = request.GET['tx_id']
+        tx = MoMoTransaction.objects.using('wallets').get(pk=tx_id)
+
+        # When a MoMoTransaction is created, its status is None or empty string
+        # So perform a check first to make sure a status has been set
+        if tx.status:
+            if tx.status == MoMoTransaction.SUCCESS:
+                resp_dict = {'success': True, 'return_url': request.session['return_url']}
+                return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
+            resp_dict = {'error': tx.status, 'message': ''}
+            if getattr(settings, 'DEBUG', False):
+                resp_dict['message'] = tx.message
+            elif tx.status == MoMoTransaction.FAILURE:
+                resp_dict['message'] = 'Ooops! You may have refused authorization. Please try again.'
+            elif tx.status == MoMoTransaction.API_ERROR:
+                resp_dict['message'] = 'Your balance may be insufficient. Please check and try again.'
+            elif tx.status == MoMoTransaction.TIMEOUT:
+                resp_dict['message'] = 'MTN Server is taking too long to respond. Please try again later'
+            elif tx.status == MoMoTransaction.REQUEST_EXCEPTION:
+                resp_dict['message'] = 'Could not init transaction with MTN Server. Please try again later'
+            elif tx.status == MoMoTransaction.SERVER_ERROR:
+                resp_dict['message'] = 'Unknown server error. Please try again later'
+            return HttpResponse(json.dumps(resp_dict), 'content-type: text/json')
+        return HttpResponse(json.dumps({'running': True}), 'content-type: text/json')
 
     @method_decorator(sensitive_post_parameters())
     @method_decorator(csrf_protect)
