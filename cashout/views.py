@@ -52,15 +52,13 @@ def request_cash_out(request, *args, **kwargs):
                             'content-type: text/json')
     except CashOutRequest.DoesNotExist:
         pass
-    iao_profile = get_config_model().objects.using(UMBRELLA).select_related('service').get(service=weblet)
+    config = get_config_model().objects.using(UMBRELLA).select_related('service').get(service=weblet)
     wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=weblet.id, provider=provider)
     with transaction.atomic():
-        cashout_request = create_cashout_request(weblet=weblet, cashout_method=method, cashout_address=address)
-        if cashout_request.amount < iao_profile.cash_out_min:
-            response = {'error': 'Balance too low', 'cash_out_min': iao_profile.cash_out_min}
+        cashout_request = create_cashout_request(config=config, cashout_method=method, cashout_address=address)
+        if cashout_request.amount < config.cash_out_min:
+            response = {'error': 'Balance too low', 'cash_out_min': config.cash_out_min}
             return HttpResponse(json.dumps(response), 'content-type: text/json')
-        cashout_request.amount = cashout_request.amount * (100 - iao_profile.cash_out_rate) / 100
-        cashout_request.save(using='wallets')
         max_amount = get_max_amount(provider)  # Process max amount related things here
         if getattr(settings, 'DEBUG', False):
             if provider == MTN_MOMO:
@@ -78,7 +76,7 @@ def request_cash_out(request, *args, **kwargs):
                 logger.error("%s: %s" % (weblet.ikwen_name, notice), exc_info=True)
         if tx.status is None or tx.status == MoMoTransaction.SUCCESS:
             return HttpResponse(json.dumps({'success': True}), 'content-type: text/json')
-        return submit_cashout_request_for_manual_processing(weblet=weblet, wallet=wallet, iao_profile=iao_profile,
+        return submit_cashout_request_for_manual_processing(config=config, wallet=wallet,
                                                             cashout_request=cashout_request)
 
 

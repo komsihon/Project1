@@ -276,7 +276,7 @@ def process_notification(request, *args, **kwargs):
 def send_money(request, cashout_request):
     weblet = cashout_request.service
     username = weblet.member.username
-    amount = int(cashout_request.amount)
+    amount = int(cashout_request.amount * (100 - cashout_request.rate) / 100)
     phone = cashout_request.account_number
     payment_mean = PaymentMean.objects.using(UMBRELLA).get(slug=MTN_MOMO)
     callback = 'ikwen.cashout.utils.notify_cashout_and_reset_counters'

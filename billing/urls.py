@@ -15,7 +15,7 @@ from ikwen.billing.mtnmomo.open_api import process_notification as momo_process_
 from ikwen.billing.orangemoney.wso2_api import process_notification as om_process_notification
 from ikwen.billing.yup.views import yup_process_notification
 from ikwen.billing.uba.views import uba_process_approved, uba_process_declined_or_cancelled
-from ikwen.billing.collect import confirm_service_invoice_payment
+from ikwen.billing.collect import confirm_service_invoice_payment, product_do_checkout
 
 urlpatterns = patterns(
     '',
@@ -44,6 +44,7 @@ urlpatterns = patterns(
 
     url(r'^pricing/$', Pricing.as_view(), name='pricing'),
     url(r'^donate/$', Donate.as_view(), name='donate'),
+    url(r'^product_do_checkout/(?P<tx_id>[-\w]+)/(?P<signature>[-\w]+)$', product_do_checkout, name='product_do_checkout'),
     url(r'^confirm_service_invoice_payment/(?P<tx_id>[-\w]+)/(?P<signature>[-\w]+)/(?P<extra_months>[\d]+)$',
         confirm_service_invoice_payment, name='confirm_service_invoice_payment'),
 

@@ -67,6 +67,7 @@ class CashOutRequest(Model):
     # member = models.ForeignKey('accesscontrol.Member')
     member_id = models.CharField(max_length=24)
     amount = models.IntegerField(default=0)  # Amount requested by the IAO at the time of cash-out request
+    rate = models.IntegerField(default=0)  # Rate charged for this cashout
     amount_paid = models.IntegerField(default=0)  # Amount actually paid.
     paid_on = models.DateTimeField(blank=True, null=True)
     provider = models.CharField(max_length=60, editable=False,

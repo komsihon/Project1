@@ -293,8 +293,8 @@ def product_set_checkout(request, *args, **kwargs):
     tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS)\
         .create(service_id=service.id, type=MoMoTransaction.CASH_OUT, amount=amount, phone='N/A', model=model_name,
                 object_id=invoice.id, task_id=signature, wallet=mean, username=payer_id, is_running=True)
-    notification_url = reverse('billing:confirm_service_invoice_payment', args=(tx.id, signature))
-    cancel_url = reverse('billing:invoice_detail', args=(invoice.id, ))
+    notification_url = reverse('billing:product_do_checkout', args=(tx.id, signature))
+    cancel_url = request.META['HTTP_REFERER']
     return_url = reverse('billing:invoice_detail', args=(invoice.id, ))
     return amount, notification_url, return_url, cancel_url
 

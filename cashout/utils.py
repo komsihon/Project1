@@ -19,8 +19,9 @@ from ikwen.cashout.models import CashOutRequest, CashOutAddress, CashOutMethod
 from daraja.models import DARAJA, Dara
 
 
-def create_cashout_request(weblet, cashout_method, cashout_address):
+def create_cashout_request(config, cashout_method, cashout_address):
     now = datetime.now()
+    weblet = config.service
     provider = cashout_method.slug
     CashOutRequest.objects.using('wallets') \
         .filter(service_id=weblet.id, provider=provider, status=CashOutRequest.PAID).delete()
@@ -48,8 +49,10 @@ def create_cashout_request(weblet, cashout_method, cashout_address):
         aggr_fees = queryset.aggregate(Sum('fees'))
         aggr_dara_fees = queryset.aggregate(Sum('dara_fees'))
         amount_successful = aggr['amount__sum'] - aggr_fees['fees__sum'] - aggr_dara_fees['dara_fees__sum']
+
     cor = CashOutRequest(service_id=weblet.id, member_id=weblet.member.id, amount=amount_successful, paid_on=now,
-                         method=cashout_method.name, account_number=cashout_address.account_number, provider=provider)
+                         method=cashout_method.name, account_number=cashout_address.account_number, provider=provider,
+                         rate=weblet.cash_out_rate)
     return cor
 
 
@@ -71,7 +74,8 @@ def notify_cashout_and_reset_counters(request, transaction, *args, **kwargs):
     cashout_request = CashOutRequest.objects.using('wallets').get(pk=transaction.object_id)
     cashout_request.status = CashOutRequest.PAID
     cashout_request.reference = transaction.processor_tx_id
-    cashout_request.amount_paid = cashout_request.amount
+    charges = cashout_request.amount * cashout_request.rate / 100
+    cashout_request.amount_paid = cashout_request.amount * (100 - cashout_request.rate) / 100
     cashout_request.save()
     weblet = Service.objects.using(UMBRELLA).get(pk=transaction.service_id)
     wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=weblet.id, provider=transaction.wallet)
@@ -113,8 +117,9 @@ def notify_cashout_and_reset_counters(request, transaction, *args, **kwargs):
 
         subject = _("Money transfer confirmation")
         html_content = get_mail_content(subject, '', template_name='cashout/mails/payment_notice.html',
-                                        extra_context={'cash_out_request': cashout_request, 'weblet': weblet,
-                                                       'address': address, 'service': event_originator})
+                                        extra_context={'cash_out_request': cashout_request, 'charges': charges,
+                                                       'weblet': weblet, 'address': address,
+                                                       'service': event_originator})
         msg = XEmailMessage(subject, html_content, sender, [iao.email])
         msg.service = ikwen_service
         msg.bcc = ['rsihon@gmail.com', 'admin@ikwen.com']
@@ -132,12 +137,13 @@ def submit_cashout_request_for_manual_processing(**kwargs):
         cashout_request = CashOutRequest.objects.using('wallets').get(pk=tx.object_id)
         weblet = Service.objects.using(UMBRELLA).get(pk=tx.service_id)
         wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=weblet.id, provider=tx.wallet)
-        iao_profile = get_config_model().objects.using(UMBRELLA).get(service=weblet)
+        config = get_config_model().objects.using(UMBRELLA).get(service=weblet)
     else:
-        weblet = kwargs['weblet']
+        config = kwargs['config']
         wallet = kwargs['wallet']
         cashout_request = kwargs['cashout_request']
-        iao_profile = kwargs['iao_profile']
+        weblet = config.service
+    cashout_request.amount_payable = cashout_request.amount * (100 - cashout_request.rate) / 100
     iao = weblet.member
     if getattr(settings, 'TESTING', False):
         IKWEN_SERVICE_ID = getattr(settings, 'IKWEN_ID')
@@ -158,7 +164,7 @@ def submit_cashout_request_for_manual_processing(**kwargs):
     html_content = get_mail_content(subject, '', template_name='cashout/mails/request_notice.html',
                                     extra_context={'cash_out_request': cashout_request, 'weblet': weblet,
                                                    'service': vendor, 'config': vendor_config, 'iao': iao,
-                                                   'wallet': wallet, 'iao_profile': iao_profile})
+                                                   'wallet': wallet, 'iao_profile': config})
     msg = EmailMessage(subject, html_content, sender, [iao.email])
     msg.bcc = ['k.sihon@ikwen.com', 'contact@ikwen.com']
     msg.content_subtype = "html"

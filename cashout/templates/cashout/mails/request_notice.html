@@ -135,13 +135,13 @@
                                 {% endif %}
                                 {% if iao_profile.cash_out_rate %}
 								<tr style="-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;" >
-                                	<td width="70%" style="-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;mso-table-lspace:0pt !important;mso-table-rspace:0pt !important;" >{% trans "Cash out rate" %}</td>
+                                	<td width="70%" style="-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;mso-table-lspace:0pt !important;mso-table-rspace:0pt !important;" >{% trans "Charges" %}</td>
                                   	<td width="30%" style="-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;mso-table-lspace:0pt !important;mso-table-rspace:0pt !important;" >{{ iao_profile.cash_out_rate }}%</td>
                                 </tr>
 								<tr style="-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;" >
                                 	<td width="70%" style="-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;mso-table-lspace:0pt !important;mso-table-rspace:0pt !important;" >{% trans "Amount payable" %}</td>
                                   	<td width="30%" style="-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;mso-table-lspace:0pt !important;mso-table-rspace:0pt !important;" >
-                                        <strong>{{ cash_out_request.amount|intcomma }}</strong>
+                                        <strong>{{ cash_out_request.amount_payable|intcomma }}</strong>
                                     </td>
                                 </tr>
                                 {% endif %}
