@@ -565,6 +565,7 @@ class DateJoinedFilter(object):
 class DOBFilter(object):
     title = _('Birthday')
     parameter_name = 'dob'
+    is_date_filter = True
 
     def lookups(self):
         choices = [
@@ -574,6 +575,17 @@ class DOBFilter(object):
             ('__period__next_30_days', _("Next 30 days")),
         ]
         return choices
+
+    def get_member_list(self, queryset, start, end):
+        if end < start:  # Means we skipped over to a new year
+            member_qs1 = queryset.filter(birthday__range=(start, 1231))
+            member_id_list = [member.id for member in member_qs1]
+            member_qs2 = queryset.filter(birthday__range=(101, end))
+            member_id_list.extend([member.id for member in member_qs2])
+        else:
+            member_qs = queryset.filter(birthday__range=(start, end))
+            member_id_list = [member.id for member in member_qs]
+        return member_id_list
 
     def queryset(self, request, queryset):
         value = request.GET.get(self.parameter_name)
@@ -586,23 +598,29 @@ class DOBFilter(object):
         if value == 'today':
             birthday = int(now.strftime('%m%d'))
             member_qs = member_qs.filter(birthday=birthday)
+            member_id_list = [member.id for member in member_qs]
         elif value == 'tomorrow':
             target = now + timedelta(days=1)
             birthday = int(target.strftime('%m%d'))
             member_qs = member_qs.filter(birthday=birthday)
+            member_id_list = [member.id for member in member_qs]
         elif value == 'next_7_days':
             start = now + timedelta(days=1)
             end = now + timedelta(days=7)
             start = int(start.strftime('%m%d'))
             end = int(end.strftime('%m%d'))
-            member_qs = member_qs.filter(birthday__range=(start, end))
-        else:  # value == '__period__next_30_days'
+            member_id_list = self.get_member_list(member_qs, start, end)
+        elif value == '__period__next_30_days':
             start = now + timedelta(days=1)
             end = now + timedelta(days=30)
             start = int(start.strftime('%m%d'))
             end = int(end.strftime('%m%d'))
-            member_qs = member_qs.filter(birthday__range=(start, end))
-        member_id_list = [member.id for member in member_qs]
+            member_id_list = self.get_member_list(member_qs, start, end)
+        else:
+            start_date, end_date = value.split(',')
+            start = int(start_date[5:].replace('-', ''))
+            end = int(end_date[5:].replace('-', ''))
+            member_id_list = self.get_member_list(member_qs, start, end)
         queryset = queryset.filter(user_id__in=member_id_list)
         return queryset
 

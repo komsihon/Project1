@@ -10,6 +10,8 @@ from ikwen_webnode.webnode.views import Home
 
 urlpatterns = patterns(
     '',
+    url(r'^i18n/', include('django.conf.urls.i18n')),
+
     url(r'^$', Home.as_view(), name='home'),
     url(r'^kakocase/', include('ikwen_kakocase.kakocase.urls', namespace='kakocase')),
     # url(r'^shavida/', include('ikwen_shavida.shavida.urls', namespace='shavida')),

@@ -393,7 +393,7 @@ class DashboardBase(TemplateView):
     template_name = 'core/dashboard_base.html'
 
     transactions_count_title = _("Transactions")
-    transactions_avg_revenue_title = _('ARPT <i class="text-muted">Avg. Eearning Per Transaction</i>')
+    transactions_avg_revenue_title = _('AEPT <i class="text-muted">Avg Earning Per Transaction</i>')
 
     def get_service(self, **kwargs):
         return get_service_instance()
