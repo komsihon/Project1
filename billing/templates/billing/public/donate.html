@@ -66,7 +66,7 @@
         (function() {
             $('#show-payment-methods').click(function() {
                 $('.form-group.amount .errorlist').remove();
-                var $amount = $('#amount'),
+                let $amount = $('#payment-amount'),
                     amount = $amount.val().replace(/ /g, '');
                 $amount.val(amount);
                 if (amount && !/\d{2,}/.test(amount)) {
@@ -82,7 +82,7 @@
                 $('.om-instructions').show();
             });
             $('.payment-method .continue').click(function() {
-                var actionURL = $(this).data('action-url');
+                let actionURL = $(this).data('action-url');
                 $('form#checkout').attr('action', actionURL).submit();
             });
         })()
