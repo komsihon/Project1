@@ -64,18 +64,10 @@ def set_invoice_checkout(request, *args, **kwargs):
     if invoicing_config.processing_fees_on_customer:
         amount += config.ikwen_share_fixed
 
-    signature = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)])
-    model_name = 'billing.Invoice'
-    mean = request.GET.get('mean', MTN_MOMO)
-    payer_id = request.user.username if request.user.is_authenticated() else '<Anonymous>'
-    MoMoTransaction.objects.using(WALLETS_DB_ALIAS).filter(object_id=invoice_id).delete()
-    tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS)\
-        .create(service_id=service.id, type=MoMoTransaction.CASH_OUT, amount=amount, phone='N/A', model=model_name,
-                object_id=invoice_id, task_id=signature, wallet=mean, username=payer_id, is_running=True)
-    notification_url = reverse('billing:confirm_service_invoice_payment', args=(tx.id, signature, extra_months))
+    notification_url = reverse('billing:confirm_service_invoice_payment', args=(invoice_id, extra_months))
     cancel_url = reverse('billing:invoice_detail', args=(invoice_id, ))
     return_url = reverse('billing:invoice_detail', args=(invoice_id, ))
-    return amount, notification_url, return_url, cancel_url
+    return invoice, amount, notification_url, return_url, cancel_url
 
 
 @momo_gateway_callback
@@ -271,7 +263,6 @@ def confirm_invoice_payment(request, *args, **kwargs):
 
 @momo_gateway_request
 def product_set_checkout(request, *args, **kwargs):
-    service = get_service_instance()
     product_id = request.POST['product_id']
     product = Product.objects.get(pk=product_id)
     member = request.user
@@ -285,18 +276,10 @@ def product_set_checkout(request, *args, **kwargs):
     invoice = Invoice.objects.create(subscription=subscription, amount=product.cost, number=number, due_date=now,
                                      last_reminder=now, is_one_off=product.is_one_off, entries=[entry], months_count=months_count)
     amount = invoice.amount
-    signature = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)])
-    model_name = 'billing.Invoice'
-    mean = request.GET.get('mean', MTN_MOMO)
-    payer_id = request.user.username if request.user.is_authenticated() else '<Anonymous>'
-    MoMoTransaction.objects.using(WALLETS_DB_ALIAS).filter(object_id=invoice.id).delete()
-    tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS)\
-        .create(service_id=service.id, type=MoMoTransaction.CASH_OUT, amount=amount, phone='N/A', model=model_name,
-                object_id=invoice.id, task_id=signature, wallet=mean, username=payer_id, is_running=True)
-    notification_url = reverse('billing:product_do_checkout', args=(tx.id, signature))
+    notification_url = reverse('billing:product_do_checkout', args=(invoice.id, ))
     cancel_url = request.META['HTTP_REFERER']
     return_url = reverse('billing:invoice_detail', args=(invoice.id, ))
-    return amount, notification_url, return_url, cancel_url
+    return invoice, amount, notification_url, return_url, cancel_url
 
 
 @momo_gateway_callback
@@ -339,7 +322,6 @@ def product_do_checkout(request, *args, **kwargs):
 
 @momo_gateway_request
 def donation_set_checkout(request, *args, **kwargs):
-    service = get_service_instance()
     member = request.user
     amount = float(request.POST['amount'])
     message = request.POST.get('message')
@@ -347,17 +329,10 @@ def donation_set_checkout(request, *args, **kwargs):
         donation = Donation.objects.create(member=member, amount=amount, message=message)
     else:
         donation = Donation.objects.create(amount=amount, message=message)
-    signature = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)])
-    model_name = 'billing.Donation'
-    mean = request.GET.get('mean', MTN_MOMO)
-    payer_id = request.user.username if request.user.is_authenticated() else '<Anonymous>'
-    tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS) \
-        .create(service_id=service.id, type=MoMoTransaction.CASH_OUT, amount=amount, phone='N/A', model=model_name,
-                object_id=donation.id, task_id=signature, wallet=mean, username=payer_id, is_running=True)
-    notification_url = reverse('billing:confirm_service_invoice_payment', args=(tx.id, signature))
+    notification_url = reverse('billing:confirm_service_invoice_payment', args=(donation.id, ))
     cancel_url = reverse('billing:donate')
     return_url = reverse('billing:donate')
-    return amount, notification_url, return_url, cancel_url
+    return donation, amount, notification_url, return_url, cancel_url
 
 
 @momo_gateway_callback

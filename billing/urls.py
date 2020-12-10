@@ -44,8 +44,11 @@ urlpatterns = patterns(
 
     url(r'^pricing/$', Pricing.as_view(), name='pricing'),
     url(r'^donate/$', Donate.as_view(), name='donate'),
-    url(r'^product_do_checkout/(?P<tx_id>[-\w]+)/(?P<signature>[-\w]+)$', product_do_checkout, name='product_do_checkout'),
-    url(r'^confirm_service_invoice_payment/(?P<tx_id>[-\w]+)/(?P<signature>[-\w]+)/(?P<extra_months>[\d]+)$',
+    url(r'^product_do_checkout/(?P<object_id>[-\w]+)$', product_do_checkout, name='product_do_checkout'),
+    url(r'^product_do_checkout/(?P<object_id>[-\w]+)/(?P<signature>[-\w]+)$', product_do_checkout, name='product_do_checkout'),
+    url(r'^confirm_service_invoice_payment/(?P<object_id>[-\w]+)/(?P<extra_months>[\d]+)$',
+        confirm_service_invoice_payment, name='confirm_service_invoice_payment'),
+    url(r'^confirm_service_invoice_payment/(?P<object_id>[-\w]+)/(?P<extra_months>[\d]+)/(?P<signature>[-\w]+)$',
         confirm_service_invoice_payment, name='confirm_service_invoice_payment'),
 
     url(r'^MoMo/setCheckout/$', MoMoSetCheckout.as_view(), name='momo_set_checkout'),
