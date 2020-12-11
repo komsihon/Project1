@@ -329,7 +329,7 @@ def donation_set_checkout(request, *args, **kwargs):
         donation = Donation.objects.create(member=member, amount=amount, message=message)
     else:
         donation = Donation.objects.create(amount=amount, message=message)
-    notification_url = reverse('billing:confirm_service_invoice_payment', args=(donation.id, ))
+    notification_url = reverse('billing:donation_do_checkout', args=(donation.id, ))
     cancel_url = reverse('billing:donate')
     return_url = reverse('billing:donate')
     return donation, amount, notification_url, return_url, cancel_url

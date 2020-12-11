@@ -45,9 +45,9 @@
             {% endif %}
             <div class="col-xs-12 col-sm-4 col-lg-3" style="float: none; margin: auto">
                 <div class="form-group amount" style="margin-top: .4em">
-                    <label for="amount" class="sr-only">{% trans "Amount" %}</label>
-                    <input id="amount" class="form-control input-sm" type="text"
-                           name="amount" value="{{ amount }}" placeholder="1000" />
+                    <label for="donation-amount" class="sr-only">{% trans "Amount" %}</label>
+                    <input id="donation-amount" class="form-control input-sm" type="number"
+                           step="100" value="{{ amount }}" placeholder="1000" />
                 </div>
                 <div class="form-group">
                     <button id="show-payment-methods" class="btn btn-success btn-block btn-sm"
@@ -65,25 +65,8 @@
     <script type="text/javascript">
         (function() {
             $('#show-payment-methods').click(function() {
-                $('.form-group.amount .errorlist').remove();
-                let $amount = $('#payment-amount'),
-                    amount = $amount.val().replace(/ /g, '');
-                $amount.val(amount);
-                if (amount && !/\d{2,}/.test(amount)) {
-                    $('<ul class="errorlist amount">' +
-                        '<li>' + "{% trans "Please use digits only. (Eg. 1000)" %}" + '</li>' +
-                        '<li>' + "{% trans "Minimum is 10" %}" + '</li>' +
-                        '<ul>').insertAfter('#amount');
-                    return false
-                }
-                $('#donation-amount').val(amount)
-            });
-            $('.payment-method.om').click(function() {
-                $('.om-instructions').show();
-            });
-            $('.payment-method .continue').click(function() {
-                let actionURL = $(this).data('action-url');
-                $('form#checkout').attr('action', actionURL).submit();
+                let amount = $('#donation-amount').val();
+                $('#payment-amount').val(amount)
             });
         })()
     </script>
