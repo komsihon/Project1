@@ -248,20 +248,26 @@ def send_money(request, cashout_request):
     phone = cashout_request.account_number
     payment_mean = PaymentMean.objects.using(UMBRELLA).get(slug=ORANGE_MONEY)
     callback = 'ikwen.cashout.utils.notify_cashout_and_reset_counters'
-    om_credentials = json.loads(payment_mean.credentials)
     endpoint = _OM_API_URL + BASE_PATH + '/cashin/init'
-    headers = build_query_headers(payment_mean)
     if getattr(settings, 'DEBUG', False):
         amount = 1
-    r = requests.post(endpoint, headers=headers, verify=False)
-    resp = r.json()
-    pay_token = resp['data']['payToken']
     model_name = 'cashout.CashOutRequest'
-    with transaction.atomic(using='wallets'):
-        tx = MoMoTransaction.objects.using('wallets') \
-            .create(service_id=weblet.id, type=MoMoTransaction.CASH_IN, username=username, phone=phone,
-                    wallet=ORANGE_MONEY, amount=amount, task_id=pay_token, callback=callback,
-                    model=model_name, object_id=cashout_request.id)
+    tx = MoMoTransaction(service_id=weblet.id, type=MoMoTransaction.CASH_IN, username=username, phone=phone,
+                         wallet=ORANGE_MONEY, amount=amount, callback=callback, model=model_name,
+                         object_id=cashout_request.id)
+    try:
+        generate_access_token(payment_mean)
+        headers = build_query_headers(payment_mean)
+        r = requests.post(endpoint, headers=headers, verify=False)
+        resp = r.json()
+        pay_token = resp['data']['payToken']
+        with transaction.atomic(using='wallets'):
+            tx.task_id = pay_token
+            tx.save(using='wallets')
+    except:
+        tx.status = MoMoTransaction.SERVER_ERROR
+        return tx
+    om_credentials = json.loads(payment_mean.credentials)
     phone = slugify(phone).replace('-', '')
     data = {
         'subscriberMsisdn': phone,

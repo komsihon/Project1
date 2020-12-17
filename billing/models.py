@@ -46,6 +46,7 @@ class OperatorProfile(AbstractConfig):
             db = self.service.database
             add_database_to_settings(db)
             try:
+                obj_mirror = OperatorProfile.objects.using(db).get(pk=self.id)
                 obj_mirror.ikwen_share_rate = self.ikwen_share_rate
                 obj_mirror.ikwen_share_fixed = self.ikwen_share_fixed
                 obj_mirror.max_customers = self.max_customers

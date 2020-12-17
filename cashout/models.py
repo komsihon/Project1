@@ -106,3 +106,7 @@ class CashOutRequest(Model):
         except Member.DoesNotExist:
             pass
     teller = property(_get_teller)
+
+    def _get_amount_payable(self):
+        return int(self.amount * (100 - self.rate) / 100)
+    amount_payable = property(_get_amount_payable)

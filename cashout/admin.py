@@ -27,7 +27,7 @@ class CashOutMethodAdmin(admin.ModelAdmin):
 
 
 class CashOutRequestAdmin(admin.ModelAdmin):
-    list_display = ('service', 'member', 'amount', 'method', 'account_number', 'created_on', 'status', 'teller', )
+    list_display = ('service', 'member', 'amount_payable', 'method', 'account_number', 'created_on', 'status', 'teller', )
     search_fields = ('name', 'teller_username', )
     list_filter = ('created_on', )
     ordering = ('-id', )

@@ -59,6 +59,7 @@ def request_cash_out(request, *args, **kwargs):
         if cashout_request.amount < config.cash_out_min:
             response = {'error': 'Balance too low', 'cash_out_min': config.cash_out_min}
             return HttpResponse(json.dumps(response), 'content-type: text/json')
+        cashout_request.save(using='wallets')
         max_amount = get_max_amount(provider)  # Process max amount related things here
         if getattr(settings, 'DEBUG', False):
             if provider == MTN_MOMO:

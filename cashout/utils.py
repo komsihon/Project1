@@ -52,7 +52,7 @@ def create_cashout_request(config, cashout_method, cashout_address):
 
     cor = CashOutRequest(service_id=weblet.id, member_id=weblet.member.id, amount=amount_successful, paid_on=now,
                          method=cashout_method.name, account_number=cashout_address.account_number, provider=provider,
-                         rate=weblet.cash_out_rate)
+                         rate=config.cash_out_rate)
     return cor
 
 
@@ -143,7 +143,6 @@ def submit_cashout_request_for_manual_processing(**kwargs):
         wallet = kwargs['wallet']
         cashout_request = kwargs['cashout_request']
         weblet = config.service
-    cashout_request.amount_payable = cashout_request.amount * (100 - cashout_request.rate) / 100
     iao = weblet.member
     if getattr(settings, 'TESTING', False):
         IKWEN_SERVICE_ID = getattr(settings, 'IKWEN_ID')
