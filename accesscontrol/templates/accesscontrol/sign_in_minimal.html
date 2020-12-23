@@ -319,6 +319,7 @@
                             $('#content').removeClass('init');
                             $('#password').focus();
                             if (username.isValidEmail()) {
+                                {% url 'ikwen:forgotten_password' as forgotten_password_url %}
                                 $('.forgotten-pwd').prop('href', '{{ forgotten_password_url|ikwenize }}' + '?' + 'username=' + username);
                             }
                         } else {

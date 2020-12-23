@@ -259,7 +259,7 @@ class EmailConfirmationPrompt(TemplateView):
             html_content = get_mail_content(subject, service=ikwen_service, template_name=template_name,
                                             extra_context={'confirmation_url': confirmation_url,
                                                            'member_name': member.first_name, 'next_url': next_url})
-            sender = 'ikwen <no-reply@ikwen.com>'
+            sender = '%s <no-reply@%s.com>' % (ikwen_service.project_name, ikwen_service.domain)
             msg = EmailMessage(subject, html_content, sender, [member.email])
             msg.content_subtype = "html"
             Thread(target=lambda m: m.send(), args=(msg,)).start()

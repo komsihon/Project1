@@ -73,9 +73,9 @@
                 altField: "#end-alt",
                 altFormat: "yy-mm-dd"
             });
-            var period = 'today';  // Initial period is today
+            let period = 'today';  // Initial period is today
             $('.filter-trigger .period select').change(function() {
-                var val = $(this).val(),
+                let val = $(this).val(),
                     target = $(this).attr('id');
                 if (val === 'other') {
                     $('#period-chooser').data('target', target).modal('show');
@@ -86,15 +86,15 @@
                 $('#period').val(period);
             });
             $('.confirm-period').click(function() {
-                var target = $('#period-chooser').data('target'),
+                let target = $('#period-chooser').data('target'),
                     start = $('#start-date').val(),
                     end = $('#end-date').val();
                 if (start && end) {
-                    var value = '__period__' + $('#start-alt').val() + ',' + $('#end-alt').val(),
+                    let value = '__period__' + $('#start-alt').val() + ',' + $('#end-alt').val(),
                         $option = $('<option value="' + value + '">' + start + ' to ' + end + '</option>'),
                         $target = $('#' + target);
                     if ($target.find('optgroup').length === 0) {
-                        var $optgroup = $('<optgroup label="-------"></optgroup>');
+                        let $optgroup = $('<optgroup label="-------"></optgroup>');
                         $target.append($optgroup);
                     }
                     $target.find('optgroup').append($option).val(value).change();

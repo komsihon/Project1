@@ -489,6 +489,13 @@ class Payment(AbstractPayment):
                 super(Payment, self).save(using=db)
         super(Payment, self).save(using=using, *args, **kwargs)
 
+    def _get_transaction(self):
+        try:
+            return MoMoTransaction.objects.using('wallets').get(processor_tx_id=self.processor_tx_id)
+        except:
+            pass
+    transaction = property(_get_transaction)
+
 
 class PaymentMean(Model):
     name = models.CharField(max_length=100)

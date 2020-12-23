@@ -55,7 +55,7 @@
     <div id="content" class="container">
         <div class="subtle-shade" style="background: #fff; border-radius: 6px; overflow: hidden">
             <header id="main" class="row" data-amount="{{ invoice.amount }}" data-monthly-cost="{{ monthly_cost }}">
-                <div class="col-sm-4">
+                <div class="col-sm-8">
                     {% if vendor.logo.name %}
                         <img class="symbol-logo" src="{{ settings.IKWEN_MEDIA_URL }}{{ vendor.logo.name }}" height="100"/>
                     {% endif %}
@@ -64,7 +64,7 @@
                     {% endif %}
                     <h2 class="vendor-name pull-left">{{ vendor.company_name }}</h2>
                 </div>
-                <div class="col-sm-8">
+                <div class="col-sm-4">
                     {% if invoice.status == 'Paid' %}
                         <div class="badge">{% trans "Paid" %}</div>
                     {% elif perms.billing.ik_cash_in %}
@@ -240,7 +240,13 @@
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="pull-left visible-xs">{% trans "Method" %}</div>
-                                    <div class="val">{{ payment.method }}</div>
+                                    <div class="val">{% with tx=payment.transaction %}
+                                        {% if tx %}
+                                            {{ tx.wallet_name }}
+                                        {% else %}
+                                            {{ payment.method }}
+                                        {% endif %}
+                                    {% endwith %}</div>
                                     <div class="clearfix"></div>
                                 </div>
                                 <div class="col-sm-3">
@@ -299,7 +305,7 @@
         </div>
     </div>
     {% with payment_conf='invoice_payment' %}
-        {% include 'billing/snippets/modal_payment_options_2_steps_om.html' %}
+        {% include 'billing/snippets/modal_payment_options.html' %}
     {% endwith %}
     {% if perms.billing.ik_cash_in %}
         <div class="modal fade" id="modal-cash-in" tabindex="-1" role="dialog">

@@ -239,9 +239,13 @@
                     </para>
                 </td>
                 <td>
-                    <para>
-                        {{ payment.method }}
-                    </para>
+                    <para>{% with tx=payment.transaction %}
+                        {% if tx %}
+                            {{ tx.wallet_name }}
+                        {% else %}
+                            {{ payment.method }}
+                        {% endif %}
+                    {% endwith %}</para>
                 </td>
                 <td>
                     <para>
