@@ -465,6 +465,7 @@ def generate_pdf_invoice(invoicing_config, invoice, template_name='billing/invoi
             pass
     member = invoice.member
     context['customer'] = member
+    context['payment_list'] = invoice.payment_set.filter(processor_tx_id__isnull=False)
     context['customer_name'] = escape(member.get_full_name()).encode('ascii', 'xmlcharrefreplace')
     context['invoiced_to'] = escape(invoice.get_invoiced_to()).encode('ascii', 'xmlcharrefreplace')
     context['invoice_status'] = escape(_(invoice.status)).encode('ascii', 'xmlcharrefreplace')

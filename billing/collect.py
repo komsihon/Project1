@@ -61,19 +61,20 @@ def set_invoice_checkout(request, *args, **kwargs):
     except:
         amount_paid = 0
     amount = invoice.amount - amount_paid
-    if amount > MOMO_MAX_AMOUNT:
-        amount = MOMO_MAX_AMOUNT
-    if invoice.amount % 50 > 0:
-        amount = (invoice.amount / 50 + 1) * 50  # Mobile Money Payment support only multiples of 50
     if extra_months:
         amount += invoice.service.monthly_cost * extra_months
     if invoicing_config.processing_fees_on_customer:
         amount += config.ikwen_share_fixed
+    if amount > MOMO_MAX_AMOUNT:
+        amount = MOMO_MAX_AMOUNT
+    if amount % 50 > 0:
+        amount = (amount / 50 + 1) * 50  # Mobile Money Payment support only multiples of 50
 
-    notification_url = reverse('billing:confirm_service_invoice_payment', args=(invoice_id, extra_months))
+    payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY, amount=amount)
+    notification_url = reverse('billing:confirm_service_invoice_payment', args=(payment.id, extra_months))
     cancel_url = reverse('billing:invoice_detail', args=(invoice_id, ))
     return_url = reverse('billing:invoice_detail', args=(invoice_id, ))
-    return invoice, amount, notification_url, return_url, cancel_url
+    return payment, amount, notification_url, return_url, cancel_url
 
 
 @momo_gateway_callback
@@ -83,16 +84,16 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
     """
     tx = kwargs['tx']  # Decoration with @momo_gateway_callback makes 'tx' available in kwargs
     extra_months = int(kwargs['extra_months'])
-    invoice_id = tx.object_id
+    payment = Payment.objects.select_related().get(pk=tx.object_id)
+    payment.processor_tx_id = tx.processor_tx_id
+    payment.save()
+    invoice = payment.invoice
     now = datetime.now()
     ikwen_service = get_service_instance()
-    invoice = Invoice.objects.get(pk=invoice_id)
     invoice.paid += tx.amount
     if invoice.paid >= invoice.amount:
         invoice.status = Invoice.PAID
     invoice.save()
-    payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY,
-                                     amount=tx.amount, processor_tx_id=tx.processor_tx_id)
     service = invoice.service
     total_months = invoice.months_count + extra_months
     days = get_days_count(total_months)

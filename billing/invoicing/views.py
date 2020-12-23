@@ -333,6 +333,7 @@ class InvoiceDetail(TemplateView):
                         subscription.member = member
                         subscription.save()
         context['invoice'] = invoice
+        context['payment_list'] = invoice.payment_set.filter(processor_tx_id__isnull=False)
         if not invoice.entries:
             if product and product.short_description:
                 details = product.short_description
@@ -406,7 +407,8 @@ class InvoiceDetail(TemplateView):
         except ValueError:
             return HttpResponse(json.dumps({'error': "Invalid amount"}))
         member = invoice.member
-        payment = Payment.objects.create(invoice=invoice, amount=amount, method=Payment.CASH, cashier=request.user)
+        payment = Payment.objects.create(invoice=invoice, amount=amount, method=Payment.CASH, cashier=request.user,
+                                         processor_tx_id='---')
         response = {'success': True, 'payment': payment.to_dict()}
         try:
             aggr = Payment.objects.filter(invoice=invoice).aggregate(Sum('amount'))

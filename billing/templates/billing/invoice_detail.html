@@ -230,45 +230,37 @@
                         <div class="col-sm-3 text-right">{% trans "Amount" %}</div>
                         <div class="clearfix"></div>
                     </div>
-                    {% if invoice.payment_set.all|length > 0 %}
-                        {% for payment in invoice.payment_set.all %}
-                            <div class="payment entry">
-                                <div class="col-sm-3">
-                                    <div class="pull-left visible-xs">{% trans "Date" %}</div>
-                                    <div class="val">{{ payment.created_on|date }}</div>
-                                    <div class="clearfix"></div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="pull-left visible-xs">{% trans "Method" %}</div>
-                                    <div class="val">{% with tx=payment.transaction %}
-                                        {% if tx %}
-                                            {{ tx.wallet_name }}
-                                        {% else %}
-                                            {{ payment.method }}
-                                        {% endif %}
-                                    {% endwith %}</div>
-                                    <div class="clearfix"></div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="pull-left visible-xs">{% trans "ID" %}</div>
-                                    <div class="val">
-                                        {% if payment.processor_tx_id %}
-                                            {{ payment.processor_tx_id }}
-                                        {% else %}
-                                            {{ payment.id }}
-                                        {% endif %}
-                                    </div>
-                                    <div class="clearfix"></div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="pull-left visible-xs">{% trans "Amount" %}</div>
-                                    <div class="val text-right">{{ currency_symbol }} {{ payment.amount|intcomma }}</div>
-                                    <div class="clearfix"></div>
-                                </div>
+                    {% for payment in payment_list %}
+                        <div class="payment entry">
+                            <div class="col-sm-3">
+                                <div class="pull-left visible-xs">{% trans "Date" %}</div>
+                                <div class="val">{{ payment.created_on|date }}</div>
                                 <div class="clearfix"></div>
                             </div>
-                        {% endfor %}
-                    {% endif %}
+                            <div class="col-sm-3">
+                                <div class="pull-left visible-xs">{% trans "Method" %}</div>
+                                <div class="val">{% with tx=payment.transaction %}
+                                    {% if tx %}
+                                        {{ tx.wallet_name }}
+                                    {% else %}
+                                        {{ payment.method }}
+                                    {% endif %}
+                                {% endwith %}</div>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="pull-left visible-xs">{% trans "ID" %}</div>
+                                <div class="val">{{ payment.processor_tx_id }}</div>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="pull-left visible-xs">{% trans "Amount" %}</div>
+                                <div class="val text-right">{{ currency_symbol }} {{ payment.amount|intcomma }}</div>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                    {% endfor %}
                     <div class="payment entry tpl">
                         <div class="col-sm-3">
                             <div class="pull-left visible-xs">{% trans "Date" %}</div>

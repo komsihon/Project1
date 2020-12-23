@@ -230,7 +230,7 @@
                 </td>
             </tr>
         </blockTable>
-        {% for payment in invoice.payment_set.all %}
+        {% for payment in payment_list %}
         <blockTable style="payment_label" rowHeights="1.2cm" colWidths="5cm, 4.5cm, 4.3cm, 6cm">
             <tr>
                 <td>
@@ -248,13 +248,7 @@
                     {% endwith %}</para>
                 </td>
                 <td>
-                    <para>
-                        {% if payment.processor_tx_id %}
-                            {{ payment.processor_tx_id }}
-                        {% else %}
-                            {{ payment.id }}
-                        {% endif %}
-                    </para>
+                    <para>{{ payment.processor_tx_id }}</para>
                 </td>
                 <td>
                     <para style="text_right">
