@@ -333,6 +333,7 @@ class InvoiceDetail(TemplateView):
                         subscription.member = member
                         subscription.save()
         context['invoice'] = invoice
+        context['payment_list'] = invoice.payment_set.filter(processor_tx_id__isnull=False)
         if not invoice.entries:
             if product and product.short_description:
                 details = product.short_description
@@ -364,7 +365,8 @@ class InvoiceDetail(TemplateView):
         # Below are a list of possible extension dates on a year
         # TODO: Manage extensions for case where Product is bound to a duration (billing cycle)
         if not invoice.is_one_off:
-            expiry = invoice.subscription.expiry
+            now = datetime.now()
+            expiry = max(invoice.subscription.expiry, now.date())
             exp_year = expiry.year
             exp_month = expiry.month
             exp_day = expiry.day
@@ -405,7 +407,8 @@ class InvoiceDetail(TemplateView):
         except ValueError:
             return HttpResponse(json.dumps({'error': "Invalid amount"}))
         member = invoice.member
-        payment = Payment.objects.create(invoice=invoice, amount=amount, method=Payment.CASH, cashier=request.user)
+        payment = Payment.objects.create(invoice=invoice, amount=amount, method=Payment.CASH, cashier=request.user,
+                                         processor_tx_id='---')
         response = {'success': True, 'payment': payment.to_dict()}
         try:
             aggr = Payment.objects.filter(invoice=invoice).aggregate(Sum('amount'))
@@ -476,6 +479,13 @@ class InvoiceDetail(TemplateView):
             raise Http404("Invoice not found")
         if action == 'cash_in':
             return self.cash_in(invoice, request)
+        if action == 'generate_pdf':
+            from ikwen.billing.utils import generate_pdf_invoice
+            invoicing_config = get_invoicing_config_instance()
+            invoice_pdf_file = generate_pdf_invoice(invoicing_config, invoice)
+            media_root = getattr(settings, 'MEDIA_ROOT')
+            media_url = getattr(settings, 'MEDIA_URL')
+            return HttpResponseRedirect(invoice_pdf_file.replace(media_root, media_url))
         member = invoice.member
         if member and not member.is_ghost:
             if request.user.is_authenticated() and not request.user.is_staff:

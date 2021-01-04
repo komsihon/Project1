@@ -239,10 +239,10 @@
                             .insertAfter('#username');
                     return false
                 }
-                if (username.length >= 3 && /[a-z]{1}/.test(username.substr(0, 1))) return true;
+                if (username.length >= 3 && (/[a-z]{1}/.test(username.substr(0, 1)) || /\d{9,}/.test(username))) return true;
                 $('<ul class="errorlist username">' +
                     '<li>' + "{% trans "Please use at least 3 characters." %}" + '</li>' +
-                    '<li>' + "{% trans "Start with a letter." %}" + '</li>' +
+                    '<li>' + "{% trans "Start with a letter or use a valid phone number." %}" + '</li>' +
                     '</ul>').insertAfter('#username');
                 return false;
             }
@@ -319,6 +319,7 @@
                             $('#content').removeClass('init');
                             $('#password').focus();
                             if (username.isValidEmail()) {
+                                {% url 'ikwen:forgotten_password' as forgotten_password_url %}
                                 $('.forgotten-pwd').prop('href', '{{ forgotten_password_url|ikwenize }}' + '?' + 'username=' + username);
                             }
                         } else {

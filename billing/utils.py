@@ -14,9 +14,9 @@ from django.template.loader import get_template
 from requests.exceptions import SSLError, Timeout, RequestException
 
 from django.conf import settings
-from django.db import transaction
+from django.db import transaction as db_transaction
 from django.db.models import get_model
-from django.utils.translation import gettext as _, activate
+from django.utils.translation import ugettext as _, activate
 from trml2pdf import trml2pdf
 
 from ikwen.accesscontrol.backends import UMBRELLA
@@ -25,7 +25,7 @@ from ikwen.core.models import Service, OperatorWallet
 from ikwen.core.utils import get_service_instance, get_mail_content, XEmailMessage
 from ikwen.core.utils import set_counters, increment_history_field, add_database_to_settings
 from ikwen.partnership.models import ApplicationRetailConfig
-from daraja.models import DARAJA, DarajaConfig
+from daraja.models import DARAJA, DarajaConfig, Dara
 
 logger = logging.getLogger('ikwen')
 
@@ -438,17 +438,22 @@ def get_payment_confirmation_message(payment, member):
 
 def generate_pdf_invoice(invoicing_config, invoice, template_name='billing/invoice.rml.html'):
     from ikwen.conf.settings import CLUSTER_MEDIA_ROOT, MEDIA_ROOT
+    vendor_weblet = get_service_instance()
     context = {
-        'invoice': invoice,
-        'IKWEN_MEDIA_ROOT': MEDIA_ROOT
+        'invoice': invoice, 'IKWEN_MEDIA_ROOT': MEDIA_ROOT,
+        # LABELS
+        'lbl_invoiced_to': _('Invoiced To').encode('ascii', 'xmlcharrefreplace'),
+        'lbl_date_issued': _('Date issued').encode('ascii', 'xmlcharrefreplace'),
+        'lbl_due_date': _('Due date').encode('ascii', 'xmlcharrefreplace'),
+        'lbl_qty': _('Quantity').encode('ascii', 'xmlcharrefreplace'),
+        'lbl_method': _('Method').encode('ascii', 'xmlcharrefreplace')
     }
-    weblet = get_service_instance()
     if getattr(settings, 'IS_IKWEN', False):
         try:
             invoice_service = invoice.service
             retailer = invoice_service.retailer
-            if retailer:
-                weblet = retailer
+            if retailer and retailer.app.slug != DARAJA:
+                vendor_weblet = retailer
             iw_config = invoice_service.config  # iw stands for invoice weblet
             context['customer_config'] = iw_config
             context['company_name'] = escape(iw_config.company_name).encode('ascii', 'xmlcharrefreplace')
@@ -460,9 +465,11 @@ def generate_pdf_invoice(invoicing_config, invoice, template_name='billing/invoi
             pass
     member = invoice.member
     context['customer'] = member
+    context['payment_list'] = invoice.payment_set.filter(processor_tx_id__isnull=False)
     context['customer_name'] = escape(member.get_full_name()).encode('ascii', 'xmlcharrefreplace')
     context['invoiced_to'] = escape(invoice.get_invoiced_to()).encode('ascii', 'xmlcharrefreplace')
-    config = weblet.config
+    context['invoice_status'] = escape(_(invoice.status)).encode('ascii', 'xmlcharrefreplace')
+    config = vendor_weblet.config
     context['vendor'] = config
     context['vendor_address'] = escape(config.address).encode('ascii', 'xmlcharrefreplace')
     context['vendor_name'] = escape(config.company_name).encode('ascii', 'xmlcharrefreplace')
@@ -471,15 +478,16 @@ def generate_pdf_invoice(invoicing_config, invoice, template_name='billing/invoi
         entry.short_description = escape(entry.short_description).encode('ascii', 'xmlcharrefreplace')
     if invoicing_config.logo.name and os.path.exists(MEDIA_ROOT + invoicing_config.logo.name):
         context['weblet_logo'] = MEDIA_ROOT + invoicing_config.logo.name
-    if os.path.exists(weblet.home_folder + '/stamp.png'):
-        context['stamp'] = weblet.home_folder + '/stamp.png'
-    media_root = CLUSTER_MEDIA_ROOT + weblet.project_name_slug
+    if os.path.exists(vendor_weblet.home_folder + '/stamp.jpg'):
+        context['stamp'] = vendor_weblet.home_folder + '/stamp.jpg'
+    media_root = CLUSTER_MEDIA_ROOT + vendor_weblet.project_name_slug + '/'
 
     invoice_tpl = get_template(template_name)
-    invoice_pdf_file = media_root + '/%s_Invoice_%s_%s.pdf' % (weblet.project_name_slug.upper(), invoice.number,
-                                                               invoice.date_issued.strftime("%Y-%m-%d"))
+    invoice_pdf_file = media_root + '%s_Invoice_%s_%s.pdf' % (vendor_weblet.project_name_slug.upper(), invoice.number,
+                                                              invoice.date_issued.strftime("%Y-%m-%d"))
     d = Context(context)
     xmlstring = invoice_tpl.render(d)
+    xmlstring = xmlstring.replace(u'\xa0', ' ').replace(u'\xe9', 'e')
     pdfstr = trml2pdf.parseString(xmlstring)
     fh = open(invoice_pdf_file, 'w')
     fh.write(pdfstr)
@@ -491,7 +499,7 @@ def pay_with_wallet_balance(invoice):
     service = invoice.subscription
     amount0 = invoice.amount
     amount = invoice.amount
-    with transaction.atomic():
+    with db_transaction.atomic():
         for wallet in OperatorWallet.objects.using('wallets').filter(nonrel_id=invoice.service.id).order_by('-balance'):
             if wallet.balance >= amount0:
                 service.lower_balance(amount, provider=wallet.provider)
@@ -537,15 +545,15 @@ def suspend_subscription(subscription):
     subscription.save()
 
 
-def share_payment_and_set_stats(invoice, total_months=None, payment_mean_slug='mtn-momo'):
+def share_payment_and_set_stats(invoice, total_months=None, payment_mean_slug='mtn-momo', transaction=None):
     if getattr(settings, 'IS_IKWEN', False):
         # This is ikwen collecting payment for Invoice of its Cloud apps
-        _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug)
+        _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug, transaction)
     else:
-        _share_payment_and_set_stats_other(invoice, payment_mean_slug)
+        _share_payment_and_set_stats_other(invoice, payment_mean_slug, transaction)
 
 
-def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug='mtn-momo'):
+def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug='mtn-momo', transaction=None):
     service_umbrella = Service.objects.get(pk=invoice.service.id)
     app_umbrella = service_umbrella.app
     ikwen_earnings = invoice.amount
@@ -578,6 +586,13 @@ def _share_payment_and_set_stats_ikwen(invoice, total_months, payment_mean_slug=
         partner.raise_balance(partner_earnings, payment_mean_slug)
 
         if partner_is_dara:
+            try:
+                dara = Dara.objects.get(member=partner.member)
+                transaction.dara_id = dara.id
+                transaction.dara_fees = partner_earnings
+                transaction.save(using='wallets')
+            except:
+                pass
             service_partner = Service.objects.using(partner.database).get(pk=getattr(settings, 'IKWEN_SERVICE_ID'))
             set_dara_stats(partner_original, service_partner, invoice, partner_earnings)
         else:
@@ -661,7 +676,7 @@ def set_dara_stats(partner_original, service_partner, invoice, dara_earnings):
         logger.error("Failed to notify %s Dara after follower purchase." % partner_original, exc_info=True)
 
 
-def _share_payment_and_set_stats_other(invoice, payment_mean_slug='mtn-momo'):
+def _share_payment_and_set_stats_other(invoice, payment_mean_slug='mtn-momo', transaction=None):
     service = get_service_instance(check_cache=False)
     service_umbrella = get_service_instance(UMBRELLA, check_cache=False)
     config = service_umbrella.config

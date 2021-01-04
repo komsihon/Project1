@@ -4,6 +4,7 @@ import logging
 import os
 import random
 import re
+import shutil
 import string
 import time
 import traceback
@@ -16,6 +17,7 @@ from PIL import Image
 from ajaxuploader.backends.local import LocalUploadBackend
 from django.conf import settings
 from django.contrib.admin import AdminSite
+from django.core.cache import cache
 from django.core.files import File
 from django.core.mail import EmailMessage
 from django.db import router
@@ -141,7 +143,12 @@ def get_service_instance(using='default', check_cache=True):
     """
     from ikwen.core.models import Service
     service_id = getattr(settings, 'IKWEN_SERVICE_ID')
-    return Service.objects.using(using).select_related('member', 'app').get(pk=service_id)
+    key = 'service:' + using
+    service = cache.get(key)
+    if not (check_cache and service):
+        service = Service.objects.using(using).select_related('member', 'app').get(pk=service_id)
+        cache.set(key, service, 3600)  # Cache service for 1 hour
+    return service
 
 
 def add_database_to_settings(db_info, engine='django_mongodb_engine'):
@@ -933,3 +940,35 @@ def setup_pwa(service, is_naked_domain=True, reload_web_server=False):
 
     service.is_pwa_ready = True
     service.save()
+
+
+def convert_file_to_utf8(path):
+    """
+    Converts a file from 'iso-8859-1' (latin-1) to UTF-8
+    """
+    tokens = path.split('/')
+    filename = tokens[-1]
+    folder = '/'.join(tokens[:-1])
+    tmp_path = folder + '/tmp_' + filename
+    shutil.copy(path, tmp_path)
+    src_fh = open(tmp_path, 'r')
+    dst_fh = open(path, 'w')
+    for line in src_fh.readlines():
+        try:
+            line.decode('utf8')
+        except:
+            try:
+                line = line.decode('iso-8859-1').encode('utf8')
+            except:
+                pass
+        try:
+            dst_fh.write(line)
+        except:
+            src_fh.close()
+            dst_fh.close()
+            os.unlink(path)
+            os.rename(tmp_path, path)
+            break
+    src_fh.close()
+    dst_fh.close()
+    os.unlink(tmp_path)

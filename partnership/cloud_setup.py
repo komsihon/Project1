@@ -79,18 +79,19 @@ def deploy(app, member, project_name, billing_plan, monthly_cost, theme,
         except Service.DoesNotExist:
             ikwen_name = pname
             break
-    api_signature = generate_random_key(30)
+    api_signature = generate_random_key(30, alpha_num=True)
     while True:
         try:
             Service.objects.using(UMBRELLA).get(api_signature=api_signature)
-            api_signature = generate_random_key(30)
+            api_signature = generate_random_key(30, alpha_num=True)
         except Service.DoesNotExist:
             break
     database = ikwen_name
-    domain = ikwen_name + '.ikwen.com'
+    domain = 'go.' + pname + '.ikwen.com'
     domain_type = Service.SUB
     is_naked_domain = False
-    admin_url = domain + '/ikwen' + reverse('ikwen:staff_router')
+    url = 'https://go.ikwen.com/' + pname
+    admin_url = url + '/ikwen' + reverse('ikwen:staff_router')
     now = datetime.now()
     expiry = now + timedelta(days=15)
 
@@ -119,19 +120,18 @@ def deploy(app, member, project_name, billing_plan, monthly_cost, theme,
     settings_template = 'partnership/cloud_setup/settings.html'
 
     service = Service(member=member, app=app, project_name=project_name, project_name_slug=ikwen_name, domain=domain,
-                      database=database, url='http://' + domain, domain_type=domain_type, expiry=expiry,
-                      admin_url='http://' + admin_url, api_signature=api_signature,
-                      billing_cycle=billing_cycle, monthly_cost=monthly_cost, version=Service.TRIAL,
-                      home_folder=website_home_folder, settings_template=settings_template)
+                      database=database, domain_type=domain_type, url=url, admin_url=admin_url, expiry=expiry,
+                      billing_plan=billing_plan, billing_cycle=billing_cycle, monthly_cost=monthly_cost,
+                      api_signature=api_signature, version=Service.TRIAL, home_folder=website_home_folder,
+                      settings_template=settings_template)
     service.save(using=UMBRELLA)
 
     # Re-create settings.py file as well as apache.conf file for the newly created project
     secret_key = generate_django_secret_key()
-    allowed_hosts = '"%s", "www.%s"' % (domain, domain)
+    allowed_hosts = '"go.ikwen.com"'
     settings_tpl = get_template(settings_template)
     settings_context = Context({'secret_key': secret_key, 'ikwen_name': ikwen_name,
-                                'service': service, 'static_root': STATIC_ROOT, 'static_url': STATIC_URL,
-                                'media_root': media_root, 'media_url': media_url,
+                                'service': service, 'media_root': media_root, 'media_url': media_url,
                                 'allowed_hosts': allowed_hosts, 'debug': getattr(settings, 'DEBUG', False)})
     settings_file = website_home_folder + '/conf/settings.py'
     fh = open(settings_file, 'w')
@@ -233,17 +233,14 @@ def deploy(app, member, project_name, billing_plan, monthly_cost, theme,
     InvoicingConfig.objects.using(database).create()
 
     # Apache Server cloud_setup
-    if getattr(settings, 'LOCAL_DEV', False):
-        apache_tpl = get_template('partnership/cloud_setup/apache.conf.local.html')
-    else:
-        apache_tpl = get_template('partnership/cloud_setup/apache.conf.html')
+    apache_tpl = get_template('partnership/cloud_setup/apache.conf.local.html')
     apache_context = Context({'is_naked_domain': is_naked_domain, 'domain': domain, 'ikwen_name': ikwen_name})
-    fh = open(website_home_folder + '/apache.conf', 'w')
+    fh = open(website_home_folder + '/go_apache.conf', 'w')
     fh.write(apache_tpl.render(apache_context))
     fh.close()
 
-    vhost = '/etc/apache2/sites-enabled/' + domain + '.conf'
-    subprocess.call(['sudo', 'ln', '-sf', website_home_folder + '/apache.conf', vhost])
+    vhost = '/etc/apache2/sites-enabled/go_ikwen/' + ikwen_name + '.conf'
+    subprocess.call(['sudo', 'ln', '-sf', website_home_folder + '/go_apache.conf', vhost])
     logger.debug("Apache Virtual Host '%s' successfully created" % vhost)
 
     # Send notification and Invoice to customer
@@ -261,8 +258,9 @@ def deploy(app, member, project_name, billing_plan, monthly_cost, theme,
     add_event(vendor, SERVICE_DEPLOYED, member=member, object_id=invoice.id)
     add_event(vendor, SERVICE_DEPLOYED, group_id=sudo_group.id, object_id=invoice.id)
 
+    ikwen_weblet = get_service_instance()
     invoice_url = 'http://www.ikwen.com' + reverse('billing:invoice_detail', args=(invoice.id,))
-    sender = 'ikwen <no-reply@ikwen.com>'
+    sender = '%s <no-reply@ikwen.com>' % ikwen_weblet.config.company_name
     subject = _("Your retailer platform was created")
     html_content = get_mail_content(subject, '', template_name='core/mails/service_deployed.html',
                                     extra_context={'service_activated': service, 'invoice': invoice,

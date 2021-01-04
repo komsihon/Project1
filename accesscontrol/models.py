@@ -2,13 +2,17 @@
 
 from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractUser, Group
-from django.urls import reverse
+from django.core.cache import cache
+from django.core.urlresolvers import reverse
+from django.db import models
 from django.db.models.signals import post_delete
 from django.template.defaultfilters import slugify
 from django.utils.datetime_safe import strftime
 from django.utils.translation import gettext as _, get_language
+from django_mongodb_engine.contrib import RawQueryMixin
+from djangotoolbox.fields import ListField
 
-from djongo import models
+from permission_backend_nonrel.models import UserPermissionList
 
 from ikwen.core.constants import DEVICE_FAMILY_CHOICES
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
@@ -30,7 +34,7 @@ WELCOME_EVENT = 'WelcomeEvent'
 DEFAULT_GHOST_PWD = '__0000'
 
 
-class MemberManager(BaseUserManager):
+class MemberManager(BaseUserManager, RawQueryMixin):
 
     def create_user(self, username, password=None, **extra_fields):
         from ikwen.accesscontrol.backends import UMBRELLA
@@ -62,7 +66,6 @@ class MemberManager(BaseUserManager):
         ikwen_community = Group.objects.using(UMBRELLA).get(name=COMMUNITY)
         member.customer_on_fk_list = [IKWEN_SERVICE_ID]
         member.group_fk_list = [ikwen_community.id]
-        member.groups.add(ikwen_community)
         service = get_service_instance()
         member.entry_service = service
         if service_id != IKWEN_SERVICE_ID:
@@ -73,7 +76,9 @@ class MemberManager(BaseUserManager):
         member.set_password(password)
         member.save(using=UMBRELLA)
         member.save(using='default')
-        member.groups.add(ikwen_community)
+        perm_list, created = UserPermissionList.objects.using(UMBRELLA).get_or_create(user=member)
+        perm_list.group_fk_list.append(ikwen_community.id)
+        perm_list.save(using=UMBRELLA)
 
         from ikwen.accesscontrol.utils import set_member_basic_profile_tags
         set_member_basic_profile_tags(member)
@@ -82,6 +87,9 @@ class MemberManager(BaseUserManager):
             # This block is not added above because member must have
             # already been created before we can add an event for that member
             # So, DO NOT MOVE THIS ABOVE
+            perm_list, created = UserPermissionList.objects.get_or_create(user=member)
+            perm_list.group_fk_list.append(service_community.id)
+            perm_list.save()
             sudo_group = Group.objects.get(name=SUDO)
             add_event(service, MEMBER_JOINED_IN, group_id=sudo_group.id, object_id=member.id)
             add_event(service, MEMBER_JOINED_IN, member=member, object_id=member.id)
@@ -101,8 +109,10 @@ class MemberManager(BaseUserManager):
         member.is_bao = True
         member.save()
         if not getattr(settings, 'IS_IKWEN', False):
-            sudo_group = Group.objects.get(name=SUDO)
-            member.groups.add(sudo_group)
+            group = Group.objects.get(name=SUDO)
+            perm_list = UserPermissionList.objects.get(user=member)
+            perm_list.group_fk_list = [group.id]
+            perm_list.save()
         return member
 
 
@@ -125,7 +135,7 @@ class Member(AbstractUser):
     language = models.CharField(max_length=10, blank=True, null=True, default=get_language)
     photo = MultiImageField(upload_to=PROFILE_UPLOAD_TO, blank=True, null=True, max_size=600, small_size=200, thumb_size=100)
     cover_image = models.ImageField(upload_to=COVER_UPLOAD_TO, blank=True, null=True)
-    entry_service = models.ForeignKey(Service, blank=True, null=True, related_name='+', on_delete=models.SET_NULL,
+    entry_service = models.ForeignKey(Service, blank=True, null=True, related_name='+',
                                       help_text=_("Service where user registered for the first time on ikwen"))
     is_iao = models.BooleanField('IAO', default=False, editable=False,
                                  help_text=_('Designates whether this user is an '
@@ -134,12 +144,12 @@ class Member(AbstractUser):
                                  help_text=_('Designates whether this user is the Bao in the current service. '
                                              'Bao is the highest person in a deployed ikwen application. The only that '
                                              'can change or block Sudo.'))
-    collaborates_on_fk_list = models.JSONField(editable=False,
-                                               help_text="Services on which member collaborates being the IAO or no.")
-    customer_on_fk_list = models.JSONField(editable=False,
-                                           help_text="Services on which member was granted mere member access.")
-    group_fk_list = models.JSONField(editable=False,
-                                     help_text="Groups' ids of the member across different Services.")
+    collaborates_on_fk_list = ListField(editable=False,
+                                        help_text="Services on which member collaborates being the IAO or no.")
+    customer_on_fk_list = ListField(editable=False,
+                                    help_text="Services on which member was granted mere member access.")
+    group_fk_list = ListField(editable=False,
+                              help_text="Groups' ids of the member across different Services.")
     email_verified = models.BooleanField(_('Email verification status'), default=False,
                                          help_text=_('Designates whether this email has been verified.'))
     phone_verified = models.BooleanField(_('Phone verification status'), default=False,
@@ -155,7 +165,7 @@ class Member(AbstractUser):
     class Meta:
         db_table = 'ikwen_member'
 
-    def __str__(self):
+    def __unicode__(self):
         return self.get_username()
 
     def save(self, **kwargs):
@@ -293,7 +303,10 @@ class Member(AbstractUser):
         if member_detail_view == 'ikwen:profile':
             url = ikwenize(url)
         var['url'] = url
-        var['permissions'] = ','.join([perm.id for perm in self.user_permissions.all()])
+        try:
+            var['permissions'] = ','.join(UserPermissionList.objects.get(user=self).permission_fk_list)
+        except UserPermissionList.DoesNotExist:
+            var['permissions'] = ''
         del(var['password'])
         del(var['is_superuser'])
         del(var['is_staff'])
@@ -302,8 +315,8 @@ class Member(AbstractUser):
 
 
 class PWAProfile(Model):
-    service = models.ForeignKey(Service, default=get_service_instance, on_delete=models.CASCADE)
-    member = models.ForeignKey(Member, blank=True, null=True, on_delete=models.SET_NULL)
+    service = models.ForeignKey(Service, default=get_service_instance, related_name='+')
+    member = models.ForeignKey(Member, blank=True, null=True)
     device_type = models.CharField(max_length=100, choices=DEVICE_FAMILY_CHOICES, db_index=True)
     installed_on = models.DateTimeField(blank=True, null=True, db_index=True)
     subscribed_to_push_on = models.DateTimeField(blank=True, null=True, db_index=True)
@@ -314,7 +327,7 @@ class PWAProfile(Model):
 
 
 class OfficialIdentityDocument(Model):
-    member = models.ForeignKey(Member, db_index=True, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, db_index=True)
     number = models.CharField(max_length=100, db_index=True)
     issue = models.DateField()
     expiry = models.DateField()
@@ -343,8 +356,8 @@ class AccessRequest(Model):
     CONFIRMED = 'Confirmed'
     REJECTED = 'Rejected'
 
-    member = models.ForeignKey(Member, db_index=True, on_delete=models.CASCADE)
-    service = models.ForeignKey(Service, related_name='+', db_index=True, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, db_index=True)
+    service = models.ForeignKey(Service, related_name='+', db_index=True)
     group_name = models.CharField(max_length=60, blank=True, default=COMMUNITY)
     status = models.CharField(max_length=30, default=CONFIRMED)
 
@@ -360,7 +373,7 @@ class AccessRequest(Model):
 class OwnershipTransfer(Model):
     MAX_DELAY = 48
 
-    sender = models.ForeignKey(Member, on_delete=models.CASCADE)
+    sender = models.ForeignKey(Member)
     target_id = models.CharField(max_length=24)  # ID of the target Member
 
     class Meta:

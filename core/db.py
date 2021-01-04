@@ -18,7 +18,8 @@ class ClassicManager(DjongoManager):
     classic way and make it portable without hassle.
     """
 
-    def get(self, *args, **kwargs):
+    @staticmethod
+    def rewrite_kwargs(kwargs):
         if kwargs.get('id'):
             id_val = kwargs.pop('id')
             if type(id_val) == str:
@@ -27,39 +28,30 @@ class ClassicManager(DjongoManager):
             id_val = kwargs['pk']
             if type(id_val) == str:
                 kwargs['pk'] = ObjectId(id_val)
+        if kwargs.get('id__'):
+            id_val = kwargs.pop('id__')
+            if type(id_val) == str:
+                kwargs['_id__'] = ObjectId(id_val)
+        if kwargs.get('pk__'):
+            id_val = kwargs['pk__']
+            if type(id_val) == str:
+                kwargs['pk__'] = ObjectId(id_val)
+        return kwargs
+
+    def get(self, *args, **kwargs):
+        kwargs = self.rewrite_kwargs(kwargs)
         return super(ClassicManager, self).get(*args, **kwargs)
 
     def filter(self, *args, **kwargs):
-        if kwargs.get('id'):
-            id_val = kwargs.pop('id')
-            if type(id_val) == str:
-                kwargs['_id'] = ObjectId(id_val)
-        if kwargs.get('pk'):
-            id_val = kwargs['pk']
-            if type(id_val) == str:
-                kwargs['pk'] = ObjectId(id_val)
+        kwargs = self.rewrite_kwargs(kwargs)
         return super(ClassicManager, self).filter(*args, **kwargs)
 
     def exclude(self, *args, **kwargs):
-        if kwargs.get('id'):
-            id_val = kwargs.pop('id')
-            if type(id_val) == str:
-                kwargs['_id'] = ObjectId(id_val)
-        if kwargs.get('pk'):
-            id_val = kwargs['pk']
-            if type(id_val) == str:
-                kwargs['pk'] = ObjectId(id_val)
+        kwargs = self.rewrite_kwargs(kwargs)
         return super(ClassicManager, self).exclude(*args, **kwargs)
 
     def get_or_create(self, defaults=None, **kwargs):
-        if kwargs.get('id'):
-            id_val = kwargs.pop('id')
-            if type(id_val) == str:
-                kwargs['_id'] = ObjectId(id_val)
-        if kwargs.get('pk'):
-            id_val = kwargs['pk']
-            if type(id_val) == str:
-                kwargs['pk'] = ObjectId(id_val)
+        kwargs = self.rewrite_kwargs(kwargs)
         return super(ClassicManager, self).get_or_create(defaults, **kwargs)
 
 

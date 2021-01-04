@@ -23,7 +23,7 @@ from ikwen.partnership.forms import ChangeServiceForm
 
 
 class AdminHome(TemplateView):
-    template_name = 'partnership/admin_home.html'
+    template_name = 'core/admin_home_base.html'
 
 
 class ApplicationList(HybridListView):
@@ -95,43 +95,6 @@ class Dashboard(DashboardBase):
         context = super(Dashboard, self).get_context_data(**kwargs)
         service = get_service_instance()
         set_counters(service)
-        earnings_today = context['earnings_report']['today']
-        earnings_yesterday = context['earnings_report']['yesterday']
-        earnings_last_week = context['earnings_report']['last_week']
-        earnings_last_28_days = context['earnings_report']['last_28_days']
-
-        transaction_count = calculate_watch_info(service.transaction_count_history)
-        transaction_count_yesterday = calculate_watch_info(service.transaction_count_history, 1)
-        transaction_count_last_week = calculate_watch_info(service.transaction_count_history, 7)
-        transaction_count_last_28_days = calculate_watch_info(service.transaction_count_history, 28)
-
-        # AEPT stands for Average Earning Per Transaction
-        aept_today = earnings_today['total'] / transaction_count['total'] if transaction_count['total'] else 0
-        aept_yesterday = earnings_yesterday['total'] / transaction_count_yesterday['total']\
-            if transaction_count_yesterday and transaction_count_yesterday['total'] else 0
-        aept_last_week = earnings_last_week['total'] / transaction_count_last_week['total']\
-            if transaction_count_last_week and transaction_count_last_week['total'] else 0
-        aept_last_28_days = earnings_last_28_days['total'] / transaction_count_last_28_days['total']\
-            if transaction_count_last_28_days and transaction_count_last_28_days['total'] else 0
-
-        transactions_report = {
-            'today': {
-                'count': transaction_count['total'] if transaction_count else 0,
-                'aept': '%.2f' % aept_today,  # AEPT: Avg Earning Per Transaction
-            },
-            'yesterday': {
-                'count': transaction_count_yesterday['total'] if transaction_count_yesterday else 0,
-                'aept': '%.2f' % aept_yesterday,
-            },
-            'last_week': {
-                'count': transaction_count_last_week['total'] if transaction_count_last_week else 0,
-                'aept': '%.2f' % aept_last_week,
-            },
-            'last_28_days': {
-                'count': transaction_count_last_28_days['total']if transaction_count_last_28_days else 0,
-                'aept': '%.2f' % aept_last_28_days,
-            }
-        }
         customers = list(Service.objects.all())
         for customer in customers:
             set_counters(customer)
@@ -150,8 +113,6 @@ class Dashboard(DashboardBase):
             'last_week': rank_watch_objects(apps, 'earnings_history', 7),
             'last_28_days': rank_watch_objects(apps, 'earnings_history', 28)
         }
-
-        context['transactions_report'] = transactions_report
         context['customers_report'] = customers_report
         context['apps_report'] = apps_report
         return context

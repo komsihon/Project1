@@ -8,6 +8,8 @@ from django.core.mail import EmailMessage
 from django.urls import reverse
 from django.http import HttpResponse
 from django.utils.translation import ugettext as _, activate
+from django.db.models import Model as DjangoModel
+from django.views.generic import View
 
 from pywebpush import webpush
 
@@ -118,3 +120,24 @@ def notify_pwa_install(member):
                 msg.send()
             except:
                 logger.error("%s - Failed to send order confirmation email." % service, exc_info=True)
+
+
+def track_speed(F):
+    """
+    A decorator that measures how much time a function or method
+    took to run and writes the result to the info log file
+    """
+    def wrapper(*args, **kwargs):
+        weblet = get_service_instance()
+        t0 = datetime.now()
+        val = F(*args, **kwargs)
+        duration = datetime.now() - t0
+        arg0 = args[0]
+        if isinstance(arg0, View) or isinstance(arg0, DjangoModel):
+            function_path = str(type(arg0)).replace("<class '", "").replace("'>", "")
+        else:
+            function_path = F.__module__
+        function_path += '.' + F.__name__
+        logger.debug('%s - %s run in %ss' % (weblet.project_name, function_path, duration))
+        return val
+    return wrapper

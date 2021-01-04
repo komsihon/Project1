@@ -5,7 +5,7 @@
             {% blocktrans with amount=pending_invoice.amount|intcomma %}You have a pending invoice of <strong>XAF {{ amount }}</strong>{% endblocktrans %}
         </div>
         <div class="col-xs-12 col-sm-3 pull-right">
-            <a href="https://ikwen.com/billing/invoices" class="btn btn-block btn-outline-white">{% trans "View" %}</a>
+            <a href="https://ikwen.com/signIn?next=/billing/invoices" class="btn btn-block btn-outline-white">{% trans "View" %}</a>
         </div>
         <div class="clearfix"></div>
     </div>

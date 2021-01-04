@@ -6,22 +6,21 @@ from threading import Thread
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.humanize.templatetags.humanize import naturaltime
-from django.urls import reverse
-from django.db import router
+from django.core.cache import cache
+from django.core.urlresolvers import reverse
+from django.db import models, router
 from django.db import transaction
-from django.apps import apps
+from django.db.models import get_model
 from django.db.models.signals import post_delete
 from django.utils import timezone
-from django.utils.module_loading import import_string as import_by_path
+from django.utils.module_loading import import_by_path
 from django.utils.translation import gettext_lazy as _
 from django.template.loader import get_template
 from django.template import Context
-
-
-from djongo import models
+from django_mongodb_engine.contrib import MongoDBManager
+from djangotoolbox.fields import ListField
 
 from ikwen.conf.settings import STATIC_ROOT, STATIC_URL, CLUSTER_MEDIA_ROOT, CLUSTER_MEDIA_URL
-from ikwen.core.db import BaseModel
 from ikwen.core.fields import MultiImageField
 from ikwen.accesscontrol.templatetags.auth_tokens import ikwenize
 from ikwen.core.utils import add_database_to_settings, to_dict, get_service_instance, get_config_model
@@ -35,7 +34,12 @@ SERVICE_DEPLOYED = 'ServiceDeployed'
 RETAIL_APP_SLUG = 'ikwen-retail'  # Slug of the 'ikwen App retail' Application
 
 
-class Model(BaseModel):
+class Model(models.Model):
+    """
+    Helper base Model that defines two fields: created_on and updated_on.
+    Both are DateTimeField. updated_on automatically receives the current
+    datetime whenever the model is updated in the database
+    """
     created_on = models.DateTimeField(default=timezone.now, editable=False, db_index=True)
     updated_on = models.DateTimeField(default=timezone.now, auto_now=True, db_index=True)
 
@@ -100,19 +104,19 @@ class Application(AbstractWatchModel):
                                     help_text=_("If true, the <em>Deploy</em> button appears on the "
                                                 "application's description page on ikwen website."))
 
-    turnover_history = models.JSONField(editable=False)
-    earnings_history = models.JSONField(editable=False)
-    deployment_earnings_history = models.JSONField(editable=False)
-    transaction_earnings_history = models.JSONField(editable=False)
-    invoice_earnings_history = models.JSONField(editable=False)
-    custom_service_earnings_history = models.JSONField(editable=False)
-    cash_out_history = models.JSONField(editable=False)
+    turnover_history = ListField(editable=False)
+    earnings_history = ListField(editable=False)
+    deployment_earnings_history = ListField(editable=False)
+    transaction_earnings_history = ListField(editable=False)
+    invoice_earnings_history = ListField(editable=False)
+    custom_service_earnings_history = ListField(editable=False)
+    cash_out_history = ListField(editable=False)
 
-    deployment_count_history = models.JSONField(editable=False)
-    transaction_count_history = models.JSONField(editable=False)
-    invoice_count_history = models.JSONField(editable=False)
-    custom_service_count_history = models.JSONField(editable=False)
-    cash_out_count_history = models.JSONField(editable=False)
+    deployment_count_history = ListField(editable=False)
+    transaction_count_history = ListField(editable=False)
+    invoice_count_history = ListField(editable=False)
+    custom_service_count_history = ListField(editable=False)
+    cash_out_count_history = ListField(editable=False)
 
     total_turnover = models.IntegerField(default=0)
     total_earnings = models.IntegerField(default=0)
@@ -130,7 +134,7 @@ class Application(AbstractWatchModel):
     class Meta:
         db_table = 'ikwen_application'
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
     def _get_cover_image(self):
@@ -143,9 +147,9 @@ class Application(AbstractWatchModel):
     cover_image = property(_get_cover_image)
 
 
-class Service(BaseModel):
+class Service(models.Model):
     """
-    An instance of an Ikwen :class:`Application` that a :class:`Member` is operating.
+    An instance of an ikwen :class:`Application` deployed by a :class:`accesscontrol.models.Member`.
     """
     LOGO_PLACEHOLDER = settings.STATIC_URL + 'ikwen/img/logo-placeholder.jpg'
     PENDING = 'Pending'
@@ -187,8 +191,8 @@ class Service(BaseModel):
     )
     # Member has null=True because a Service object can be created
     # and bound to a Member later in the code
-    member = models.ForeignKey('accesscontrol.Member', blank=True, null=True, on_delete=models.CASCADE)
-    app = models.ForeignKey(Application, blank=True, null=True, on_delete=models.SET_NULL)
+    member = models.ForeignKey('accesscontrol.Member', blank=True, null=True)
+    app = models.ForeignKey(Application, blank=True, null=True)
     project_name = models.CharField(max_length=60,
                                     help_text="Name of the project")
     project_name_slug = models.SlugField(unique=True)
@@ -211,7 +215,7 @@ class Service(BaseModel):
                                      help_text="Use it in your http API calls. More on "
                                                "<a href='http://support.ikwen.com/generic/APISignature'>"
                                                "support.ikwen.com/generic/APISignature</a>")
-    billing_plan = models.ForeignKey('billing.CloudBillingPlan', blank=True, null=True, on_delete=models.SET_NULL)
+    billing_plan = models.ForeignKey('billing.CloudBillingPlan', blank=True, null=True)
     billing_cycle = models.CharField(max_length=30, choices=BILLING_CYCLES_CHOICES, default=MONTHLY)
     monthly_cost = models.PositiveIntegerField()
     version = models.CharField(max_length=15, blank=True, choices=VERSION_CHOICES)  # Free, Trial, Full
@@ -225,24 +229,24 @@ class Service(BaseModel):
                               help_text=_("Date of expiry of the service."))
     since = models.DateTimeField(default=timezone.now)
     updated_on = models.DateTimeField(default=timezone.now, auto_now_add=True)
-    retailer = models.ForeignKey('self', blank=True, null=True, related_name='+', on_delete=models.SET_NULL)
+    retailer = models.ForeignKey('self', blank=True, null=True, related_name='+')
 
-    community_history = models.JSONField(editable=False)
-    turnover_history = models.JSONField(editable=False)
-    earnings_history = models.JSONField(editable=False)
-    transaction_earnings_history = models.JSONField(editable=False)
-    invoice_earnings_history = models.JSONField(editable=False)
-    custom_service_earnings_history = models.JSONField(editable=False)
-    cash_out_history = models.JSONField(editable=False)
+    community_history = ListField(editable=False)
+    turnover_history = ListField(editable=False)
+    earnings_history = ListField(editable=False)
+    transaction_earnings_history = ListField(editable=False)
+    invoice_earnings_history = ListField(editable=False)
+    custom_service_earnings_history = ListField(editable=False)
+    cash_out_history = ListField(editable=False)
 
-    transactional_email_history = models.JSONField(editable=False)
-    rewarding_email_history = models.JSONField(editable=False)
-    revival_email_history = models.JSONField(editable=False)
+    transactional_email_history = ListField(editable=False)
+    rewarding_email_history = ListField(editable=False)
+    revival_email_history = ListField(editable=False)
 
-    transaction_count_history = models.JSONField(editable=False)
-    invoice_count_history = models.JSONField(editable=False)
-    custom_service_count_history = models.JSONField(editable=False)
-    cash_out_count_history = models.JSONField(editable=False)
+    transaction_count_history = ListField(editable=False)
+    invoice_count_history = ListField(editable=False)
+    custom_service_count_history = ListField(editable=False)
+    cash_out_count_history = ListField(editable=False)
 
     total_community = models.IntegerField(default=0)
     total_turnover = models.IntegerField(default=0)
@@ -263,6 +267,8 @@ class Service(BaseModel):
 
     counters_reset_on = models.DateTimeField(blank=True, null=True, editable=False)
 
+    objects = MongoDBManager()
+
     class Meta:
         db_table = 'ikwen_service'
         unique_together = ('app', 'project_name', )
@@ -281,7 +287,7 @@ class Service(BaseModel):
         return 'https://go.ikwen.com/' + self.project_name_slug
     go_url = property(_get_go_url)
 
-    def __str__(self):
+    def __unicode__(self):
         return u'%s: %s' % (self.project_name, self.url)
 
     def to_dict(self):
@@ -356,6 +362,7 @@ class Service(BaseModel):
             # If we are on Ikwen itself, replicate save or update on the current Service database
             add_database_to_settings(self.database)
             super(Service, self).save(using=self.database, *args, **kwargs)
+            cache.delete('%s:service' % self.project_name_slug)  # Remove from cache if found to force reload
             if not self.id:
                 # Upon creation of a Service object. Add the member who owns it in the
                 # Service's database as a staff, then increment operators_count for the Service.app
@@ -558,7 +565,7 @@ class Service(BaseModel):
 
         app_label = config_model_name.split('.')[0]
         model = config_model_name.split('.')[1]
-        config_model = apps.get_model(app_label, model)
+        config_model = get_model(app_label, model)
         retailer = self.retailer
         if retailer:
             add_database_to_settings(retailer.database)
@@ -603,14 +610,14 @@ class AbstractConfig(Model):
     )
     LOGO_UPLOAD_TO = 'configs/logos'
     COVER_UPLOAD_TO = 'configs/cover_images'
-    service = models.OneToOneField(Service, related_name='+', on_delete=models.CASCADE)
+    service = models.OneToOneField(Service, related_name='+')
     balance = models.FloatField(_("balance"), default=0)
     company_name = models.CharField(max_length=60, verbose_name=_("Website / Company name"),
                                     help_text=_("Website/Company name as you want it to appear in mails and pages."))
     company_name_slug = models.SlugField(db_index=True)
     address = models.CharField(max_length=150, blank=True, verbose_name=_("Company address"),
                                help_text=_("Your company address."))
-    country = models.ForeignKey('core.Country', blank=True, null=True, related_name='+', on_delete=models.SET_NULL,
+    country = models.ForeignKey('core.Country', blank=True, null=True, related_name='+',
                                 help_text=_("Country where HQ of the company are located."))
     city = models.CharField(max_length=60, blank=True,
                             help_text=_("City where HQ of the company are located."))
@@ -628,6 +635,10 @@ class AbstractConfig(Model):
                                      help_text=_("Code of your currency. Eg: <strong>USD, GBP, EUR, XAF,</strong> ..."))
     currency_symbol = models.CharField(max_length=5, default='XAF',
                                        help_text=_("Symbol of your currency, Eg: <strong>$, £, €, XAF</strong>."))
+    ikwen_share_rate = models.FloatField(_("ikwen share rate"), default=0,
+                                         help_text=_("Percentage ikwen collects on each payment."))
+    ikwen_share_fixed = models.FloatField(_("ikwen share fixed"), default=0,
+                                          help_text=_("Fixed amount ikwen collects on each payment."))
     cash_out_min = models.IntegerField(_("cash-out minimum"), blank=True, null=True,
                                        default=getattr(settings, 'CASH_OUT_MIN', 0),
                                        help_text="Minimum balance that allows cash out.")
@@ -711,7 +722,7 @@ class AbstractConfig(Model):
         verbose_name_plural = _("Configurations of the platform")
         abstract = True
 
-    def __str__(self):
+    def __unicode__(self):
         return 'Config ' + str(self.service)
 
     def get_base_config(self):
@@ -758,6 +769,8 @@ class AbstractConfig(Model):
         config.contact_email = self.contact_email
         config.contact_phone = self.contact_phone
         config.cash_out_min = self.cash_out_min
+        config.ikwen_share_rate = self.ikwen_share_rate
+        config.ikwen_share_fixed = self.ikwen_share_fixed
         config.cash_out_rate = self.cash_out_rate
         config.currency_code = self.currency_code
         config.currency_symbol = self.currency_symbol
@@ -779,8 +792,8 @@ class AbstractConfig(Model):
 
 class Config(AbstractConfig):
     """
-    Default Configurations options derived from :class:`ikwen.core.models.AbstractConfig`.
-    It Adds nothing to :class:`ikwen.core.models.AbstractConfig`. Its only purpose is to
+    Default Configurations options derived from :class:`AbstractConfig`.
+    It Adds nothing to :class:`AbstractConfig`. Its only purpose is to
     create a concrete class.
     """
 
@@ -833,7 +846,7 @@ class Country(Model):
     iso2 = models.CharField(max_length=2, unique=True, db_index=True)
     iso3 = models.CharField(max_length=3, unique=True, db_index=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
     class Meta:
@@ -862,7 +875,7 @@ class ConsoleEventType(Model):
         (BUSINESS, 'Business'),
         (PERSONAL, 'Personal')
     )
-    app = models.ForeignKey(Application, blank=True, null=True, on_delete=models.SET_NULL)
+    app = models.ForeignKey(Application, blank=True, null=True)
     codename = models.CharField(max_length=150)
     title = models.CharField(max_length=150, blank=True)
     title_mobile = models.CharField(max_length=100, blank=True)
@@ -870,13 +883,15 @@ class ConsoleEventType(Model):
     renderer = models.CharField(max_length=255)
     min_height = models.IntegerField(max_length=255, blank=True, null=True)
 
+    objects = MongoDBManager()
+
     class Meta:
         db_table = 'ikwen_console_event_type'
         unique_together = (
             ('app', 'codename'),
         )
 
-    def __str__(self):
+    def __unicode__(self):
         return self.codename
 
     def get_responsive_title(self, request):
@@ -901,13 +916,13 @@ class ConsoleEvent(Model):
     """
     PENDING = 'Pending'
     PROCESSED = 'Processed'
-    service = models.ForeignKey(Service, related_name='+', default=get_service_instance, db_index=True, on_delete=models.CASCADE)
-    member = models.ForeignKey('accesscontrol.Member', db_index=True, blank=True, null=True, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, related_name='+', default=get_service_instance, db_index=True)
+    member = models.ForeignKey('accesscontrol.Member', db_index=True, blank=True, null=True)
     group_id = models.CharField(max_length=24, blank=True, null=True)
-    event_type = models.ForeignKey(ConsoleEventType, related_name='+', on_delete=models.CASCADE)
+    event_type = models.ForeignKey(ConsoleEventType, related_name='+')
     model = models.CharField(max_length=100, blank=True, null=True)
     object_id = models.CharField(max_length=24, blank=True, null=True, db_index=True)
-    object_id_list = models.JSONField()
+    object_id_list = ListField()
 
     class Meta:
         db_table = 'ikwen_console_event'
@@ -942,7 +957,7 @@ class QueuedSMS(Model):
         db_table = 'ikwen_queued_sms'
 
 
-class Photo(BaseModel):
+class Photo(models.Model):
     UPLOAD_TO = 'photos'
     image = MultiImageField(upload_to=UPLOAD_TO, max_size=800)
 
@@ -955,13 +970,14 @@ class Photo(BaseModel):
             pass
         super(Photo, self).delete(*args, **kwargs)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.image.url
 
 
-class XEmailObject(BaseModel):
+class XEmailObject(models.Model):
     """
-    An outbound email issued by a Service
+    An outbound email issued by a Service. Useful to log
+    outgoing emails from the actual Service
     """
     TRANSACTIONAL = "Transactional"
     REWARDING = "Rewarding"
@@ -983,7 +999,7 @@ class XEmailObject(BaseModel):
     class Meta:
         db_table = 'ikwen_sent_email'
 
-    def __str__(self):
+    def __unicode__(self):
         return self.to
 
 
@@ -1027,12 +1043,12 @@ class Module(Model):
     class Meta:
         db_table = 'ikwen_module'
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
     def _get_config_model(self):
         tokens = self.config_model_name.split('.')
-        model = apps.get_model(tokens[0], tokens[1])
+        model = get_model(tokens[0], tokens[1])
         return model
     config_model = property(_get_config_model)
 

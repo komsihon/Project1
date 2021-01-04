@@ -22,7 +22,7 @@ CURRENCY = "XAF"
 
 
 def init_yup_web_payment(request, *args, **kwargs):
-    api_url = getattr(settings, 'YUP_API_URL', 'https://33026.tagpay.fr/online/online.php')
+    api_url = getattr(settings, 'YUP_API_URL', 'https://33027.tagpay.fr/online/online.php')
     yup = json.loads(PaymentMean.objects.get(slug=YUP).credentials)
     phone = UNKNOWN_PHONE
     service = get_service_instance()
@@ -129,8 +129,7 @@ def yup_process_notification(request, *args, **kwargs):
                         .update(processor_tx_id=paymentref, message='OK', is_running=False,
                                 status=MoMoTransaction.SUCCESS)
             except:
-                logger.error("YUP: Could not mark transaction as Successful. User: %s, Amt: %d" % (
-                request.user.username, int(amount)), exc_info=True)
+                logger.error("YUP: Could not mark transaction as Successful. User: %s, Amt: %d" % (tx.username, tx.amount), exc_info=True)
             else:
                 try:
                     momo_after_checkout(request, transaction=tx)
@@ -142,15 +141,14 @@ def yup_process_notification(request, *args, **kwargs):
         with transaction.atomic(using='wallets'):
             try:
                 if "CANCEL" in error_text:
-                    logger.debug("YUP: transaction canceled. User: %s, Amt: %d " % (request.user.username, int(amount)))
+                    logger.debug("YUP: transaction canceled. User: %s, Amt: %d " % (tx.username, tx.amount))
                     MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
                         .update(message=error_text, is_running=False, status=MoMoTransaction.DROPPED)
                 else:
-                    logger.debug("YUP: transaction failed. User: %s, Amt: %d " % (request.user.username, int(amount)))
+                    logger.debug("YUP: transaction failed. User: %s, Amt: %d " % (tx.username, tx.amount))
                     MoMoTransaction.objects.using('wallets').filter(object_id=object_id) \
                         .update(message=error_text, is_running=False, status=MoMoTransaction.FAILURE)
             except:
-                logger.error("YUP: Could not mark transaction as Failed or Canceled. User: %s, Amt: %d" % (
-                request.user.username, int(amount)), exc_info=True)
+                logger.error("YUP: Could not mark transaction as Failed or Canceled. User: %s, Amt: %s" % (tx.username, tx.amount), exc_info=True)
 
     return HttpResponse('OK')

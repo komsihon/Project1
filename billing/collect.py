@@ -14,13 +14,13 @@ from django.contrib.auth.models import Group
 from django.core.mail import EmailMessage
 from django.urls import reverse
 from django.db.models import Sum
-from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.utils.http import urlquote
+from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.translation import gettext as _, activate
 
-from daraja.models import DARAJA
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.core.constants import CONFIRMED
+from ikwen.core.models import Service
+from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content, XEmailMessage
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import SUDO
 from ikwen.billing.models import Invoice, Payment, PAYMENT_CONFIRMATION, InvoiceEntry, Product, InvoiceItem, Donation, \
@@ -29,14 +29,18 @@ from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.utils import get_invoicing_config_instance, get_days_count, get_payment_confirmation_message, \
     share_payment_and_set_stats, get_next_invoice_number, refill_tsunami_messaging_bundle, get_subscription_model, \
     notify_event, generate_pdf_invoice
-from ikwen.core.models import Service
-from ikwen.core.utils import add_database_to_settings, get_service_instance, add_event, get_mail_content, XEmailMessage
+from ikwen.billing.decorators import momo_gateway_request, momo_gateway_callback
+
+from daraja.models import DARAJA
 
 logger = logging.getLogger('ikwen')
 
 Subscription = get_subscription_model()
 
+MOMO_MAX_AMOUNT = 5e5
 
+
+@momo_gateway_request
 def set_invoice_checkout(request, *args, **kwargs):
     """
     This function has no URL associated with it.
@@ -54,115 +58,42 @@ def set_invoice_checkout(request, *args, **kwargs):
     try:
         aggr = Payment.objects.filter(invoice=invoice).aggregate(Sum('amount'))
         amount_paid = aggr['amount__sum']
-    except IndexError:
+    except:
         amount_paid = 0
     amount = invoice.amount - amount_paid
     if extra_months:
         amount += invoice.service.monthly_cost * extra_months
     if invoicing_config.processing_fees_on_customer:
         amount += config.ikwen_share_fixed
+    if amount > MOMO_MAX_AMOUNT:
+        amount = MOMO_MAX_AMOUNT
+    if amount % 50 > 0:
+        amount = (amount / 50 + 1) * 50  # Mobile Money Payment support only multiples of 50
 
-    signature = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)])
-    mean = request.GET.get('mean', MTN_MOMO)
-    request.session['mean'] = mean
-    request.session['signature'] = signature
-    request.session['amount'] = amount
-    request.session['object_id'] = invoice_id
-    request.session['extra_months'] = extra_months
-
-    model_name = 'billing.Invoice'
-    mean = request.GET.get('mean', MTN_MOMO)
-    payer_id = request.user.username if request.user.is_authenticated() else '<Anonymous>'
-    MoMoTransaction.objects.using(WALLETS_DB_ALIAS).filter(object_id=invoice_id).delete()
-    tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS)\
-        .create(service_id=service.id, type=MoMoTransaction.CASH_OUT, amount=amount, phone='N/A', model=model_name,
-                object_id=invoice_id, task_id=signature, wallet=mean, username=payer_id, is_running=True)
-    notification_url = reverse('billing:confirm_service_invoice_payment', args=(tx.id, signature, extra_months))
+    payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY, amount=amount)
+    notification_url = reverse('billing:confirm_service_invoice_payment', args=(payment.id, extra_months))
     cancel_url = reverse('billing:invoice_detail', args=(invoice_id, ))
     return_url = reverse('billing:invoice_detail', args=(invoice_id, ))
-
-    request.session['notif_url'] = service.url  # Orange Money only
-    request.session['cancel_url'] = service.url + reverse('billing:invoice_detail', args=(invoice_id, )) # Orange Money only
-    request.session['return_url'] = service.url + reverse('billing:invoice_detail', args=(invoice_id, ))
-
-    if getattr(settings, 'UNIT_TESTING', False):
-        return HttpResponse(json.dumps({'notification_url': notification_url}), content_type='text/json')
-    gateway_url = getattr(settings, 'IKWEN_PAYMENT_GATEWAY_URL', 'http://payment.ikwen.com/v1')
-    endpoint = gateway_url + '/request_payment'
-    params = {
-        'username': getattr(settings, 'IKWEN_PAYMENT_GATEWAY_USERNAME', service.project_name_slug),
-        'amount': amount,
-        'merchant_name': config.company_name,
-        'notification_url': service.url + notification_url,
-        'return_url': service.url + return_url,
-        'cancel_url': service.url + cancel_url,
-        'payer_id': payer_id
-    }
-    try:
-        r = requests.get(endpoint, params)
-        resp = r.json()
-        token = resp.get('token')
-        if token:
-            next_url = gateway_url + '/checkoutnow/' + resp['token'] + '?mean=' + mean
-        else:
-            logger.error("%s - Init payment flow failed with URL %s and message %s" % (service.project_name, r.url, resp['errors']))
-            messages.error(request, resp['errors'])
-            next_url = cancel_url
-    except:
-        logger.error("%s - Init payment flow failed with URL." % service.project_name, exc_info=True)
-        next_url = cancel_url
-    return HttpResponseRedirect(next_url)
+    return payment, amount, notification_url, return_url, cancel_url
 
 
+@momo_gateway_callback
 def confirm_service_invoice_payment(request, *args, **kwargs):
     """
     This view is run after successful user cashout "MOMO_AFTER_CHECKOUT"
     """
-    status = request.GET['status']
-    message = request.GET['message']
-    operator_tx_id = request.GET['operator_tx_id']
-    phone = request.GET['phone']
-    tx_id = kwargs['tx_id']
+    tx = kwargs['tx']  # Decoration with @momo_gateway_callback makes 'tx' available in kwargs
     extra_months = int(kwargs['extra_months'])
-    try:
-        tx = MoMoTransaction.objects.using(WALLETS_DB_ALIAS).get(pk=tx_id, is_running=True)
-        if not getattr(settings, 'DEBUG', False):
-            tx_timeout = getattr(settings, 'IKWEN_PAYMENT_GATEWAY_TIMEOUT', 15) * 60
-            expiry = tx.created_on + timedelta(seconds=tx_timeout)
-            if datetime.now() > expiry:
-                return HttpResponse("Transaction %s timed out." % tx_id)
-
-        tx.status = status
-        tx.message = 'OK' if status == MoMoTransaction.SUCCESS else message
-        tx.processor_tx_id = operator_tx_id
-        tx.phone = phone
-        tx.is_running = False
-        tx.save()
-    except:
-        raise Http404("Transaction %s not found" % tx_id)
-    if status != MoMoTransaction.SUCCESS:
-        return HttpResponse("Notification for transaction %s received with status %s" % (tx_id, status))
-    invoice_id = tx.object_id
-    amount = tx.amount
-    signature = tx.task_id
-
-    callback_signature = kwargs.get('signature')
-    no_check_signature = request.GET.get('ncs')
-    if getattr(settings, 'DEBUG', False):
-        if not no_check_signature:
-            if callback_signature != signature:
-                return HttpResponse('Invalid transaction signature')
-    else:
-        if callback_signature != signature:
-            return HttpResponse('Invalid transaction signature')
+    payment = Payment.objects.select_related().get(pk=tx.object_id)
+    payment.processor_tx_id = tx.processor_tx_id
+    payment.save()
+    invoice = payment.invoice
     now = datetime.now()
     ikwen_service = get_service_instance()
-    invoice = Invoice.objects.get(pk=invoice_id)
-    invoice.paid += amount
-    invoice.status = Invoice.PAID
+    invoice.paid += tx.amount
+    if invoice.paid >= invoice.amount:
+        invoice.status = Invoice.PAID
     invoice.save()
-    payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY,
-                                     amount=amount, processor_tx_id=tx.processor_tx_id)
     service = invoice.service
     total_months = invoice.months_count + extra_months
     days = get_days_count(total_months)
@@ -196,7 +127,7 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
         if invoice.due_date <= now.date():
             is_early_payment = True
         refill_tsunami_messaging_bundle(service, is_early_payment)
-    share_payment_and_set_stats(invoice, total_months, mean)
+    share_payment_and_set_stats(invoice, total_months, mean, tx)
     member = service.member
     vendor = service.retailer
     vendor_is_dara = vendor and vendor.app.slug == DARAJA
@@ -236,6 +167,7 @@ def confirm_service_invoice_payment(request, *args, **kwargs):
     return HttpResponse("Notification received")
 
 
+@momo_gateway_callback
 def confirm_invoice_payment(request, *args, **kwargs):
     """
     This function has no URL associated with it.
@@ -243,14 +175,15 @@ def confirm_invoice_payment(request, *args, **kwargs):
     """
     from echo.models import Balance
     from echo.utils import LOW_MAIL_LIMIT, notify_for_low_messaging_credit, notify_for_empty_messaging_credit
-    tx = kwargs.get('transaction')
+    tx = kwargs['tx']  # Decoration with @momo_gateway_callback makes 'tx' available in kwargs
+    extra_months = int(kwargs['extra_months'])
     now = datetime.now()
     service = get_service_instance()
     config = service.config
     invoicing_config = get_invoicing_config_instance()
-    invoice_id = request.session['object_id']
-    amount = request.session['amount']
-    invoice = Invoice.objects.select_related('subscription').get(pk=invoice_id)
+    invoice_id = tx.object_id
+    amount = tx.amount
+    invoice = Invoice.objects.select_related('subscription', 'member').get(pk=invoice_id)
     invoice.paid += amount
     invoice.status = Invoice.PAID
     if invoicing_config.processing_fees_on_customer:
@@ -270,7 +203,6 @@ def confirm_invoice_payment(request, *args, **kwargs):
         extra_months, total_months = 0, None
     else:
         if invoicing_config.separate_billing_cycle:
-            extra_months = request.session['extra_months']
             total_months = invoice.months_count + extra_months
             days = get_days_count(total_months)
         else:
@@ -290,11 +222,12 @@ def confirm_invoice_payment(request, *args, **kwargs):
         subscription.expiry = expiry
         subscription.status = Service.ACTIVE
         subscription.save()
-    mean = request.session['mean']
+    mean = tx.wallet
     share_payment_and_set_stats(invoice, total_months, mean)
-    member = request.user
+    member = invoice.member
     sudo_group = Group.objects.using(UMBRELLA).get(name=SUDO)
-    add_event(service, PAYMENT_CONFIRMATION, member=member, object_id=invoice.id)
+    if member:
+        add_event(service, PAYMENT_CONFIRMATION, member=member, object_id=invoice.id)
     add_event(service, PAYMENT_CONFIRMATION, group_id=sudo_group.id, object_id=invoice.id)
 
     if invoicing_config.return_url:
@@ -308,7 +241,7 @@ def confirm_invoice_payment(request, *args, **kwargs):
         invoice_pdf_file = None
 
     balance, update = Balance.objects.using(WALLETS_DB_ALIAS).get_or_create(service_id=service.id)
-    if member.email:
+    if member and member.email:
         if 0 < balance.mail_count < LOW_MAIL_LIMIT:
             notify_for_low_messaging_credit(service, balance)
         if balance.mail_count <= 0:
@@ -332,11 +265,11 @@ def confirm_invoice_payment(request, *args, **kwargs):
             balance.mail_count -= 1
             balance.save()
             Thread(target=lambda m: m.send(), args=(msg,)).start()
-    return HttpResponseRedirect(request.session['return_url'])
+    return HttpResponse("Notification received")
 
 
+@momo_gateway_request
 def product_set_checkout(request, *args, **kwargs):
-    service = get_service_instance()
     product_id = request.POST['product_id']
     product = Product.objects.get(pk=product_id)
     member = request.user
@@ -348,27 +281,21 @@ def product_set_checkout(request, *args, **kwargs):
     entry = InvoiceEntry(item=item, short_description=product.short_description, total=product.cost)
     months_count = product.duration / 30
     invoice = Invoice.objects.create(subscription=subscription, amount=product.cost, number=number, due_date=now,
-                                     last_reminder=now, is_one_off=True, entries=[entry], months_count=months_count)
-
-    request.session['amount'] = product.cost
-    request.session['model_name'] = 'billing.Invoice'
-    request.session['object_id'] = invoice.id
-
-    mean = request.GET.get('mean', MTN_MOMO)
-    request.session['mean'] = mean
-    request.session['notif_url'] = service.url # Orange Money only
-    request.session['cancel_url'] = service.url + reverse('billing:pricing') # Orange Money only
-    request.session['return_url'] = reverse('billing:invoice_detail', args=(invoice.id, ))
+                                     last_reminder=now, is_one_off=product.is_one_off, entries=[entry], months_count=months_count)
+    amount = invoice.amount
+    notification_url = reverse('billing:product_do_checkout', args=(invoice.id, ))
+    cancel_url = request.META['HTTP_REFERER']
+    return_url = reverse('billing:invoice_detail', args=(invoice.id, ))
+    return invoice, amount, notification_url, return_url, cancel_url
 
 
+@momo_gateway_callback
 def product_do_checkout(request, *args, **kwargs):
     from echo.models import Balance
     from echo.utils import LOW_MAIL_LIMIT, notify_for_low_messaging_credit, notify_for_empty_messaging_credit
-    tx = kwargs.get('transaction')
-    invoice_id = request.session['object_id']
-    mean = request.session['mean']
-    invoice = Invoice.objects.get(pk=invoice_id)
-    member = request.user
+    tx = kwargs['tx']
+    invoice = Invoice.objects.get(pk=tx.object_id)
+    member = invoice.member
     subscription = invoice.subscription
     subscription.status = Subscription.ACTIVE
     subscription.save()
@@ -376,12 +303,12 @@ def product_do_checkout(request, *args, **kwargs):
     invoice.save()
     payment = Payment.objects.create(invoice=invoice, method=Payment.MOBILE_MONEY,
                                      amount=invoice.amount, processor_tx_id=tx.processor_tx_id)
-    share_payment_and_set_stats(invoice, payment_mean_slug=mean)
+    share_payment_and_set_stats(invoice, payment_mean_slug=tx.wallet)
     service = get_service_instance()
     config = service.config
 
     balance, update = Balance.objects.using(WALLETS_DB_ALIAS).get_or_create(service_id=service.id)
-    if member.email:
+    if member and member.email:
         if 0 < balance.mail_count < LOW_MAIL_LIMIT:
             notify_for_low_messaging_credit(service, balance)
         if balance.mail_count <= 0 and not getattr(settings, 'UNIT_TESTING', False):
@@ -400,8 +327,8 @@ def product_do_checkout(request, *args, **kwargs):
     return HttpResponseRedirect(request.session['return_url'])
 
 
+@momo_gateway_request
 def donation_set_checkout(request, *args, **kwargs):
-    service = get_service_instance()
     member = request.user
     amount = float(request.POST['amount'])
     message = request.POST.get('message')
@@ -409,25 +336,19 @@ def donation_set_checkout(request, *args, **kwargs):
         donation = Donation.objects.create(member=member, amount=amount, message=message)
     else:
         donation = Donation.objects.create(amount=amount, message=message)
-    request.session['amount'] = donation.amount
-    request.session['model_name'] = 'billing.Donation'
-    request.session['object_id'] = donation.id
-
-    mean = request.GET.get('mean', MTN_MOMO)
-    request.session['mean'] = mean
-    request.session['notif_url'] = service.url # Orange Money only
-    request.session['cancel_url'] = service.url + reverse('billing:donate') # Orange Money only
-    request.session['return_url'] = service.url + reverse('billing:donate')
+    notification_url = reverse('billing:donation_do_checkout', args=(donation.id, ))
+    cancel_url = reverse('billing:donate')
+    return_url = reverse('billing:donate')
+    return donation, amount, notification_url, return_url, cancel_url
 
 
+@momo_gateway_callback
 def donation_do_checkout(request, *args, **kwargs):
-    donation_id = request.session['object_id']
-    mean = request.session['mean']
-    donation = Donation.objects.get(pk=donation_id)
+    tx = kwargs['tx']
+    donation = Donation.objects.get(pk=tx.object_id)
     donation.status = CONFIRMED
     donation.save()
-    share_payment_and_set_stats(donation, payment_mean_slug=mean)
-
+    share_payment_and_set_stats(donation, payment_mean_slug=tx.wallet)
     service = get_service_instance()
     # config = service.config
     # if member.email:
@@ -437,5 +358,4 @@ def donation_do_checkout(request, *args, **kwargs):
     #     msg = EmailMessage(subject, html_content, sender, [member.email])
     #     msg.content_subtype = "html"
     #     Thread(target=lambda m: m.send(), args=(msg,)).start()
-    messages.success(request, _("Successful payment. Thank you soooo much for your donation."))
-    return HttpResponseRedirect(request.session['return_url'])
+    return HttpResponse("Notification received.")

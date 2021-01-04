@@ -7,7 +7,7 @@
             <pageGraphics>
                 <setFont name="Helvetica-Bold" size="18"/>
                 <!-- This set font-size for major elements in header -->
-                <drawString x="15" y="680">{% trans "Invoiced to" %}</drawString>
+                <drawString x="15" y="680">{{ lbl_invoiced_to|safe }}</drawString>
                 <drawString x="355" y="680">{% trans "Invoice" %} #{{ invoice.number }}</drawString>
                 {% if weblet_logo %}
                     <image file="{{ weblet_logo }}" preserveAspectRatio="1" x="15" y="790" height="35"></image>
@@ -33,13 +33,13 @@
                     <drawString x="15" y="665">{{ invoiced_to|safe }}</drawString>
                 {% endif %}
 
-                <drawString x="355" y="665">{% trans "Date issued" %} : {{ invoice.date_issued|date:"Y, M d" }}</drawString>
-                <drawString x="355" y="650">{% trans "Due date" %} : {{ invoice.due_date|date:"Y, M d" }}</drawString>
+                <drawString x="355" y="665">{{ lbl_date_issued|safe }} : {{ invoice.date_issued|date:"Y, M d" }}</drawString>
+                <drawString x="355" y="650">{{ lbl_due_date|safe }} : {{ invoice.due_date|date:"Y, M d" }}</drawString>
 
                 <setFont name="Helvetica-Bold" size="40"/>
                 <!-- This set font-size for status in header -->
                 {% if invoice.status == 'Paid' %}
-                    <fill color="red" /><drawString x="420" y="730">{{ status }}</drawString>
+                    <fill color="red" /><drawString x="420" y="730">{{ invoice_status|safe }}</drawString>
                 {% endif %}
 
                 <setFont name="Helvetica-Bold" size="9"/>
@@ -117,7 +117,7 @@
                 </td>
                 <td>
                     <para style="title_left">
-                        <b>{% trans "Quantity" %}</b>
+                        <b>{{ lbl_qty|safe }}</b>
                     </para>
                 </td>
                 <td>
@@ -215,7 +215,7 @@
                 </td>
                 <td>
                     <para style="title">
-                        <b>{% trans "Method" %}</b>
+                        <b>{{ lbl_method|safe }}</b>
                     </para>
                 </td>
                 <td>
@@ -230,7 +230,7 @@
                 </td>
             </tr>
         </blockTable>
-        {% for payment in invoice.payment_set.all %}
+        {% for payment in payment_list %}
         <blockTable style="payment_label" rowHeights="1.2cm" colWidths="5cm, 4.5cm, 4.3cm, 6cm">
             <tr>
                 <td>
@@ -239,18 +239,16 @@
                     </para>
                 </td>
                 <td>
-                    <para>
-                        {{ payment.method }}
-                    </para>
+                    <para>{% with tx=payment.transaction %}
+                        {% if tx %}
+                            {{ tx.wallet_name }}
+                        {% else %}
+                            {{ payment.method }}
+                        {% endif %}
+                    {% endwith %}</para>
                 </td>
                 <td>
-                    <para>
-                        {% if payment.processor_tx_id %}
-                            {{ payment.processor_tx_id }}
-                        {% else %}
-                            {{ payment.id }}
-                        {% endif %}
-                    </para>
+                    <para>{{ payment.processor_tx_id }}</para>
                 </td>
                 <td>
                     <para style="text_right">

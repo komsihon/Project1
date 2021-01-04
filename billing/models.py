@@ -10,7 +10,7 @@ from ikwen.core.constants import PENDING
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
 from ikwen.core.constants import PENDING_FOR_PAYMENT
-from ikwen.core.fields import MultiImageField
+from ikwen.core.fields import ImageField, MultiImageField
 from ikwen.core.models import Model, Service, Application, AbstractConfig
 from ikwen.core.utils import add_database_to_settings
 
@@ -66,11 +66,24 @@ class InvoiceEntry(Model):
 
 
 class OperatorProfile(AbstractConfig):
-    ikwen_share_rate = models.FloatField(_("ikwen share rate"), default=0,
-                                         help_text=_("Percentage ikwen collects on the turnover made by this person."))
-    ikwen_share_fixed = models.FloatField(_("ikwen share fixed"), default=0,
-                                          help_text=_("Fixed amount ikwen collects on the turnover made by this person."))
     max_customers = models.IntegerField(default=300)
+
+    def save(self, *args, **kwargs):
+        using = kwargs.pop('using', 'default')
+        if getattr(settings, 'IS_IKWEN', False):
+            db = self.service.database
+            add_database_to_settings(db)
+            try:
+                obj_mirror = OperatorProfile.objects.using(db).get(pk=self.id)
+                obj_mirror.ikwen_share_rate = self.ikwen_share_rate
+                obj_mirror.ikwen_share_fixed = self.ikwen_share_fixed
+                obj_mirror.max_customers = self.max_customers
+                obj_mirror.cash_out_min = self.cash_out_min
+                obj_mirror.cash_out_rate = self.cash_out_rate
+                super(OperatorProfile, obj_mirror).save(using=db)
+            except OperatorProfile.DoesNotExist:
+                pass
+        super(OperatorProfile, self).save(using=using, *args, **kwargs)
 
 
 class InvoicingConfig(models.Model):
@@ -79,8 +92,8 @@ class InvoicingConfig(models.Model):
     processing_fees_on_customer = models.BooleanField(default=False)
     # This is the default number of days preceding expiry on which invoice must be sent to client.
     # this number can later be overriden per subscription of clients
-    logo = models.ImageField(upload_to='invoicing_config/logos', verbose_name=_("Logo"),
-                             help_text=_("Logo to display on PDF Invoices. Landscape version is better."))
+    logo = ImageField(_("Logo"), upload_to='invoicing_config/logos', allowed_extensions=['jpg', 'jpeg'],
+                      help_text=_("Logo to display on PDF Invoices. Landscape version is better."))
     gap = models.IntegerField(default=14, verbose_name=_("Gap"),
                               help_text=_("Number of days preceding expiry on which invoice must be sent to client."))
     tolerance = models.IntegerField(default=7, verbose_name=_("Tolerance"),
@@ -437,7 +450,7 @@ class AbstractPayment(Model):
         (WALLET_DEBIT, _("Wallet debit")),
     )
     method = models.CharField(max_length=60, choices=METHODS_CHOICES)
-    processor_tx_id = models.CharField(max_length=60, blank=True, null=True, db_index=True)
+    processor_tx_id = models.CharField(max_length=60, blank=True, null=True, default=None, db_index=True)
     amount = models.PositiveIntegerField()
     cashier = models.ForeignKey(Member, blank=True, null=True, related_name='+', on_delete=models.SET_NULL,
                                 help_text=_("If the payment was in cash, this is who collected the money"))
@@ -474,6 +487,13 @@ class Payment(AbstractPayment):
                 add_database_to_settings(db)
                 super(Payment, self).save(using=db)
         super(Payment, self).save(using=using, *args, **kwargs)
+
+    def _get_transaction(self):
+        try:
+            return MoMoTransaction.objects.using('wallets').get(processor_tx_id=self.processor_tx_id)
+        except:
+            pass
+    transaction = property(_get_transaction)
 
 
 class PaymentMean(Model):
@@ -523,25 +543,26 @@ class MoMoTransaction(Model):
     CASH_IN = 'CashIn'
     CASH_OUT = 'CashOut'
 
-    service_id = models.CharField(max_length=24)
-    type = models.CharField(max_length=24)
-    wallet = models.CharField(max_length=60, blank=True, null=True,
+    service_id = models.CharField(max_length=24, db_index=True)
+    type = models.CharField(max_length=24, db_index=True)
+    wallet = models.CharField(max_length=60, blank=True, null=True, db_index=True,
                               help_text="Wallet Provider Solution. Eg: MTN MoMo, Orange Money, etc.")
-    username = models.CharField(max_length=100, blank=True, null=True)
-    phone = models.CharField(max_length=24)
+    username = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    phone = models.CharField(max_length=24, db_index=True)
     amount = models.FloatField(default=0)
     fees = models.FloatField(default=0)  # Transaction fees
     dara_fees = models.FloatField(default=0)  # Dara fees
-    model = models.CharField(max_length=150)
-    object_id = models.CharField(unique=True, max_length=60)
-    processor_tx_id = models.CharField(max_length=100, blank=True,
+    dara_id = models.CharField(max_length=24, blank=True, null=True, db_index=True)
+    model = models.CharField(max_length=150, blank=True, null=True, db_index=True)
+    object_id = models.CharField(max_length=60, blank=True, null=True)
+    processor_tx_id = models.CharField(max_length=100, blank=True, db_index=True,
                                        help_text="ID of the transaction in the Payment Processor system")
-    task_id = models.CharField(max_length=30, blank=True, null=True,
+    task_id = models.CharField(max_length=60, blank=True, null=True, db_index=True,
                                help_text="Task ID (Payment Processor API)")
     callback = models.CharField(max_length=255, blank=True, null=True)
     message = models.TextField(blank=True, null=True)
-    is_running = models.BooleanField(default=True)
-    status = models.CharField(max_length=30, blank=True, null=True)
+    is_running = models.BooleanField(default=True, db_index=True)
+    status = models.CharField(max_length=30, blank=True, null=True, db_index=True)
 
     class Meta:
         db_table = 'ikwen_momo_transaction'

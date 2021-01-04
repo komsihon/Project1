@@ -22,7 +22,7 @@
                     {% include 'core/snippets/model_admin_form.html' %}
                     {% for media_obj in media_field_list %}
                     <div style="padding-left: 0; margin-right: 15px">
-                        <div>
+                        <div class="col-md-5 col-sm-6">
                         {% with media=media_obj %}
                             {% include 'core/snippets/media_uploader_single.html' %}
                         {% endwith %}

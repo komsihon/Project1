@@ -2,15 +2,20 @@
 from threading import Thread
 
 from django.conf import settings
-from django.contrib import messages, admin
+from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.db import transaction
+from django.db.models import Sum
+from djangotoolbox.admin import admin
 from django.utils.translation import gettext as _
+from ikwen.accesscontrol.backends import UMBRELLA
+
+from ikwen.billing.models import MoMoTransaction
 
 from ikwen.core.models import Service, Config, CASH_OUT_REQUEST_PAID
 from ikwen.core.models import OperatorWallet
 from ikwen.core.utils import get_mail_content, add_event, set_counters, increment_history_field
-from ikwen.cashout.models import CashOutMethod, CashOutRequest
+from ikwen.cashout.models import CashOutMethod, CashOutRequest, CashOutAddress
 
 __author__ = 'Kom Sihon'
 
@@ -22,7 +27,7 @@ class CashOutMethodAdmin(admin.ModelAdmin):
 
 
 class CashOutRequestAdmin(admin.ModelAdmin):
-    list_display = ('service', 'member', 'amount', 'method', 'account_number', 'created_on', 'status', 'teller', )
+    list_display = ('service', 'member', 'amount_payable', 'method', 'account_number', 'created_on', 'status', 'teller', )
     search_fields = ('name', 'teller_username', )
     list_filter = ('created_on', )
     ordering = ('-id', )
@@ -43,8 +48,19 @@ class CashOutRequestAdmin(admin.ModelAdmin):
             obj.teller_username = request.user.username
             service = Service.objects.get(pk=obj.service_id)
             wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=service.id, provider=obj.provider)
+            method = CashOutMethod.objects.get(slug=obj.provider)
+            address = CashOutAddress.objects.using(UMBRELLA).get(service=service, method=method)
             with transaction.atomic(using='wallets'):
-                wallet.balance -= obj.amount_paid
+                queryset = MoMoTransaction.objects.using('wallets') \
+                    .filter(service_id=service.id, created_on__gt=obj.paid_on,
+                            is_running=False, status=MoMoTransaction.SUCCESS, wallet=obj.provider)
+                aggr = queryset.aggregate(Sum('amount'))
+                aggr_fees = queryset.aggregate(Sum('fees'))
+                aggr_dara_fees = queryset.aggregate(Sum('dara_fees'))
+                amount_successful = 0
+                if aggr['amount__sum']:
+                    amount_successful = aggr['amount__sum'] - aggr_fees['fees__sum'] - aggr_dara_fees['dara_fees__sum']
+                wallet.balance = amount_successful
                 wallet.save(using='wallets')
                 iao = service.member
                 if getattr(settings, 'TESTING', False):
@@ -67,8 +83,9 @@ class CashOutRequestAdmin(admin.ModelAdmin):
                 subject = _("Money transfer confirmation")
                 html_content = get_mail_content(subject, '', template_name='cashout/mails/payment_notice.html',
                                                 extra_context={'cash_out_request': obj, 'business': service,
-                                                               'service': event_originator})
+                                                               'address': address, 'service': event_originator})
                 msg = EmailMessage(subject, html_content, sender, [iao.email])
+                msg.bcc = ['rsihon@gmail.com']
                 msg.content_subtype = "html"
                 Thread(target=lambda m: m.send(), args=(msg,)).start()
 
