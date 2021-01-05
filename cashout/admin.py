@@ -46,6 +46,8 @@ class CashOutRequestAdmin(admin.ModelAdmin):
                 self.message_user(request, "Reference number missing", messages.ERROR)
                 return
             obj.teller_username = request.user.username
+            charges = obj.amount * obj.rate / 100
+            obj.amount_paid = obj.amount * (100 - obj.rate) / 100
             service = Service.objects.get(pk=obj.service_id)
             wallet = OperatorWallet.objects.using('wallets').get(nonrel_id=service.id, provider=obj.provider)
             method = CashOutMethod.objects.get(slug=obj.provider)
@@ -69,21 +71,16 @@ class CashOutRequestAdmin(admin.ModelAdmin):
                 else:
                     from ikwen.conf.settings import IKWEN_SERVICE_ID
                     ikwen_service = Service.objects.get(pk=IKWEN_SERVICE_ID)
-                retailer = service.retailer
-                if retailer:
-                    retailer_config = Config.objects.get(service=retailer)
-                    sender = '%s <no-reply@%s>' % (retailer_config.company_name, retailer.domain)
-                    event_originator = retailer
-                else:
-                    sender = 'ikwen <no-reply@ikwen.com>'
-                    event_originator = ikwen_service
+                sender = 'ikwen <no-reply@ikwen.com>'
+                event_originator = ikwen_service
 
                 add_event(event_originator, CASH_OUT_REQUEST_PAID, member=iao, object_id=obj.id)
 
                 subject = _("Money transfer confirmation")
                 html_content = get_mail_content(subject, '', template_name='cashout/mails/payment_notice.html',
-                                                extra_context={'cash_out_request': obj, 'business': service,
-                                                               'address': address, 'service': event_originator})
+                                                extra_context={'cash_out_request': obj, 'charges': charges,
+                                                               'weblet': service, 'address': address,
+                                                               'service': event_originator})
                 msg = EmailMessage(subject, html_content, sender, [iao.email])
                 msg.bcc = ['rsihon@gmail.com']
                 msg.content_subtype = "html"

@@ -23,8 +23,6 @@ def create_cashout_request(config, cashout_method, cashout_address):
     now = datetime.now()
     weblet = config.service
     provider = cashout_method.slug
-    CashOutRequest.objects.using('wallets') \
-        .filter(service_id=weblet.id, provider=provider, status=CashOutRequest.PAID).delete()
     try:
         last_cashout = CashOutRequest.objects.using('wallets') \
             .filter(service_id=weblet.id, provider=provider, status=CashOutRequest.PAID).order_by('-id')[0]
