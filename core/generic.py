@@ -443,13 +443,13 @@ class ChangeObjectBase(TemplateView):
     slug_field = None
 
     def get_model(self):
-        if isinstance(self.model, basestring):
+        if isinstance(self.model, str):
             return apps.get_model(*self.model.split('.'))
         else:
             return self.model
 
     def get_model_admin(self):
-        if isinstance(self.model_admin, basestring):
+        if isinstance(self.model_admin, str):
             return import_by_path(self.model_admin)
         else:
             return self.model_admin
@@ -649,9 +649,9 @@ class ChangeObjectBase(TemplateView):
             else:
                 next_url = self.get_object_list_url(request, obj, *args, **kwargs)
             if before:
-                messages.success(request, u'%s <strong>%s</strong> %s' % (obj._meta.verbose_name.capitalize(), unicode(obj), _('successfully updated')))
+                messages.success(request, '%s <strong>%s</strong> %s' % (obj._meta.verbose_name.capitalize(), obj, _('successfully updated')))
             else:
-                messages.success(request, u'%s <strong>%s</strong> %s' % (obj._meta.verbose_name.capitalize(), unicode(obj), _('successfully changed')))
+                messages.success(request, '%s <strong>%s</strong> %s' % (obj._meta.verbose_name.capitalize(), obj, _('successfully changed')))
             return HttpResponseRedirect(next_url)
         else:
             context = self.get_context_data(**kwargs)
