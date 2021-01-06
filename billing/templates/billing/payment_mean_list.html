@@ -1,16 +1,9 @@
-{% extends 'core/app_base_admin.html' %}
+{% extends 'core/object_list_base.html' %}
 
 {% load i18n humanize staticfiles auth_tokens %}
 
 {% block page_title %}
 <title>{% trans "Payment means" %} - {{ service.project_name }}</title>
-{% endblock %}
-
-{% block head_style %}
-    {{ block.super }}
-    <style>
-        #results {clear: both}
-    </style>
 {% endblock %}
 
 {% block breadcrumb_location %}
@@ -19,20 +12,23 @@
 
 {% block admin_content %}
     <div id="admin-content">
-        <div class="container-fluid">
-            <div id="results">
-                <ul class="object-list" style="padding: 20px 0 0 0">
+        <div class="container-fluid stage">
+            <div id="results" class="results-stage">
+                <ul class="object-list list-group" style="padding: 20px 0 0 0">
                 {% for mean in payment_mean_list_all %}
-                    <li class="ik-li mean" id="{{ mean.id }}" data-id="{{ mean.id }}"
+                    <li class="ik-li list-group-item mean {{ obj.status }}" id="{{ mean.id }}" data-id="{{ mean.id }}"
                             {% for key, value in mean.credentials.items  %}data-{{ key }}="{{ value }}"{% endfor %}>
-                        <i class="glyphicon glyphicon-ok check{% if mean.is_active %} active{% endif %}"
-                           title="{% if mean.is_active %}{% trans "Cancel" %}{% else %}{% trans "Activate" %}{% endif %}"></i>
                         <div class="image" style="background-image: url({{ settings.IKWEN_MEDIA_URL }}{{ mean.logo.name }})"></div>
                         <div class="info">
-                            <span class="name" style="float: left; margin-top: 18px">{{ mean.name }}</span>
+                            <span class="title" style="float: left; margin-top: 18px">{{ mean.name }}</span>
                         </div>
                         <div class="actions">
-                            <i class="glyphicon glyphicon-cog conf-{{ mean.slug }}" data-toggle="modal" data-target="#conf-{{ mean.slug }}" title="{% trans "Configure" %}"></i>
+                            {% if mean.is_active %}
+                                <i class="action glyphicon glyphicon-ok toggle active off" title="{% trans "Deactivate" %}"></i>
+                            {% else %}
+                                <i class="action glyphicon glyphicon-ok toggle active on" title="{% trans "Activate" %}"></i>
+                            {% endif %}
+                            <i class="action glyphicon glyphicon-cog conf-{{ mean.slug }}" data-toggle="modal" data-target="#conf-{{ mean.slug }}" title="{% trans "Configure" %}"></i>
                         </div>
                     </li>
                 {% endfor %}
@@ -143,9 +139,46 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="mtn-momo-auth-header" class="col-sm-5 col-md-4">Authorization header</label>
+                            <label for="mtn-momo-api-user" class="col-sm-5 col-md-4">API user</label>
                             <div class="col-sm-7">
-                                <input type="text" id="mtn-momo-auth-header" name="auth_header" class="form-control input-sm" />
+                                <input type="text" id="mtn-momo-api-user" name="api_user" class="form-control input-sm" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="mtn-momo-api-key" class="col-sm-5 col-md-4">API key</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="mtn-momo-api-key" name="api_key" class="form-control input-sm" />
+                            </div>
+                        </div>
+                    </form>
+                    <div class="row" style="clear: both; padding-top: 1em">
+                        <div class="col-xs-12 col-sm-4 col-md-3">
+                            <button class="btn btn-success btn-block btn-sm"
+                                    data-dismiss="modal" aria-label="Close">{% trans "OK" %}</button>
+                        </div>
+                        <div class="col-xs-12 col-sm-4 col-md-3">
+                            <button class="btn btn-default btn-block btn-sm"
+                                    data-dismiss="modal" aria-label="Close">{% trans "Cancel" %}</button>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="conf-mtn-momo" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-info">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{% trans "Configure" %} YUP</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group row">
+                            <label for="yup-merchant-id" class="col-sm-5 col-md-4">Merchant ID</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="yup-merchant-id" name="merchant_id" class="form-control input-sm" />
                             </div>
                         </div>
                     </form>
@@ -192,20 +225,17 @@
             }).on('click', '.conf-mtn-momo', function() {
                 let meanId = $(this).parents('.ik-li').data('id'),
                     subscriptionKey = $(this).parents('.ik-li').data('subscription_key'),
-                    authHeader = $(this).parents('.ik-li').data('auth_header');
+                    APIUser = $(this).parents('.ik-li').data('api_user'),
+                    APIKey = $(this).parents('.ik-li').data('api_key');
                 $('#mtn-momo-subscription-key').val(subscriptionKey);
-                $('#mtn-momo-auth-header').val(authHeader);
+                $('#mtn-momo-api-user').val(APIUser);
+                $('#mtn-momo-api-key').val(APIKey);
                 $('div#conf-mtn-momo button.btn-success').data('mean-id', meanId);
-            }).on('click', '.ik-li.mean .check', function() {
+            }).on('click', '.conf-yup', function() {
                 let meanId = $(this).parents('.ik-li').data('id'),
-                    _$check = $(this);
-                $.getJSON('{% url 'billing:toggle_payment_mean' %}', {mean_id: meanId}, function(resp) {
-                    if (resp.error) {
-                        ikwen.showFloatingNotice(resp.error, '', 5);
-                        return
-                    }
-                    _$check.toggleClass('active');
-                })
+                    merchantID = $(this).parents('.ik-li').data('merchant_id');
+                $('#yup-merchant-id').val(merchantID);
+                $('div#conf-yup button.btn-success').data('mean-id', meanId);
             });
             $('div#conf-paypal button.btn-success').click(function() {
                 let credentials = JSON.stringify({
@@ -240,7 +270,8 @@
             $('div#conf-mtn-momo button.btn-success').click(function() {
                 let credentials = JSON.stringify({
                     subscription_key: $('#mtn-momo-subscription-key').val(),
-                    auth_header: $('#mtn-momo-auth-header').val()
+                    api_user: $('#mtn-momo-api-user').val(),
+                    api_key: $('#mtn-momo-api-key').val()
                 }),
                 meanId = $(this).data('mean-id');
                 $.getJSON('{% url 'billing:set_credentials' %}', {mean_id: meanId, credentials: credentials}, function(resp) {
@@ -249,6 +280,19 @@
                         return
                     }
                     ikwen.showFloatingNotice("{% trans "MTN Mobile Money successfully configured" %}", '', 5);
+                })
+            });
+            $('div#conf-yup button.btn-success').click(function() {
+                let credentials = JSON.stringify({
+                    merchant_id: $('#yup-merchant-id').val()
+                }),
+                meanId = $(this).data('mean-id');
+                $.getJSON('{% url 'billing:set_credentials' %}', {mean_id: meanId, credentials: credentials}, function(resp) {
+                    if (resp.error) {
+                        ikwen.showFloatingNotice(resp.error, '', 5);
+                        return
+                    }
+                    ikwen.showFloatingNotice("{% trans "YUP successfully configured" %}", '', 5);
                 })
             });
         })()

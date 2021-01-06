@@ -3,6 +3,7 @@ import json
 import logging
 import random
 import string
+import traceback
 from datetime import datetime, timedelta
 
 import requests
@@ -12,7 +13,7 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect
 
 from ikwen.conf.settings import WALLETS_DB_ALIAS
 from ikwen.core.templatetags.url_utils import strip_base_alias
-from ikwen.core.utils import get_service_instance
+from ikwen.core.utils import get_service_instance, set_counters, increment_history_field
 from ikwen.billing.models import MoMoTransaction
 from ikwen.billing.mtnmomo.open_api import MTN_MOMO
 
@@ -102,12 +103,38 @@ def momo_gateway_callback(fn):
                 if datetime.now() > expiry:
                     return HttpResponse("Transaction %s timed out." % tx.id)
 
+            weblet = get_service_instance(check_cache=False)
+            ikwen_charges = tx.amount * weblet.config.ikwen_share_rate / 100
             tx.status = status
             tx.message = 'OK' if status == MoMoTransaction.SUCCESS else message
             tx.processor_tx_id = operator_tx_id
             tx.phone = phone
+            tx.fees = ikwen_charges
+            dara_fees = 0
+            try:
+                from daraja.models import Dara, Follower
+                member = tx.member
+                follower = Follower.objects.select_related().get(member=member)
+                referrer = follower.referrer
+                if not referrer:
+                    return
+                dara = Dara.objects.get(member=referrer.member)
+                dara_fees = tx.amount * dara.share_rate / 100
+                tx.dara_fees = dara_fees
+                tx.dara_id = dara.id
+            except:
+                pass
+            amount = tx.amount - ikwen_charges - dara_fees
+            try:
+                set_counters(weblet)
+                increment_history_field(weblet, 'turnover_history', tx.amount)
+                increment_history_field(weblet, 'earnings_history', amount)
+                increment_history_field(weblet, 'transaction_count_history')
+            except:
+                pass
             tx.is_running = False
             tx.save()
+            weblet.raise_balance(amount, tx.wallet)
         except:
             raise Http404("Transaction with object_id %s not found" % object_id)
         if status != MoMoTransaction.SUCCESS:
@@ -124,5 +151,10 @@ def momo_gateway_callback(fn):
             if callback_signature != signature:
                 return HttpResponse('Invalid transaction signature')
         kwargs['tx'] = tx
-        return fn(*args, **kwargs)
+        try:
+            return fn(*args, **kwargs)
+        except:
+            tx.message = traceback.format_exc()
+            tx.save(using='wallets')
+            return HttpResponse('Warning: Failed to run callback')
     return wrapper

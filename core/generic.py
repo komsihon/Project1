@@ -201,6 +201,9 @@ class HybridListView(ListView):
             obj.save()
             response = {'success': True}
             return HttpResponse(json.dumps(response), 'content-type: text/json')
+        elif action:
+            f = getattr(self, action)
+            return f(request, *args, **kwargs)
         # Sorting stuffs
         sorted_keys = request.GET.get('sorted')
         if sorted_keys:

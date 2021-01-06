@@ -20,14 +20,13 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import TemplateView
 
-from ikwen.billing.mtnmomo.open_api import init_momo_payment
+from ikwen.billing.mtnmomo.open_api import MTN_MOMO, init_momo_payment
 from ikwen.billing.orangemoney.wso2_api import init_om_payment
 
 from ikwen.accesscontrol.backends import UMBRELLA
 from ikwen.accesscontrol.models import Member
 from ikwen.billing.cloud_setup import DeploymentForm, deploy
 from ikwen.billing.models import PaymentMean, CloudBillingPlan, IkwenInvoiceItem, InvoiceEntry, MoMoTransaction
-from ikwen.billing.mtnmomo.views import MTN_MOMO
 from ikwen.billing.orangemoney.views import init_web_payment, ORANGE_MONEY
 from ikwen.billing.yup.views import YUP, init_yup_web_payment
 from ikwen.billing.uba.views import UBA, init_uba_web_payment
@@ -43,7 +42,8 @@ Product = get_product_model()
 Subscription = get_subscription_model()
 
 
-class PaymentMeanList(TemplateView):
+class PaymentMeanList(HybridListView):
+    model = PaymentMean
     template_name = 'billing/payment_mean_list.html'
 
     def get_context_data(self, **kwargs):
